@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Woge native DPU primitives</title>
+    <?marker name="head-marker">
+  </head>
+  <body>
+    <section id="marker">Before <?marker name="single"> After</section>
+
+    <section id="range">
+      <?start name="range"><em>Range pending</em><?end>
+    </section>
+
+    <ul id="items"><?marker name="items"></ul>
+
+    <section id="local-scope">
+      <div id="local-target"><?start name="local-target">Local pending<?end></div>
+      <template for="local-target"><strong>Local ready</strong></template>
+    </section>
+
+    <section id="nested-ranges">
+      <?start name="outer-range">
+      <div id="inner-range"><?start name="inner-range">Inner pending<?end></div>
+      <?end>
+    </section>
+
+    <div id="light-target"><?start name="same-name">Light pending<?end></div>
+    <div id="shadow-host">
+      <template shadowrootmode="open">
+        <section id="shadow-target"><?start name="same-name">Shadow pending<?end></section>
+        <template for="same-name"><strong>Shadow ready</strong></template>
+      </template>
+    </div>
+
+    <section id="left-scope">
+      <div id="cross-scope-target"><?start name="cross-scope">Cross-scope pending<?end></div>
+    </section>
+    <section id="right-scope">
+      <template for="cross-scope"><strong>Must not cross scope</strong></template>
+    </section>
+
+    <section id="dynamic-target"><?start name="dynamic-target">Dynamic pending<?end></section>
+
+    <template for="single"><strong>Inserted</strong></template>
+    <template for="range"><strong>Range ready</strong></template>
+    <template for="items"><li>One</li><?marker name="items"></template>
+    <template for="items"><li>Two</li><?marker name="items"></template>
+    <template for="inner-range"><strong>Inner ready</strong></template>
+    <template for="same-name"><strong>Light ready</strong></template>
+    <template for="head-marker"><meta name="dpu-head-patched" content="yes"></template>
+  </body>
+</html>

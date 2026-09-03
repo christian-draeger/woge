@@ -15,6 +15,8 @@ Last policy review: 2026-09-03.
 
 “Current and previous” is evaluated on the release date, not hard-coded in library source. A release record names exact versions. Playwright's WebKit is a useful cross-engine signal but is not branded Safari, so it does not replace the release smoke test. Unsupported legacy browsers and embedded webviews may still receive the HTML baseline, but they are not compatibility targets until an adapter documents them.
 
+Chrome 150 shipped native `<template for>` out-of-order streaming, but this remains a limited-availability Woge adapter rather than part of the supported enhancement tier. The [native DPU evidence](../../spikes/native-dpu/evidence.md) limits M0/MVP use to an off-by-default Chrome 150+ initial-document encoder for Woge-generated active-content-free patches. Framed action, navigation and live updates continue through the cross-browser runtime. [ADR 0015](../adr/0015-limit-native-dpu-to-initial-document-optimization.md) records the full ceiling and capability-negotiation constraint.
+
 The enhancement runtime may depend by default only on APIs available across the supported stable set. A narrowly missing API needs a tested fallback or a small replaceable polyfill; user-agent sniffing is not a substitute for capability detection.
 
 ## Behavior without JavaScript
@@ -76,5 +78,7 @@ The CSS authoring spike in [#88](https://github.com/christian-draeger/woge/issue
 - [Web Platform Baseline](https://web.dev/baseline)
 - [Playwright browser coverage](https://playwright.dev/docs/browsers)
 - [W3C CSS Snapshot 2026](https://www.w3.org/TR/css-2026/)
+- [Chrome 150 out-of-order streaming release note](https://developer.chrome.com/release-notes/150#out_of_order_streaming)
+- [WICG Declarative Partial Updates patching explainer](https://github.com/WICG/declarative-partial-updates/blob/main/patching-explainer.md)
 - [WCAG 2.2 understanding focus order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html)
 - [WCAG 2.2 understanding status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)

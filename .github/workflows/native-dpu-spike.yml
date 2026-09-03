@@ -1,0 +1,33 @@
+name: Native DPU spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/native-dpu/**"
+      - ".github/workflows/native-dpu-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/native-dpu/**"
+      - ".github/workflows/native-dpu-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spikes/native-dpu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: spikes/native-dpu/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
