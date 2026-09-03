@@ -1,0 +1,30 @@
+<form xmlns:th="http://www.thymeleaf.org"
+      th:fragment="form(project, titleValue, ownerValue, dueDateValue, titleError)"
+      id="task-create"
+      method="post"
+      hx-target="#task-create"
+      hx-swap="outerHTML"
+      th:action="@{/projects/{project}/tasks(project=${project.slug})}"
+      th:attr="hx-post=@{/projects/{project}/tasks(project=${project.slug})}">
+    <div th:if="${titleError != null}" class="error-summary" role="alert" tabindex="-1">
+        <a href="#task-title" th:text="${titleError}">A title is required.</a>
+    </div>
+
+    <label for="task-title">Title</label>
+    <input id="task-title"
+           name="title"
+           required
+           th:value="${titleValue}"
+           th:attr="aria-invalid=${titleError != null},aria-describedby=${titleError != null} ? 'task-title-error' : null">
+    <p th:if="${titleError != null}" id="task-title-error" class="field-error" th:text="${titleError}">
+        A title is required.
+    </p>
+
+    <label for="task-owner">Owner <span>(optional)</span></label>
+    <input id="task-owner" name="owner" th:value="${ownerValue}">
+
+    <label for="task-due-date">Due date <span>(optional)</span></label>
+    <input id="task-due-date" name="dueDate" type="date" th:value="${dueDateValue}">
+
+    <button type="submit">Create task</button>
+</form>

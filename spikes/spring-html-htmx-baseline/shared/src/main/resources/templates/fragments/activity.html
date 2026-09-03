@@ -1,0 +1,15 @@
+<section xmlns:th="http://www.thymeleaf.org"
+         th:fragment="activity(snapshot, oob)"
+         id="project-activity"
+         aria-labelledby="project-activity-heading"
+         aria-busy="false"
+         aria-live="polite"
+         th:attr="hx-swap-oob=${oob} ? 'outerHTML' : null">
+    <h2 id="project-activity-heading">Recent activity</h2>
+    <ol class="activity-list">
+        <li th:each="event : ${snapshot.activity}">
+            <span th:text="${event.description}">Task created</span>
+            <time th:datetime="${event.occurredAt}" th:text="${#temporals.format(event.occurredAt, 'HH:mm')}">12:00</time>
+        </li>
+    </ol>
+</section>
