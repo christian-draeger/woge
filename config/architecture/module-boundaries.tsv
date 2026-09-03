@@ -1,0 +1,11 @@
+# module	role	exposure	path	dependencies	optional_dependencies
+woge-core	foundation	public	modules/woge-core	-	-
+woge-protocol	protocol	public	modules/woge-protocol	woge-core	-
+woge-host-spi	port	public	modules/woge-host-spi	woge-core,woge-protocol	-
+woge-server-runtime	runtime	internal	modules/woge-server-runtime	woge-core,woge-protocol,woge-host-spi	-
+woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
+woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
+woge-spring-webflux	adapter	public	adapters/woge-spring-webflux	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
+woge-ktor	adapter	public	adapters/woge-ktor	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
+woge-spring-boot-autoconfigure	integration	public	integrations/woge-spring-boot-autoconfigure	woge-host-spi	woge-spring-mvc,woge-spring-webflux
+woge-spring-boot-starter	integration	public	integrations/woge-spring-boot-starter	woge-spring-boot-autoconfigure	-
