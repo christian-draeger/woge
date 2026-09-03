@@ -31,3 +31,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0002](0002-framework-neutral-host-boundary.md) | Accepted | Put server frameworks behind Woge host adapters |
 | [0003](0003-web-first-documentation-and-ai-dx.md) | Accepted | Use web-first documentation and compiler-guided AI DX |
 | [0004](0004-project-operations-reference-application.md) | Accepted | Use one project operations dashboard as the reference application |
+| [0005](0005-server-host-use-case-ports.md) | Accepted | Model server adapters as Woge use-case exchanges |
