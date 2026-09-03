@@ -38,3 +38,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0009](0009-frontend-extension-contract.md) | Accepted | Layer frontend extensions over semantic server HTML |
 | [0010](0010-identity-epochs-and-revisions.md) | Accepted | Scope rendered identity and revisions to a page epoch |
 | [0011](0011-typed-web-references.md) | Accepted | Generate distinct typed descriptors for web references |
+| [0012](0012-html-writer-and-kotlinx-interop.md) | Accepted | Own a minimal streaming HTML writer with kotlinx.html interop |
