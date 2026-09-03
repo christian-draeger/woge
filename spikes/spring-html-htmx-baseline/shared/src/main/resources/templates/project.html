@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${project.name} · Project operations|">Project operations</title>
+    <link rel="stylesheet" href="/baseline.css">
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+            integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to project content</a>
+<header class="site-header">
+    <a href="/">Woge baseline</a>
+    <nav aria-label="Primary navigation">
+        <a th:href="@{/projects/{project}(project=${project.slug})}" aria-current="page">Projects</a>
+    </nav>
+</header>
+
+<main id="main">
+    <p class="eyebrow">Project operations</p>
+    <h1 th:text="${project.name}">Woge</h1>
+    <p>This hand-written application is the comparison point for future Woge slices.</p>
+
+    <p class="no-js-path">
+        <a th:href="@{/projects/{project}(project=${project.slug},full=true)}">
+            Load the complete page without enhanced requests
+        </a>
+    </p>
+
+    <section aria-labelledby="create-task-heading">
+        <h2 id="create-task-heading">Create task</h2>
+        <th:block th:replace="~{fragments/task-form :: form(${project}, ${titleValue}, ${ownerValue}, ${dueDateValue}, ${titleError})}"/>
+    </section>
+
+    <div class="dashboard-grid">
+        <th:block th:if="${snapshot != null}">
+            <th:block th:replace="~{fragments/project-summary :: summary(${snapshot}, false)}"/>
+        </th:block>
+        <section th:unless="${snapshot != null}"
+                 id="project-summary"
+                 aria-labelledby="project-summary-heading"
+                 aria-busy="true"
+                 hx-trigger="load"
+                 hx-swap="outerHTML"
+                 th:attr="hx-get=@{/projects/{project}/regions/summary(project=${project.slug})}">
+            <h2 id="project-summary-heading">Project summary</h2>
+            <p>Loading project counts…</p>
+        </section>
+
+        <th:block th:if="${snapshot != null}">
+            <th:block th:replace="~{fragments/task-table :: table(${snapshot}, false)}"/>
+        </th:block>
+        <section th:unless="${snapshot != null}"
+                 id="task-table"
+                 aria-labelledby="task-table-heading"
+                 aria-busy="true"
+                 hx-trigger="load"
+                 hx-swap="outerHTML"
+                 th:attr="hx-get=@{/projects/{project}/regions/tasks(project=${project.slug})}">
+            <h2 id="task-table-heading">Tasks</h2>
+            <p>Loading tasks…</p>
+        </section>
+
+        <th:block th:if="${snapshot != null}">
+            <th:block th:replace="~{fragments/activity :: activity(${snapshot}, false)}"/>
+        </th:block>
+        <section th:unless="${snapshot != null}"
+                 id="project-activity"
+                 aria-labelledby="project-activity-heading"
+                 aria-busy="true"
+                 hx-trigger="load"
+                 hx-swap="outerHTML"
+                 th:attr="hx-get=@{/projects/{project}/regions/activity(project=${project.slug})}">
+            <h2 id="project-activity-heading">Recent activity</h2>
+            <p>Loading activity…</p>
+        </section>
+    </div>
+</main>
+</body>
+</html>
