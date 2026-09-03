@@ -33,3 +33,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0004](0004-project-operations-reference-application.md) | Accepted | Use one project operations dashboard as the reference application |
 | [0005](0005-server-host-use-case-ports.md) | Accepted | Model server adapters as Woge use-case exchanges |
 | [0006](0006-initial-module-boundaries.md) | Accepted | Enforce a small inward-pointing initial module graph |
+| [0007](0007-browser-support-and-progressive-enhancement.md) | Accepted | Guarantee an HTML baseline before browser enhancement |
