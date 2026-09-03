@@ -1,0 +1,14 @@
+{
+  "name": "woge-css-authoring-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/scoping.test.js && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "postcss": "8.5.28",
+    "postcss-selector-parser": "7.1.6",
+    "postcss-value-parser": "4.2.0"
+  }
+}
