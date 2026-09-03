@@ -12,6 +12,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Browser support and progressive enhancement](architecture/browser-support-policy.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
+- [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
 
 ## Planned documentation layers
 
