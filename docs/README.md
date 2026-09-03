@@ -11,6 +11,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Spring MVC and WebFlux support model](architecture/spring-support-model.md)
 - [Browser support and progressive enhancement](architecture/browser-support-policy.md)
 - [Frontend extensibility and complex-screen acceptance](architecture/frontend-extensibility.md)
+- [Component identity, page epochs and revisions](architecture/identity-and-revisions.md)
 - [Threat model](security/threat-model.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
