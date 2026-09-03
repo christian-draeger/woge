@@ -1,0 +1,31 @@
+name: Typed reference spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/typed-reference-model/**"
+      - ".github/workflows/typed-reference-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/typed-reference-model/**"
+      - ".github/workflows/typed-reference-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: liberica
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Validate positive and negative reference fixtures
+        run: ./spikes/typed-reference-model/validate.sh
