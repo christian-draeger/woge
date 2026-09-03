@@ -11,7 +11,7 @@ The project is in its architecture and product-validation phase. It is not ready
 - JavaScript enhances a working web application instead of becoming a prerequisite for core workflows.
 - Kotlin types, generated descriptors and compiler diagnostics replace avoidable strings and runtime magic.
 - Accessibility and security are part of normal component and action behavior.
-- Plain CSS is always supported. Tailwind and the component distribution model are still being evaluated.
+- Plain CSS is always supported. Tailwind is an optional build adapter; the component distribution model is still being evaluated.
 
 ## Project documentation
 
