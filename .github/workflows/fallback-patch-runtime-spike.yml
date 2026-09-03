@@ -1,0 +1,34 @@
+name: Fallback patch runtime spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/fallback-patch-runtime/**"
+      - ".github/workflows/fallback-patch-runtime-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/fallback-patch-runtime/**"
+      - ".github/workflows/fallback-patch-runtime-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spikes/fallback-patch-runtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: spikes/fallback-patch-runtime/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm test
+      - run: npm run measure

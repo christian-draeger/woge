@@ -1,0 +1,12 @@
+{
+  "name": "woge-fallback-patch-runtime-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "measure": "node measure.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}
