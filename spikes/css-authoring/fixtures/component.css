@@ -1,0 +1,48 @@
+@layer woge-components {
+  .card,
+  article:hover::before {
+    --accent: oklch(68% 0.18 35);
+    animation: pulse 1s ease, spin 2s linear;
+  }
+
+  .card {
+    container-type: inline-size;
+
+    & > .title {
+      margin-inline: 1rem;
+    }
+  }
+
+  :global(.theme-dark) .card {
+    color: var(--accent);
+  }
+
+  .card :global(.third-party) {
+    border-color: currentColor;
+  }
+
+  :global(html) {
+    color-scheme: light dark;
+  }
+
+  @container (width >= 30rem) {
+    .card { grid-template-columns: 1fr auto; }
+  }
+
+  @supports (color: oklch(50% 0.1 20)) {
+    .card { color: var(--accent); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+  }
+}
+
+@keyframes pulse {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+@keyframes :global(spin) {
+  to { rotate: 1turn; }
+}

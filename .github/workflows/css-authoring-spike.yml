@@ -1,0 +1,36 @@
+name: CSS authoring spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/css-authoring/**"
+      - ".github/workflows/css-authoring-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/css-authoring/**"
+      - ".github/workflows/css-authoring-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: spikes/css-authoring/package-lock.json
+      - run: npm ci
+        working-directory: spikes/css-authoring
+      - run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: spikes/css-authoring
+      - run: ./spikes/css-authoring/validate.sh

@@ -1,0 +1,50 @@
+@layer reset, theme, components, utilities;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+}
+
+@layer theme {
+  :root {
+    --accent-fallback: rgb(190 55 35);
+    --accent: oklch(68% 0.18 35);
+  }
+}
+
+@layer components {
+  .dashboard {
+    inline-size: 400px;
+    container-type: inline-size;
+    margin-inline: 12px;
+    view-transition-name: woge-dashboard;
+
+    & > .card {
+      display: grid;
+      color: var(--accent-fallback);
+      color: var(--accent);
+      border-start-start-radius: 7px;
+      outline: 1px solid red;
+    }
+  }
+
+  @container (width >= 300px) {
+    .card { grid-template-columns: 1fr 80px; }
+  }
+
+  @supports (color: oklch(50% 0.1 20)) {
+    .card { --woge-supports-modern-color: yes; }
+  }
+}
+
+@layer utilities {
+  .tw-bg { background-color: rgb(1 2 3); }
+  .card { outline-color: blue; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation-duration: 0.001ms; }
+}
+
+::view-transition-old(woge-dashboard) {
+  animation-duration: 120ms;
+}

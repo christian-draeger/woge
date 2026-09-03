@@ -63,7 +63,7 @@ The initial reference-application matrix is:
 | View-transition names and cross-document transitions | Experimental opt-in until the supported-browser matrix is green | Navigation works normally with no transition |
 | Draft selectors, properties or at-rules without stable-set interoperability | Experimental opt-in | No core content, action or accessibility dependency |
 
-The CSS authoring spike in [#88](https://github.com/christian-draeger/woge/issues/88) verifies this matrix against the then-current stable browsers and records the exact versions. A feature moving between Baseline stages can change documentation and examples without a Woge release if runtime code is unaffected. Removing a documented fallback or narrowing the supported browser set requires an ADR.
+The [CSS authoring spike](../../spikes/css-authoring/evidence.md) verifies this matrix against Chrome for Testing 151, Firefox 153 and WebKit 26.5. The resulting [authoring contract](css-authoring.md) keeps external CSS primary and makes component scoping optional build tooling. A feature moving between Baseline stages can change documentation and examples without a Woge release if runtime code is unaffected. Removing a documented fallback or narrowing the supported browser set requires an ADR.
 
 ## Test and update process
 
