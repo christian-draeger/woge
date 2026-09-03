@@ -99,4 +99,24 @@ class WebFluxReferenceJourneyTest {
             .expectStatus().is3xxRedirection
             .expectHeader().location("/projects/woge?full=true")
     }
+
+    @Test
+    fun `activity stream emits finite SSE events and rejects unknown projects before streaming`() {
+        client.get().uri("/projects/woge/activity/stream")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM)
+            .expectBody(String::class.java)
+            .value { body ->
+                assertThat(body).contains("id:stream-ready")
+                assertThat(body).contains("event:activity")
+                assertThat(body).contains("Reference project created")
+            }
+
+        client.get().uri("/projects/missing/activity/stream")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus().isNotFound
+    }
 }
