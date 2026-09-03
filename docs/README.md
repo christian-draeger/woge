@@ -1,0 +1,21 @@
+# Woge documentation
+
+The documentation grows with executable product slices. Pages describing unimplemented behavior must say so clearly.
+
+## Start here
+
+- [Project direction](../README.md)
+- [Architecture decision records](adr/README.md)
+- [Reference application](product/reference-application.md)
+- [Documentation style guide](documentation/style-guide.md)
+- [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
+
+## Planned documentation layers
+
+1. **Quick start:** build one useful page with Spring Boot.
+2. **Mental model:** relate Woge pages, regions, actions and patches to HTML and HTTP.
+3. **Task guides:** solve forms, validation, streaming, live updates, styling and deployment.
+4. **API reference:** list exact types, defaults and compatibility constraints.
+5. **Internals:** explain protocols, generated code and adapter implementation.
+
+Only the architecture and quality foundations exist today. The quick start begins with the walking skeleton.
