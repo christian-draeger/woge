@@ -1,0 +1,9 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:replace="~{fragments/task-form :: form(${snapshot.project}, '', '', '', null)}"/>
+<th:block th:replace="~{fragments/project-summary :: summary(${snapshot}, true)}"/>
+<th:block th:replace="~{fragments/task-table :: table(${snapshot}, true)}"/>
+<th:block th:replace="~{fragments/activity :: activity(${snapshot}, true)}"/>
+</body>
+</html>

@@ -7,6 +7,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Project direction](../README.md)
 - [Architecture decision records](adr/README.md)
 - [Reference application](product/reference-application.md)
+- [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
 
