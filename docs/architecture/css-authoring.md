@@ -75,7 +75,7 @@ Tailwind may generate utility classes from Woge Kotlin/HTML sources, but it does
 </article>
 ```
 
-`project-card` can come from application CSS, `grid gap-4` from Tailwind and the attribute from optional component scoping. Patching addresses Woge component identity, not CSS selectors or utility names. Tailwind extraction, presets and production setup belong to its own adapter/tooling decision.
+`project-card` can come from application CSS, `grid gap-4` from Tailwind and the attribute from optional component scoping. Patching addresses Woge component identity, not CSS selectors or utility names. The [Tailwind integration contract](tailwind-integration.md) keeps extraction, versioning and production setup in an optional build adapter.
 
 ## Deployment rules
 
