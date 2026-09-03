@@ -34,3 +34,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0005](0005-server-host-use-case-ports.md) | Accepted | Model server adapters as Woge use-case exchanges |
 | [0006](0006-initial-module-boundaries.md) | Accepted | Enforce a small inward-pointing initial module graph |
 | [0007](0007-browser-support-and-progressive-enhancement.md) | Accepted | Guarantee an HTML baseline before browser enhancement |
+| [0008](0008-security-trust-boundaries.md) | Accepted | Make native and enhanced paths share secure boundaries |
