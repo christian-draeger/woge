@@ -107,3 +107,6 @@ Exact thresholds belong to the performance-budget decision after baseline data e
 | M2 | Typed forms, validation, multi-region updates and SSE complete the CRUD journey |
 | M3 | Security, accessibility, cancellation, browser and production behavior are hardened |
 | M4 | Navigation, themes and the accessible component catalog produce a polished complex application |
+
+The hand-written M0 comparison and its measurements live in the
+[Spring HTML + htmx baseline](../../spikes/spring-html-htmx-baseline/evidence.md).

@@ -1,0 +1,22 @@
+<section xmlns:th="http://www.thymeleaf.org"
+         th:fragment="summary(snapshot, oob)"
+         id="project-summary"
+         aria-labelledby="project-summary-heading"
+         aria-busy="false"
+         th:attr="hx-swap-oob=${oob} ? 'outerHTML' : null">
+    <h2 id="project-summary-heading">Project summary</h2>
+    <dl class="summary-list">
+        <div>
+            <dt>Open</dt>
+            <dd th:text="${snapshot.openTaskCount}">0</dd>
+        </div>
+        <div>
+            <dt>Completed</dt>
+            <dd th:text="${snapshot.completedTaskCount}">0</dd>
+        </div>
+        <div>
+            <dt>Overdue</dt>
+            <dd th:text="${snapshot.overdueTaskCount}">0</dd>
+        </div>
+    </dl>
+</section>

@@ -1,0 +1,37 @@
+<section xmlns:th="http://www.thymeleaf.org"
+         th:fragment="table(snapshot, oob)"
+         id="task-table"
+         aria-labelledby="task-table-heading"
+         aria-busy="false"
+         th:attr="hx-swap-oob=${oob} ? 'outerHTML' : null">
+    <h2 id="task-table-heading">Tasks</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Task</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Due date</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="visually-hidden">Action</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${snapshot.tasks}">
+            <th scope="row" th:text="${task.title}">Define the walking skeleton</th>
+            <td th:text="${task.owner ?: 'Unassigned'}">Unassigned</td>
+            <td th:text="${task.dueDate ?: 'No due date'}">No due date</td>
+            <td th:text="${task.completed ? 'Completed' : 'Open'}">Open</td>
+            <td>
+                <form method="post"
+                      hx-target="#project-summary"
+                      hx-swap="outerHTML"
+                      th:action="@{/projects/{project}/tasks/{task}/status(project=${snapshot.project.slug},task=${task.id})}"
+                      th:attr="hx-post=@{/projects/{project}/tasks/{task}/status(project=${snapshot.project.slug},task=${task.id})}">
+                    <input type="hidden" name="completed" th:value="${!task.completed}">
+                    <button type="submit" th:text="${task.completed ? 'Reopen' : 'Complete'}">Complete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>

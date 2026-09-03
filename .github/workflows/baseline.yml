@@ -1,0 +1,34 @@
+name: Spring HTML baseline
+
+on:
+  pull_request:
+    paths:
+      - "spikes/spring-html-htmx-baseline/**"
+      - ".github/workflows/baseline.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/spring-html-htmx-baseline/**"
+      - ".github/workflows/baseline.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spikes/spring-html-htmx-baseline
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: liberica
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run baseline tests
+        run: ./gradlew test --stacktrace
