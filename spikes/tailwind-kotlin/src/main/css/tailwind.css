@@ -1,0 +1,10 @@
+@import "tailwindcss" source(none);
+@source "../kotlin";
+@source "../../../build/generated/sources/woge";
+@source "../../../fixtures/source-distributed";
+@source inline("motion-safe:animate-spin");
+
+@theme {
+  --color-brand-500: oklch(62% 0.18 250);
+  --spacing-card: 1.375rem;
+}

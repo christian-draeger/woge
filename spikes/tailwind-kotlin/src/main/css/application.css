@@ -1,0 +1,18 @@
+@layer application-components {
+  .project-card {
+    --project-card-accent: oklch(62% 0.18 250);
+    container-type: inline-size;
+    border-start-start-radius: 0.75rem;
+
+    & > .project-card__title {
+      color: var(--project-card-accent);
+      margin-inline: 0;
+    }
+  }
+
+  @container (width >= 36rem) {
+    .project-card {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+}
