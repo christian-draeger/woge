@@ -6,8 +6,12 @@ import dev.woge.baseline.shared.ProjectIdentity
 import dev.woge.baseline.shared.ProjectSnapshot
 import dev.woge.baseline.shared.ReferenceProjectStore
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 
@@ -58,6 +63,31 @@ class ProjectController(
         model.addAttribute("snapshot", requireSnapshot(project))
         model.addAttribute("oob", false)
         return "fragments/activity"
+    }
+
+    @GetMapping(
+        "/projects/{project}/activity/stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+    )
+    @ResponseBody
+    fun activityStream(@PathVariable project: String): Flow<ServerSentEvent<String>> {
+        val latestActivity = requireSnapshot(project).activity.first()
+        return flow {
+            pause(delays.activityMillis)
+            emit(
+                ServerSentEvent.builder("Activity stream ready")
+                    .id("stream-ready")
+                    .event("status")
+                    .build(),
+            )
+            pause(delays.activityMillis)
+            emit(
+                ServerSentEvent.builder(latestActivity.description)
+                    .id("activity-${latestActivity.id}")
+                    .event("activity")
+                    .build(),
+            )
+        }
     }
 
     @PostMapping("/projects/{project}/tasks")
