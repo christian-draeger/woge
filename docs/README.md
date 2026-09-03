@@ -15,6 +15,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Typed web-reference spike](../spikes/typed-reference-model/evidence.md)
 - [HTML writer strategy spike](../spikes/html-writer-strategy/evidence.md)
 - [Patch framing spike](../spikes/patch-framing/evidence.md)
+- [Cross-browser fallback patch runtime spike](../spikes/fallback-patch-runtime/evidence.md)
 - [Threat model](security/threat-model.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
