@@ -6,8 +6,10 @@ import dev.woge.baseline.shared.ProjectIdentity
 import dev.woge.baseline.shared.ProjectSnapshot
 import dev.woge.baseline.shared.ReferenceProjectStore
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.core.task.AsyncTaskExecutor
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,13 +17,16 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.server.ResponseStatusException
+import java.io.IOException
 import java.time.LocalDate
 
 @Controller
 class ProjectController(
     private val store: ReferenceProjectStore,
     private val delays: BaselineDelays,
+    private val taskExecutor: AsyncTaskExecutor,
 ) {
     @GetMapping("/projects/{project}")
     fun project(
@@ -56,6 +61,48 @@ class ProjectController(
         model.addAttribute("snapshot", requireSnapshot(project))
         model.addAttribute("oob", false)
         return "fragments/activity"
+    }
+
+    @GetMapping(
+        "/projects/{project}/activity/stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+    )
+    fun activityStream(@PathVariable project: String): SseEmitter {
+        val latestActivity = requireSnapshot(project).activity.first()
+        val emitter = SseEmitter(5_000L)
+        val task = taskExecutor.submit {
+            try {
+                pause(delays.activityMillis)
+                emitter.send(
+                    SseEmitter.event()
+                        .id("stream-ready")
+                        .name("status")
+                        .data("Activity stream ready", MediaType.TEXT_PLAIN),
+                )
+                pause(delays.activityMillis)
+                emitter.send(
+                    SseEmitter.event()
+                        .id("activity-${latestActivity.id}")
+                        .name("activity")
+                        .data(latestActivity.description, MediaType.TEXT_PLAIN),
+                )
+                emitter.complete()
+            } catch (cancelled: InterruptedException) {
+                Thread.currentThread().interrupt()
+                emitter.complete()
+            } catch (_: IOException) {
+                // The Servlet container owns the async error dispatch after a failed write.
+            }
+        }
+        emitter.onTimeout {
+            task.cancel(true)
+            emitter.complete()
+        }
+        emitter.onError { task.cancel(true) }
+        emitter.onCompletion {
+            if (!task.isDone) task.cancel(true)
+        }
+        return emitter
     }
 
     @PostMapping("/projects/{project}/tasks")

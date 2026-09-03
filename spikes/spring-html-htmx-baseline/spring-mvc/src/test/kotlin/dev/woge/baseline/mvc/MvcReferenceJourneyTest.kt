@@ -7,6 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content as mvcContent
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status as mvcStatus
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 
@@ -88,5 +91,24 @@ class MvcReferenceJourneyTest {
             status { is3xxRedirection() }
             redirectedUrl("/projects/woge?full=true")
         }
+    }
+
+    @Test
+    fun `activity stream flushes finite SSE events and rejects unknown projects before streaming`() {
+        val pending = mvc.get("/projects/woge/activity/stream") {
+            accept = MediaType.TEXT_EVENT_STREAM
+        }.andExpect {
+            request { asyncStarted() }
+        }.andReturn()
+
+        mvc.perform(asyncDispatch(pending))
+            .andExpect(mvcStatus().isOk)
+            .andExpect(mvcContent().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM))
+            .andExpect(mvcContent().string(containsString("id:stream-ready")))
+            .andExpect(mvcContent().string(containsString("event:activity")))
+            .andExpect(mvcContent().string(containsString("Reference project created")))
+
+        mvc.get("/projects/missing/activity/stream")
+            .andExpect { status { isNotFound() } }
     }
 }
