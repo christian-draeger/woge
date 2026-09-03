@@ -13,6 +13,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Frontend extensibility and complex-screen acceptance](architecture/frontend-extensibility.md)
 - [Component identity, page epochs and revisions](architecture/identity-and-revisions.md)
 - [Typed web-reference spike](../spikes/typed-reference-model/evidence.md)
+- [HTML writer strategy spike](../spikes/html-writer-strategy/evidence.md)
 - [Threat model](security/threat-model.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
