@@ -42,5 +42,5 @@ Concrete port names and signatures remain provisional until exercised by the wal
 
 ## Follow-up
 
-- Validate Spring MVC and WebFlux behavior in [#64](https://github.com/christian-draeger/woge/issues/64).
+- Apply the verified [Spring MVC and WebFlux support model](../architecture/spring-support-model.md).
 - Implement the host SPI and adapter TCK in [#18](https://github.com/christian-draeger/woge/issues/18) and [#65](https://github.com/christian-draeger/woge/issues/65).

@@ -8,11 +8,11 @@ Recorded on 2026-09-03 for the source in this directory. Run `./measure.sh` to r
 | --- | ---: |
 | Shared Kotlin fixture | 116 |
 | Shared HTML templates and CSS | 274 |
-| Spring MVC host Kotlin | 163 |
-| Spring WebFlux host Kotlin | 177 |
-| Total | 730 |
+| Spring MVC host Kotlin | 208 |
+| Spring WebFlux host Kotlin | 206 |
+| Total | 804 |
 
-The application contains 25 occurrences of the application-owned `/projects/` route prefix across host code and templates. The templates contain two htmx target-selector occurrences and two unique selectors: `#task-create` and `#project-summary`.
+The application contains 27 occurrences of the application-owned `/projects/` route prefix across host code and templates. The templates contain two htmx target-selector occurrences and two unique selectors: `#task-create` and `#project-summary`.
 
 These are occurrence counts, not a claim that every string has a distinct semantic meaning. They measure how many places a route or patch-target refactor can touch in this small journey.
 
@@ -24,16 +24,18 @@ These are occurrence counts, not a claim that every string has a distinct semant
 | Form binding | form bodies can be read with individual `@RequestParam` arguments | form bodies require a model object; `@RequestParam` only covered query parameters in this spike |
 | Empty required title | arrived as an empty string | initially failed with 400 before validation until an explicit form object supplied a default |
 | Cancellation potential | blocking work needs explicit interruption/cooperation | coroutine cancellation can propagate through suspending work |
+| SSE shape | `SseEmitter` plus executor, timeout and completion callbacks | a cold `Flow<ServerSentEvent<String>>` |
+| Response-body declaration | `SseEmitter` has a dedicated MVC result handler | `Flow` on a view controller needs an explicit `@ResponseBody` boundary |
 | Template and domain reuse | shared | shared |
 
-The HTTP tests now require both hosts to return the same shell, full-page fallback, 422 validation response, redirect behavior and htmx multi-region response. Cancellation behavior is not yet asserted because the baseline has no cancellable data source.
+The HTTP tests now require both hosts to return the same shell, full-page fallback, 422 validation response, redirect behavior, htmx multi-region response and finite SSE event sequence. Cancellation behavior is not yet asserted against a real disconnected socket.
 
 ## Streaming and enhancement gaps
 
 - The immediate shell starts three independent htmx requests. It does not stream the shell and region patches through one response.
 - A slow MVC region occupies a servlet thread. The equivalent WebFlux delay suspends, but both controllers duplicate the same routes and rendering decisions.
 - htmx out-of-band swaps solve multi-region updates with string IDs and response-template conventions. Neither the compiler nor Spring verifies that the targets exist.
-- SSE, reconnect IDs, stale-event rejection and live authorization are intentionally absent from this M0 baseline.
+- The finite SSE fixture proves host mechanics only. Reconnect IDs, stale-event rejection, heartbeats and live authorization remain absent.
 - htmx is loaded from a CDN for the shortest realistic setup. Production would need a local asset, dependency update policy and CSP decision.
 - There is no client build, hydration, virtual DOM or Kotlin browser runtime.
 
