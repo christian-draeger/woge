@@ -36,3 +36,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0007](0007-browser-support-and-progressive-enhancement.md) | Accepted | Guarantee an HTML baseline before browser enhancement |
 | [0008](0008-security-trust-boundaries.md) | Accepted | Make native and enhanced paths share secure boundaries |
 | [0009](0009-frontend-extension-contract.md) | Accepted | Layer frontend extensions over semantic server HTML |
+| [0010](0010-identity-epochs-and-revisions.md) | Accepted | Scope rendered identity and revisions to a page epoch |
