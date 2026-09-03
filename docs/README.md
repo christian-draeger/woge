@@ -10,6 +10,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
 - [Spring MVC and WebFlux support model](architecture/spring-support-model.md)
 - [Browser support and progressive enhancement](architecture/browser-support-policy.md)
+- [Threat model](security/threat-model.md)
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
 - [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
