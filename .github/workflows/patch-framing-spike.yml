@@ -1,0 +1,31 @@
+name: Patch framing spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/patch-framing/**"
+      - ".github/workflows/patch-framing-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/patch-framing/**"
+      - ".github/workflows/patch-framing-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: liberica
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Validate framing and record measurements
+        run: ./spikes/patch-framing/validate.sh
