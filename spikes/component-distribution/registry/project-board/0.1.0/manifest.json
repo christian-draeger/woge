@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "name": "project-board",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "provenance": {
+    "repository": "https://github.com/christian-draeger/woge",
+    "revision": "component-distribution-spike-v0.1.0",
+    "path": "spikes/component-distribution/registry/project-board/0.1.0"
+  },
+  "compatibility": {
+    "headlessPrimitives": "0.1.x",
+    "kotlin": ">=2.2",
+    "requiresHydration": false
+  },
+  "tailwind": {
+    "candidateFiles": ["files/ProjectBoardRecipe.kt"],
+    "classesAreStatic": true
+  },
+  "files": [
+    {
+      "source": "files/ProjectBoardRecipe.kt",
+      "target": "src/main/kotlin/dev/woge/ui/registry/projectboard/ProjectBoardRecipe.kt",
+      "sha256": "50c1fa971a2487f9588ab18cb1a94826ce54f457d6fdb954b49b641645eb8ebd",
+      "kind": "kotlin-source"
+    },
+    {
+      "source": "files/project-board.css",
+      "target": "src/main/resources/project-board-recipe.css",
+      "sha256": "6ce3b191bf7fcaf7b2f9beabc2d4f274a017338c1c708066b10244fbb7b24aa6",
+      "kind": "plain-css"
+    }
+  ]
+}

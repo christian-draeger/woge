@@ -1,0 +1,19 @@
+@layer application-components {
+  .project-board-recipe {
+    border: 1px solid color-mix(in oklab, CanvasText 25%, Canvas);
+    border-radius: 0.75rem;
+    container-type: inline-size;
+    padding: 1rem;
+  }
+
+  .project-board-recipe progress {
+    accent-color: oklch(62% 0.18 250);
+  }
+
+  @container (width < 42rem) {
+    .project-board-recipe table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+}

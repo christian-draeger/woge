@@ -29,10 +29,10 @@ Woge's reference configuration disables Tailwind's automatic source discovery an
 
 - application Kotlin template roots;
 - Woge generated-descriptor output roots;
-- each source-distributed component root or its future candidate manifest;
+- each source-distributed component root declared by its registry manifest;
 - explicit inline candidates used as a reviewed safelist.
 
-Source generation must finish before Tailwind extraction. Paths are part of the Gradle task inputs, so changes invalidate the CSS task predictably. Binary component distribution and transitive candidate discovery are decided with the component packaging model in issue #76.
+Source generation must finish before Tailwind extraction. Paths are part of the Gradle task inputs, so changes invalidate the CSS task predictably. Registry manifests expose candidate files explicitly; Woge does not scan transitive binary dependencies for hidden utility strings.
 
 ## Keep plain CSS separate
 

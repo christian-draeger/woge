@@ -1,0 +1,23 @@
+@layer woge-components {
+  [data-woge-package^="project-board@"] {
+    --board-accent: oklch(62% 0.18 250);
+    --board-surface: oklch(98% 0.01 250);
+  }
+
+  [data-woge-package^="project-board@"] [data-woge-component="project-board"] {
+    background: var(--board-surface);
+    border: 1px solid var(--board-accent);
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  [data-woge-package^="project-board@"][data-theme="high-contrast"] {
+    --board-accent: CanvasText;
+    --board-surface: Canvas;
+  }
+
+  [data-density="compact"] td,
+  [data-density="compact"] th {
+    padding-block: 0.25rem;
+  }
+}
