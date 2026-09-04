@@ -6,3 +6,185 @@ public final class dev/woge/protocol/HtmlFrameKt {
 	public static final fun htmlFrame (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/HtmlFrame;
 }
 
+public final class dev/woge/protocol/InteractionSequence {
+	public static final field Companion Ldev/woge/protocol/InteractionSequence$Companion;
+	public static final synthetic fun box-impl (J)Ldev/woge/protocol/InteractionSequence;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (JLjava/lang/Object;)Z
+	public static final fun equals-impl0 (JJ)Z
+	public final fun getValue ()J
+	public fun hashCode ()I
+	public static fun hashCode-impl (J)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (J)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()J
+}
+
+public final class dev/woge/protocol/InteractionSequence$Companion {
+	public final fun getINITIAL-_Y98rLg ()J
+	public final fun of-rf_4HM8 (J)J
+}
+
+public final class dev/woge/protocol/PageEpoch {
+	public static final field Companion Ldev/woge/protocol/PageEpoch$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/PageEpoch;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PageEpoch$Companion {
+	public final fun of-jIBZJ30 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/protocol/Patch {
+	public abstract fun getInteractionSequence-_Y98rLg ()J
+	public abstract fun getOperation ()Ldev/woge/protocol/PatchOperation;
+	public abstract fun getPatchId-9SDvvjQ ()Ljava/lang/String;
+	public abstract fun getProtocolVersion-JnwDiMo ()I
+	public abstract fun getRevision ()Ldev/woge/protocol/TargetRevisionStep;
+	public abstract fun getTarget ()Ldev/woge/protocol/PatchTarget;
+}
+
+public final class dev/woge/protocol/PatchHtml {
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchId {
+	public static final field Companion Ldev/woge/protocol/PatchId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/PatchId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchId$Companion {
+	public final fun of-GSU-mag (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchKt {
+	public static final fun patchHtml (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/PatchHtml;
+}
+
+public final class dev/woge/protocol/PatchOperation : java/lang/Enum {
+	public static final field REPLACE Ldev/woge/protocol/PatchOperation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/protocol/PatchOperation;
+	public static fun values ()[Ldev/woge/protocol/PatchOperation;
+}
+
+public final class dev/woge/protocol/PatchProtocolVersion {
+	public static final field Companion Ldev/woge/protocol/PatchProtocolVersion$Companion;
+	public static final synthetic fun box-impl (I)Ldev/woge/protocol/PatchProtocolVersion;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class dev/woge/protocol/PatchProtocolVersion$Companion {
+	public final fun getCURRENT-JnwDiMo ()I
+	public final fun of-SpeMxaw (I)I
+}
+
+public final class dev/woge/protocol/PatchTarget {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-5npnCUI ()Ljava/lang/String;
+	public final fun component2-WW14DhI ()Ljava/lang/String;
+	public final fun copy-Lo2V4aE (Ljava/lang/String;Ljava/lang/String;)Ldev/woge/protocol/PatchTarget;
+	public static synthetic fun copy-Lo2V4aE$default (Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/protocol/PatchTarget;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPageEpoch-5npnCUI ()Ljava/lang/String;
+	public final fun getRegion-WW14DhI ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RegionTargetId {
+	public static final field Companion Ldev/woge/protocol/RegionTargetId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/RegionTargetId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RegionTargetId$Companion {
+	public final fun of-o4U952M (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/ReplacePatch : dev/woge/protocol/Patch {
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/TargetRevisionStep;Ldev/woge/protocol/PatchHtml;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/TargetRevisionStep;Ldev/woge/protocol/PatchHtml;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getHtml ()Ldev/woge/protocol/PatchHtml;
+	public fun getInteractionSequence-_Y98rLg ()J
+	public fun getOperation ()Ldev/woge/protocol/PatchOperation;
+	public fun getPatchId-9SDvvjQ ()Ljava/lang/String;
+	public fun getProtocolVersion-JnwDiMo ()I
+	public fun getRevision ()Ldev/woge/protocol/TargetRevisionStep;
+	public fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/TargetRevision {
+	public static final field Companion Ldev/woge/protocol/TargetRevision$Companion;
+	public static final synthetic fun box-impl (J)Ldev/woge/protocol/TargetRevision;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (JLjava/lang/Object;)Z
+	public static final fun equals-impl0 (JJ)Z
+	public final fun getValue ()J
+	public fun hashCode ()I
+	public static fun hashCode-impl (J)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (J)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()J
+}
+
+public final class dev/woge/protocol/TargetRevision$Companion {
+	public final fun getINITIAL-UimE8lE ()J
+	public final fun of-jBwYHRw (J)J
+}
+
+public final class dev/woge/protocol/TargetRevisionStep {
+	public static final field Companion Ldev/woge/protocol/TargetRevisionStep$Companion;
+	public synthetic fun <init> (JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-UimE8lE ()J
+	public final fun component2-UimE8lE ()J
+	public final fun copy-Lp-Drb8 (JJ)Ldev/woge/protocol/TargetRevisionStep;
+	public static synthetic fun copy-Lp-Drb8$default (Ldev/woge/protocol/TargetRevisionStep;JJILjava/lang/Object;)Ldev/woge/protocol/TargetRevisionStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBase-UimE8lE ()J
+	public final fun getNext-UimE8lE ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/TargetRevisionStep$Companion {
+	public final fun after-dyqw_jc (J)Ldev/woge/protocol/TargetRevisionStep;
+}
+
