@@ -14,6 +14,9 @@ kotlin {
 dependencies {
     api(project(":woge-core"))
 
+    implementation(libs.jsoup)
+    implementation(libs.kotlinxSerializationJson)
+
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
