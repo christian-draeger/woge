@@ -23,6 +23,10 @@ Public behavior needs documentation in the same change. Write for a web develope
 
 Examples must be complete enough to compile once the corresponding modules exist. Canonical examples will be tested and reused by tutorials instead of copied into several files.
 
+## Spikes and experiments
+
+Read the [spike lifecycle and inventory](spikes/README.md) before changing an experiment. Frozen spikes are evidence, not reusable modules: production code must not depend on them, and accepted conclusions change through a new ADR. Move durable tests to production before retiring a spike.
+
 ## Local checks
 
 The repository scaffold will eventually expose one Gradle verification task. Until then, validate the current documentation foundation with:
