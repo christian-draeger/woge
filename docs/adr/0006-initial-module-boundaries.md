@@ -1,6 +1,7 @@
 # ADR 0006: Enforce a small inward-pointing initial module graph
 
-- Status: Accepted
+- Status: Superseded
+- Superseded by: [ADR 0019](0019-materialized-m1-module-boundaries.md)
 - Date: 2026-09-03
 - Decision owners: Woge maintainers
 - Related issues: [#9](https://github.com/christian-draeger/woge/issues/9), [#18](https://github.com/christian-draeger/woge/issues/18), [#65](https://github.com/christian-draeger/woge/issues/65), [#66](https://github.com/christian-draeger/woge/issues/66), [#67](https://github.com/christian-draeger/woge/issues/67), [#68](https://github.com/christian-draeger/woge/issues/68), [#69](https://github.com/christian-draeger/woge/issues/69)

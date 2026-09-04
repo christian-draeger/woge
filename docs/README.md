@@ -11,6 +11,7 @@ The documentation grows with executable product slices. Pages describing unimple
 
 ## Canonical architecture guidance
 
+- [M1 module and consumer graph](architecture/module-graph.md)
 - [Spring MVC and WebFlux support model](architecture/spring-support-model.md)
 - [Browser support and progressive enhancement](architecture/browser-support-policy.md)
 - [CSS authoring](architecture/css-authoring.md)

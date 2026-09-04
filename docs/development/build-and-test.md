@@ -20,6 +20,7 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 ./gradlew validateDocumentation
 ./gradlew validateAdrs
 ./gradlew validateModuleBoundaries
+./gradlew testModuleBoundaries
 ```
 
 `ktlintFormat` changes source files; the other commands are checks. Test reports are written below each project's `build/test-results` and `build/reports/tests` directories. Detekt writes machine-readable XML/SARIF and an HTML report below `build/reports/detekt`.
@@ -32,7 +33,10 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 - Executable documentation applications and snippets belong below [`examples`](../../examples/README.md) and participate in the root build once introduced.
 - Architecture experiments remain isolated below [`spikes`](../../spikes/README.md). Production code must not depend on them.
 
-The version catalog owns tool and dependency versions. Convention plugins in `build-logic` own shared compilation, quality and reporting behavior. A module build file should describe only that module's role and dependencies.
+The version catalog owns tool and dependency versions. Convention plugins in `build-logic` own shared
+compilation, quality and reporting behavior. A module build file should describe only that module's
+role and dependencies. The production projects and allowed edges are documented in the
+[M1 module and consumer graph](../architecture/module-graph.md).
 
 The scaffold contains no publishing credentials, automatic snapshots or template-specific release assumptions. Publication is added with its own threat and release review in the M3 release work.
 Its selectively adopted template patterns and deliberate omissions are recorded in
