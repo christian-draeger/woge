@@ -2,6 +2,7 @@ import org.gradle.api.tasks.Exec
 
 plugins {
     base
+    alias(libs.plugins.kotlinJvm) apply false
 }
 
 group = providers.gradleProperty("wogeGroup").get()

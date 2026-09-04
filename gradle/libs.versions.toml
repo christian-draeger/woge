@@ -2,11 +2,13 @@
 detekt = "1.23.8"
 junit = "5.13.4"
 junitPlatform = "1.13.4"
+jmhGradle = "0.7.3"
 kotlin = "2.4.10"
 ktlintGradle = "14.2.0"
 
 [plugins]
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+jmh = { id = "me.champeau.jmh", version.ref = "jmhGradle" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 
