@@ -27,6 +27,7 @@ The documentation grows with executable product slices. Pages describing unimple
 
 The spikes below justify accepted decisions. Their code is evidence, not a production API or a second source of current guidance.
 
+- [Spike lifecycle and replacement inventory](../spikes/README.md)
 - [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
 - [Typed web-reference spike](../spikes/typed-reference-model/evidence.md)
 - [HTML writer strategy spike](../spikes/html-writer-strategy/evidence.md)
