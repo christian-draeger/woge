@@ -5,9 +5,12 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Start here
 
 - [Project direction](../README.md)
-- [Architecture decision records](adr/README.md)
+- [MVP boundary and definition of done](mvp-boundary.md)
 - [Reference application](product/reference-application.md)
-- [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
+- [Architecture decision records](adr/README.md)
+
+## Canonical architecture guidance
+
 - [Spring MVC and WebFlux support model](architecture/spring-support-model.md)
 - [Browser support and progressive enhancement](architecture/browser-support-policy.md)
 - [CSS authoring](architecture/css-authoring.md)
@@ -15,6 +18,16 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Component distribution](architecture/component-distribution.md)
 - [Frontend extensibility and complex-screen acceptance](architecture/frontend-extensibility.md)
 - [Component identity, page epochs and revisions](architecture/identity-and-revisions.md)
+- [Threat model](security/threat-model.md)
+- [Documentation style guide](documentation/style-guide.md)
+- [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
+- [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
+
+## Executable M0 evidence
+
+The spikes below justify accepted decisions. Their code is evidence, not a production API or a second source of current guidance.
+
+- [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
 - [Typed web-reference spike](../spikes/typed-reference-model/evidence.md)
 - [HTML writer strategy spike](../spikes/html-writer-strategy/evidence.md)
 - [Patch framing spike](../spikes/patch-framing/evidence.md)
@@ -23,10 +36,6 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Standards-native CSS authoring spike](../spikes/css-authoring/evidence.md)
 - [Tailwind with Kotlin templates spike](../spikes/tailwind-kotlin/evidence.md)
 - [Component distribution spike](../spikes/component-distribution/evidence.md)
-- [Threat model](security/threat-model.md)
-- [Documentation style guide](documentation/style-guide.md)
-- [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
-- [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
 
 ## Planned documentation layers
 
