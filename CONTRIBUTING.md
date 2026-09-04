@@ -29,8 +29,10 @@ Read the [spike lifecycle and inventory](spikes/README.md) before changing an ex
 
 ## Local checks
 
-The repository scaffold will eventually expose one Gradle verification task. Until then, validate the current documentation foundation with:
+Run the complete local verification gate with:
 
 ```shell
-./scripts/validate-adrs.sh
+./gradlew check
 ```
+
+Canonical test, static-analysis, formatting and documentation commands are listed in [Build and test Woge](docs/development/build-and-test.md).

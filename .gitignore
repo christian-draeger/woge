@@ -1,0 +1,25 @@
+.gradle/
+.kotlin/
+**/build/
+
+node_modules/
+playwright-report/
+test-results/
+
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+.classpath
+.factorypath
+.project
+.settings/
+.vscode/
+.DS_Store
+
+# Individual spikes use the root wrapper once the M1 scaffold exists.
+/spikes/*/gradle/
+/spikes/*/gradlew
+/spikes/*/gradlew.bat

@@ -22,6 +22,8 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
 - [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
+- [Build and test Woge](development/build-and-test.md)
+- [Repository scaffold provenance](development/scaffold-provenance.md)
 
 ## Executable M0 evidence
 
