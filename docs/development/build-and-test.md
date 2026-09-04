@@ -22,6 +22,8 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 ./gradlew validateModuleBoundaries
 ./gradlew testModuleBoundaries
 ./gradlew :woge-core:checkKotlinAbi
+./gradlew :woge-protocol:checkKotlinAbi
+./gradlew :woge-host-spi:checkKotlinAbi
 ./gradlew :woge-core:jmh
 ```
 
@@ -32,9 +34,10 @@ the benchmark fixture but does not execute it. HTML sink results are written bel
 `modules/woge-core/build/results/jmh` and interpreted in the
 [recorded baseline](../performance/html-sinks-baseline.md).
 
-Public core declarations are tracked by Kotlin's built-in ABI validator. `checkKotlinAbi` compares the
-current declarations with the committed dump. Run `./gradlew :woge-core:updateKotlinAbi` only after
-reviewing and accepting an intentional public API change.
+Public declarations in `woge-core`, `woge-protocol` and `woge-host-spi` are tracked by Kotlin's
+built-in ABI validator. `checkKotlinAbi` compares current declarations with the committed dump. Run
+the corresponding module's `updateKotlinAbi` task only after reviewing and accepting an intentional
+public API change.
 
 ## Source ownership
 
