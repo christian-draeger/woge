@@ -56,6 +56,12 @@ write failures are not converted into partial success.
 Keep each frame meaningful and reasonably bounded. A frame is not a network packet: proxies and TCP
 may split or combine bytes differently.
 
+When sibling page areas complete independently, declare a `DeferredRegion` instead of launching
+detached work or manually forcing declaration order. Its loading markup is part of the normal shell,
+and the shared executor keeps every task inside the collecting request scope. See the
+[deferred-region guide](deferred-regions.md) for the implemented lifecycle and the remaining
+shell-plus-patch integration boundary.
+
 ## Read request facts, then authorize
 
 `RequestContext` contains immutable snapshots such as method, language, request/correlation IDs,
