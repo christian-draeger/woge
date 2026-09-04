@@ -18,3 +18,6 @@ page, target, interaction and revision checks in browser terms.
 
 The [patch-stream codec guide](patch-stream-codec.md) explains the version-1 byte framing, terminal
 events, strict validation and host-adapter lifecycle.
+
+The [browser Replace runtime guide](browser-replace-runtime.md) starts from normal HTML and explains
+page-local regions, streamed application, delegated lifecycle events and safe failure behavior.
