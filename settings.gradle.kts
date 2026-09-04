@@ -16,3 +16,16 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
+file("config/architecture/module-boundaries.tsv")
+    .readLines()
+    .asSequence()
+    .filterNot { it.isBlank() || it.startsWith("#") }
+    .forEach { row ->
+        val columns = row.split('\t')
+        require(columns.size == 6) { "Invalid module-boundary row: $row" }
+
+        val moduleName = columns[0]
+        include(":$moduleName")
+        project(":$moduleName").projectDir = file(columns[3])
+    }

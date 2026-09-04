@@ -32,7 +32,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0003](0003-web-first-documentation-and-ai-dx.md) | Accepted | Use web-first documentation and compiler-guided AI DX |
 | [0004](0004-project-operations-reference-application.md) | Accepted | Use one project operations dashboard as the reference application |
 | [0005](0005-server-host-use-case-ports.md) | Accepted | Model server adapters as Woge use-case exchanges |
-| [0006](0006-initial-module-boundaries.md) | Accepted | Enforce a small inward-pointing initial module graph |
+| [0006](0006-initial-module-boundaries.md) | Superseded | Enforce a small inward-pointing initial module graph |
 | [0007](0007-browser-support-and-progressive-enhancement.md) | Accepted | Guarantee an HTML baseline before browser enhancement |
 | [0008](0008-security-trust-boundaries.md) | Accepted | Make native and enhanced paths share secure boundaries |
 | [0009](0009-frontend-extension-contract.md) | Accepted | Layer frontend extensions over semantic server HTML |
@@ -45,5 +45,10 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0016](0016-standards-native-css-authoring.md) | Accepted | Keep CSS standards-native with optional build-time scoping |
 | [0017](0017-optional-tailwind-build-adapter.md) | Accepted | Integrate Tailwind through an optional build adapter |
 | [0018](0018-hybrid-headless-and-source-owned-components.md) | Accepted | Combine binary headless primitives with source-owned component recipes |
+| [0019](0019-materialized-m1-module-boundaries.md) | Accepted | Materialize the M1 module and consumer boundaries |
 
-ADRs 0001–0018 are the complete accepted M0 decision set. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis; executable spikes are supporting evidence and do not override an accepted ADR. Issue [#12](https://github.com/christian-draeger/woge/issues/12) is exempt from a separate ADR because it indexes and assembles these decisions rather than adding one.
+ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
+decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
+executable spikes are supporting evidence and do not override an accepted ADR. Issue
+[#12](https://github.com/christian-draeger/woge/issues/12) is exempt from a separate ADR because it
+indexes and assembles these decisions rather than adding one.

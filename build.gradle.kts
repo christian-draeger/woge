@@ -31,6 +31,11 @@ val validateModuleBoundaries = registerValidation(
     "Validates the machine-readable module boundary manifest.",
     "scripts/validate-module-boundaries.sh",
 )
+val testModuleBoundaries = registerValidation(
+    "testModuleBoundaries",
+    "Proves that invalid module graphs and framework leaks are rejected.",
+    "scripts/test-module-boundaries.sh",
+)
 val validateDocumentation = registerValidation(
     "validateDocumentation",
     "Validates local documentation links and executable snippet references.",
@@ -46,6 +51,7 @@ tasks.named("check") {
     dependsOn(
         validateAdrs,
         validateModuleBoundaries,
+        testModuleBoundaries,
         validateDocumentation,
         test,
         detekt,

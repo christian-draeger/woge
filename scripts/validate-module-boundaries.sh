@@ -37,6 +37,7 @@ duplicate_paths=$(cut -f4 "$records" | sort | uniq -d)
 
 required_modules=(
   woge-core
+  woge-ui-headless
   woge-protocol
   woge-host-spi
   woge-server-runtime
@@ -56,6 +57,7 @@ done
 
 role_allows() {
   case "$1:$2" in
+    ui:foundation) return 0 ;;
     protocol:foundation|port:foundation|port:protocol|runtime:foundation|runtime:protocol|runtime:port) return 0 ;;
     adapter:foundation|adapter:protocol|adapter:port|adapter:runtime) return 0 ;;
     test-support:foundation|test-support:protocol|test-support:port|test-support:runtime) return 0 ;;
@@ -65,8 +67,15 @@ role_allows() {
 }
 
 while IFS=$'\t' read -r module role exposure source_path dependencies optional_dependencies; do
+  if [[ ! "$module" =~ ^woge-[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+    fail "invalid module name '$module'"
+  fi
+  if [[ ! "$source_path" =~ ^(modules|adapters|integrations|testing)/${module}$ ]]; then
+    fail "$module has non-canonical source path '$source_path'"
+  fi
+
   case "$role" in
-    foundation|protocol|port|runtime|adapter|integration|test-support) ;;
+    foundation|ui|protocol|port|runtime|adapter|integration|test-support) ;;
     *) fail "$module has unknown role '$role'" ;;
   esac
 
@@ -74,6 +83,42 @@ while IFS=$'\t' read -r module role exposure source_path dependencies optional_d
     public|internal|support) ;;
     *) fail "$module has unknown exposure '$exposure'" ;;
   esac
+
+  module_directory="$repository_root/$source_path"
+  build_file="$module_directory/build.gradle.kts"
+  if [[ ! -d "$module_directory" ]]; then
+    fail "$module has no source directory at '$source_path'"
+  elif [[ ! -f "$build_file" ]]; then
+    fail "$module has no build.gradle.kts at '$source_path'"
+  else
+    expected_dependencies=$(
+      if [[ "$dependencies" != "-" ]]; then
+        printf '%s\n' "$dependencies" | tr ',' '\n' | sort -u
+      fi
+    )
+    actual_dependencies=$(
+      sed -nE 's/^[[:space:]]*(api|implementation|runtimeOnly)\(project\(":([^"]+)"\)\).*$/\2/p' "$build_file" | sort -u
+    )
+    if [[ "$actual_dependencies" != "$expected_dependencies" ]]; then
+      fail "$module Gradle dependencies differ from the manifest (expected: '${dependencies}'; actual: '$(printf '%s' "$actual_dependencies" | tr '\n' ',')')"
+    fi
+
+    expected_optional_dependencies=$(
+      if [[ "$optional_dependencies" != "-" ]]; then
+        printf '%s\n' "$optional_dependencies" | tr ',' '\n' | sort -u
+      fi
+    )
+    actual_optional_dependencies=$(
+      sed -nE 's/^[[:space:]]*compileOnly\(project\(":([^"]+)"\)\).*$/\1/p' "$build_file" | sort -u
+    )
+    if [[ "$actual_optional_dependencies" != "$expected_optional_dependencies" ]]; then
+      fail "$module optional Gradle dependencies differ from the manifest (expected: '${optional_dependencies}'; actual: '$(printf '%s' "$actual_optional_dependencies" | tr '\n' ',')')"
+    fi
+
+    if [[ "$exposure" != "public" ]] && grep -Eq '(^|[^A-Za-z-])maven-publish([^A-Za-z-]|$)' "$build_file"; then
+      fail "$module is '$exposure' but applies Maven publishing"
+    fi
+  fi
 
   all_dependencies="$dependencies,$optional_dependencies"
   all_dependencies=${all_dependencies//-,/}
@@ -96,23 +141,36 @@ while IFS=$'\t' read -r module role exposure source_path dependencies optional_d
   done
 done < "$records"
 
-if [[ -s "$edges" ]] && ! tsort "$edges" >/dev/null 2>&1; then
-  fail "the declared project dependencies contain a cycle"
+if [[ -s "$edges" ]]; then
+  tsort_output=$(LC_ALL=C tsort "$edges" 2>&1)
+  tsort_status=$?
+  if (( tsort_status != 0 )) || grep -Eiq '(cycle|loop)' <<<"$tsort_output"; then
+    fail "the declared project dependencies contain a cycle"
+  fi
 fi
 
-for module in woge-core woge-protocol woge-host-spi woge-server-runtime; do
+for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server-runtime; do
   source_path=$(awk -F '\t' -v name="$module" '$1 == name { print $4; exit }' "$records")
   [[ -n "$source_path" ]] || continue
   [[ -d "$repository_root/$source_path" ]] || continue
+  main_source_path="$repository_root/$source_path/src/main"
+  [[ -d "$main_source_path" ]] || continue
 
-  forbidden_imports='^[[:space:]]*import[[:space:]]+(org\.springframework|reactor\.|jakarta\.servlet|javax\.servlet|io\.ktor)'
+  forbidden_types='(org\.springframework|reactor\.|jakarta\.servlet|javax\.servlet|io\.ktor)'
   if command -v rg >/dev/null 2>&1; then
-    matches=$(rg -n --glob '*.kt' "$forbidden_imports" "$repository_root/$source_path" || true)
+    matches=$(rg -n --glob '*.kt' --glob '*.java' "$forbidden_types" "$main_source_path" || true)
   else
-    matches=$(grep -R -n -E --include='*.kt' "$forbidden_imports" "$repository_root/$source_path" || true)
+    matches=$(grep -R -n -E --include='*.kt' --include='*.java' "$forbidden_types" "$main_source_path" 2>/dev/null || true)
   fi
-  [[ -z "$matches" ]] || fail "$module imports a host framework:\n$matches"
+  [[ -z "$matches" ]] || fail "$module references a host framework in production source:\n$matches"
 done
+
+if grep -Eq 'project\(":woge-spring-webflux"\)' "$repository_root/adapters/woge-spring-mvc/build.gradle.kts"; then
+  fail "woge-spring-mvc must not depend on woge-spring-webflux"
+fi
+if grep -Eq 'project\(":woge-spring-mvc"\)' "$repository_root/adapters/woge-spring-webflux/build.gradle.kts"; then
+  fail "woge-spring-webflux must not depend on woge-spring-mvc"
+fi
 
 if (( failure_count > 0 )); then
   printf 'Module-boundary validation failed with %d problem(s).\n' "$failure_count" >&2
