@@ -95,21 +95,24 @@ class HtmlWriterTest {
     @Test
     fun `invalid or duplicate syntax fails before the start tag is written`() {
         val chunks = mutableListOf<String>()
-        val writer = HtmlWriter(HtmlSink(chunks::add))
 
         assertThrows(IllegalArgumentException::class.java) {
-            writer.element("div", attributes = { attribute("x\" onclick", "bad") })
+            writeHtml(HtmlSink(chunks::add)) {
+                element("div", attributes = { attribute("x\" onclick", "bad") })
+            }
         }
         assertTrue(chunks.isEmpty())
 
         assertThrows(IllegalArgumentException::class.java) {
-            writer.element(
-                "div",
-                attributes = {
-                    attribute("id", "first")
-                    attribute("ID", "second")
-                },
-            )
+            writeHtml(HtmlSink(chunks::add)) {
+                element(
+                    "div",
+                    attributes = {
+                        attribute("id", "first")
+                        attribute("ID", "second")
+                    },
+                )
+            }
         }
         assertTrue(chunks.isEmpty())
     }

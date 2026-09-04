@@ -5,8 +5,8 @@ import dev.woge.html.internal.escapeHtmlText
 
 /** Writes standards-shaped HTML directly to a sink without building an in-memory DOM. */
 @WogeHtmlDsl
-public class HtmlWriter(
-    public val sink: HtmlSink,
+public class HtmlWriter internal constructor(
+    private val sink: HtmlSink,
 ) {
     /** Writes [value] as HTML text. Markup characters are escaped rather than interpreted. */
     public fun text(value: String) {
@@ -55,12 +55,17 @@ public class HtmlWriter(
     }
 }
 
-/** Renders a small HTML fragment to a string using the same streaming writer contract. */
-public fun renderHtml(block: HtmlWriter.() -> Unit): String {
-    val output = StringBuilder()
-    HtmlWriter(HtmlSink { value -> output.append(value) }).block()
-    return output.toString()
+/** Writes one HTML fragment directly to [sink]. */
+public fun writeHtml(
+    sink: HtmlSink,
+    block: HtmlWriter.() -> Unit,
+) {
+    HtmlWriter(sink).block()
 }
+
+/** Renders a small HTML fragment to a deterministic in-memory string. */
+public fun renderHtml(block: HtmlWriter.() -> Unit): String =
+    BufferedHtmlSink().also { sink -> writeHtml(sink, block) }.content()
 
 /** Collects one start tag's attributes in deterministic insertion order. */
 @WogeHtmlDsl
