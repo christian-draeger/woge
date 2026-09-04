@@ -33,9 +33,11 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Write a framework-neutral page use case](guides/server-host-spi.md)
 - [Describe a visible update with Patch IR](guides/patch-ir.md)
 - [Encode and decode fallback patch streams](guides/patch-stream-codec.md)
+- [Apply a patch stream in the browser](guides/browser-replace-runtime.md)
 
 ## Performance evidence
 
+- [Fallback client implementation baseline](performance/fallback-client-baseline.md)
 - [HTML sink baseline](performance/html-sinks-baseline.md)
 
 ## Executable M0 evidence

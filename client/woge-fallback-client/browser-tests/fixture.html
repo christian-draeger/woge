@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="woge-page-epoch" content="epoch-a">
+    <title>Woge fallback client contract</title>
+  </head>
+  <body>
+    <main data-woge-region="summary-1" data-woge-revision="0"><p>Original</p></main>
+    <script type="module">
+      const started = performance.now();
+      globalThis.Woge = await import("/woge-fallback.js");
+      globalThis.wogeModuleLoadParseEvalMs = performance.now() - started;
+      globalThis.byteStream = (bytes, splitAt) => {
+        const chunks =
+          splitAt === "one-byte"
+            ? Array.from(bytes, (byte) => Uint8Array.of(byte))
+            : typeof splitAt === "number"
+              ? [bytes.slice(0, splitAt), bytes.slice(splitAt)]
+              : [bytes];
+        return new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(chunk));
+            controller.close();
+          },
+        });
+      };
+    </script>
+  </body>
+</html>

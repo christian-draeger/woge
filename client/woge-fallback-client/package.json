@@ -1,0 +1,31 @@
+{
+  "name": "@woge/fallback-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Small standards-native browser adapter for Woge patch streams",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/woge-fallback.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test:unit": "node --test tests/*.test.mjs",
+    "test:browser": "playwright test",
+    "measure": "node scripts/measure.mjs",
+    "check": "npm run build && npm run test:unit && npm run test:browser && npm run measure"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "esbuild": "0.28.2"
+  }
+}

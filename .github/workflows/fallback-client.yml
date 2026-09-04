@@ -1,0 +1,45 @@
+name: Fallback client
+
+on:
+  pull_request:
+    paths:
+      - "client/woge-fallback-client/**"
+      - "modules/woge-protocol/src/test/resources/fixtures/**"
+      - ".github/workflows/fallback-client.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "client/woge-fallback-client/**"
+      - "modules/woge-protocol/src/test/resources/fixtures/**"
+      - ".github/workflows/fallback-client.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/woge-fallback-client
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: client/woge-fallback-client/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run check
+      - name: Upload browser and size evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fallback-client-evidence
+          if-no-files-found: warn
+          path: |
+            client/woge-fallback-client/build/size-metrics.json
+            client/woge-fallback-client/playwright-report/**
+            client/woge-fallback-client/test-results/**
