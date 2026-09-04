@@ -44,3 +44,4 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0015](0015-limit-native-dpu-to-initial-document-optimization.md) | Accepted | Limit native DPU to an opt-in initial-document optimization |
 | [0016](0016-standards-native-css-authoring.md) | Accepted | Keep CSS standards-native with optional build-time scoping |
 | [0017](0017-optional-tailwind-build-adapter.md) | Accepted | Integrate Tailwind through an optional build adapter |
+| [0018](0018-hybrid-headless-and-source-owned-components.md) | Accepted | Combine binary headless primitives with source-owned component recipes |
