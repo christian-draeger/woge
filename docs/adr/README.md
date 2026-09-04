@@ -45,3 +45,5 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0016](0016-standards-native-css-authoring.md) | Accepted | Keep CSS standards-native with optional build-time scoping |
 | [0017](0017-optional-tailwind-build-adapter.md) | Accepted | Integrate Tailwind through an optional build adapter |
 | [0018](0018-hybrid-headless-and-source-owned-components.md) | Accepted | Combine binary headless primitives with source-owned component recipes |
+
+ADRs 0001–0018 are the complete accepted M0 decision set. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis; executable spikes are supporting evidence and do not override an accepted ADR. Issue [#12](https://github.com/christian-draeger/woge/issues/12) is exempt from a separate ADR because it indexes and assembles these decisions rather than adding one.
