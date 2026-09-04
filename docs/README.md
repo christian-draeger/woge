@@ -26,6 +26,10 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Build and test Woge](development/build-and-test.md)
 - [Repository scaffold provenance](development/scaffold-provenance.md)
 
+## Implemented API guides
+
+- [Render safe HTML values](guides/safe-html-values.md)
+
 ## Executable M0 evidence
 
 The spikes below justify accepted decisions. Their code is evidence, not a production API or a second source of current guidance.
