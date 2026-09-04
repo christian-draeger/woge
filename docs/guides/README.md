@@ -7,3 +7,5 @@ Canonical Kotlin examples belong in the root [`examples`](../../examples/README.
 The first implemented low-level guide is [safe HTML values](safe-html-values.md). Its temporary
 canonical example is compiled with `woge-core`; it moves into the reference application once that
 consumer build exists.
+
+The [HTML sink guide](stream-html.md) explains when to buffer or stream the same component functions.

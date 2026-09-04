@@ -1,8 +1,16 @@
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
+
 plugins {
     id("dev.woge.kotlin-jvm-library")
+    alias(libs.plugins.jmh)
 }
 
 description = "Web-native HTML, component, and portable value APIs for Woge applications."
+
+kotlin {
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation()
+}
 
 dependencies {
     testImplementation(gradleTestKit())
@@ -20,4 +28,14 @@ tasks.test {
             .get()
             .asFile.absolutePath,
     )
+}
+
+jmh {
+    jmhVersion.set("1.37")
+    profilers.set(listOf("gc"))
+    resultFormat.set("JSON")
+}
+
+tasks.named("check") {
+    dependsOn(tasks.named("jmhClasses"))
 }
