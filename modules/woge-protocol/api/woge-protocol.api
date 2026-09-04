@@ -1,3 +1,7 @@
+public abstract interface class dev/woge/protocol/ByteSink {
+	public abstract fun write ([B)V
+}
+
 public final class dev/woge/protocol/HtmlFrame {
 	public final fun writeTo (Ldev/woge/html/HtmlSink;)V
 }
@@ -107,6 +111,88 @@ public final class dev/woge/protocol/PatchProtocolVersion$Companion {
 	public final fun of-SpeMxaw (I)I
 }
 
+public abstract interface class dev/woge/protocol/PatchStreamDecoder {
+	public abstract fun feed ([B)Ljava/util/List;
+	public abstract fun finish ()V
+}
+
+public final class dev/woge/protocol/PatchStreamEncoder {
+	public final fun complete ()V
+	public final fun error (Ldev/woge/protocol/RemotePatchFailure;)V
+	public final fun write (Ldev/woge/protocol/Patch;)V
+}
+
+public final class dev/woge/protocol/PatchStreamErrorCode : java/lang/Enum {
+	public static final field ACTIVE_CONTENT Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field BYTES_AFTER_TERMINAL Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_CONTENT_TYPE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_LENGTH Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_METADATA Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_PREAMBLE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_SEQUENCE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_UTF8 Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field METADATA_TOO_LARGE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field MISSING_TERMINAL Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field PAYLOAD_TOO_LARGE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field TRUNCATED_STREAM Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field UNKNOWN_FRAME_KIND Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field UNSUPPORTED_VERSION Ldev/woge/protocol/PatchStreamErrorCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/protocol/PatchStreamErrorCode;
+	public static fun values ()[Ldev/woge/protocol/PatchStreamErrorCode;
+}
+
+public abstract interface class dev/woge/protocol/PatchStreamEvent {
+}
+
+public final class dev/woge/protocol/PatchStreamEvent$Complete : dev/woge/protocol/PatchStreamEvent {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Ldev/woge/protocol/PatchStreamEvent$Complete;
+	public static synthetic fun copy$default (Ldev/woge/protocol/PatchStreamEvent$Complete;IILjava/lang/Object;)Ldev/woge/protocol/PatchStreamEvent$Complete;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPatchCount ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchStreamEvent$Error : dev/woge/protocol/PatchStreamEvent {
+	public fun <init> (Ldev/woge/protocol/RemotePatchFailure;)V
+	public final fun component1 ()Ldev/woge/protocol/RemotePatchFailure;
+	public final fun copy (Ldev/woge/protocol/RemotePatchFailure;)Ldev/woge/protocol/PatchStreamEvent$Error;
+	public static synthetic fun copy$default (Ldev/woge/protocol/PatchStreamEvent$Error;Ldev/woge/protocol/RemotePatchFailure;ILjava/lang/Object;)Ldev/woge/protocol/PatchStreamEvent$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFailure ()Ldev/woge/protocol/RemotePatchFailure;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchStreamEvent$PatchFrame : dev/woge/protocol/PatchStreamEvent {
+	public fun <init> (Ldev/woge/protocol/Patch;)V
+	public final fun component1 ()Ldev/woge/protocol/Patch;
+	public final fun copy (Ldev/woge/protocol/Patch;)Ldev/woge/protocol/PatchStreamEvent$PatchFrame;
+	public static synthetic fun copy$default (Ldev/woge/protocol/PatchStreamEvent$PatchFrame;Ldev/woge/protocol/Patch;ILjava/lang/Object;)Ldev/woge/protocol/PatchStreamEvent$PatchFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPatch ()Ldev/woge/protocol/Patch;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchStreamException : java/lang/IllegalArgumentException {
+	public final fun getCode ()Ldev/woge/protocol/PatchStreamErrorCode;
+}
+
+public final class dev/woge/protocol/PatchStreamV1 {
+	public static final field INSTANCE Ldev/woge/protocol/PatchStreamV1;
+	public static final field MAX_CONTENT_TYPE_BYTES I
+	public static final field MAX_METADATA_BYTES I
+	public static final field MAX_PAYLOAD_BYTES I
+	public static final field MEDIA_TYPE Ljava/lang/String;
+	public final fun decoder ()Ldev/woge/protocol/PatchStreamDecoder;
+	public final fun encode (Ljava/lang/Iterable;)[B
+	public final fun encoder (Ldev/woge/protocol/ByteSink;)Ldev/woge/protocol/PatchStreamEncoder;
+}
+
 public final class dev/woge/protocol/PatchTarget {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-5npnCUI ()Ljava/lang/String;
@@ -118,6 +204,14 @@ public final class dev/woge/protocol/PatchTarget {
 	public final fun getRegion-WW14DhI ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RecoveryIntent : java/lang/Enum {
+	public static final field NONE Ldev/woge/protocol/RecoveryIntent;
+	public static final field RELOAD Ldev/woge/protocol/RecoveryIntent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/protocol/RecoveryIntent;
+	public static fun values ()[Ldev/woge/protocol/RecoveryIntent;
 }
 
 public final class dev/woge/protocol/RegionTargetId {
@@ -136,6 +230,58 @@ public final class dev/woge/protocol/RegionTargetId {
 
 public final class dev/woge/protocol/RegionTargetId$Companion {
 	public final fun of-o4U952M (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemoteCorrelationId {
+	public static final field Companion Ldev/woge/protocol/RemoteCorrelationId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/RemoteCorrelationId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemoteCorrelationId$Companion {
+	public final fun of-cNJNO68 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemoteFailureCode {
+	public static final field Companion Ldev/woge/protocol/RemoteFailureCode$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/RemoteFailureCode;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemoteFailureCode$Companion {
+	public final fun of-foW2hxI (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemotePatchFailure {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/woge/protocol/RecoveryIntent;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/woge/protocol/RecoveryIntent;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-oIvSQZ4 ()Ljava/lang/String;
+	public final fun component2-MLdUSC4 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/woge/protocol/RecoveryIntent;
+	public final fun copy-ErFiBgE (Ljava/lang/String;Ljava/lang/String;Ldev/woge/protocol/RecoveryIntent;)Ldev/woge/protocol/RemotePatchFailure;
+	public static synthetic fun copy-ErFiBgE$default (Ldev/woge/protocol/RemotePatchFailure;Ljava/lang/String;Ljava/lang/String;Ldev/woge/protocol/RecoveryIntent;ILjava/lang/Object;)Ldev/woge/protocol/RemotePatchFailure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode-oIvSQZ4 ()Ljava/lang/String;
+	public final fun getCorrelationId-MLdUSC4 ()Ljava/lang/String;
+	public final fun getRecovery ()Ldev/woge/protocol/RecoveryIntent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/woge/protocol/ReplacePatch : dev/woge/protocol/Patch {

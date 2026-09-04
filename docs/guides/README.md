@@ -15,3 +15,6 @@ facts, streamed HTML frames, redirects and safe failures before the Spring and K
 
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
+
+The [patch-stream codec guide](patch-stream-codec.md) explains the version-1 byte framing, terminal
+events, strict validation and host-adapter lifecycle.
