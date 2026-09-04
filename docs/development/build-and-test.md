@@ -21,9 +21,20 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 ./gradlew validateAdrs
 ./gradlew validateModuleBoundaries
 ./gradlew testModuleBoundaries
+./gradlew :woge-core:checkKotlinAbi
+./gradlew :woge-core:jmh
 ```
 
 `ktlintFormat` changes source files; the other commands are checks. Test reports are written below each project's `build/test-results` and `build/reports/tests` directories. Detekt writes machine-readable XML/SARIF and an HTML report below `build/reports/detekt`.
+
+The JMH command is an explicit performance measurement rather than a pass/fail check. `check` compiles
+the benchmark fixture but does not execute it. HTML sink results are written below
+`modules/woge-core/build/results/jmh` and interpreted in the
+[recorded baseline](../performance/html-sinks-baseline.md).
+
+Public core declarations are tracked by Kotlin's built-in ABI validator. `checkKotlinAbi` compares the
+current declarations with the committed dump. Run `./gradlew :woge-core:updateKotlinAbi` only after
+reviewing and accepting an intentional public API change.
 
 ## Source ownership
 

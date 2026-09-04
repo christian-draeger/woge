@@ -29,6 +29,11 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Implemented API guides
 
 - [Render safe HTML values](guides/safe-html-values.md)
+- [Buffer or stream HTML](guides/stream-html.md)
+
+## Performance evidence
+
+- [HTML sink baseline](performance/html-sinks-baseline.md)
 
 ## Executable M0 evidence
 
