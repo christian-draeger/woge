@@ -1,8 +1,8 @@
 # Woge threat model
 
-This living document turns Woge's web-native architecture into concrete security assumptions, defaults and test ownership. It covers the planned core, server adapters, generated descriptors, streamed patches and browser runtime. It does not claim that the current M0 spike is deployable.
+This living document turns Woge's web-native architecture into concrete security assumptions, defaults and test ownership. It covers the M1 core work and the planned server adapters, generated descriptors, streamed patches and browser runtime. The current implementation is not yet a deployable application stack.
 
-Last review: 2026-09-03.
+Last review: 2026-09-04.
 
 ## Scope and assumptions
 
@@ -58,7 +58,7 @@ The numbered trust boundaries are:
 | ID | Threat and attack | Required default/control | Verification owner |
 | --- | --- | --- | --- |
 | WOGE-XSS-001 | Hostile text closes an element/attribute or injects markup | Context-aware text and quoted-attribute encoding; typed URL handling; hostile Unicode fixtures | [#16](https://github.com/christian-draeger/woge/issues/16), [#42](https://github.com/christian-draeger/woge/issues/42) |
-| WOGE-XSS-002 | Raw HTML or a patch introduces script, `on*` handlers or active URLs | Raw HTML requires an explicit unsafe/trusted value; ordinary patches reject executable elements/attributes and dangerous URL schemes; no `eval` or inline runtime requirement | [#21](https://github.com/christian-draeger/woge/issues/21), [#42](https://github.com/christian-draeger/woge/issues/42), [#43](https://github.com/christian-draeger/woge/issues/43) |
+| WOGE-XSS-002 | Raw HTML or a patch introduces script, `on*` handlers or active URLs | Raw HTML requires an explicit unsafe/trusted value; ordinary patches reject executable elements/attributes and dangerous URL schemes; no `eval` or inline runtime requirement | [#16](https://github.com/christian-draeger/woge/issues/16), [#21](https://github.com/christian-draeger/woge/issues/21), [#42](https://github.com/christian-draeger/woge/issues/42), [#43](https://github.com/christian-draeger/woge/issues/43) |
 | WOGE-CSRF-001 | A cross-site request triggers a native or enhanced mutation | Unsafe methods fail closed without adapter-verified CSRF; forms and enhanced requests carry the same token; SameSite cookies and Fetch Metadata may add defense in depth, not replace a token where required | [#30](https://github.com/christian-draeger/woge/issues/30), [#31](https://github.com/christian-draeger/woge/issues/31), [#34](https://github.com/christian-draeger/woge/issues/34) |
 | WOGE-AUTH-001 | A registered action, page or stream is treated as authorized | Domain authorization executes for every resource/action/subscription before response commit; adapter annotations only supply authenticated facts | [#18](https://github.com/christian-draeger/woge/issues/18), [#28](https://github.com/christian-draeger/woge/issues/28), [#30](https://github.com/christian-draeger/woge/issues/30), [#38](https://github.com/christian-draeger/woge/issues/38) |
 | WOGE-TARGET-001 | A forged target updates another region or arbitrary selector | Opaque generated instance/region IDs resolve only in the active page registry; no raw selector patch operation; duplicate/unknown IDs fail closed | [#19](https://github.com/christian-draeger/woge/issues/19), [#21](https://github.com/christian-draeger/woge/issues/21), [#25](https://github.com/christian-draeger/woge/issues/25), [#41](https://github.com/christian-draeger/woge/issues/41) |
