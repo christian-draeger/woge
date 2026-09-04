@@ -2,7 +2,7 @@
 
 Woge is an HTML-first Kotlin framework for typed, server-driven and progressively enhanced web applications.
 
-The project is in its architecture and product-validation phase. It is not ready for application use yet.
+The M0 architecture and product-validation baseline is complete. Implementation begins with the M1 walking skeleton; Woge is not ready for application use yet.
 
 ## Direction
 
@@ -16,6 +16,7 @@ The project is in its architecture and product-validation phase. It is not ready
 ## Project documentation
 
 - [Documentation index](docs/README.md)
+- [MVP boundary](docs/mvp-boundary.md)
 - [Architecture decisions](docs/adr/README.md)
 - [Documentation style guide](docs/documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](docs/ai-dx/evaluation.md)
