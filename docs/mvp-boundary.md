@@ -2,7 +2,10 @@
 
 This is the short, reviewable source of truth for what Woge will deliver as its MVP. It assembles the accepted M0 decisions; it does not introduce a new architecture decision.
 
-The MVP spans **M1 through M3**. M1 builds the walking skeleton, M2 completes reactive actions, and M3 hardens and releases the result. M4 is the broader version 1.0 product, not hidden MVP scope.
+The first public beta spans **M1a through M3**. M1a proves one Spring Boot vertical slice, M1b
+proves host parity, M2 and M2b complete interactions and web-native UI foundations, and M3 hardens
+and releases the result. M4 stabilizes the proven beta surface for 1.0; optional navigation, islands,
+WebSockets and a broad component catalog are independent later milestones.
 
 ## Product promise
 
@@ -18,16 +21,19 @@ By the end of M3, the MVP includes:
 - generated typed page URLs, action registrations, component/region references and form commands;
 - escaped buffered and streaming HTML with an explicit `kotlinx.html` interop boundary;
 - structured deferred regions and a length-framed, transport-neutral patch protocol;
-- a small owned cross-browser runtime for replace, append, remove and announce operations;
+- a small owned cross-browser runtime for replace, append and remove operations;
 - ordinary links and Post/Redirect/Get forms plus enhanced form requests, validation and multi-region updates;
 - page epochs, target revisions, stable keyed identity and focus/dirty-control preservation;
 - authorized Server-Sent Events (SSE), cancellation, backpressure and reconnect diagnostics;
+- one explicit failure/recovery matrix for native, enhanced, patch and live-update paths;
+- native multipart forms without routing file bytes through Patch IR;
 - first-class Spring MVC, Spring WebFlux and Ktor adapters behind one host SPI and adapter TCK;
 - Spring Boot starter/auto-configuration as the primary setup and documentation path;
 - ordinary current CSS, IDE-recognized CSS literals and optional deterministic build-time scoping;
 - optional Tailwind build integration with explicit Kotlin/generated/registry source discovery;
-- an accessible binary headless UI primitive foundation that applications style with ordinary CSS or Tailwind;
+- three to five accessible headless/source-owned UI patterns styled with ordinary CSS or Tailwind;
 - strict output, CSRF, authorization, CSP, accessibility, browser and performance hardening;
+- explicit HTTP caching, resource-budget, observability and pre-1.0 version-skew contracts;
 - published JVM artifacts, coherent Gradle tasks and executable web-first documentation;
 - compile-verified examples and scored AI-DX checks using the same supported public APIs as humans.
 
@@ -47,21 +53,24 @@ Parity means equivalent Woge-visible status, headers, HTML/patch meaning, valida
 
 - No client-rendered SPA core, virtual DOM, application-wide hydration or mandatory JavaScript.
 - No Compose-style HTML abstraction, comprehensive Kotlin CSS-property DSL or typed Tailwind utility clone.
-- No Kotlin/JS or Kotlin/Wasm island runtime ships in the MVP. The optional, bounded island target is decided in [#53](https://github.com/christian-draeger/woge/issues/53) for M4.
-- No enhanced page-navigation runtime in the MVP. Real links remain the baseline; enhancement is [#51](https://github.com/christian-draeger/woge/issues/51) in M4.
-- No WebSocket transport in the MVP. SSE is the supported live transport; optional WebSocket work is [#57](https://github.com/christian-draeger/woge/issues/57) in M4.
-- No source-owned registry or broad MUI-style packaged visual library in the MVP. M3 establishes accessible headless primitives; the registry [#81](https://github.com/christian-draeger/woge/issues/81), styled catalog and complex theme land in M4.
+- No Kotlin/JS or Kotlin/Wasm island runtime ships in the MVP. The optional, bounded island target is decided in [#53](https://github.com/christian-draeger/woge/issues/53) in M6.
+- No enhanced page-navigation runtime in the MVP. Real links remain the baseline; enhancement is [#51](https://github.com/christian-draeger/woge/issues/51) in M5.
+- No WebSocket transport in the MVP. SSE is the supported live transport; optional WebSocket work is [#57](https://github.com/christian-draeger/woge/issues/57) in M8.
+- No generic announcement patch is added before the asynchronous accessibility policy in [#120](https://github.com/christian-draeger/woge/issues/120) demonstrates its ownership and use cases.
+- No source-owned registry or broad MUI-style packaged visual library in the MVP. M2b proves a deliberately small primitive set; the registry [#81](https://github.com/christian-draeger/woge/issues/81), styled catalog and complex theme land in M7.
 - No `kotlinx.rpc` or RPC-shaped public application model. Typed HTTP pages, forms, actions and streams are the chosen boundary; a future RPC adapter would require separate evidence and an ADR.
 - No built-in database, ORM, identity provider or authorization policy. Applications retain those decisions; Woge adapters carry the required typed context.
 - No stable native-DPU dependency or Chromium-only product behavior.
 
 ## MVP definition of done
 
-The MVP is releasable only when all three gates pass:
+The public beta is releasable only when all five gates pass:
 
-1. **M1 — walking skeleton:** one shared application streams its shell and deferred region through Spring MVC, Spring WebFlux and Ktor; adapter TCK, browser/JVM CI, executable newcomer guide and first scored AI-DX consumer run pass.
-2. **M2 — reactive actions:** the reference CRUD journey covers typed routes/forms/actions, validation, multi-region patches, revisions and authorized SSE with useful HTML-only fallbacks; optional Tailwind produces the same semantics as plain CSS.
-3. **M3 — hardening and release:** stable-browser/no-JavaScript, accessibility, XSS/CSRF/CSP, malformed-frame, cancellation/proxy, performance/bundle, Spring Boot production and publication checks pass with recorded environments and limits.
+1. **M1a — Spring Boot vertical slice:** the canonical WebFlux application streams an immediate shell and deferred region through the small fallback runtime; CI, starter and the first executable newcomer guide pass.
+2. **M1b — host parity and deployment:** the same application semantics pass through Spring MVC, WebFlux and Ktor using the shared adapter TCK; Spring remains the primary documented path.
+3. **M2 — typed interactions and forms:** the reference CRUD journey covers typed routes/forms/actions, validation, multi-region patches, revisions, recovery and authorized SSE with useful HTML-only fallbacks.
+4. **M2b — CSS, Tailwind and UI foundations:** current CSS and optional Tailwind style the same three-to-five accessible patterns without changing semantics or introducing a mandatory client framework.
+5. **M3 — public beta hardening:** stable-browser/no-JavaScript, accessibility, XSS/CSRF/CSP, malformed-frame, caching, resource-limit, observability, compatibility, cancellation/proxy, performance/bundle, Spring Boot production and publication checks pass with recorded environments and limits.
 
 Documentation is part of the product gate. Canonical examples compile in CI, start from visible web behavior, introduce Kotlin only when needed, and show real diagnostics and escape hatches. AI evaluation uses those same examples and APIs; AI-only aliases or undocumented conventions do not count as success.
 
@@ -73,6 +82,10 @@ Documentation is part of the product gate. Canonical examples compile in CI, sta
 | MVC, WebFlux and Ktor drift or hide lifecycle differences | Shared TCK [#65](https://github.com/christian-draeger/woge/issues/65), cancellation/proxy evidence [#45](https://github.com/christian-draeger/woge/issues/45), Spring production hardening [#58](https://github.com/christian-draeger/woge/issues/58) |
 | Stream/parser/HTML boundaries permit injection or ambiguous failure | Fuzzing [#41](https://github.com/christian-draeger/woge/issues/41), XSS hardening [#42](https://github.com/christian-draeger/woge/issues/42), CSP/Trusted Types [#43](https://github.com/christian-draeger/woge/issues/43) |
 | Patches break focus, dirty fields or cross-browser behavior | Preservation [#36](https://github.com/christian-draeger/woge/issues/36), browser conformance [#39](https://github.com/christian-draeger/woge/issues/39), accessibility audit [#44](https://github.com/christian-draeger/woge/issues/44) |
+| Native and enhanced failures recover differently or replay unsafe work | Failure/recovery model [#124](https://github.com/christian-draeger/woge/issues/124), stale revisions [#37](https://github.com/christian-draeger/woge/issues/37), replay safety [#34](https://github.com/christian-draeger/woge/issues/34) |
+| Normal HTTP caches, proxies or rolling deployments change semantics | HTTP contract [#117](https://github.com/christian-draeger/woge/issues/117), version skew [#118](https://github.com/christian-draeger/woge/issues/118), production operations [#61](https://github.com/christian-draeger/woge/issues/61) |
+| Deferred, form, stream or browser work consumes unbounded resources | Cross-layer limits [#122](https://github.com/christian-draeger/woge/issues/122), cancellation/proxy evidence [#45](https://github.com/christian-draeger/woge/issues/45) |
+| Host telemetry drifts or leaks sensitive values | Semantic observation port [#123](https://github.com/christian-draeger/woge/issues/123), Spring production integration [#58](https://github.com/christian-draeger/woge/issues/58) |
 | Styling or component convenience compromises web-native ownership | Asset contract [#78](https://github.com/christian-draeger/woge/issues/78), Tailwind adapter [#79](https://github.com/christian-draeger/woge/issues/79), headless primitives [#80](https://github.com/christian-draeger/woge/issues/80) |
 | Convenience adds unmeasured runtime/build cost | Performance and bundle budgets [#46](https://github.com/christian-draeger/woge/issues/46), coherent build tasks [#47](https://github.com/christian-draeger/woge/issues/47) |
 | Documentation, diagnostics or generated APIs work only for maintainers | Executable guide [#73](https://github.com/christian-draeger/woge/issues/73), examples/diagnostics [#74](https://github.com/christian-draeger/woge/issues/74), design-partner release [#50](https://github.com/christian-draeger/woge/issues/50) |
