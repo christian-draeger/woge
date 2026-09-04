@@ -168,6 +168,29 @@ public final class dev/woge/host/CsrfVerification : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/CsrfVerification;
 }
 
+public final class dev/woge/host/DeferredRegion {
+	public final fun getInitialRevision-UimE8lE ()J
+	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public final fun renderContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun renderFailure (Ldev/woge/host/DeferredRegionFailure;)Ldev/woge/protocol/PatchHtml;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/DeferredRegionFailure : java/lang/Enum {
+	public static final field FAILED Ldev/woge/host/DeferredRegionFailure;
+	public static final field TIMED_OUT Ldev/woge/host/DeferredRegionFailure;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/DeferredRegionFailure;
+	public static fun values ()[Ldev/woge/host/DeferredRegionFailure;
+}
+
+public final class dev/woge/host/DeferredRegionKt {
+	public static final fun deferredRegion-IloEfL4 (Ldev/woge/protocol/PatchTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/DeferredRegion;
+	public static synthetic fun deferredRegion-IloEfL4$default (Ldev/woge/protocol/PatchTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/DeferredRegion;
+	public static final fun regionPlaceholder (Ldev/woge/html/HtmlWriter;Ldev/woge/host/DeferredRegion;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun regionPlaceholder$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/DeferredRegion;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
 public final class dev/woge/host/ExternalRedirectLocation : dev/woge/host/RedirectLocation {
 	public final fun getUrl-k-WF5Ao ()Ljava/lang/String;
 	public fun getValue ()Ljava/lang/String;

@@ -21,3 +21,6 @@ events, strict validation and host-adapter lifecycle.
 
 The [browser Replace runtime guide](browser-replace-runtime.md) starts from normal HTML and explains
 page-local regions, streamed application, delegated lifecycle events and safe failure behavior.
+
+The [deferred-region guide](deferred-regions.md) shows ordinary loading HTML, independently completing
+server work, bounded concurrency and request-owned cancellation.

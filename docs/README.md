@@ -34,6 +34,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Describe a visible update with Patch IR](guides/patch-ir.md)
 - [Encode and decode fallback patch streams](guides/patch-stream-codec.md)
 - [Apply a patch stream in the browser](guides/browser-replace-runtime.md)
+- [Render independent page regions](guides/deferred-regions.md)
 
 ## Performance evidence
 
