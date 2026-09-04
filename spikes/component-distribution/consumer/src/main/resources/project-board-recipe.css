@@ -1,0 +1,25 @@
+@layer application-components {
+  .project-board-recipe--aurora {
+    --portfolio-accent: oklch(68% 0.17 155);
+    border: 2px solid var(--portfolio-accent);
+    border-radius: 1rem;
+    container-type: inline-size;
+    padding: 1.5rem;
+  }
+
+  .project-board-recipe--aurora dl {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .project-board-recipe--aurora progress {
+    accent-color: var(--portfolio-accent);
+  }
+
+  @container (width < 42rem) {
+    .project-board-recipe--aurora table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+}
