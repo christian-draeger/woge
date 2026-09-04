@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "dev.woge.ui.binary.PackagedProjectBoard",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "stylesheet": "META-INF/woge/project-board.css"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+@layer application-components {
+  [data-app-recipe="hybrid-project-board"] {
+    --board-accent: oklch(70% 0.18 145);
+  }
+
+  [data-app-recipe="hybrid-project-board"] [data-woge-component="project-board"] {
+    border-block-start: 0.35rem solid var(--board-accent);
+    container-type: inline-size;
+  }
+
+  @container (width >= 48rem) {
+    [data-app-recipe="hybrid-project-board"] table {
+      table-layout: fixed;
+    }
+  }
+}
