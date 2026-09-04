@@ -31,6 +31,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Render safe HTML values](guides/safe-html-values.md)
 - [Buffer or stream HTML](guides/stream-html.md)
 - [Write a framework-neutral page use case](guides/server-host-spi.md)
+- [Describe a visible update with Patch IR](guides/patch-ir.md)
 
 ## Performance evidence
 
