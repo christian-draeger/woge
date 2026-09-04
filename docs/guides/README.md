@@ -9,3 +9,6 @@ canonical example is compiled with `woge-core`; it moves into the reference appl
 consumer build exists.
 
 The [HTML sink guide](stream-html.md) explains when to buffer or stream the same component functions.
+
+The [server host SPI guide](server-host-spi.md) introduces typed page use cases, immutable request
+facts, streamed HTML frames, redirects and safe failures before the Spring and Ktor adapters land.

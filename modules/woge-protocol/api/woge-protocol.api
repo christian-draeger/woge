@@ -1,0 +1,8 @@
+public final class dev/woge/protocol/HtmlFrame {
+	public final fun writeTo (Ldev/woge/html/HtmlSink;)V
+}
+
+public final class dev/woge/protocol/HtmlFrameKt {
+	public static final fun htmlFrame (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/HtmlFrame;
+}
+

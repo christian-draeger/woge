@@ -48,6 +48,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0019](0019-materialized-m1-module-boundaries.md) | Accepted | Materialize the M1 module and consumer boundaries |
 | [0020](0020-context-specific-html-values.md) | Accepted | Separate HTML value contexts and make active contexts explicit |
 | [0021](0021-synchronous-bounded-html-sinks.md) | Accepted | Keep HTML sinks synchronous, bounded and transport-neutral |
+| [0022](0022-page-host-spi-contract.md) | Accepted | Use one narrow typed page boundary with policy-checked outcomes |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
