@@ -1,6 +1,9 @@
 # Component identity, page epochs and revisions
 
-This document defines observable identity and ordering behavior before concrete Kotlin names are frozen. Identity locates a rendered instance; it never grants permission to read or mutate it.
+This document defines observable identity and ordering behavior. The first implemented protocol values
+are `PageEpoch`, `RegionTargetId`, `PatchTarget`, `InteractionSequence`, `TargetRevision` and
+`TargetRevisionStep`; generated component/region descriptor names remain follow-up work. Identity
+locates a rendered instance; it never grants permission to read or mutate it.
 
 ## Identity model
 

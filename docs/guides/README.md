@@ -12,3 +12,6 @@ The [HTML sink guide](stream-html.md) explains when to buffer or stream the same
 
 The [server host SPI guide](server-host-spi.md) introduces typed page use cases, immutable request
 facts, streamed HTML frames, redirects and safe failures before the Spring and Ktor adapters land.
+
+The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
+page, target, interaction and revision checks in browser terms.
