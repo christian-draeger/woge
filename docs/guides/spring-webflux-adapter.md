@@ -51,6 +51,11 @@ val routes = coRouter {
 }
 ```
 
+In a Spring Boot application, inject `WogeWebFluxHandlers` and call `page(...)` and `deferred(...)`
+instead of constructing both handlers separately. The shared factory applies the configured context
+and execution policy while the routes stay ordinary WebFlux code. See the
+[Spring Boot guide](spring-boot-starter.md).
+
 Navigation returns a complete `text/html; charset=UTF-8` response. The fallback browser module then
 Fetches the second route as `application/vnd.woge.patch-stream; version=1`. Each completed region is
 flushed and can become visible while slower work is still running.

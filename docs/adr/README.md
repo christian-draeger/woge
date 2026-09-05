@@ -55,6 +55,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0026](0026-structured-deferred-region-execution.md) | Accepted | Execute deferred regions as bounded request children |
 | [0027](0027-fetch-deferred-patches-after-html-shell.md) | Accepted | Fetch deferred patches after the HTML shell |
 | [0028](0028-functional-spring-webflux-adapter.md) | Accepted | Adapt Woge through functional Spring WebFlux handlers |
+| [0029](0029-neutral-spring-boot-starter-and-explicit-adapter-selection.md) | Accepted | Keep the Spring Boot starter neutral and adapter selection explicit |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
