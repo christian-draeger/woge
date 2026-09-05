@@ -42,6 +42,12 @@ val validateDocumentation = registerValidation(
     "Validates local documentation links and executable snippet references.",
     "scripts/validate-documentation.sh",
 )
+tasks.register<Exec>("referenceBrowserSmoke") {
+    group = "verification"
+    description = "Runs the Spring Boot reference application in the supported Playwright engines."
+    workingDir(layout.projectDirectory.dir("client/woge-fallback-client"))
+    commandLine("npm", "run", "test:reference")
+}
 
 val test = registerAggregate("test", "Runs tests in every production build project.", "test")
 val detekt = registerAggregate("detekt", "Runs Detekt in every production build project.", "detekt")
