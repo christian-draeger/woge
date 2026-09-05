@@ -8,6 +8,9 @@ The first implemented low-level guide is [safe HTML values](safe-html-values.md)
 canonical example is compiled with `woge-core`; it moves into the reference application once that
 consumer build exists.
 
+The [CSS and asset guide](css-and-assets.md) shows external and colocated CSS, declaration lists,
+plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI boundaries.
+
 The [HTML sink guide](stream-html.md) explains when to buffer or stream the same component functions.
 
 The [server host SPI guide](server-host-spi.md) introduces typed page use cases, immutable request

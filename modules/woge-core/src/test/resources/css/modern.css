@@ -1,0 +1,29 @@
+@layer reset, components;
+
+@layer components {
+  .project-card {
+    --accent: oklch(68% 0.18 35);
+    container-type: inline-size;
+    margin-inline: 1rem;
+    color: light-dark(var(--accent), color-mix(in oklch, var(--accent), white 25%));
+    view-transition-name: project-card;
+
+    & > h2 {
+      text-wrap: balance;
+    }
+  }
+
+  @container (width >= 30rem) {
+    .project-card { grid-template-columns: 1fr auto; }
+  }
+}
+
+@supports (field-sizing: content) {
+  .project-search { field-sizing: content; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card { view-transition-name: none; }
+}
+
+.future-css { future-property: future-value(1 2 3); }
