@@ -89,6 +89,21 @@ public final class dev/woge/html/CspNonce {
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
 }
 
+public final class dev/woge/html/DocumentTagsKt {
+	public static final fun body (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun body$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun head (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun head$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun html (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun html$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun meta (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun meta$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun noscript (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun noscript$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun title (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun title$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
 public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/ExternalUrl;
 	public fun equals (Ljava/lang/Object;)Z
@@ -100,6 +115,23 @@ public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {
 	public fun toString ()Ljava/lang/String;
 	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/FormTagsKt {
+	public static final fun button (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun button$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun form (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun form$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun input (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun input$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun label (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun label$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun option (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun option$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun select (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun select$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun textarea (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun textarea$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class dev/woge/html/HeadAssetsKt {
@@ -142,6 +174,7 @@ public final class dev/woge/html/HtmlValuesKt {
 }
 
 public final class dev/woge/html/HtmlWriter {
+	public final fun doctype ()V
 	public final fun element (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun element$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun raw-WmHVnZ8 (Ljava/lang/String;)V
@@ -154,6 +187,40 @@ public final class dev/woge/html/HtmlWriterKt {
 	public static final fun renderHtml (Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
 	public static final fun srcdoc-mHIzVm8 (Ldev/woge/html/Attributes;Ljava/lang/String;)V
 	public static final fun writeHtml (Ldev/woge/html/HtmlSink;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class dev/woge/html/ListTagsKt {
+	public static final fun dd (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun dd$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun dl (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun dl$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun dt (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun dt$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun li (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun li$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun ol (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun ol$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun ul (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun ul$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class dev/woge/html/SectionTagsKt {
+	public static final fun article (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun article$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun aside (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun aside$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun div (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun div$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun footer (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun footer$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun header (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun header$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun main (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun main$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun nav (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun nav$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun section (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun section$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class dev/woge/html/StreamingHtmlSink : dev/woge/html/HtmlSink {
@@ -174,6 +241,44 @@ public final class dev/woge/html/SubresourceIntegrity {
 	public fun toString ()Ljava/lang/String;
 	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/TableTagsKt {
+	public static final fun caption (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun caption$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun table (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun table$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun tbody (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun tbody$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun td (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun td$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun th (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun th$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun thead (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun thead$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun tr (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun tr$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class dev/woge/html/TextTagsKt {
+	public static final fun a (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun a$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun em (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun em$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun h1 (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun h1$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun h2 (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun h2$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun h3 (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun h3$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun p (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun p$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun span (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun span$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun strong (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun strong$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun time (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun time$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class dev/woge/html/UnsafeHtml {

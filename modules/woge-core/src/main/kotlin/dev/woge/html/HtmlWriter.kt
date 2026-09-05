@@ -9,6 +9,11 @@ import dev.woge.html.internal.escapeHtmlText
 public class HtmlWriter internal constructor(
     private val sink: HtmlSink,
 ) {
+    /** Writes the standard declaration that selects standards mode for an HTML document. */
+    public fun doctype() {
+        sink.write("<!doctype html>")
+    }
+
     /** Writes [value] as HTML text. Markup characters are escaped rather than interpreted. */
     public fun text(value: String) {
         sink.write(escapeHtmlText(value))

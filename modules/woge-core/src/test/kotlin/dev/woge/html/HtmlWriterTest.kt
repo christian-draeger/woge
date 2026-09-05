@@ -8,6 +8,46 @@ import org.junit.jupiter.api.Test
 
 class HtmlWriterTest {
     @Test
+    fun `doctype writes the standard HTML declaration without an unsafe escape hatch`() {
+        assertEquals(
+            "<!doctype html><html></html>",
+            renderHtml {
+                doctype()
+                element("html")
+            },
+        )
+    }
+
+    @Test
+    fun `common tag wrappers retain familiar HTML names and generic future fallback`() {
+        val html =
+            renderHtml {
+                main(attributes = { attribute("id", "content") }) {
+                    article {
+                        h1 { text("Typed structure") }
+                        form(
+                            attributes = {
+                                url("action", applicationUrl("/search"))
+                                attribute("method", "get")
+                            },
+                        ) {
+                            input { attribute("name", "query") }
+                            button { text("Search") }
+                        }
+                    }
+                    element("future-card") { text("Still open to the platform") }
+                }
+            }
+
+        assertEquals(
+            "<main id=\"content\"><article><h1>Typed structure</h1>" +
+                "<form action=\"/search\" method=\"get\"><input name=\"query\"><button>Search</button></form>" +
+                "</article><future-card>Still open to the platform</future-card></main>",
+            html,
+        )
+    }
+
+    @Test
     fun `text and quoted attributes use separate escaping contexts`() {
         val html =
             renderHtml {

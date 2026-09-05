@@ -4,6 +4,8 @@ The documentation grows with executable product slices. Pages describing unimple
 
 ## Start here
 
+- [Spring Boot WebFlux quickstart](guides/quickstart-spring-boot.md)
+- [Kotlin for this web task](guides/kotlin-for-web-developers.md)
 - [Project direction](../README.md)
 - [MVP boundary and definition of done](mvp-boundary.md)
 - [Reference application](product/reference-application.md)
@@ -28,6 +30,8 @@ The documentation grows with executable product slices. Pages describing unimple
 
 ## Implemented API guides
 
+- [Build the first Woge page with Spring Boot](guides/quickstart-spring-boot.md)
+- [Kotlin for the first web task](guides/kotlin-for-web-developers.md)
 - [Render safe HTML values](guides/safe-html-values.md)
 - [Style pages and load assets](guides/css-and-assets.md)
 - [Buffer or stream HTML](guides/stream-html.md)
@@ -67,4 +71,5 @@ The spikes below justify accepted decisions. Their code is evidence, not a produ
 4. **API reference:** list exact types, defaults and compatibility constraints.
 5. **Internals:** explain protocols, generated code and adapter implementation.
 
-Only the architecture and quality foundations exist today. The quick start begins with the walking skeleton.
+The Spring Boot WebFlux quickstart is the first executable vertical slice. MVC and Ktor parity, typed
+interactions and the broader component system remain later milestones.
