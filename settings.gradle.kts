@@ -35,3 +35,6 @@ project(":woge-reference-shared").projectDir = file("examples/reference-applicat
 
 include(":woge-reference-spring-webflux")
 project(":woge-reference-spring-webflux").projectDir = file("examples/reference-application/spring-webflux")
+
+include(":woge-reference-spring-mvc")
+project(":woge-reference-spring-mvc").projectDir = file("examples/reference-application/spring-mvc")

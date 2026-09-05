@@ -25,6 +25,10 @@ The maintained reference application joins the root Gradle build as two consumer
 - `woge-reference-spring-webflux` owns Spring Boot startup, functional routes, static assets and a
   real-server integration test.
 
+Asset ownership was later moved into the shared consumer when the MVC launcher was implemented; see
+[ADR 0032](0032-async-servlet-spring-mvc-adapter.md). The separated launcher decision remains in
+force.
+
 The documented command is `./gradlew :woge-reference-spring-webflux:bootRun`. Root `check` compiles and
 tests both projects. Documentation excerpts point to those canonical sources rather than creating an
 uncompiled sample tree.
