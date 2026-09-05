@@ -126,7 +126,7 @@ private fun HtmlWriter.renderFullNavigationFallback(project: ProjectSnapshot) {
 private fun HtmlWriter.renderDeferredProject(project: ProjectSnapshot) {
     deferredRegions(project).forEach { region ->
         regionPlaceholder(region, elementName = "section") {
-            classes("project-region", "is-loading")
+            classes("project-region")
             aria("labelledby", "${region.target.region.value}-heading")
         }
     }

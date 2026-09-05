@@ -93,7 +93,7 @@ internal fun HtmlWriter.renderRegionLoading(
     title: String,
 ) {
     h2(attributes = { attribute("id", "$region-heading") }) { text(title) }
-    p { text("Loading from the server…") }
+    p(attributes = { classes("is-loading") }) { text("Loading from the server…") }
 }
 
 internal fun HtmlWriter.renderRegionFailure(

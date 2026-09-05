@@ -21,6 +21,7 @@
     "build": "node scripts/build.mjs",
     "test:unit": "node --test tests/*.test.mjs",
     "test:browser": "playwright test",
+    "test:reference": "playwright test --config=playwright.reference.config.mjs",
     "measure": "node scripts/measure.mjs",
     "check": "npm run build && npm run test:unit && npm run test:browser && npm run measure"
   },
