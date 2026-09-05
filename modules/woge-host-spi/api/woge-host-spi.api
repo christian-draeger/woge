@@ -191,6 +191,10 @@ public final class dev/woge/host/DeferredRegionKt {
 	public static synthetic fun regionPlaceholder$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/DeferredRegion;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
+public abstract interface class dev/woge/host/DeferredRegionsUseCase {
+	public abstract fun regions (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class dev/woge/host/ExternalRedirectLocation : dev/woge/host/RedirectLocation {
 	public final fun getUrl-k-WF5Ao ()Ljava/lang/String;
 	public fun getValue ()Ljava/lang/String;
@@ -437,6 +441,7 @@ public final class dev/woge/host/RequestCookies : java/lang/Iterable, kotlin/jvm
 
 public final class dev/woge/host/RequestCookies$Companion {
 	public final fun getEMPTY ()Ldev/woge/host/RequestCookies;
+	public final fun of (Ljava/lang/Iterable;)Ldev/woge/host/RequestCookies;
 	public final fun of ([Ldev/woge/host/RequestCookie;)Ldev/woge/host/RequestCookies;
 }
 
@@ -450,6 +455,7 @@ public final class dev/woge/host/RequestHeaders : java/lang/Iterable, kotlin/jvm
 
 public final class dev/woge/host/RequestHeaders$Companion {
 	public final fun getEMPTY ()Ldev/woge/host/RequestHeaders;
+	public final fun of (Ljava/lang/Iterable;)Ldev/woge/host/RequestHeaders;
 	public final fun of ([Ldev/woge/host/HttpHeader;)Ldev/woge/host/RequestHeaders;
 }
 
