@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":woge-server-runtime"))
     implementation(libs.kotlinxCoroutinesReactor)
 
+    testImplementation(project(":woge-adapter-tck"))
     testImplementation(libs.junitJupiter)
     testImplementation(libs.reactorNettyHttp)
     testImplementation(libs.springContext)
