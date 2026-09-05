@@ -93,6 +93,9 @@ public class RequestHeaders private constructor(
         public val EMPTY: RequestHeaders = RequestHeaders(emptyList())
 
         public fun of(vararg entries: HttpHeader): RequestHeaders = RequestHeaders(entries.asIterable())
+
+        /** Creates a snapshot without requiring an adapter to copy through a vararg array. */
+        public fun of(entries: Iterable<HttpHeader>): RequestHeaders = RequestHeaders(entries)
     }
 }
 
@@ -203,6 +206,9 @@ public class RequestCookies private constructor(
         public val EMPTY: RequestCookies = RequestCookies(emptyList())
 
         public fun of(vararg entries: RequestCookie): RequestCookies = RequestCookies(entries.asIterable())
+
+        /** Creates a snapshot without requiring an adapter to copy through a vararg array. */
+        public fun of(entries: Iterable<RequestCookie>): RequestCookies = RequestCookies(entries)
     }
 }
 
