@@ -3,9 +3,8 @@
 Woge renders ordinary text and attributes as data, even when their contents look like markup. Use a
 different API only when the browser will parse the value in a different context, such as a URL.
 
-The API on this page is available from `woge-core`. The common `div`, `a` and `input` wrappers planned
-for M1 are not implemented yet, so this guide shows the lower-level `element` and `voidElement`
-fallbacks.
+The API on this page is available from `woge-core`. Common tags use familiar wrappers such as `article`,
+`a` and `input`; `element` and `voidElement` remain available for custom, uncommon and new tags.
 
 ## Render text and attributes
 
@@ -15,8 +14,7 @@ The compiled example renders a project card with familiar HTML attributes:
 
 ```kotlin
 val html = renderHtml {
-    element(
-        "article",
+    article(
         attributes = {
             classes("project-card", "grid gap-3", "md:grid-cols-[1fr_auto]")
             data("project-id", "woge-7")
@@ -25,8 +23,8 @@ val html = renderHtml {
             styles(declarations("--accent: oklch(62% 0.2 250);"))
         },
     ) {
-        element("h2") { text("Woge <preview>") }
-        element("a", attributes = { url("href", applicationUrl("/projects/woge-7")) }) {
+        h2 { text("Woge <preview>") }
+        a(attributes = { url("href", applicationUrl("/projects/woge-7")) }) {
             text("Open & inspect")
         }
     }
@@ -45,7 +43,7 @@ the start tag. Named arguments make those two lambdas unambiguous for readers wh
 HTML Boolean attributes use presence, not the strings `"true"` and `"false"`:
 
 ```kotlin
-voidElement("input", attributes = { boolean("disabled", formIsLocked) })
+input { boolean("disabled", formIsLocked) }
 ```
 
 When `formIsLocked` is false, Woge omits `disabled`. Enumerated attributes such as

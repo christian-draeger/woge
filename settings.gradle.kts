@@ -29,3 +29,9 @@ file("config/architecture/module-boundaries.tsv")
         include(":$moduleName")
         project(":$moduleName").projectDir = file(columns[3])
     }
+
+include(":woge-reference-shared")
+project(":woge-reference-shared").projectDir = file("examples/reference-application/shared")
+
+include(":woge-reference-spring-webflux")
+project(":woge-reference-spring-webflux").projectDir = file("examples/reference-application/spring-webflux")

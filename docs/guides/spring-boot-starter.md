@@ -3,6 +3,8 @@
 The Woge starter configures shared policy and selects one server adapter. You still write normal
 Spring routes, choose normal HTTP methods and use the browser as a browser.
 
+For a complete runnable page first, use the [Spring Boot WebFlux quickstart](quickstart-spring-boot.md).
+
 ## Add one web stack
 
 For the implemented WebFlux path, an application uses these three dependencies:

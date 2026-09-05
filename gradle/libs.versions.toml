@@ -16,6 +16,7 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmhGradle" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 
 [libraries]
 assertjCore = { module = "org.assertj:assertj-core" }
@@ -36,6 +37,7 @@ springBoot = { module = "org.springframework.boot:spring-boot" }
 springBootAutoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 springBootConfigurationProcessor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
 springBootDependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBootStarterWebflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 springBootTest = { module = "org.springframework.boot:spring-boot-test" }
 springContext = { module = "org.springframework:spring-context" }
 springWebmvc = { module = "org.springframework:spring-webmvc" }
