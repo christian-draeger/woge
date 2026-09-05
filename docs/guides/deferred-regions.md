@@ -83,10 +83,31 @@ the page first. A timeout or normal application exception becomes the region's c
 content; it does not cancel unrelated siblings. Cancelling collection cancels active and waiting
 children.
 
-The executor does not encode the HTTP response. The next integration layer assigns patch IDs and
-revisions, then maps each result to the browser patch stream. A no-JavaScript request must never be
-left permanently on loading HTML; the host integration either resolves final content for the normal
-document response or uses a complete normal navigation fallback.
+## Send completed regions to the browser
 
-See [ADR 0026](../adr/0026-structured-deferred-region-execution.md) for the lifecycle and ownership
-decision.
+The stable-browser path uses two normal responses. Navigation first completes a `text/html` document
+containing the placeholders. An external module then Fetches one page-scoped Woge patch stream. This
+keeps the document valid HTML and works with strict Content Security Policy without inline scripts.
+
+The shared runtime assigns the initial interaction sequence and one revision step to each update:
+
+```kotlin
+executor.execute(regions).encodeDeferredPatchStream { update ->
+    requestPatchIds.nextFor(update.region.target)
+}.collect { chunk ->
+    hostResponse.writeAndFlush(chunk.bytes)
+}
+```
+
+The patch-ID source and `writeAndFlush` operation shown here belong to the host adapter. Every
+non-terminal chunk contains one complete patch frame; the last chunk contains the completion frame.
+Network boundaries can split or combine those writes without changing the wire protocol.
+
+The browser applies the first frame while the Fetch response is still open, so a fast region declared
+after a slow one becomes visible first. A no-JavaScript request must never be left permanently on
+loading HTML; the host integration resolves required final content into the document or keeps a
+complete normal navigation path.
+
+See [ADR 0026](../adr/0026-structured-deferred-region-execution.md) for lifecycle and ownership and
+[ADR 0027](../adr/0027-fetch-deferred-patches-after-html-shell.md) for the two-response transport
+contract.
