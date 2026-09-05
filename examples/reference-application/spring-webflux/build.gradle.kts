@@ -1,5 +1,3 @@
-import org.gradle.language.jvm.tasks.ProcessResources
-
 plugins {
     id("dev.woge.kotlin-jvm-library")
     alias(libs.plugins.springBoot)
@@ -15,11 +13,4 @@ dependencies {
 
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
-}
-
-tasks.named<ProcessResources>("processResources") {
-    from(rootProject.layout.projectDirectory.dir("client/woge-fallback-client/src")) {
-        include("*.js")
-        into("static/assets/woge")
-    }
 }

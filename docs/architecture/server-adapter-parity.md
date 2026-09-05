@@ -34,11 +34,13 @@ HTTP abort.
 | Adapter | Shared source | Real HTTP | Flush/order | Client abort | Status |
 | --- | --- | --- | --- | --- | --- |
 | Spring Boot WebFlux | Yes | Yes | Yes | Yes | Passing |
-| Spring Boot MVC | Required | Required | Required with Servlet async behavior | Required where deterministic | Planned in [#67](https://github.com/christian-draeger/woge/issues/67) |
+| Spring Boot MVC | Yes | Yes | Yes | Failed-write/timeout | Passing |
 | Ktor | Required | Required | Required | Required | Planned in [#68](https://github.com/christian-draeger/woge/issues/68) |
 
-The WebFlux implementation is the first executable consumer. An adapter is not complete when only
-its own focused tests pass: it must invoke `ServerAdapterContract` from its test suite. The
+WebFlux and MVC are executable consumers of the same fixture. MVC intentionally omits the passive
+client-abort capability because Servlet exposes a disconnect only when a later write fails; its
+adapter tests and [guide](../guides/spring-mvc-adapter.md) cover that boundary explicitly. An adapter
+is not complete when only its own focused tests pass: it must invoke `ServerAdapterContract` from its test suite. The
 multi-host reference slice in [#24](https://github.com/christian-draeger/woge/issues/24) turns all
 three rows into a CI release gate.
 

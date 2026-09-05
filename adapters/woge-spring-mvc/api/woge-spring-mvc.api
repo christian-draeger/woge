@@ -1,0 +1,32 @@
+public final class dev/woge/spring/mvc/DefaultSpringMvcRequestContextFactory : dev/woge/spring/mvc/SpringMvcRequestContextFactory {
+	public static final field INSTANCE Ldev/woge/spring/mvc/DefaultSpringMvcRequestContextFactory;
+	public fun create (Ljakarta/servlet/http/HttpServletRequest;)Ldev/woge/host/RequestContext;
+}
+
+public abstract interface class dev/woge/spring/mvc/SpringMvcPageInput {
+	public abstract fun decode (Ljakarta/servlet/http/HttpServletRequest;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/woge/spring/mvc/SpringMvcRequestContextFactory {
+	public abstract fun create (Ljakarta/servlet/http/HttpServletRequest;)Ldev/woge/host/RequestContext;
+}
+
+public final class dev/woge/spring/mvc/SpringMvcRoutesKt {
+	public static final fun pathVariable (Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/spring/mvc/WogeSpringMvcDeferredHandler : org/springframework/web/HttpRequestHandler {
+	public fun handleRequest (Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V
+}
+
+public final class dev/woge/spring/mvc/WogeSpringMvcHandlers {
+	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/mvc/SpringMvcPageInput;)Ldev/woge/spring/mvc/WogeSpringMvcDeferredHandler;
+	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/spring/mvc/SpringMvcPageInput;)Ldev/woge/spring/mvc/WogeSpringMvcPageHandler;
+}
+
+public final class dev/woge/spring/mvc/WogeSpringMvcPageHandler : org/springframework/web/HttpRequestHandler {
+	public fun handleRequest (Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V
+}
+

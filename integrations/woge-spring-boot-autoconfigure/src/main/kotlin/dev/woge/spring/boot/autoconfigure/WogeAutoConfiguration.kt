@@ -19,7 +19,7 @@ import org.springframework.core.io.ResourceLoader
 @AutoConfiguration
 @ConditionalOnWebApplication
 @EnableConfigurationProperties(WogeProperties::class)
-@Import(WogeWebFluxAutoConfiguration::class)
+@Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
 public class WogeAutoConfiguration {
     /** Discovers only Woge host entry points; HTML components remain ordinary Kotlin values/functions. */
     @Bean

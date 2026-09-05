@@ -3,11 +3,11 @@
 The Woge starter configures shared policy and selects one server adapter. You still write normal
 Spring routes, choose normal HTTP methods and use the browser as a browser.
 
-For a complete runnable page first, use the [Spring Boot WebFlux quickstart](quickstart-spring-boot.md).
+For a complete runnable page first, use the [Spring Boot quickstart](quickstart-spring-boot.md).
 
 ## Add one web stack
 
-For the implemented WebFlux path, an application uses these three dependencies:
+For WebFlux, an application uses these three dependencies:
 
 ```kotlin
 dependencies {
@@ -17,9 +17,18 @@ dependencies {
 }
 ```
 
+For Spring MVC, choose the matching pair instead:
+
+```kotlin
+dependencies {
+    implementation("dev.woge:woge-spring-boot-starter:<version>")
+    implementation("dev.woge:woge-spring-mvc:<version>")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+}
+```
+
 The general Woge starter deliberately includes neither MVC nor WebFlux. This makes it safe to replace
-the transport adapter without pulling two server stacks into the application. The MVC equivalent is
-planned but not implemented yet.
+the transport adapter without pulling two server stacks into the application.
 
 ## Connect a page to familiar routes
 
@@ -51,6 +60,9 @@ class ProjectRoutes {
 The paths and decoder stay visible because they are application behavior. Generated typed route
 descriptors can remove this small amount of repetition later without changing the page port.
 
+MVC uses the same page object through `WogeSpringMvcHandlers` and `SimpleUrlHandlerMapping`. See the
+[Spring MVC adapter guide](spring-mvc-adapter.md) for its short route example and Servlet lifecycle.
+
 HTML components are normal Kotlin functions or values called by the page. They do not need an
 annotation or Spring component scan.
 
@@ -61,18 +73,22 @@ and IDE metadata are available:
 
 ```yaml
 woge:
+  mvc:
+    async-timeout: 60s
   deferred:
     max-concurrency: 6
     region-timeout: 2s
 ```
 
-These limits apply per deferred patch-stream request. Invalid non-positive values fail while the
-application context starts.
+Deferred limits apply per patch-stream request. `mvc.async-timeout` bounds a Servlet page or patch
+response and should exceed the region timeout. Invalid non-positive values fail while the application
+context starts.
 
 ## Make security context explicit
 
-The default `WebFluxRequestContextFactory` permits safe page methods and creates an anonymous Woge
-request snapshot. A Spring Security application should expose its own bean that translates the
+The default `WebFluxRequestContextFactory` or `SpringMvcRequestContextFactory` permits safe page
+methods and creates an anonymous Woge request snapshot. A Spring Security application should expose
+its own matching bean that translates the
 authenticated principal, capabilities and verified request facts into Woge-owned values. The default
 backs off automatically.
 
@@ -95,5 +111,6 @@ versions, and the number of page/deferred use-case beans. A missing adapter erro
 that must be added.
 
 See [the WebFlux adapter guide](spring-webflux-adapter.md) for response and cancellation behavior and
-[ADR 0029](../adr/0029-neutral-spring-boot-starter-and-explicit-adapter-selection.md) for the dependency
-and ambiguity tradeoffs.
+[the Spring MVC adapter guide](spring-mvc-adapter.md) for Servlet threading and disconnect behavior.
+[ADR 0029](../adr/0029-neutral-spring-boot-starter-and-explicit-adapter-selection.md) records the
+dependency and ambiguity tradeoffs.
