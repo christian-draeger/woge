@@ -1,5 +1,6 @@
 package dev.woge.protocol
 
+import dev.woge.css.declarations
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertSame
@@ -95,7 +96,8 @@ class PatchStreamCodecTest {
                     "woge-card",
                     attributes = {
                         classes("grid", "md:grid-cols-[1fr_auto]")
-                        styles("container-type: inline-size;", "--accent: oklch(62% 0.2 250);")
+                        styles(declarations("container-type: inline-size;"))
+                        styles(declarations("--accent: oklch(62% 0.2 250);"))
                         data("state", "ready")
                     },
                 ) {

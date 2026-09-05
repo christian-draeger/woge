@@ -1,5 +1,6 @@
 package dev.woge.html
 
+import dev.woge.css.CssDeclarations
 import dev.woge.html.internal.escapeHtmlAttribute
 import dev.woge.html.internal.escapeHtmlText
 
@@ -53,6 +54,24 @@ public class HtmlWriter internal constructor(
         resolvedAttributes.writeTo(sink)
         sink.write(">")
     }
+
+    internal fun rawTextElement(
+        name: String,
+        attributes: Attributes.() -> Unit,
+        content: String,
+    ) {
+        val normalizedName = requireElementName(name)
+        require(normalizedName in SUPPORTED_RAW_TEXT_ELEMENTS) {
+            "HTML element '$name' is not supported by the raw-text writer"
+        }
+        val resolvedAttributes = Attributes().apply(attributes)
+
+        sink.write("<$name")
+        resolvedAttributes.writeTo(sink)
+        sink.write(">")
+        sink.write(content)
+        sink.write("</$name>")
+    }
 }
 
 /** Writes one HTML fragment directly to [sink]. */
@@ -89,6 +108,7 @@ public class Attributes internal constructor() {
             "URL-bearing HTML attribute '$name' must use url(...)"
         }
         require(normalizedName != "srcdoc") { "HTML attribute 'srcdoc' must use srcdoc(...)" }
+        require(normalizedName != "style") { "HTML attribute 'style' must use styles(declarations(...))" }
         require(!normalizedName.startsWith("on")) {
             "Inline event attribute '$name' requires unsafeAttribute(...)"
         }
@@ -131,9 +151,9 @@ public class Attributes internal constructor() {
         values.appendContributor("class", contributors.asIterable())
     }
 
-    /** Adds ordered CSS declaration-list contributors without parsing CSS properties. */
-    public fun styles(vararg declarationLists: String) {
-        values.appendContributor("style", declarationLists.asIterable())
+    /** Adds ordered typed CSS declaration-list contributors without parsing CSS properties. */
+    public fun styles(declarationList: CssDeclarations) {
+        values.appendContributor("style", listOf(declarationList.source))
     }
 
     /** Adds a quoted URL attribute after scheme and structure validation by an [HtmlUrl] factory. */
@@ -301,6 +321,8 @@ private val VOID_ELEMENTS: Set<String> =
 
 private val UNSUPPORTED_RAW_TEXT_ELEMENTS: Set<String> =
     setOf("iframe", "noembed", "noframes", "plaintext", "script", "style", "xmp")
+
+private val SUPPORTED_RAW_TEXT_ELEMENTS: Set<String> = setOf("script", "style")
 
 private val BOOLEAN_ATTRIBUTES: Set<String> =
     setOf(

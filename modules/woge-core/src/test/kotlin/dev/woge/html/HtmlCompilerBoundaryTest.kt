@@ -23,9 +23,20 @@ class HtmlCompilerBoundaryTest {
         assertFixtureFails("url-string", "HtmlUrl")
     }
 
+    @Test
+    fun `a complete stylesheet cannot cross the declaration-list boundary`() {
+        assertFixtureFails("stylesheet-in-attribute", "CssDeclarations", "CssStylesheet")
+    }
+
+    @Test
+    fun `a declaration list cannot cross the stylesheet boundary`() {
+        assertFixtureFails("declarations-in-style-block", "CssStylesheet", "CssDeclarations")
+    }
+
     private fun assertFixtureFails(
         name: String,
         expectedType: String,
+        actualType: String = "String",
     ) {
         val fixtureDirectory = projectDirectory.resolve(name).createDirectories()
         val repositoryRoot = Path.of(requireNotNull(System.getProperty("woge.repository.root")))
@@ -56,6 +67,7 @@ class HtmlCompilerBoundaryTest {
 
             dependencies {
                 implementation(files("${coreJar.asKotlinString()}"))
+                compileOnly("org.jetbrains:annotations:26.1.0")
             }
             """.trimIndent(),
         )
@@ -76,7 +88,7 @@ class HtmlCompilerBoundaryTest {
                 .buildAndFail()
 
         assertTrue(result.output.contains("Argument type mismatch"), result.output)
-        assertTrue(result.output.contains("String"), result.output)
+        assertTrue(result.output.contains(actualType), result.output)
         assertTrue(result.output.contains(expectedType), result.output)
     }
 }
