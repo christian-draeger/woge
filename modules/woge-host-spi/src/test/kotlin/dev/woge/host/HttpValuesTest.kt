@@ -62,4 +62,18 @@ class HttpValuesTest {
             (metadata.cookies as MutableList<ResponseCookie>).clear()
         }
     }
+
+    @Test
+    fun `iterable request values are snapshotted for host adapters`() {
+        val headerSource = mutableListOf(httpHeader("x-mode", "browser"))
+        val cookieSource = mutableListOf(requestCookie("theme", "dark"))
+        val headers = RequestHeaders.of(headerSource)
+        val cookies = RequestCookies.of(cookieSource)
+
+        headerSource.clear()
+        cookieSource.clear()
+
+        assertEquals("browser", headers.values(HeaderName.of("x-mode")).single().value)
+        assertEquals("dark", cookies.first(CookieName.of("theme"))?.value)
+    }
 }
