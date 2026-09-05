@@ -1,0 +1,50 @@
+public final class dev/woge/spring/boot/autoconfigure/WogeApplicationCatalog {
+	public final fun getDeferredRegionUseCases ()Ljava/util/List;
+	public final fun getPageUseCases ()Ljava/util/List;
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeAutoConfiguration {
+	public fun <init> ()V
+	public final fun wogeApplicationCatalog (Lorg/springframework/beans/factory/ListableBeanFactory;)Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;
+	public final fun wogeRuntimeInfo (Ldev/woge/spring/boot/autoconfigure/WogeProperties;Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;Lorg/springframework/core/io/ResourceLoader;Lorg/springframework/context/ApplicationContext;)Ldev/woge/spring/boot/autoconfigure/WogeRuntimeInfo;
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties {
+	public static final field Companion Ldev/woge/spring/boot/autoconfigure/WogeProperties$Companion;
+	public static final field DEFAULT_MAX_CONCURRENCY I
+	public fun <init> ()V
+	public final fun getAdapter ()Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public final fun getDeferred ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;
+	public final fun setAdapter (Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;)V
+	public final fun setDeferred (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;)V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Companion {
+	public final fun getDEFAULT_REGION_TIMEOUT ()Ljava/time/Duration;
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Deferred {
+	public fun <init> ()V
+	public final fun getMaxConcurrency ()I
+	public final fun getRegionTimeout ()Ljava/time/Duration;
+	public final fun setMaxConcurrency (I)V
+	public final fun setRegionTimeout (Ljava/time/Duration;)V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeRuntimeInfo {
+	public final fun getAdapter ()Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public final fun getDeferredRegionUseCases ()I
+	public final fun getPageUseCases ()I
+	public final fun getProtocolVersion ()I
+	public final fun getRuntimeVersion ()Ljava/lang/String;
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeSpringAdapter : java/lang/Enum {
+	public static final field AUTO Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public static final field MVC Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public static final field WEBFLUX Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+	public static fun values ()[Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
+}
+

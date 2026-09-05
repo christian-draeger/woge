@@ -17,7 +17,9 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 
 [libraries]
+assertjCore = { module = "org.assertj:assertj-core" }
 detektPlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+jakartaServletApi = { module = "jakarta.servlet:jakarta.servlet-api" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform" }
@@ -28,6 +30,11 @@ kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serializati
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradle" }
 reactorNettyHttp = { module = "io.projectreactor.netty:reactor-netty-http" }
+springBoot = { module = "org.springframework.boot:spring-boot" }
+springBootAutoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+springBootConfigurationProcessor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
 springBootDependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBootTest = { module = "org.springframework.boot:spring-boot-test" }
 springContext = { module = "org.springframework:spring-context" }
+springWebmvc = { module = "org.springframework:spring-webmvc" }
 springWebflux = { module = "org.springframework:spring-webflux" }
