@@ -34,6 +34,37 @@ the benchmark fixture but does not execute it. HTML sink results are written bel
 `modules/woge-core/build/results/jmh` and interpreted in the
 [recorded baseline](../performance/html-sinks-baseline.md).
 
+## Reproduce the clean CI gate
+
+Pull requests and pushes to `main` remove previous outputs and disable Gradle's task-output cache:
+
+```shell
+./gradlew clean check --no-build-cache
+```
+
+This keeps dependency and configuration reuse available while proving that generated files and
+compiled fixtures can be rebuilt from the checkout. The gate includes positive example compilation,
+the deterministic negative compiler fixtures, JVM tests, formatting, static analysis, ABI checks,
+module-boundary checks, ADR metadata and documentation/snippet-link validation. It never calls an AI
+model.
+
+The Spring Boot reference application has a separate browser gate. Install its pinned Node and
+Playwright dependencies once, then invoke the same Gradle task as CI:
+
+```shell
+cd client/woge-fallback-client
+npm ci
+npx playwright install chromium firefox webkit
+cd ../..
+./gradlew referenceBrowserSmoke
+```
+
+The task starts the compiled WebFlux example and verifies deferred enhancement plus the normal
+no-JavaScript navigation in Chromium, Firefox and WebKit. Failure traces and screenshots are written
+below `client/woge-fallback-client/test-results/reference-application`; the HTML report is below
+`client/woge-fallback-client/playwright-report/reference-application`. GitHub Actions uploads those
+paths and all JVM test reports even when a gate fails.
+
 Public declarations in `woge-core`, `woge-protocol` and `woge-host-spi` are tracked by Kotlin's
 built-in ABI validator. `checkKotlinAbi` compares current declarations with the committed dump. Run
 the corresponding module's `updateKotlinAbi` task only after reviewing and accepting an intentional

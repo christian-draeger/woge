@@ -31,3 +31,5 @@ jobs:
         run: ./scripts/validate-adrs.sh
       - name: Validate module boundaries
         run: ./scripts/validate-module-boundaries.sh
+      - name: Validate documentation and canonical snippet references
+        run: ./scripts/validate-documentation.sh
