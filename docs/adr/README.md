@@ -53,6 +53,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0024](0024-strict-bounded-patch-stream-codec.md) | Accepted | Validate bounded canonical patch frames before exposure |
 | [0025](0025-browser-replace-runtime-and-lifecycle.md) | Accepted | Apply Replace patches through a page-local DOM registry |
 | [0026](0026-structured-deferred-region-execution.md) | Accepted | Execute deferred regions as bounded request children |
+| [0027](0027-fetch-deferred-patches-after-html-shell.md) | Accepted | Fetch deferred patches after the HTML shell |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
