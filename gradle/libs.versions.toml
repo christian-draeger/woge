@@ -8,6 +8,7 @@ jsoup = "1.23.2"
 kotlin = "2.4.10"
 ktlintGradle = "14.2.0"
 serialization = "1.11.0"
+springBoot = "4.1.1"
 
 [plugins]
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
@@ -21,7 +22,12 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinxCoroutinesReactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "coroutines" }
 kotlinxCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradle" }
+reactorNettyHttp = { module = "io.projectreactor.netty:reactor-netty-http" }
+springBootDependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springContext = { module = "org.springframework:spring-context" }
+springWebflux = { module = "org.springframework:spring-webflux" }
