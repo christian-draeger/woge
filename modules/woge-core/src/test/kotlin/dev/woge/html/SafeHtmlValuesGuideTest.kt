@@ -9,8 +9,7 @@ class SafeHtmlValuesGuideTest {
     fun `project card example remains executable`() {
         val html =
             renderHtml {
-                element(
-                    "article",
+                article(
                     attributes = {
                         classes("project-card", "grid gap-3", "md:grid-cols-[1fr_auto]")
                         data("project-id", "woge-7")
@@ -19,8 +18,8 @@ class SafeHtmlValuesGuideTest {
                         styles(declarations("--accent: oklch(62% 0.2 250);"))
                     },
                 ) {
-                    element("h2") { text("Woge <preview>") }
-                    element("a", attributes = { url("href", applicationUrl("/projects/woge-7")) }) {
+                    h2 { text("Woge <preview>") }
+                    a(attributes = { url("href", applicationUrl("/projects/woge-7")) }) {
                         text("Open & inspect")
                     }
                 }
