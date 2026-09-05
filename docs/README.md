@@ -29,6 +29,7 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Implemented API guides
 
 - [Render safe HTML values](guides/safe-html-values.md)
+- [Style pages and load assets](guides/css-and-assets.md)
 - [Buffer or stream HTML](guides/stream-html.md)
 - [Write a framework-neutral page use case](guides/server-host-spi.md)
 - [Describe a visible update with Patch IR](guides/patch-ir.md)

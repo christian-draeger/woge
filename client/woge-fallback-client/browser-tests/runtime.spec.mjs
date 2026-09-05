@@ -30,7 +30,8 @@ test("preserves modern HTML CSS hooks and registers nested regions", async ({ pa
   await resetPage(page);
   const first = patchFrame({
     html:
-      '<woge-card class="grid md:grid-cols-[1fr_auto]" style="container-type:inline-size;--accent:oklch(62% .2 250)" ' +
+      '<woge-card class="project-card ProjectCard_root__a1b2 grid md:grid-cols-[1fr_auto]" ' +
+      'style="container-type:inline-size;--accent:oklch(62% .2 250)" ' +
       'data-state="ready"><a href="/projects">Projects</a>' +
       '<section data-woge-region="nested-1" data-woge-revision="0"><p>Nested fallback</p></section></woge-card>',
   });
@@ -44,6 +45,7 @@ test("preserves modern HTML CSS hooks and registers nested regions", async ({ pa
 
   expect(result.error).toBeNull();
   expect(result.html).toContain("md:grid-cols-[1fr_auto]");
+  expect(result.html).toContain("ProjectCard_root__a1b2");
   expect(result.html).toContain("--accent:oklch");
   expect(result.html).toContain("Nested update");
   expect(result.patchCount).toBe(2);

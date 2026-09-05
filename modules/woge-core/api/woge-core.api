@@ -1,3 +1,34 @@
+public final class dev/woge/css/CssDeclarations {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/css/CssDeclarations;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getSource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/css/CssStylesheet {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/css/CssStylesheet;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getSource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/css/CssValuesKt {
+	public static final fun declarations (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun stylesheet (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class dev/woge/html/ApplicationUrl : dev/woge/html/HtmlUrl {
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/ApplicationUrl;
 	public fun equals (Ljava/lang/Object;)Z
@@ -11,6 +42,11 @@ public final class dev/woge/html/ApplicationUrl : dev/woge/html/HtmlUrl {
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
 }
 
+public final class dev/woge/html/AssetSecurityKt {
+	public static final fun cspNonce (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun subresourceIntegrity (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class dev/woge/html/Attributes {
 	public final fun aria (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun attribute (Ljava/lang/String;Ljava/lang/String;)V
@@ -18,7 +54,7 @@ public final class dev/woge/html/Attributes {
 	public static synthetic fun boolean$default (Ldev/woge/html/Attributes;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun classes ([Ljava/lang/String;)V
 	public final fun data (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun styles ([Ljava/lang/String;)V
+	public final fun styles-f0uut0w (Ljava/lang/String;)V
 	public final fun unsafeAttribute (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun unsafeUrl-G4S142U (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun url (Ljava/lang/String;Ldev/woge/html/HtmlUrl;)V
@@ -33,6 +69,26 @@ public final class dev/woge/html/BufferedHtmlSink : dev/woge/html/HtmlSink {
 	public fun write (Ljava/lang/String;)V
 }
 
+public final class dev/woge/html/CrossOrigin : java/lang/Enum {
+	public static final field ANONYMOUS Ldev/woge/html/CrossOrigin;
+	public static final field USE_CREDENTIALS Ldev/woge/html/CrossOrigin;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/html/CrossOrigin;
+	public static fun values ()[Ldev/woge/html/CrossOrigin;
+}
+
+public final class dev/woge/html/CspNonce {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/CspNonce;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
 public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/ExternalUrl;
 	public fun equals (Ljava/lang/Object;)Z
@@ -44,6 +100,21 @@ public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {
 	public fun toString ()Ljava/lang/String;
 	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/HeadAssetsKt {
+	public static final fun assetLink (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ldev/woge/html/HtmlUrl;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun assetLink$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ldev/woge/html/HtmlUrl;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun metadata (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun moduleScript-0cTZK0c (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
+	public static synthetic fun moduleScript-0cTZK0c$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V
+	public static final fun preload-sGZyPek (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
+	public static synthetic fun preload-sGZyPek$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V
+	public static final fun propertyMetadata (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun style-uTgxtp4 (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun style-uTgxtp4$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun stylesheet-GGnNaPU (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
+	public static synthetic fun stylesheet-GGnNaPU$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V
 }
 
 public abstract interface class dev/woge/html/HtmlSink {
@@ -91,6 +162,18 @@ public final class dev/woge/html/StreamingHtmlSink : dev/woge/html/HtmlSink {
 	public final fun flush ()V
 	public final fun getMaxChunkChars ()I
 	public fun write (Ljava/lang/String;)V
+}
+
+public final class dev/woge/html/SubresourceIntegrity {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/SubresourceIntegrity;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
 }
 
 public final class dev/woge/html/UnsafeHtml {

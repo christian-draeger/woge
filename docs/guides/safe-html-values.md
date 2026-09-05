@@ -21,7 +21,8 @@ val html = renderHtml {
             classes("project-card", "grid gap-3", "md:grid-cols-[1fr_auto]")
             data("project-id", "woge-7")
             aria("busy", "false")
-            styles("container-type: inline-size;", "--accent: oklch(62% 0.2 250);")
+            styles(declarations("container-type: inline-size;"))
+            styles(declarations("--accent: oklch(62% 0.2 250);"))
         },
     ) {
         element("h2") { text("Woge <preview>") }
@@ -51,9 +52,10 @@ When `formIsLocked` is false, Woge omits `disabled`. Enumerated attributes such 
 `contenteditable="plaintext-only"` remain ordinary string attributes. ARIA values are strings too, so
 use `aria("busy", "false")` rather than treating `aria-busy` as Boolean presence.
 
-Repeated `classes(...)` or `styles(...)` calls append non-empty contributors in source order. Woge
-does not interpret Tailwind utilities, CSS custom properties or new CSS syntax. This keeps browser and
-toolchain behavior intact.
+Repeated `classes(...)` or `styles(declarations(...))` calls append non-empty contributors in source
+order. Woge does not interpret Tailwind utilities, CSS custom properties or new CSS syntax. This keeps
+browser and toolchain behavior intact. The [CSS and asset guide](css-and-assets.md) covers complete
+stylesheets, head assets, CSP and Subresource Integrity.
 
 ## Use a URL type for URL attributes
 
@@ -86,11 +88,13 @@ The opt-in says that application code audited the source and the exact browser c
 sanitize the string. Keep the conversion close to the sanitizer or trusted source; do not convert a
 request, form field or database value merely to satisfy the compiler.
 
-The same rule applies to `unsafeUrl`, `srcdoc` and `unsafeAttribute`. Normal script, style and other
-raw-text element APIs are intentionally absent until their own context rules are implemented.
+The same rule applies to `unsafeUrl`, `srcdoc` and `unsafeAttribute`. Generic script and style
+raw-text paths remain unavailable. Use the focused `style(stylesheet(...))` and external
+`moduleScript(...)` APIs described in the [CSS and asset guide](css-and-assets.md); Woge does not
+offer a convenient inline-script string API.
 
-Finally, `styles(...)` only keeps the value inside the quoted HTML attribute. Do not pass untrusted
-CSS declarations: CSS can still reference external resources and has its own parsing rules.
+Finally, `styles(declarations(...))` only keeps the value inside the quoted HTML attribute. Do not pass
+untrusted CSS declarations: CSS can still reference external resources and has its own parsing rules.
 
 See [ADR 0020](../adr/0020-context-specific-html-values.md) for the complete boundary and the
 [threat model](../security/threat-model.md) for the wider browser/server assumptions.

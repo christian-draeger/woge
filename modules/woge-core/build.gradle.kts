@@ -13,6 +13,8 @@ kotlin {
 }
 
 dependencies {
+    compileOnlyApi(libs.jetbrainsAnnotations)
+
     testImplementation(gradleTestKit())
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)

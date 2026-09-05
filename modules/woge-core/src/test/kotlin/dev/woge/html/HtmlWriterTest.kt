@@ -1,5 +1,6 @@
 package dev.woge.html
 
+import dev.woge.css.declarations
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -60,7 +61,8 @@ class HtmlWriterTest {
                     attributes = {
                         attribute("id", "card-7")
                         classes("task-card", "grid gap-3", "md:grid-cols-[1fr_auto]")
-                        styles("--accent: oklch(62% 0.2 250);", "container-type: inline-size;")
+                        styles(declarations("--accent: oklch(62% 0.2 250);"))
+                        styles(declarations("container-type: inline-size;"))
                         data("state", "pending")
                         aria("busy", "true")
                         attribute("contenteditable", "plaintext-only")

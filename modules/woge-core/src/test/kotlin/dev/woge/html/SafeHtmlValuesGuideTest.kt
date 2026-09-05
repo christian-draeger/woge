@@ -1,5 +1,6 @@
 package dev.woge.html
 
+import dev.woge.css.declarations
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -14,7 +15,8 @@ class SafeHtmlValuesGuideTest {
                         classes("project-card", "grid gap-3", "md:grid-cols-[1fr_auto]")
                         data("project-id", "woge-7")
                         aria("busy", "false")
-                        styles("container-type: inline-size;", "--accent: oklch(62% 0.2 250);")
+                        styles(declarations("container-type: inline-size;"))
+                        styles(declarations("--accent: oklch(62% 0.2 250);"))
                     },
                 ) {
                     element("h2") { text("Woge <preview>") }
