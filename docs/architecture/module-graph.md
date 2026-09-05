@@ -65,3 +65,7 @@ The boundary validator fails on missing modules, unknown or cyclic edges, Gradle
 forbidden host references in portable production source and MVC/WebFlux cross-dependencies. Negative
 fixtures prove that those failures remain active. Run both layers directly with
 `./gradlew validateModuleBoundaries testModuleBoundaries` or as part of `./gradlew check`.
+
+The executable contract and current host coverage live in the
+[server-adapter parity matrix](server-adapter-parity.md). Adapter tests depend on the TCK only in
+their test source sets; production adapters remain peers and never depend on one another.

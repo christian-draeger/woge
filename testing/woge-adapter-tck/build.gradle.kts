@@ -9,4 +9,5 @@ dependencies {
     api(project(":woge-protocol"))
     api(project(":woge-host-spi"))
     implementation(project(":woge-server-runtime"))
+    implementation(libs.kotlinxCoroutinesCore)
 }
