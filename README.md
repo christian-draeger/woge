@@ -8,7 +8,8 @@ and MVC vertical slices are executable from the repository; Woge is not ready fo
 Run the maintained example with `./gradlew :woge-reference-spring-webflux:bootRun`, then open
 `http://localhost:8080/projects/woge`. The [web-first quickstart](docs/guides/quickstart-spring-boot.md)
 explains the page, its full-navigation fallback and the small amount of Kotlin it uses.
-The same portable page runs on MVC with `./gradlew :woge-reference-spring-mvc:bootRun`.
+The same portable page runs on MVC with `./gradlew :woge-reference-spring-mvc:bootRun` and on Ktor
+with `./gradlew :woge-reference-ktor:run`.
 
 ## Direction
 
