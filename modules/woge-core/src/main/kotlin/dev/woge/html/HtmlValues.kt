@@ -13,7 +13,9 @@ public annotation class WogeHtmlDsl
  * context. It does not sanitize or make untrusted input safe.
  */
 @RequiresOptIn(
-    message = "This value bypasses normal Woge HTML safety. Audit its source and browser context.",
+    message =
+        "[WOGE-HTML-UNSAFE-001] This value bypasses normal Woge HTML safety. " +
+            "Audit its source and browser context. Add @OptIn(UnsafeWogeHtmlApi::class) only at the reviewed boundary.",
     level = RequiresOptIn.Level.ERROR,
 )
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
