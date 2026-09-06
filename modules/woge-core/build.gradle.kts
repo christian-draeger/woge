@@ -1,3 +1,5 @@
+import dev.woge.buildlogic.GenerateHtmlElementsTask
+import dev.woge.buildlogic.VerifyHtmlElementDatasetTask
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
@@ -7,9 +9,25 @@ plugins {
 
 description = "Web-native HTML, component, and portable value APIs for Woge applications."
 
+val htmlElementDataset =
+    rootProject.layout.projectDirectory.file(
+        "config/html-elements/webref-elements-2.8.0.tsv",
+    )
+val generateHtmlElements by tasks.registering(GenerateHtmlElementsTask::class) {
+    datasetFile.set(htmlElementDataset)
+    outputDirectory.set(layout.buildDirectory.dir("generated/sources/htmlElements/kotlin"))
+}
+val verifyHtmlElementDataset by tasks.registering(VerifyHtmlElementDatasetTask::class) {
+    datasetFile.set(htmlElementDataset)
+    expectedSha256 = "96c88d54c0b1dc1801f5ae536cf63cc4a541c33347f87834c76d82354fa33e01"
+}
+
 kotlin {
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation()
+    sourceSets.named("main") {
+        kotlin.srcDir(generateHtmlElements)
+    }
 }
 
 dependencies {
@@ -40,4 +58,5 @@ jmh {
 
 tasks.named("check") {
     dependsOn(tasks.named("jmhClasses"))
+    dependsOn(verifyHtmlElementDataset)
 }

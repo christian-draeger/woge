@@ -35,8 +35,8 @@ public class HtmlWriter internal constructor(
         require(normalizedName !in VOID_ELEMENTS) {
             "HTML void element '$name' must use voidElement(...)"
         }
-        require(normalizedName !in UNSUPPORTED_RAW_TEXT_ELEMENTS) {
-            "HTML raw-text element '$name' requires a context-specific API"
+        require(normalizedName !in CONTEXT_SPECIFIC_ELEMENTS) {
+            "HTML element '$name' requires a context-specific API"
         }
         val resolvedAttributes = Attributes().apply(attributes)
 
@@ -75,6 +75,24 @@ public class HtmlWriter internal constructor(
         resolvedAttributes.writeTo(sink)
         sink.write(">")
         sink.write(content)
+        sink.write("</$name>")
+    }
+
+    internal fun escapableRawTextElement(
+        name: String,
+        attributes: Attributes.() -> Unit,
+        content: String,
+    ) {
+        val normalizedName = requireElementName(name)
+        require(normalizedName in ESCAPABLE_RAW_TEXT_ELEMENTS) {
+            "HTML element '$name' is not supported by the escapable raw-text writer"
+        }
+        val resolvedAttributes = Attributes().apply(attributes)
+
+        sink.write("<$name")
+        resolvedAttributes.writeTo(sink)
+        sink.write(">")
+        sink.write(escapeHtmlText(content))
         sink.write("</$name>")
     }
 }
@@ -324,10 +342,11 @@ private val VOID_ELEMENTS: Set<String> =
         "wbr",
     )
 
-private val UNSUPPORTED_RAW_TEXT_ELEMENTS: Set<String> =
-    setOf("iframe", "noembed", "noframes", "plaintext", "script", "style", "xmp")
+private val CONTEXT_SPECIFIC_ELEMENTS: Set<String> =
+    setOf("iframe", "noembed", "noframes", "plaintext", "script", "style", "textarea", "title", "xmp")
 
-private val SUPPORTED_RAW_TEXT_ELEMENTS: Set<String> = setOf("script", "style")
+private val SUPPORTED_RAW_TEXT_ELEMENTS: Set<String> = setOf("iframe", "script", "style")
+private val ESCAPABLE_RAW_TEXT_ELEMENTS: Set<String> = setOf("textarea", "title")
 
 private val BOOLEAN_ATTRIBUTES: Set<String> =
     setOf(

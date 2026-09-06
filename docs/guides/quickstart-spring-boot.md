@@ -72,7 +72,7 @@ private fun HtmlWriter.renderHead(
         metadata("viewport", "width=device-width, initial-scale=1")
         metadata("description", "A web-native Woge project page")
         metadata("woge-page-epoch", projectEpoch(project).value)
-        title { text("${project.name} project · Woge quickstart") }
+        title("${project.name} project · Woge quickstart")
         stylesheet(applicationUrl("/assets/application.css"))
         if (view == ProjectPageView.SHELL) {
             moduleScript(applicationUrl("/assets/application.js"))

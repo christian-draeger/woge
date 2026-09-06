@@ -20,6 +20,7 @@ hosts in Chromium, Firefox and WebKit.
 - Spring Boot is the primary host integration; Spring MVC, Spring WebFlux and Ktor use the same framework-neutral core.
 - JavaScript enhances a working web application instead of becoming a prerequisite for core workflows.
 - Kotlin types, generated descriptors and compiler diagnostics replace avoidable strings and runtime magic.
+- Standard HTML tags are a generated Kotlin DSL with specification-linked completion and open platform fallbacks.
 - Accessibility and security are part of normal component and action behavior.
 - Plain CSS is always supported and Tailwind is an optional build adapter. Components combine stable binary headless primitives with application-owned source recipes.
 

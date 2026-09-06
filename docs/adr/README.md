@@ -60,6 +60,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0031](0031-root-build-spring-boot-quickstart-consumer.md) | Accepted | Keep the canonical Spring Boot quickstart as a separated root-build consumer |
 | [0032](0032-async-servlet-spring-mvc-adapter.md) | Accepted | Stream Spring MVC responses through adapter-owned Servlet async handlers |
 | [0033](0033-suspending-ktor-adapter.md) | Accepted | Bind Woge to idiomatic suspending Ktor routes |
+| [0034](0034-generate-html-element-wrappers-from-webref.md) | Accepted | Generate HTML element wrappers from pinned Webref data |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
