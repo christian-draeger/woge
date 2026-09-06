@@ -79,6 +79,16 @@
       "example": null
     },
     {
+      "name": "woge-dev-model",
+      "role": "tooling-model",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-model",
+      "artifact": null,
+      "concepts": ["development-lifecycle", "development-capabilities", "reload-correctness"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
       "name": "woge-fallback-client-assets",
       "role": "integration",
       "exposure": "public",

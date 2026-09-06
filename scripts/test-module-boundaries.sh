@@ -77,6 +77,17 @@ printf '\ndependencies {\n    testImplementation(project(":woge-spring-webflux")
   >>"$adapter_fixture/adapters/woge-spring-mvc/build.gradle.kts"
 expect_rejection "$adapter_fixture" "woge-spring-mvc must not depend on woge-spring-webflux"
 
+production_dev_fixture="$scratch_root/production-dev-dependency"
+prepare_fixture "$production_dev_fixture"
+awk -F '\t' -v OFS='\t' '
+  $1 == "woge-core" { $5 = "woge-dev-model" }
+  { print }
+' "$production_dev_fixture/config/architecture/module-boundaries.tsv" >"$production_dev_fixture/module-boundaries.next"
+mv "$production_dev_fixture/module-boundaries.next" "$production_dev_fixture/config/architecture/module-boundaries.tsv"
+printf '\ndependencies {\n    implementation(project(":woge-dev-model"))\n}\n' \
+  >>"$production_dev_fixture/modules/woge-core/build.gradle.kts"
+expect_rejection "$production_dev_fixture" "woge-core (foundation) may not depend on woge-dev-model (tooling-model)"
+
 if (( failure_count > 0 )); then
   printf 'Module-boundary tests failed with %d problem(s).\n' "$failure_count" >&2
   exit 1

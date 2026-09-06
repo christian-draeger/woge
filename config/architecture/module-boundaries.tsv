@@ -4,6 +4,7 @@ woge-ui-headless	ui	public	modules/woge-ui-headless	woge-core	-
 woge-protocol	protocol	public	modules/woge-protocol	woge-core	-
 woge-host-spi	port	public	modules/woge-host-spi	woge-core,woge-protocol	-
 woge-server-runtime	runtime	internal	modules/woge-server-runtime	woge-core,woge-protocol,woge-host-spi	-
+woge-dev-model	tooling-model	internal	modules/woge-dev-model	-	-
 woge-fallback-client-assets	integration	public	integrations/woge-fallback-client-assets	-	-
 woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-

@@ -42,3 +42,23 @@ val verifyNoBundledWebStacks =
 tasks.named("check") {
     dependsOn(verifyNoBundledWebStacks)
 }
+
+val verifyNoDevelopmentTooling =
+    tasks.register("verifyNoDevelopmentTooling") {
+        group = "verification"
+        description = "Verifies that production starter dependencies contain no Woge development tooling."
+
+        val runtimeClasspath = configurations.named("runtimeClasspath")
+        inputs.files(runtimeClasspath)
+
+        doLast {
+            val bundledModules = inputs.files.files.map { it.name.removeSuffix(".jar") }
+            check(bundledModules.none { it.startsWith("woge-dev-") }) {
+                "The production starter bundled Woge development tooling"
+            }
+        }
+    }
+
+tasks.named("check") {
+    dependsOn(verifyNoDevelopmentTooling)
+}
