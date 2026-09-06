@@ -1,7 +1,7 @@
 # Write a framework-neutral page use case
 
 The host SPI is the small seam between your Woge application and a server such as Spring Boot or
-Ktor. It is implemented now; the actual server adapters are still M1 work.
+Ktor. All three maintained server adapters implement it.
 
 If you know controllers or route handlers, `PageUseCase<Input>` has the same job: it receives decoded
 input and returns a response. The difference is that its types belong to Woge, so the same application
@@ -129,15 +129,15 @@ For an expected failure, return a safe category and the existing correlation ID:
 failure(FailureCategory.NOT_FOUND, request.context.correlationId)
 ```
 
-There is deliberately no public message, request payload or exception field. The future host adapters
-will map this to the shared error response. Unexpected exceptions still propagate so the adapter can
-handle them according to whether response output has started.
+There is deliberately no public message, request payload or exception field. Host adapters map this
+to the shared error response. Unexpected exceptions still propagate so the adapter can handle them
+according to whether response output has started.
 
 ## What comes next
 
-The shared adapter TCK will run one use case through an in-memory harness and real Spring MVC, Spring
-WebFlux and Ktor servers. Spring Boot remains the primary setup path. Action and live-update ports are
-added only when their typed descriptors and Patch IR can be tested end to end.
+The shared adapter TCK runs one use case through real Spring MVC, Spring WebFlux and Ktor servers.
+Spring Boot remains the primary setup path. Action and live-update ports are added only when their
+typed descriptors and Patch IR can be tested end to end.
 
 The current executable examples are the
 [`woge-host-spi` tests](../../modules/woge-host-spi/src/test/kotlin/dev/woge/host/PageUseCaseTest.kt).
