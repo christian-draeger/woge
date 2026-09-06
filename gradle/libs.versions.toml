@@ -38,6 +38,7 @@ springBootAutoconfigure = { module = "org.springframework.boot:spring-boot-autoc
 springBootConfigurationProcessor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
 springBootDependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 springBootStarterWebflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+springBootStarterWeb = { module = "org.springframework.boot:spring-boot-starter-web" }
 springBootTest = { module = "org.springframework.boot:spring-boot-test" }
 springContext = { module = "org.springframework:spring-context" }
 springWebmvc = { module = "org.springframework:spring-webmvc" }

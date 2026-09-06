@@ -110,8 +110,8 @@ public class ProjectPage :
 }
 ```
 
-This is the application-side port in a ports-and-adapters architecture. The same class is the input to
-future Spring MVC and Ktor launchers in issue #24.
+This is the application-side port in a ports-and-adapters architecture. The same class already runs
+through the [Spring MVC launcher](spring-mvc-adapter.md); issue #24 adds Ktor and the cross-host gate.
 
 Spring-specific code stays in
 [`ProjectRoutes.kt`](../../examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt).
@@ -140,9 +140,9 @@ An unknown project returns 404. An unknown `view` query value returns 400. The p
 its versioned media type with `Cache-Control: no-store`. These remain ordinary HTTP outcomes; Woge
 does not hide them behind a client state machine.
 
-The example's [`application.js`](../../examples/reference-application/spring-webflux/src/main/resources/static/assets/application.js)
+The example's [`application.js`](../../examples/reference-application/shared/src/main/resources/static/assets/application.js)
 uses standard `fetch`, `ReadableStream` and ES modules. Its
-[`application.css`](../../examples/reference-application/spring-webflux/src/main/resources/static/assets/application.css)
+[`application.css`](../../examples/reference-application/shared/src/main/resources/static/assets/application.css)
 uses cascade layers, nesting, logical properties and a container query. Replace either with your normal
 frontend toolchain; Woge does not require a CSS or JavaScript replacement.
 

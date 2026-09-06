@@ -24,6 +24,7 @@ dependencies {
     kapt(libs.springBootConfigurationProcessor)
 
     testImplementation(project(":woge-spring-webflux"))
+    testImplementation(project(":woge-spring-mvc"))
     testImplementation(libs.assertjCore)
     testImplementation(libs.jakartaServletApi)
     testImplementation(libs.junitJupiter)

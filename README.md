@@ -3,11 +3,12 @@
 Woge is an HTML-first Kotlin framework for typed, server-driven and progressively enhanced web applications.
 
 The M0 architecture and product-validation baseline is complete. The first M1 Spring Boot WebFlux
-vertical slice is executable from the repository; Woge is not ready for production application use yet.
+and MVC vertical slices are executable from the repository; Woge is not ready for production use yet.
 
 Run the maintained example with `./gradlew :woge-reference-spring-webflux:bootRun`, then open
 `http://localhost:8080/projects/woge`. The [web-first quickstart](docs/guides/quickstart-spring-boot.md)
 explains the page, its full-navigation fallback and the small amount of Kotlin it uses.
+The same portable page runs on MVC with `./gradlew :woge-reference-spring-mvc:bootRun`.
 
 ## Direction
 

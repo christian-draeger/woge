@@ -29,7 +29,7 @@ public data class ProjectPageInput(
     public val view: ProjectPageView = ProjectPageView.SHELL,
 )
 
-/** Host-neutral project page used unchanged by Spring WebFlux and future MVC/Ktor launchers. */
+/** Host-neutral project page used unchanged by the Spring MVC, WebFlux and future Ktor launchers. */
 public class ProjectPage :
     PageUseCase<ProjectPageInput>,
     DeferredRegionsUseCase<ProjectPageInput> {
