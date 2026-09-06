@@ -31,6 +31,6 @@ internal val REFERENCE_PROJECT: ProjectSnapshot =
         activity =
             listOf(
                 ProjectActivity("Standards-native CSS contract implemented", "2026-09-05"),
-                ProjectActivity("Spring Boot adapter selected", "2026-09-05"),
+                ProjectActivity("Server adapter contract verified", "2026-09-05"),
             ),
     )

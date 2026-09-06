@@ -42,11 +42,34 @@ val validateDocumentation = registerValidation(
     "Validates local documentation links and executable snippet references.",
     "scripts/validate-documentation.sh",
 )
-tasks.register<Exec>("referenceBrowserSmoke") {
+fun registerReferenceBrowserSmoke(
+    name: String,
+    host: String,
+    configuration: Exec.() -> Unit = {},
+) = tasks.register<Exec>(name) {
     group = "verification"
-    description = "Runs the Spring Boot reference application in the supported Playwright engines."
+    description = "Runs the $host reference application in the supported Playwright engines."
     workingDir(layout.projectDirectory.dir("client/woge-fallback-client"))
+    environment("WOGE_REFERENCE_HOST", host)
     commandLine("npm", "run", "test:reference")
+    configuration()
+}
+
+val referenceBrowserSmokeWebFlux =
+    registerReferenceBrowserSmoke("referenceBrowserSmokeWebFlux", "spring-webflux")
+val referenceBrowserSmokeMvc =
+    registerReferenceBrowserSmoke("referenceBrowserSmokeMvc", "spring-mvc") {
+        mustRunAfter(referenceBrowserSmokeWebFlux)
+    }
+val referenceBrowserSmokeKtor =
+    registerReferenceBrowserSmoke("referenceBrowserSmokeKtor", "ktor") {
+        mustRunAfter(referenceBrowserSmokeMvc)
+    }
+
+tasks.register("referenceBrowserSmoke") {
+    group = "verification"
+    description = "Runs the shared browser journeys through every maintained server adapter."
+    dependsOn(referenceBrowserSmokeWebFlux, referenceBrowserSmokeMvc, referenceBrowserSmokeKtor)
 }
 
 val test = registerAggregate("test", "Runs tests in every production build project.", "test")
