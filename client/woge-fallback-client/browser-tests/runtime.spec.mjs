@@ -213,6 +213,59 @@ test("cancels and unlocks an unfinished readable stream", async ({ page }) => {
   expect(result).toEqual({ error: "WOGE_CANCELLED", locked: false });
 });
 
+test("emits structured patch observations without exposing HTML", async ({ page }) => {
+  await resetPage(page);
+  const observations = await page.evaluate(async (values) => {
+    const events = [];
+    const runtime = globalThis.Woge.createWogePatchRuntime(document, {
+      observer: (event) => events.push(event),
+    });
+    await runtime.applyPatchStream(globalThis.byteStream(Uint8Array.from(values), 11));
+    return events;
+  }, Array.from(encodeStream([patchFrame({ html: "<p>private body</p>" }), completeFrame(1)])));
+
+  expect(observations).toHaveLength(2);
+  expect(observations[0]).toEqual({
+    observationId: 1,
+    phase: "started",
+    operation: "patch.apply",
+    context: { pageEpoch: "epoch-a", target: "summary-1", patchId: "patch-1" },
+  });
+  expect(observations[1]).toMatchObject({
+    observationId: 1,
+    phase: "finished",
+    operation: "patch.apply",
+    outcome: "succeeded",
+    context: { pageEpoch: "epoch-a", target: "summary-1", patchId: "patch-1" },
+  });
+  expect(observations[1].durationMs).toBeGreaterThanOrEqual(0);
+  expect(JSON.stringify(observations)).not.toContain("private body");
+});
+
+test("classifies stale patches and isolates observer failures", async ({ page }) => {
+  await resetPage(page);
+  const result = await page.evaluate(async (values) => {
+    const events = [];
+    const runtime = globalThis.Woge.createWogePatchRuntime(document, {
+      observer: (event) => {
+        events.push(event);
+        if (event.phase === "started") throw new Error("observer must be isolated");
+      },
+    });
+    let code;
+    try {
+      await runtime.applyPatchStream(globalThis.byteStream(Uint8Array.from(values), 7));
+    } catch (problem) {
+      code = problem.code;
+    }
+    return { code, events };
+  }, Array.from(encodeStream([patchFrame({ epoch: "old-page" }), completeFrame(1)])));
+
+  expect(result.code).toBe("WOGE_STALE_PAGE_EPOCH");
+  expect(result.events.map((event) => event.phase)).toEqual(["started", "finished"]);
+  expect(result.events[1].outcome).toBe("stale");
+});
+
 test("reports module and patch application timing", async ({ page }, testInfo) => {
   const regionCount = 20;
   await page.evaluate((count) => {

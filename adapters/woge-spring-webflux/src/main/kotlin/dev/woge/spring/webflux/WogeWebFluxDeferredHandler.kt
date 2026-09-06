@@ -2,6 +2,7 @@ package dev.woge.spring.webflux
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageRequest
+import dev.woge.host.WogeObserver
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionPolicy
@@ -18,19 +19,28 @@ public class WogeWebFluxDeferredHandler<Input : Any>(
     private val contexts: WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory,
     maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     regionTimeout: Duration = 30.seconds,
+    observer: WogeObserver = WogeObserver.NONE,
 ) {
-    private val executor = DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout))
+    private val executor = DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout), observer)
+    private val observer = observer
 
     /** Re-authorizes the request before returning an incrementally flushed patch response. */
     public suspend fun handle(request: ServerRequest): ServerResponse {
-        val pageRequest = PageRequest(input.decode(request), contexts.create(request))
+        val context = contexts.create(request)
+        val pageRequest = PageRequest(input.decode(request), context)
         val declaredRegions = regions.regions(pageRequest).toList()
         var patchNumber = 0
         val chunks =
-            executor.execute(declaredRegions).encodeDeferredPatchStream {
-                patchNumber += 1
-                PatchId.of("deferred-$patchNumber")
-            }
+            executor
+                .execute(declaredRegions, context.trace)
+                .encodeDeferredPatchStream(
+                    patchId = {
+                        patchNumber += 1
+                        PatchId.of("deferred-$patchNumber")
+                    },
+                    observer = observer,
+                    requestTrace = context.trace,
+                )
         return chunks.toWebFluxPatchResponse()
     }
 }

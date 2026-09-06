@@ -2,6 +2,11 @@ package dev.woge.runtime
 
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionFailure
+import dev.woge.host.WogeObservationEvent
+import dev.woge.host.WogeObserver
+import dev.woge.host.WogeOperationFinished
+import dev.woge.host.WogeOperationStarted
+import dev.woge.host.WogeOutcome
 import dev.woge.host.deferredRegion
 import dev.woge.protocol.PageEpoch
 import dev.woge.protocol.PatchHtml
@@ -224,6 +229,30 @@ class DeferredRegionExecutorTest {
             DeferredRegionPolicy(regionTimeout = Duration.INFINITE)
         }
     }
+
+    @Test
+    fun `region observations preserve lifecycle and classify timeout`() =
+        runTest {
+            val events = mutableListOf<WogeObservationEvent>()
+            val updates =
+                DeferredRegionExecutor(
+                    policy = DeferredRegionPolicy(regionTimeout = 1.seconds),
+                    observer = WogeObserver(events::add),
+                ).execute(listOf(region("waiting") { awaitCancellation() }))
+                    .toList()
+
+            assertEquals(1, updates.size)
+            assertEquals(2, events.size)
+            assertTrue(events.first() is WogeOperationStarted)
+            val finished = events.last() as WogeOperationFinished
+            assertEquals(WogeOutcome.TIMED_OUT, finished.outcome)
+            assertEquals(
+                "waiting",
+                finished.context.target
+                    ?.region
+                    ?.value,
+            )
+        }
 }
 
 private fun region(

@@ -20,8 +20,8 @@ public final class dev/woge/spring/mvc/WogeSpringMvcDeferredHandler : org/spring
 }
 
 public final class dev/woge/spring/mvc/WogeSpringMvcHandlers {
-	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJLdev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Lkotlinx/coroutines/CoroutineDispatcher;JIJLdev/woge/host/WogeObserver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/mvc/SpringMvcPageInput;)Ldev/woge/spring/mvc/WogeSpringMvcDeferredHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/spring/mvc/SpringMvcPageInput;)Ldev/woge/spring/mvc/WogeSpringMvcPageHandler;
 }

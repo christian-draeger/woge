@@ -16,8 +16,8 @@ public final class dev/woge/ktor/WogeKtorDeferredHandler {
 }
 
 public final class dev/woge/ktor/WogeKtorHandlers {
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorDeferredHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorPageHandler;
 }

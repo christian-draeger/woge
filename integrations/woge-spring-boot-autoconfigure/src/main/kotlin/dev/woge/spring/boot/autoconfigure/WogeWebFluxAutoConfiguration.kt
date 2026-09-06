@@ -1,5 +1,6 @@
 package dev.woge.spring.boot.autoconfigure
 
+import dev.woge.host.WogeObserver
 import dev.woge.spring.webflux.DefaultWebFluxRequestContextFactory
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
@@ -27,6 +28,7 @@ internal class WogeWebFluxAutoConfiguration {
         properties: WogeProperties,
         contexts: WebFluxRequestContextFactory,
         runtimeInfo: WogeRuntimeInfo,
+        observer: WogeObserver,
     ): WogeWebFluxHandlers {
         check(runtimeInfo.adapter == WogeSpringAdapter.WEBFLUX) {
             "Reactive Woge configuration requires 'woge.adapter=webflux'."
@@ -35,6 +37,7 @@ internal class WogeWebFluxAutoConfiguration {
             contexts = contexts,
             maxConcurrency = properties.deferred.maxConcurrency,
             regionTimeout = properties.deferred.regionTimeout.toKotlinDuration(),
+            observer = observer,
         )
     }
 }

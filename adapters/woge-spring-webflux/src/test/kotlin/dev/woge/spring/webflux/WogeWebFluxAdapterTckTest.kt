@@ -33,6 +33,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 WebFluxPageInput { request ->
                     AdapterTckPageScenario.fromPath(request.pathVariable("scenario"))
                 },
+                observer = application.observer,
             )
         val deferred =
             WogeWebFluxDeferredHandler(
@@ -40,6 +41,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 WebFluxPageInput { request ->
                     AdapterTckDeferredScenario.fromPath(request.pathVariable("scenario"))
                 },
+                observer = application.observer,
             )
         val routes =
             coRouter {

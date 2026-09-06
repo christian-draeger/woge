@@ -18,6 +18,32 @@ export interface ApplyPatchStreamOptions {
   readonly signal?: AbortSignal;
 }
 
+export interface WogeObservationContext {
+  readonly pageEpoch: string;
+  readonly target: string;
+  readonly patchId: string;
+}
+
+export type WogeObservationEvent =
+  | {
+      readonly phase: "started";
+      readonly observationId: number;
+      readonly operation: "patch.apply";
+      readonly context: WogeObservationContext;
+    }
+  | {
+      readonly phase: "finished";
+      readonly observationId: number;
+      readonly operation: "patch.apply";
+      readonly outcome: "succeeded" | "failed" | "cancelled" | "rejected" | "stale";
+      readonly durationMs: number;
+      readonly context: WogeObservationContext;
+    };
+
+export interface WogePatchRuntimeOptions {
+  readonly observer?: (event: WogeObservationEvent) => void;
+}
+
 export interface WogePatchRuntime {
   applyPatchStream(
     stream: ReadableStream<Uint8Array>,
@@ -40,7 +66,7 @@ export class WogeRemotePatchError extends WogePatchError {
   readonly recovery: "none" | "reload";
 }
 
-export function createWogePatchRuntime(root?: Document): WogePatchRuntime;
+export function createWogePatchRuntime(root?: Document, options?: WogePatchRuntimeOptions): WogePatchRuntime;
 
 declare global {
   interface DocumentEventMap {

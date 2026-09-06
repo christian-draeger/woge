@@ -619,3 +619,116 @@ public final class dev/woge/host/SameSite : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/SameSite;
 }
 
+public final class dev/woge/host/WogeObservationContext {
+	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/woge/host/RequestTrace;
+	public final fun component2 ()Ldev/woge/protocol/PatchTarget;
+	public final fun component3-ZOx1KSU ()Ljava/lang/String;
+	public final fun copy-qCmI8D0 (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;)Ldev/woge/host/WogeObservationContext;
+	public static synthetic fun copy-qCmI8D0$default (Ldev/woge/host/WogeObservationContext;Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/WogeObservationContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPatchId-ZOx1KSU ()Ljava/lang/String;
+	public final fun getRequestTrace ()Ldev/woge/host/RequestTrace;
+	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/WogeObservationEvent {
+	public abstract fun getContext ()Ldev/woge/host/WogeObservationContext;
+	public abstract fun getObservationId-f8Zs9lE ()J
+	public abstract fun getOperation ()Ldev/woge/host/WogeOperation;
+}
+
+public final class dev/woge/host/WogeObservationId {
+	public static final field Companion Ldev/woge/host/WogeObservationId$Companion;
+	public static final synthetic fun box-impl (J)Ldev/woge/host/WogeObservationId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (JLjava/lang/Object;)Z
+	public static final fun equals-impl0 (JJ)Z
+	public final fun getValue ()J
+	public fun hashCode ()I
+	public static fun hashCode-impl (J)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (J)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()J
+}
+
+public final class dev/woge/host/WogeObservationId$Companion {
+	public final fun of-GKOvDJo (J)J
+}
+
+public abstract interface class dev/woge/host/WogeObserver {
+	public static final field Companion Ldev/woge/host/WogeObserver$Companion;
+	public abstract fun onEvent (Ldev/woge/host/WogeObservationEvent;)V
+}
+
+public final class dev/woge/host/WogeObserver$Companion {
+	public final fun getNONE ()Ldev/woge/host/WogeObserver;
+}
+
+public final class dev/woge/host/WogeOperation : java/lang/Enum {
+	public static final field ACTION Ldev/woge/host/WogeOperation;
+	public static final field DEFERRED_REGION Ldev/woge/host/WogeOperation;
+	public static final field LIVE_SUBSCRIPTION Ldev/woge/host/WogeOperation;
+	public static final field PAGE_REQUEST Ldev/woge/host/WogeOperation;
+	public static final field PATCH_APPLY Ldev/woge/host/WogeOperation;
+	public static final field PATCH_ENCODE Ldev/woge/host/WogeOperation;
+	public static final field RECOVERY Ldev/woge/host/WogeOperation;
+	public static final field SHELL_RENDER Ldev/woge/host/WogeOperation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getSemanticName ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/WogeOperation;
+	public static fun values ()[Ldev/woge/host/WogeOperation;
+}
+
+public final class dev/woge/host/WogeOperationFinished : dev/woge/host/WogeObservationEvent {
+	public synthetic fun <init> (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeOutcome;JLdev/woge/host/WogeObservationContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeOutcome;JLdev/woge/host/WogeObservationContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-f8Zs9lE ()J
+	public final fun component2 ()Ldev/woge/host/WogeOperation;
+	public final fun component3 ()Ldev/woge/host/WogeOutcome;
+	public final fun component4-UwyO8pc ()J
+	public final fun component5 ()Ldev/woge/host/WogeObservationContext;
+	public final fun copy-FTmXOsM (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeOutcome;JLdev/woge/host/WogeObservationContext;)Ldev/woge/host/WogeOperationFinished;
+	public static synthetic fun copy-FTmXOsM$default (Ldev/woge/host/WogeOperationFinished;JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeOutcome;JLdev/woge/host/WogeObservationContext;ILjava/lang/Object;)Ldev/woge/host/WogeOperationFinished;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContext ()Ldev/woge/host/WogeObservationContext;
+	public final fun getDuration-UwyO8pc ()J
+	public fun getObservationId-f8Zs9lE ()J
+	public fun getOperation ()Ldev/woge/host/WogeOperation;
+	public final fun getOutcome ()Ldev/woge/host/WogeOutcome;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/WogeOperationStarted : dev/woge/host/WogeObservationEvent {
+	public synthetic fun <init> (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-f8Zs9lE ()J
+	public final fun component2 ()Ldev/woge/host/WogeOperation;
+	public final fun component3 ()Ldev/woge/host/WogeObservationContext;
+	public final fun copy-SIAuTq8 (JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;)Ldev/woge/host/WogeOperationStarted;
+	public static synthetic fun copy-SIAuTq8$default (Ldev/woge/host/WogeOperationStarted;JLdev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;ILjava/lang/Object;)Ldev/woge/host/WogeOperationStarted;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContext ()Ldev/woge/host/WogeObservationContext;
+	public fun getObservationId-f8Zs9lE ()J
+	public fun getOperation ()Ldev/woge/host/WogeOperation;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/WogeOutcome : java/lang/Enum {
+	public static final field CANCELLED Ldev/woge/host/WogeOutcome;
+	public static final field FAILED Ldev/woge/host/WogeOutcome;
+	public static final field REJECTED Ldev/woge/host/WogeOutcome;
+	public static final field STALE Ldev/woge/host/WogeOutcome;
+	public static final field SUCCEEDED Ldev/woge/host/WogeOutcome;
+	public static final field TIMED_OUT Ldev/woge/host/WogeOutcome;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getSemanticName ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/WogeOutcome;
+	public static fun values ()[Ldev/woge/host/WogeOutcome;
+}
+
