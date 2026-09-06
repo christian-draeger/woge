@@ -13,7 +13,7 @@ test("uses an ordinary full navigation when JavaScript is unavailable", async ({
 
   await expect(page).toHaveURL(/\/projects\/woge\?view=complete$/);
   await expect(page.getByRole("table", { name: "Current tasks for Woge" })).toBeVisible();
-  await expect(page.getByText("Spring Boot adapter selected")).toBeVisible();
+  await expect(page.getByText("Server adapter contract verified")).toBeVisible();
   await expect(page.locator("[data-woge-region]")).toHaveCount(0);
   await expect(page.getByText("Loading from the server…")).toHaveCount(0);
 });

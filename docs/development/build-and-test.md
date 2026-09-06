@@ -48,7 +48,7 @@ the deterministic negative compiler fixtures, JVM tests, formatting, static anal
 module-boundary checks, ADR metadata and documentation/snippet-link validation. It never calls an AI
 model.
 
-The Spring Boot reference application has a separate browser gate. Install its pinned Node and
+The multi-host reference application has a separate browser gate. Install its pinned Node and
 Playwright dependencies once, then invoke the same Gradle task as CI:
 
 ```shell
@@ -59,11 +59,11 @@ cd ../..
 ./gradlew referenceBrowserSmoke
 ```
 
-The task starts the compiled WebFlux example and verifies deferred enhancement plus the normal
-no-JavaScript navigation in Chromium, Firefox and WebKit. Failure traces and screenshots are written
-below `client/woge-fallback-client/test-results/reference-application`; the HTML report is below
-`client/woge-fallback-client/playwright-report/reference-application`. GitHub Actions uploads those
-paths and all JVM test reports even when a gate fails.
+The task starts WebFlux, MVC and Ktor in sequence and runs the same deferred-enhancement and normal
+no-JavaScript journeys in Chromium, Firefox and WebKit against each host. Failure traces, screenshots
+and HTML reports are grouped by host below `client/woge-fallback-client/test-results/reference-application`
+and `client/woge-fallback-client/playwright-report/reference-application`. GitHub Actions uploads
+those paths and all JVM test reports even when a gate fails.
 
 Public declarations in `woge-core`, `woge-protocol` and `woge-host-spi` are tracked by Kotlin's
 built-in ABI validator. `checkKotlinAbi` compares current declarations with the committed dump. Run

@@ -1,6 +1,23 @@
 import { defineConfig } from "@playwright/test";
 
 const browsers = ["chromium", "firefox", "webkit"];
+const hostName = process.env.WOGE_REFERENCE_HOST ?? "spring-webflux";
+const hosts = {
+  "spring-webflux": {
+    command: "../../gradlew -p ../.. :woge-reference-spring-webflux:bootRun --console=plain",
+  },
+  "spring-mvc": {
+    command: "../../gradlew -p ../.. :woge-reference-spring-mvc:bootRun --console=plain",
+  },
+  ktor: {
+    command: "../../gradlew -p ../.. :woge-reference-ktor:run --console=plain",
+  },
+};
+const host = hosts[hostName];
+
+if (!host) {
+  throw new Error(`Unknown WOGE_REFERENCE_HOST '${hostName}'`);
+}
 
 export default defineConfig({
   testDir: "./reference-browser-tests",
@@ -8,10 +25,10 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: process.env.CI ? 3 : undefined,
-  outputDir: "test-results/reference-application",
+  outputDir: `test-results/reference-application/${hostName}`,
   reporter: [
     ["line"],
-    ["html", { open: "never", outputFolder: "playwright-report/reference-application" }],
+    ["html", { open: "never", outputFolder: `playwright-report/reference-application/${hostName}` }],
   ],
   use: {
     baseURL: "http://127.0.0.1:8080",
@@ -20,7 +37,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "../../gradlew -p ../.. :woge-reference-spring-webflux:bootRun --console=plain",
+    command: host.command,
     url: "http://127.0.0.1:8080/projects/woge",
     reuseExistingServer: false,
     timeout: 120_000,
