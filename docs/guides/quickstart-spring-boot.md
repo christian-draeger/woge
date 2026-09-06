@@ -17,9 +17,11 @@ From the repository root, run:
 
 Open `http://localhost:8080/projects/woge`. Stop the server with <kbd>Ctrl</kbd>+<kbd>C</kbd>.
 
-The command needs no Node.js installation. Gradle includes the maintained, unbundled Woge browser
-module in this development example. A normal published application will consume a versioned browser
-package through its own asset pipeline once that distribution contract ships.
+The command needs no Node.js installation. The example consumes the versioned
+`dev.woge:woge-fallback-client-assets` JVM artifact, whose ES modules Spring Boot serves from
+`/assets/woge/`. Applications with a frontend build can instead install `@woge/fallback-client` from
+npm. Both paths contain the same runtime and protocol version; see the
+[installation guide](fallback-client-installation.md).
 
 ## Read the page as normal web traffic
 

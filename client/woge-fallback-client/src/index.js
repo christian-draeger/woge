@@ -5,6 +5,7 @@ import {
   WogeRemotePatchError,
   fail,
 } from "./protocol.js";
+import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 
 /** Owns one active document's region registry and applies validated patch streams to it. */
 class WogePatchRuntime {
@@ -115,4 +116,5 @@ export {
   BEFORE_REPLACE_EVENT,
   WogePatchError,
   WogeRemotePatchError,
+  WOGE_PATCH_PROTOCOL_VERSION,
 };

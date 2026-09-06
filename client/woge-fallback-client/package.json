@@ -1,29 +1,55 @@
 {
   "name": "@woge/fallback-client",
   "version": "0.1.0",
-  "private": true,
   "description": "Small standards-native browser adapter for Woge patch streams",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/christian-draeger/woge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christian-draeger/woge.git",
+    "directory": "client/woge-fallback-client"
+  },
+  "bugs": "https://github.com/christian-draeger/woge/issues",
+  "keywords": [
+    "hypermedia",
+    "kotlin",
+    "progressive-enhancement",
+    "server-driven-ui"
+  ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/woge-fallback.js"
-    }
+    },
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "woge": {
+    "patchProtocolVersion": 1
   },
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "engines": {
-    "node": ">=24"
+    "node": ">=20"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "verify:contract": "node scripts/verify-contract.mjs",
     "test:unit": "node --test tests/*.test.mjs",
+    "test:package": "node scripts/test-package.mjs",
+    "pretest:browser": "npm run test:package",
     "test:browser": "playwright test",
     "test:reference": "playwright test --config=playwright.reference.config.mjs",
     "measure": "node scripts/measure.mjs",
-    "check": "npm run build && npm run test:unit && npm run test:browser && npm run measure"
+    "prepack": "npm run build && npm run verify:contract",
+    "prepublishOnly": "npm run check",
+    "check": "npm run build && npm run verify:contract && npm run test:unit && npm run test:browser && npm run measure"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",

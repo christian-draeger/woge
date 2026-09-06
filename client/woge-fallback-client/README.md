@@ -31,11 +31,22 @@ the initial page/deferred-work sequence and defaults to `0`.
 
 The production entry point is an ES module:
 
+```shell
+npm install @woge/fallback-client
+```
+
 ```js
-import { createWogePatchRuntime } from "@woge/fallback-client";
+import {
+  createWogePatchRuntime,
+  WOGE_PATCH_PROTOCOL_VERSION,
+} from "@woge/fallback-client";
 
 const runtime = createWogePatchRuntime(document);
-const response = await fetch("/projects/42/summary");
+const response = await fetch("/projects/42/summary", {
+  headers: {
+    Accept: `application/vnd.woge.patch-stream; version=${WOGE_PATCH_PROTOCOL_VERSION}`,
+  },
+});
 
 if (!response.body) throw new Error("The response has no body");
 await runtime.applyPatchStream(response.body);
@@ -43,6 +54,14 @@ await runtime.applyPatchStream(response.body);
 
 The package ships TypeScript declarations for the runtime, completion value, error types and
 lifecycle-event details, so JavaScript and TypeScript IDEs can autocomplete the small public API.
+It also ships a manifest containing package/protocol versions, output hashes, sizes and SRI integrity.
+There are no runtime dependencies and no CSS files.
+
+Spring Boot and Ktor projects that do not otherwise need Node can consume the
+`dev.woge:woge-fallback-client-assets` JVM artifact. It exposes the same canonical modules as
+classpath resources below `/assets/woge/`. The
+[installation guide](../../docs/guides/fallback-client-installation.md) compares both paths and
+covers static deployment, caching, source maps, CSP and SRI.
 
 Fetch/form interception is intentionally not part of this module yet. Issue
 [#31](https://github.com/christian-draeger/woge/issues/31) will add that progressive-enhancement
@@ -68,9 +87,11 @@ npx playwright install chromium firefox webkit
 npm run check
 ```
 
-`npm run check` builds the minified ES module, runs decoder tests, runs the browser contract in
+`npm run check` builds the minified ES module, verifies protocol alignment, packs two byte-identical
+artifacts, installs one into a fresh external consumer, runs decoder and browser tests in
 Chromium/Firefox/WebKit and reports source, minified, gzip and Brotli sizes. Browser tests attach and
-print module-load/parse/evaluation and patch-application timings.
+print module-load/parse/evaluation and patch-application timings. `npm publish` runs the same gate
+before it can publish.
 
 See the [browser runtime guide](../../docs/guides/browser-replace-runtime.md) and
 [ADR 0025](../../docs/adr/0025-browser-replace-runtime-and-lifecycle.md) for the complete boundary.

@@ -8,6 +8,7 @@ owns the current boundary decision.
 ```mermaid
 flowchart BT
     UI[woge-ui-headless] --> Core[woge-core]
+    Assets[woge-fallback-client-assets<br/>classpath web assets]
     Protocol[woge-protocol] --> Core
     SPI[woge-host-spi] --> Core
     SPI --> Protocol
@@ -50,7 +51,8 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Shared execution machinery | `woge-server-runtime` | Adapters reuse implementation without making it public API |
 | Adapter parity fixtures | `woge-adapter-tck` | Every host proves the same observable contract |
 | Spring Boot setup | auto-configuration and starter | Spring is first-class without becoming the core abstraction |
-| Browser patch application | [`client/woge-fallback-client`](../../client/woge-fallback-client/README.md) | It is a small web artifact, not a JVM or component runtime |
+| Browser patch application | npm `@woge/fallback-client` | It is a small web artifact, not a JVM or component runtime |
+| Browser assets without a Node application build | `woge-fallback-client-assets` | A framework-neutral classpath adapter serves the same canonical ES modules |
 | Multi-host proof | [`examples/reference-application`](../../examples/reference-application/README.md) | It consumes public artifacts and never becomes their dependency |
 
 ## Deferred boundaries
@@ -60,6 +62,11 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 - Kotlin/JS and Kotlin/Wasm remain optional local-island choices, not application-wide runtimes.
 - CSS scoping, Tailwind build integration and the source-component registry remain build tooling, not
   server or browser runtime dependencies.
+
+The two browser distribution paths are defined in
+[ADR 0036](../adr/0036-dual-fallback-client-distribution.md). They are alternatives for installing
+the same runtime, not separate implementations: npm supplies a bundled ES module for frontend asset
+pipelines, while the JVM artifact supplies canonical unbundled modules as classpath resources.
 
 The boundary validator fails on missing modules, unknown or cyclic edges, Gradle/manifest drift,
 forbidden host references in portable production source and MVC/WebFlux cross-dependencies. Negative
