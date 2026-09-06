@@ -8,18 +8,26 @@ to verify that application code stays independent from either server framework.
 
 ## Keep page code portable
 
-Define the page against Woge's typed host boundary:
+The maintained `ProjectPage` implements both the initial document and deferred work against Woge's
+typed host boundary:
+
+<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
 
 ```kotlin
-data class ProjectInput(val project: String)
+public class ProjectPage :
+    PageUseCase<ProjectPageInput>,
+    DeferredRegionsUseCase<ProjectPageInput> {
+    override suspend fun open(request: PageRequest<ProjectPageInput>): PageResult {
+        val project =
+            findProject(request.input.project)
+                ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
+        return htmlPage { renderProjectDocument(project, request.input.view) }
+    }
 
-class ProjectPage : PageUseCase<ProjectInput> {
-    override suspend fun open(request: PageRequest<ProjectInput>): PageResult =
-        htmlPage {
-            element("main") {
-                element("h1") { text("Project ${request.input.project}") }
-            }
-        }
+    override suspend fun regions(request: PageRequest<ProjectPageInput>): Iterable<DeferredRegion> {
+        val project = findProject(request.input.project) ?: return emptyList()
+        return deferredRegions(project)
+    }
 }
 ```
 
@@ -28,20 +36,35 @@ keeps accidental host coupling visible.
 
 ## Connect ordinary Ktor routes
 
-Create handlers once while installing your application module:
+Create handlers once while installing your application module. This is the compiled launcher used by
+the integration and browser tests:
+
+<!-- snippet: examples/reference-application/ktor/src/main/kotlin/dev/woge/example/ktor/WogeKtorQuickstart.kt -->
 
 ```kotlin
-fun Application.projectModule() {
+public fun Application.wogeReferenceModule() {
     val projectPage = ProjectPage()
     val handlers = WogeKtorHandlers()
-    val input = KtorPageInput<ProjectInput> { call ->
-        ProjectInput(requireNotNull(call.parameters["project"]))
-    }
-    val page = handlers.page(projectPage, input)
+    val page =
+        handlers.page(
+            projectPage,
+            KtorPageInput { call ->
+                ProjectPageInput(
+                    project = requireNotNull(call.parameters["project"]),
+                    view = parseView(call.request.queryParameters["view"].orEmpty()),
+                )
+            },
+        )
+    val patches =
+        handlers.deferred(
+            projectPage,
+            KtorPageInput { call -> ProjectPageInput(requireNotNull(call.parameters["project"])) },
+        )
 
     routing {
         get("/projects/{project}") { page.handle(call) }
         head("/projects/{project}") { page.handle(call) }
+        get("/projects/{project}/woge-patches") { patches.handle(call) }
         staticResources("/assets", "static/assets")
     }
 }
@@ -50,16 +73,6 @@ fun Application.projectModule() {
 The route still owns its URL and input decoding. The handler maps the portable result to status,
 headers, cookies and `text/html; charset=UTF-8`. Each Woge HTML frame is flushed before the next one
 is requested.
-
-If the page also implements `DeferredRegionsUseCase<ProjectInput>`, add the patch route:
-
-```kotlin
-val patches = handlers.deferred(projectPage, input)
-
-routing {
-    get("/projects/{project}/woge-patches") { patches.handle(call) }
-}
-```
 
 The browser receives the same versioned patch stream as it does from either Spring adapter. No RPC
 layer or Ktor serialization format sits between the browser and the web-native page contract.

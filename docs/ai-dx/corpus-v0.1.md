@@ -2,6 +2,15 @@
 
 This corpus defines model-neutral tasks and observable results. It deliberately does not prescribe Kotlin API names: the evaluated release's public quick start and API must make the canonical names discoverable. Tasks are cumulative and begin from the same clean Spring Boot consumer scaffold.
 
+## Canonical M1 fixture
+
+ADX-01, ADX-04 and the plain-CSS half of ADX-08 begin with the maintained
+[`ProjectPage`](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt),
+its [semantic document](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectDocument.kt)
+and the [Spring Boot quickstart](../guides/quickstart-spring-boot.md). The same source is compiled by
+all three launchers and exercised by JVM and cross-host browser tests. Evaluation tasks extend those
+files; they do not reconstruct an uncompiled copy from the prose examples.
+
 ## ADX-01 — First page
 
 Build a page at `/projects/{project}` with a document title, skip link, navigation landmark, one `h1` and the selected project's name. Link to it from the application home page using an ordinary URL.

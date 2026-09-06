@@ -29,7 +29,7 @@ test("renders the useful shell before applying every deferred region", async ({ 
 
   await expect(page.locator('[data-woge-region][data-woge-revision="1"]')).toHaveCount(3);
   await expect(page.getByRole("table", { name: "Current tasks for Woge" })).toBeVisible();
-  await expect(page.getByText("Spring Boot adapter selected")).toBeVisible();
+  await expect(page.getByText("Server adapter contract verified")).toBeVisible();
   await expect(page.getByText("Loading from the server…")).toHaveCount(0);
   await expect(page.locator(".is-loading")).toHaveCount(0);
   expect(browserProblems).toEqual([]);
