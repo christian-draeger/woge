@@ -26,6 +26,8 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Documentation style guide](documentation/style-guide.md)
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
 - [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
+- [M1 compiler corpus and diagnostics](ai-dx/m1-compiler-corpus.md)
+- [Machine-readable Woge framework index](ai-dx/woge-framework-index.json)
 - [Build and test Woge](development/build-and-test.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
 - [Repository scaffold provenance](development/scaffold-provenance.md)
