@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "frameworkVersion": "0.1.0-SNAPSHOT",
+  "language": {
+    "kotlinVersion": "2.4.10",
+    "buildJdk": 21,
+    "jvmTarget": 17
+  },
+  "protocol": {
+    "patchStreamVersion": 1,
+    "mediaType": "application/vnd.woge.patch-stream; version=1"
+  },
+  "hosts": {
+    "primary": "spring-webflux",
+    "supported": [
+      "spring-webflux",
+      "spring-mvc",
+      "ktor"
+    ],
+    "springBootVersion": "4.1.1",
+    "ktorVersion": "3.5.2"
+  },
+  "browserClient": {
+    "npmPackage": "@woge/fallback-client",
+    "jvmAssetArtifact": "dev.woge:woge-fallback-client-assets",
+    "packageVersion": "0.1.0",
+    "patchProtocolVersion": 1,
+    "runtimeDependencies": []
+  },
+  "modules": [
+    {
+      "name": "woge-core",
+      "role": "foundation",
+      "exposure": "public",
+      "sourcePath": "modules/woge-core",
+      "artifact": "dev.woge:woge-core",
+      "concepts": ["html-dsl", "safe-html-values", "html-sinks", "css-values", "head-assets"],
+      "guide": "docs/guides/html-elements.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HtmlCssAndSinks.kt"
+    },
+    {
+      "name": "woge-ui-headless",
+      "role": "ui",
+      "exposure": "public",
+      "sourcePath": "modules/woge-ui-headless",
+      "artifact": "dev.woge:woge-ui-headless",
+      "concepts": [],
+      "guide": "docs/architecture/component-distribution.md",
+      "example": null
+    },
+    {
+      "name": "woge-protocol",
+      "role": "protocol",
+      "exposure": "public",
+      "sourcePath": "modules/woge-protocol",
+      "artifact": "dev.woge:woge-protocol",
+      "concepts": ["patch-ir", "patch-stream-codec", "page-epoch", "target-revision"],
+      "guide": "docs/guides/patch-ir.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt"
+    },
+    {
+      "name": "woge-host-spi",
+      "role": "port",
+      "exposure": "public",
+      "sourcePath": "modules/woge-host-spi",
+      "artifact": "dev.woge:woge-host-spi",
+      "concepts": ["page-use-case", "deferred-regions", "request-context", "semantic-observability"],
+      "guide": "docs/guides/server-host-spi.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt"
+    },
+    {
+      "name": "woge-server-runtime",
+      "role": "runtime",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-server-runtime",
+      "artifact": null,
+      "concepts": ["shared-server-execution"],
+      "guide": "docs/architecture/module-graph.md",
+      "example": null
+    },
+    {
+      "name": "woge-fallback-client-assets",
+      "role": "integration",
+      "exposure": "public",
+      "sourcePath": "integrations/woge-fallback-client-assets",
+      "artifact": "dev.woge:woge-fallback-client-assets",
+      "concepts": ["node-free-browser-assets"],
+      "guide": "docs/guides/fallback-client-installation.md",
+      "example": "examples/reference-application/shared/build.gradle.kts"
+    },
+    {
+      "name": "woge-adapter-tck",
+      "role": "test-support",
+      "exposure": "support",
+      "sourcePath": "testing/woge-adapter-tck",
+      "artifact": null,
+      "concepts": ["server-adapter-contract"],
+      "guide": "docs/architecture/server-adapter-parity.md",
+      "example": "testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/ServerAdapterContract.kt"
+    },
+    {
+      "name": "woge-spring-mvc",
+      "role": "adapter",
+      "exposure": "public",
+      "sourcePath": "adapters/woge-spring-mvc",
+      "artifact": "dev.woge:woge-spring-mvc",
+      "concepts": ["spring-mvc-page-handler", "spring-mvc-deferred-handler"],
+      "guide": "docs/guides/spring-mvc-adapter.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
+    },
+    {
+      "name": "woge-spring-webflux",
+      "role": "adapter",
+      "exposure": "public",
+      "sourcePath": "adapters/woge-spring-webflux",
+      "artifact": "dev.woge:woge-spring-webflux",
+      "concepts": ["spring-webflux-page-handler", "spring-webflux-deferred-handler"],
+      "guide": "docs/guides/spring-webflux-adapter.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
+    },
+    {
+      "name": "woge-ktor",
+      "role": "adapter",
+      "exposure": "public",
+      "sourcePath": "adapters/woge-ktor",
+      "artifact": "dev.woge:woge-ktor",
+      "concepts": ["ktor-page-handler", "ktor-deferred-handler"],
+      "guide": "docs/guides/ktor-adapter.md",
+      "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
+    },
+    {
+      "name": "woge-spring-boot-autoconfigure",
+      "role": "integration",
+      "exposure": "public",
+      "sourcePath": "integrations/woge-spring-boot-autoconfigure",
+      "artifact": "dev.woge:woge-spring-boot-autoconfigure",
+      "concepts": ["spring-boot-auto-configuration", "explicit-adapter-selection"],
+      "guide": "docs/guides/spring-boot-starter.md",
+      "example": "examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/WogeQuickstartApplication.kt"
+    },
+    {
+      "name": "woge-spring-boot-starter",
+      "role": "integration",
+      "exposure": "public",
+      "sourcePath": "integrations/woge-spring-boot-starter",
+      "artifact": "dev.woge:woge-spring-boot-starter",
+      "concepts": ["spring-boot-starter"],
+      "guide": "docs/guides/quickstart-spring-boot.md",
+      "example": "examples/reference-application/spring-webflux/build.gradle.kts"
+    }
+  ],
+  "examples": [
+    {
+      "id": "m1-html-css-sinks",
+      "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HtmlCssAndSinks.kt",
+      "concepts": ["html-dsl", "css-values", "buffered-html", "streaming-html"]
+    },
+    {
+      "id": "m1-protocol-page-deferred",
+      "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt",
+      "concepts": ["page-use-case", "deferred-region", "patch-ir", "patch-stream-codec"]
+    },
+    {
+      "id": "m1-host-adapters",
+      "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt",
+      "concepts": ["spring-webflux", "spring-mvc", "ktor"]
+    },
+    {
+      "id": "m1-reference-application",
+      "source": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt",
+      "concepts": ["executable-consumer", "host-parity", "browser-smoke"]
+    }
+  ],
+  "plannedKspDiagnosticIssues": [26, 27, 28],
+  "browserSupportPolicy": "docs/architecture/browser-support-policy.md"
+}

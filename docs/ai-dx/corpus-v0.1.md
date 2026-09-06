@@ -11,6 +11,11 @@ and the [Spring Boot quickstart](../guides/quickstart-spring-boot.md). The same 
 all three launchers and exercised by JVM and cross-host browser tests. Evaluation tasks extend those
 files; they do not reconstruct an uncompiled copy from the prose examples.
 
+The compact [M1 compiler corpus](m1-compiler-corpus.md) supplies complete import/build context,
+negative compiler fixtures and the version-matched machine-readable framework index. M1 runs ADX-01,
+ADX-04 and the plain-CSS part of ADX-08 now; generated route/action tasks retain their existing M2
+owners rather than being simulated by placeholder APIs.
+
 ## ADX-01 — First page
 
 Build a page at `/projects/{project}` with a document title, skip link, navigation landmark, one `h1` and the selected project's name. Link to it from the application home page using an ordinary URL.

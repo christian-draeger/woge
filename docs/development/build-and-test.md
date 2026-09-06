@@ -24,10 +24,16 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 ./gradlew :woge-core:checkKotlinAbi
 ./gradlew :woge-protocol:checkKotlinAbi
 ./gradlew :woge-host-spi:checkKotlinAbi
+./gradlew :woge-m1-api-corpus:check
 ./gradlew :woge-core:jmh
 ```
 
 `ktlintFormat` changes source files; the other commands are checks. Test reports are written below each project's `build/test-results` and `build/reports/tests` directories. Detekt writes machine-readable XML/SARIF and an HTML report below `build/reports/detekt`.
+
+The M1 API corpus compiles complete public examples and then invokes the pinned Kotlin compiler on
+deliberately invalid HTML, URL, unsafe-value, protocol and portable-host fixtures. Its second test
+keeps the machine-readable framework index aligned with module, npm, Kotlin, Spring, Ktor and patch
+protocol metadata.
 
 The JMH command is an explicit performance measurement rather than a pass/fail check. `check` compiles
 the benchmark fixture but does not execute it. HTML sink results are written below

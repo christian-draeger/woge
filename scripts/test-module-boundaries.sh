@@ -16,11 +16,17 @@ prepare_fixture() {
   local fixture_root=$1
   mkdir -p "$fixture_root/scripts"
   cp "$repository_root/scripts/validate-module-boundaries.sh" "$fixture_root/scripts/"
-  cp -R "$repository_root/config" "$fixture_root/"
-  cp -R "$repository_root/modules" "$fixture_root/"
-  cp -R "$repository_root/adapters" "$fixture_root/"
-  cp -R "$repository_root/integrations" "$fixture_root/"
-  cp -R "$repository_root/testing" "$fixture_root/"
+  for source_tree in config modules adapters integrations testing; do
+    while IFS= read -r source_file; do
+      relative_path=${source_file#"$repository_root/"}
+      mkdir -p "$fixture_root/$(dirname "$relative_path")"
+      cp "$source_file" "$fixture_root/$relative_path"
+    done < <(
+      find "$repository_root/$source_tree" \
+        \( -type d \( -name build -o -name .gradle \) -prune \) \
+        -o -type f -print
+    )
+  done
 }
 
 expect_rejection() {

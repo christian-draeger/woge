@@ -41,3 +41,6 @@ project(":woge-reference-spring-mvc").projectDir = file("examples/reference-appl
 
 include(":woge-reference-ktor")
 project(":woge-reference-ktor").projectDir = file("examples/reference-application/ktor")
+
+include(":woge-m1-api-corpus")
+project(":woge-m1-api-corpus").projectDir = file("examples/m1-api-corpus")
