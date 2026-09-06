@@ -58,6 +58,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0029](0029-neutral-spring-boot-starter-and-explicit-adapter-selection.md) | Accepted | Keep the Spring Boot starter neutral and adapter selection explicit |
 | [0030](0030-materialize-css-and-head-asset-boundaries.md) | Accepted | Materialize CSS and head asset boundaries without a styling runtime |
 | [0031](0031-root-build-spring-boot-quickstart-consumer.md) | Accepted | Keep the canonical Spring Boot quickstart as a separated root-build consumer |
+| [0032](0032-async-servlet-spring-mvc-adapter.md) | Accepted | Stream Spring MVC responses through adapter-owned Servlet async handlers |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

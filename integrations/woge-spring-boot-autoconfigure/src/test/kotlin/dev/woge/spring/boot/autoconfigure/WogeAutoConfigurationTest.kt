@@ -2,6 +2,8 @@ package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageUseCase
+import dev.woge.spring.mvc.SpringMvcRequestContextFactory
+import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -41,6 +43,22 @@ class WogeAutoConfigurationTest {
     }
 
     @Test
+    fun `activates Spring MVC with the same portable use cases`() {
+        mvcRunner()
+            .withUserConfiguration(UseCaseConfiguration::class.java)
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertNotNull(context.getBean(WogeSpringMvcHandlers::class.java))
+                assertNotNull(context.getBean(SpringMvcRequestContextFactory::class.java))
+
+                val catalog = context.getBean(WogeApplicationCatalog::class.java)
+                assertEquals(listOf("homePage"), catalog.pageUseCases)
+                assertEquals(listOf("homeRegions"), catalog.deferredRegionUseCases)
+                assertEquals(WogeSpringAdapter.MVC, context.getBean(WogeRuntimeInfo::class.java).adapter)
+            }
+    }
+
+    @Test
     fun `backs off for an application request context factory`() {
         webFluxRunner()
             .withUserConfiguration(CustomContextConfiguration::class.java)
@@ -49,6 +67,23 @@ class WogeAutoConfigurationTest {
                 assertSame(
                     CustomContextConfiguration.contexts,
                     context.getBean(WebFluxRequestContextFactory::class.java),
+                )
+            }
+    }
+
+    @Test
+    fun `MVC backs off for application context and handler factories`() {
+        mvcRunner()
+            .withUserConfiguration(CustomMvcConfiguration::class.java)
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertSame(
+                    CustomMvcConfiguration.contexts,
+                    context.getBean(SpringMvcRequestContextFactory::class.java),
+                )
+                assertSame(
+                    CustomMvcConfiguration.handlers,
+                    context.getBean(WogeSpringMvcHandlers::class.java),
                 )
             }
     }
@@ -73,11 +108,13 @@ class WogeAutoConfigurationTest {
             .withPropertyValues(
                 "woge.deferred.max-concurrency=3",
                 "woge.deferred.region-timeout=750ms",
+                "woge.mvc.async-timeout=2s",
             ).run { context ->
                 assertNull(context.startupFailure)
                 val properties = context.getBean(WogeProperties::class.java)
                 assertEquals(3, properties.deferred.maxConcurrency)
                 assertEquals(Duration.ofMillis(750), properties.deferred.regionTimeout)
+                assertEquals(Duration.ofSeconds(2), properties.mvc.asyncTimeout)
             }
     }
 
@@ -102,6 +139,20 @@ class WogeAutoConfigurationTest {
                 assertNull(context.startupFailure)
                 assertEquals(
                     WogeSpringAdapter.WEBFLUX,
+                    context.getBean(WogeRuntimeInfo::class.java).adapter,
+                )
+            }
+    }
+
+    @Test
+    fun `explicit MVC selection resolves a dual-stack classpath`() {
+        WebApplicationContextRunner()
+            .withConfiguration(autoConfiguration)
+            .withPropertyValues("woge.adapter=mvc")
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertEquals(
+                    WogeSpringAdapter.MVC,
                     context.getBean(WogeRuntimeInfo::class.java).adapter,
                 )
             }
@@ -155,12 +206,18 @@ class WogeAutoConfigurationTest {
         assertTrue(metadata.contains("woge.adapter"))
         assertTrue(metadata.contains("woge.deferred.max-concurrency"))
         assertTrue(metadata.contains("woge.deferred.region-timeout"))
+        assertTrue(metadata.contains("woge.mvc.async-timeout"))
     }
 
     private fun webFluxRunner(): ReactiveWebApplicationContextRunner =
         ReactiveWebApplicationContextRunner()
             .withConfiguration(autoConfiguration)
             .withClassLoader(FilteredClassLoader("org.springframework.web.servlet"))
+
+    private fun mvcRunner(): WebApplicationContextRunner =
+        WebApplicationContextRunner()
+            .withConfiguration(autoConfiguration)
+            .withClassLoader(FilteredClassLoader("org.springframework.web.reactive"))
 
     private fun Throwable?.messages(): String =
         generateSequence(this) {
@@ -197,6 +254,20 @@ class WogeAutoConfigurationTest {
 
         companion object {
             val handlers = WogeWebFluxHandlers()
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    internal class CustomMvcConfiguration {
+        @Bean
+        fun customSpringMvcRequestContextFactory(): SpringMvcRequestContextFactory = contexts
+
+        @Bean
+        fun customWogeSpringMvcHandlers(): WogeSpringMvcHandlers = handlers
+
+        companion object {
+            val contexts = SpringMvcRequestContextFactory { error("not executed during startup") }
+            val handlers = WogeSpringMvcHandlers(contexts)
         }
     }
 }

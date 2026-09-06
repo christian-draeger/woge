@@ -15,11 +15,14 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties {
 	public fun <init> ()V
 	public final fun getAdapter ()Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
 	public final fun getDeferred ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;
+	public final fun getMvc ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;
 	public final fun setAdapter (Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;)V
 	public final fun setDeferred (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;)V
+	public final fun setMvc (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;)V
 }
 
 public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Companion {
+	public final fun getDEFAULT_MVC_ASYNC_TIMEOUT ()Ljava/time/Duration;
 	public final fun getDEFAULT_REGION_TIMEOUT ()Ljava/time/Duration;
 }
 
@@ -29,6 +32,12 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Deferred {
 	public final fun getRegionTimeout ()Ljava/time/Duration;
 	public final fun setMaxConcurrency (I)V
 	public final fun setRegionTimeout (Ljava/time/Duration;)V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Mvc {
+	public fun <init> ()V
+	public final fun getAsyncTimeout ()Ljava/time/Duration;
+	public final fun setAsyncTimeout (Ljava/time/Duration;)V
 }
 
 public final class dev/woge/spring/boot/autoconfigure/WogeRuntimeInfo {

@@ -74,14 +74,14 @@ application overrides, property binding, non-web back-off, missing artifacts and
 
 - Until an opinionated generated project exists, setup requires the neutral starter plus one Woge
   adapter and one Spring web starter.
-- MVC selection remains an actionable unsupported setup until [#67](https://github.com/christian-draeger/woge/issues/67)
-  implements and marks that adapter.
+- At acceptance, MVC selection remained an actionable unsupported setup. It is implemented by
+  [ADR 0032](0032-async-servlet-spring-mvc-adapter.md) and [#67](https://github.com/christian-draeger/woge/issues/67).
 - Bean-name discovery does not yet provide typed route metadata.
 
 ## Follow-up
 
-- Implement the equivalent MVC handler factory and conditional configuration in
-  [#67](https://github.com/christian-draeger/woge/issues/67).
+- The equivalent MVC handler factory and conditional configuration were completed in
+  [#67](https://github.com/christian-draeger/woge/issues/67) and [ADR 0032](0032-async-servlet-spring-mvc-adapter.md).
 - Replace hand-written path wiring with generated typed route descriptors in
   [#27](https://github.com/christian-draeger/woge/issues/27).
 - Put the complete Spring WebFlux dependency set in the executable quick-start and scaffold in

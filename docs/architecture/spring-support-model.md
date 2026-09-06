@@ -3,6 +3,9 @@
 This M0 report records the evidence and support decision for issue
 [#64](https://github.com/christian-draeger/woge/issues/64). The executable fixture is the
 [hand-written Spring baseline](../../spikes/spring-html-htmx-baseline/README.md).
+The production page adapters now provide real-server evidence through the
+[shared adapter TCK](server-adapter-parity.md); MVC's concrete lifecycle is recorded in
+[ADR 0032](../adr/0032-async-servlet-spring-mvc-adapter.md).
 
 ## Decision
 
@@ -25,6 +28,10 @@ Both baseline applications now provide:
 
 MVC implements the stream with `SseEmitter`, an `AsyncTaskExecutor` and lifecycle callbacks. WebFlux returns a cold Kotlin `Flow<ServerSentEvent<String>>`. Their HTTP contract tests assert the same status, media type, event order and data.
 
+That sentence describes the M0 SSE spike. The implemented M1 page path uses adapter-owned MVC
+`HttpRequestHandler` values and direct asynchronous Servlet writes; no spike controller is production
+code. Future SSE work can still use host-native mechanics behind the portable live-update port.
+
 The spike also found two differences before tests normalized them:
 
 1. MVC accepted form-body values as individual `@RequestParam` arguments. WebFlux required a model object for equivalent form decoding.
@@ -34,11 +41,11 @@ The spike also found two differences before tests normalized them:
 
 | Concern | Spring MVC adapter | Spring WebFlux adapter | Woge contract |
 | --- | --- | --- | --- |
-| Full HTML and fragments | view rendering on Servlet request | reactive view rendering | byte-equivalent semantics, headers and escaping |
+| Full HTML and fragments | type-safe Woge HTML on Servlet async response | type-safe Woge HTML on reactive response | equivalent semantics, headers and escaping |
 | Waiting for application work | blocking work may use the request or configured worker thread | suspending work must not block the event loop | application outcome is portable; execution policy is adapter configuration |
 | Streaming writes | Servlet async response; each write is blocking on a worker | non-blocking response pipeline; SSE values flush individually | ordered frames and terminal outcome are portable |
 | Disconnect | detected when a write fails; heartbeat required for idle streams | subscriber cancellation propagates to the coroutine/Flow | cancellation signal reaches Woge execution; detection latency may differ |
-| Error before commit | normal Spring exception/status mapping | normal reactive exception/status mapping | typed Woge failure maps to the same HTTP contract |
+| Error before commit | adapter-safe 500 or typed Woge status | reactive error mapping or typed Woge status | typed Woge failure maps to the same HTTP contract; private detail stays server-side |
 | Error after commit | terminate async response and diagnose | terminate publisher/connection and diagnose | no second status response; emit safe structured diagnostics |
 | Form decoding | Servlet parameter binding | form model/request-data binding | one Woge command decoder defines empty, missing and invalid values |
 | Locale and request context | often backed by thread-local/request objects | backed by reactive/coroutine context and exchange | immutable Woge snapshot at adapter ingress |
@@ -71,18 +78,20 @@ The request snapshot should contain only stable values needed by portable code: 
 - `woge-spring-boot-autoconfigure`: shared properties and conditional adapter selection;
 - `woge-spring-boot-starter`: primary consumer dependency with no application-facing framework fork.
 
-The starter should fail fast for ambiguous dual-stack configuration. Blocking-persistence support must require an explicit bounded executor/dispatcher with observable saturation rather than an undocumented global offload.
+The starter fails fast for ambiguous dual-stack configuration. The MVC adapter provides a documented
+IO dispatcher default and a replaceable handler-factory bean; production blocking workloads should
+install a bounded executor-backed dispatcher with observable saturation.
 
-## Required adapter-TCK scenarios
+## Adapter-TCK evolution
 
-Issue [#65](https://github.com/christian-draeger/woge/issues/65) must cover:
+The implemented core TCK covers page streaming, metadata, redirects, failures, deferred completion
+order and deterministic disconnect behavior. Additive suites still need to cover:
 
-- shell, fragment, native action and enhanced action parity;
+- native action and enhanced action parity;
 - empty, missing and malformed form fields;
 - ordered SSE events and per-event flush on a real server;
-- 404/error behavior before response commit;
 - safe termination and diagnostics after response commit;
-- disconnect and timeout cancellation, including heartbeat detection latency;
+- timeout cancellation and heartbeat detection latency;
 - locale, principal, CSRF and correlation-context propagation;
 - blocking-work isolation and bounded-executor saturation;
 - graceful shutdown of active streams.

@@ -42,6 +42,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Apply a patch stream in the browser](guides/browser-replace-runtime.md)
 - [Render independent page regions](guides/deferred-regions.md)
 - [Run a Woge page with Spring WebFlux](guides/spring-webflux-adapter.md)
+- [Run a Woge page with Spring MVC](guides/spring-mvc-adapter.md)
 - [Configure Woge with Spring Boot](guides/spring-boot-starter.md)
 
 ## Performance evidence
@@ -72,5 +73,5 @@ The spikes below justify accepted decisions. Their code is evidence, not a produ
 4. **API reference:** list exact types, defaults and compatibility constraints.
 5. **Internals:** explain protocols, generated code and adapter implementation.
 
-The Spring Boot WebFlux quickstart is the first executable vertical slice. MVC and Ktor parity, typed
-interactions and the broader component system remain later milestones.
+The Spring Boot WebFlux and MVC launchers are executable vertical slices over one shared application.
+Ktor parity, typed interactions and the broader component system remain later milestones.

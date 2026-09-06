@@ -79,7 +79,7 @@ private fun HtmlWriter.renderBody(
             attribute("id", "main-content")
             classes("page-shell")
         }) {
-            p(attributes = { classes("eyebrow") }) { text("Spring Boot WebFlux quickstart") }
+            p(attributes = { classes("eyebrow") }) { text("Spring Boot quickstart") }
             h1 { text(project.name) }
             p(attributes = { classes("lede") }) {
                 text("The server sent this useful HTML shell first. Independent regions can follow in any order.")
