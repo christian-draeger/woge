@@ -65,6 +65,20 @@ and HTML reports are grouped by host below `client/woge-fallback-client/test-res
 and `client/woge-fallback-client/playwright-report/reference-application`. GitHub Actions uploads
 those paths and all JVM test reports even when a gate fails.
 
+The fallback client also proves the artifact a consumer will receive, rather than importing its
+repository source directly:
+
+```shell
+cd client/woge-fallback-client
+npm run test:package
+```
+
+That task creates two byte-identical tarballs, installs one into a fresh external project, imports
+its public entry point, bundles the consumer, and writes `build/package-test-result.json`. The normal
+browser gate then loads that generated consumer bundle in a real browser. `npm publish` runs the full
+client gate through `prepublishOnly`; publishing credentials and release authorization remain
+outside ordinary builds.
+
 Public declarations in `woge-core`, `woge-protocol` and `woge-host-spi` are tracked by Kotlin's
 built-in ABI validator. `checkKotlinAbi` compares current declarations with the committed dump. Run
 the corresponding module's `updateKotlinAbi` task only after reviewing and accepting an intentional

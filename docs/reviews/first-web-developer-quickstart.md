@@ -15,7 +15,7 @@ Each confusing point below has either been fixed in #73 or assigned to a concret
 | `suspend`, receiver lambdas, named arguments and `?: return` interrupted the web task | Added the task-scoped [Kotlin bridge](../guides/kotlin-for-web-developers.md) and avoided a general language detour |
 | `PageUseCase` and `DeferredRegionsUseCase` sounded framework-internal | The guide defines them once as the host-neutral application port and shows Spring routes separately |
 | Page epoch, region ID and patch URL reconstruction is visible but repetitive | Keep it explicit in the first slice; generated host-neutral descriptors remain owned by [#27](https://github.com/christian-draeger/woge/issues/27) |
-| Copying browser source into example resources is not a normal consumer installation story | The guide labels it development-only; versioned browser-package consumption is tracked by [#132](https://github.com/christian-draeger/woge/issues/132) |
+| Browser source needs a normal consumer installation story | Resolved by the versioned npm package and Node-free JVM asset defined in [ADR 0036](../adr/0036-dual-fallback-client-distribution.md) |
 | A loading shell could be mistaken for the no-JavaScript end state | Added a visible GET form and `noscript` link to the complete server-rendered response, plus an explicit disable-JavaScript walkthrough |
 
 The first independent reviewer should run only the public quickstart and record time-to-page, terms

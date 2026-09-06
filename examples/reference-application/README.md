@@ -44,6 +44,8 @@ depend on Spring.
 [`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and [`ktor`](ktor) contain only their
 host-specific startup, routes and real-server integration tests. The example consumes root projects
 and is verified by `./gradlew check`; it is executable documentation, not a published Woge artifact.
+Its runtime classpath includes the public `woge-fallback-client-assets` integration instead of copying
+browser-runtime source into the example build.
 
 The same Playwright source verifies enhanced and no-JavaScript journeys on all three hosts in
 Chromium, Firefox and WebKit:
