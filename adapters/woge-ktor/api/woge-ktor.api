@@ -1,0 +1,28 @@
+public final class dev/woge/ktor/DefaultKtorRequestContextFactory : dev/woge/ktor/KtorRequestContextFactory {
+	public static final field INSTANCE Ldev/woge/ktor/DefaultKtorRequestContextFactory;
+	public fun create (Lio/ktor/server/application/ApplicationCall;)Ldev/woge/host/RequestContext;
+}
+
+public abstract interface class dev/woge/ktor/KtorPageInput {
+	public abstract fun decode (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/woge/ktor/KtorRequestContextFactory {
+	public abstract fun create (Lio/ktor/server/application/ApplicationCall;)Ldev/woge/host/RequestContext;
+}
+
+public final class dev/woge/ktor/WogeKtorDeferredHandler {
+	public final fun handle (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/ktor/WogeKtorHandlers {
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorDeferredHandler;
+	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorPageHandler;
+}
+
+public final class dev/woge/ktor/WogeKtorPageHandler {
+	public final fun handle (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

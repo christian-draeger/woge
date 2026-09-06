@@ -111,7 +111,8 @@ public class ProjectPage :
 ```
 
 This is the application-side port in a ports-and-adapters architecture. The same class already runs
-through the [Spring MVC launcher](spring-mvc-adapter.md); issue #24 adds Ktor and the cross-host gate.
+through the [Spring MVC](spring-mvc-adapter.md) and [Ktor](ktor-adapter.md) launchers; issue #24 adds
+the cross-host browser gate.
 
 Spring-specific code stays in
 [`ProjectRoutes.kt`](../../examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt).
