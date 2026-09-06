@@ -2,6 +2,7 @@ package dev.woge.spring.webflux
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageUseCase
+import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -11,6 +12,7 @@ public class WogeWebFluxHandlers(
     private val contexts: WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
+    private val observer: WogeObserver = WogeObserver.NONE,
 ) {
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout)
@@ -20,7 +22,7 @@ public class WogeWebFluxHandlers(
     public fun <Input : Any> page(
         useCase: PageUseCase<Input>,
         input: WebFluxPageInput<Input>,
-    ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts)
+    ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts, observer)
 
     /** Creates a handler for one typed deferred-region stream and its route-local input decoder. */
     public fun <Input : Any> deferred(
@@ -33,5 +35,6 @@ public class WogeWebFluxHandlers(
             contexts = contexts,
             maxConcurrency = maxConcurrency,
             regionTimeout = regionTimeout,
+            observer = observer,
         )
 }

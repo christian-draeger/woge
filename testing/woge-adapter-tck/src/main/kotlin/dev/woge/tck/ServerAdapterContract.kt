@@ -2,6 +2,11 @@ package dev.woge.tck
 
 import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseStatus
+import dev.woge.host.WogeObservationEvent
+import dev.woge.host.WogeOperation
+import dev.woge.host.WogeOperationFinished
+import dev.woge.host.WogeOperationStarted
+import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
 import kotlinx.coroutines.withTimeout
@@ -74,6 +79,7 @@ public class ServerAdapterContract(
     ): AdapterTckViolation = AdapterTckViolation(owner, factory.adapterName, contract, detail, cause)
 }
 
+@Suppress("TooManyFunctions")
 private class AdapterTckVerification(
     private val adapterName: String,
     private val server: AdapterTckServer,
@@ -88,6 +94,7 @@ private class AdapterTckVerification(
         if (AdapterTckCapability.CLIENT_ABORT_CANCELLATION in server.capabilities) {
             verifyClientAbortCancellation()
         }
+        verifySemanticObservations()
     }
 
     private suspend fun verifyDocumentGetAndHead() {
@@ -243,6 +250,67 @@ private class AdapterTckVerification(
             response.body().use { body -> body.readThrough("Ready region") }
             withTimeout(CLIENT_ABORT_TIMEOUT) { fixture.cancelledRegion.await() }
         }
+    }
+
+    private suspend fun verifySemanticObservations() {
+        runContract("semantic-observations") {
+            val events = fixture.observations()
+            expect(events.isNotEmpty(), "semantic-observations", "adapter emitted no semantic events")
+            expectPairedLifecycle(events)
+            expectOutcome(events, WogeOperation.PAGE_REQUEST, WogeOutcome.REJECTED)
+            expectOutcome(events, WogeOperation.PAGE_REQUEST, WogeOutcome.FAILED)
+            expectOutcome(events, WogeOperation.SHELL_RENDER, WogeOutcome.SUCCEEDED)
+            expectOutcome(events, WogeOperation.DEFERRED_REGION, WogeOutcome.SUCCEEDED)
+            expectOutcome(events, WogeOperation.PATCH_ENCODE, WogeOutcome.SUCCEEDED)
+            expect(
+                events.all { it.context.requestTrace?.correlationId != null },
+                "semantic-observations",
+                "server event is missing request correlation",
+            )
+            expect(
+                !events.toString().contains(PRE_STREAM_PRIVATE_DETAIL),
+                "semantic-observations",
+                "private exception detail entered structured observations",
+            )
+        }
+    }
+
+    private fun expectPairedLifecycle(events: List<WogeObservationEvent>) {
+        val open = mutableMapOf<Long, WogeOperationStarted>()
+        events.forEach { event ->
+            when (event) {
+                is WogeOperationStarted -> {
+                    expect(
+                        open.put(event.observationId.value, event) == null,
+                        "semantic-observations",
+                        "duplicate observation ID ${event.observationId.value}",
+                    )
+                }
+                is WogeOperationFinished -> {
+                    val started = open.remove(event.observationId.value)
+                    expect(
+                        started?.operation == event.operation && started.context == event.context,
+                        "semantic-observations",
+                        "${event.operation.semanticName} finished without a matching start",
+                    )
+                }
+            }
+        }
+        expect(open.isEmpty(), "semantic-observations", "semantic operation did not emit a terminal event")
+    }
+
+    private fun expectOutcome(
+        events: List<WogeObservationEvent>,
+        operation: WogeOperation,
+        outcome: WogeOutcome,
+    ) {
+        expect(
+            events.filterIsInstance<WogeOperationFinished>().any {
+                it.operation == operation && it.outcome == outcome
+            },
+            "semantic-observations",
+            "missing ${operation.semanticName}/${outcome.semanticName} outcome",
+        )
     }
 
     private fun expectDocumentMetadata(

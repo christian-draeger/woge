@@ -2,6 +2,7 @@ package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageUseCase
+import dev.woge.host.WogeObserver
 import dev.woge.protocol.PatchProtocolVersion
 import org.apache.commons.logging.LogFactory
 import org.springframework.beans.factory.ListableBeanFactory
@@ -21,6 +22,11 @@ import org.springframework.core.io.ResourceLoader
 @EnableConfigurationProperties(WogeProperties::class)
 @Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
 public class WogeAutoConfiguration {
+    /** Framework-neutral no-op that applications can replace with Micrometer or OpenTelemetry. */
+    @Bean
+    @ConditionalOnMissingBean
+    public fun wogeObserver(): WogeObserver = WogeObserver.NONE
+
     /** Discovers only Woge host entry points; HTML components remain ordinary Kotlin values/functions. */
     @Bean
     @ConditionalOnMissingBean

@@ -13,6 +13,8 @@ import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseHeaders
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.ResponseStatus
+import dev.woge.host.WogeObservationEvent
+import dev.woge.host.WogeObserver
 import dev.woge.host.deferredRegion
 import dev.woge.host.failure
 import dev.woge.host.httpHeader
@@ -69,6 +71,7 @@ public enum class AdapterTckDeferredScenario(
 public class AdapterTckApplication internal constructor() {
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
 
+    public val observer: WogeObserver = WogeObserver(state::observe)
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
@@ -81,6 +84,13 @@ internal class AdapterTckFixtureState {
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
+    private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
+
+    fun observe(event: WogeObservationEvent) {
+        observationEvents += event
+    }
+
+    fun observations(): List<WogeObservationEvent> = observationEvents.toList()
 
     suspend fun openPage(request: PageRequest<AdapterTckPageScenario>): PageResult {
         observedContexts += request.context

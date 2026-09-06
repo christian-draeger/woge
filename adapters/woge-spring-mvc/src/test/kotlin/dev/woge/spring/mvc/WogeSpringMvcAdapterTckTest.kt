@@ -106,7 +106,8 @@ private class SpringMvcTimeoutConfiguration {
 @EnableAutoConfiguration
 private class SpringMvcTckConfiguration {
     @Bean
-    fun wogeSpringMvcHandlers(): WogeSpringMvcHandlers = WogeSpringMvcHandlers()
+    fun wogeSpringMvcHandlers(application: AdapterTckApplication): WogeSpringMvcHandlers =
+        WogeSpringMvcHandlers(observer = application.observer)
 
     @Bean
     fun adapterTckRoutes(

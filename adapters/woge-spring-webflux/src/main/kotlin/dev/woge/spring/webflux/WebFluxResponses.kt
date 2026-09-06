@@ -4,12 +4,16 @@ import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.SameSite
+import dev.woge.host.WogeObservationContext
+import dev.woge.host.WogeObserver
+import dev.woge.host.WogeOperation
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.HtmlFrame
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.observeCollection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -29,11 +33,14 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration as JavaDuration
 import org.springframework.http.ResponseCookie as SpringResponseCookie
 
-internal suspend fun PageResult.toWebFluxResponse(): ServerResponse =
+internal suspend fun PageResult.toWebFluxResponse(
+    observer: WogeObserver,
+    observationContext: WogeObservationContext,
+): ServerResponse =
     when (this) {
         is PageResult.Document ->
             responseBuilder(metadata)
-                .body(documentBody(this))
+                .body(documentBody(this, observer, observationContext))
                 .awaitSingle()
 
         is PageResult.Redirect ->
@@ -79,8 +86,12 @@ private fun ResponseCookie.toSpringCookie(): SpringResponseCookie {
 private val SameSite.httpValue: String
     get() = name.lowercase().replaceFirstChar(Char::uppercase)
 
-private fun documentBody(document: PageResult.Document): BodyInserter<Unit, ServerHttpResponse> =
-    flushingBody { response -> document.flushGroups(response) }
+private fun documentBody(
+    document: PageResult.Document,
+    observer: WogeObserver,
+    observationContext: WogeObservationContext,
+): BodyInserter<Unit, ServerHttpResponse> =
+    flushingBody { response -> document.flushGroups(response, observer, observationContext) }
 
 private fun patchBody(chunks: Flow<EncodedPatchChunk>): BodyInserter<Unit, ServerHttpResponse> =
     flushingBody { response ->
@@ -93,8 +104,13 @@ private fun flushingBody(
     groups: (ServerHttpResponse) -> Publisher<out Publisher<out DataBuffer>>,
 ): BodyInserter<Unit, ServerHttpResponse> = BodyInserter { response, _ -> response.writeAndFlushWith(groups(response)) }
 
-private fun PageResult.Document.flushGroups(response: ServerHttpResponse): Publisher<out Publisher<out DataBuffer>> =
+private fun PageResult.Document.flushGroups(
+    response: ServerHttpResponse,
+    observer: WogeObserver,
+    observationContext: WogeObservationContext,
+): Publisher<out Publisher<out DataBuffer>> =
     frames
+        .observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext)
         .map { frame ->
             Flux
                 .fromIterable(frame.renderChunks())
