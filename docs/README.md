@@ -34,6 +34,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Build the first Woge page with Spring Boot](guides/quickstart-spring-boot.md)
 - [Kotlin for the first web task](guides/kotlin-for-web-developers.md)
 - [Render safe HTML values](guides/safe-html-values.md)
+- [Write HTML with the generated element DSL](guides/html-elements.md)
 - [Style pages and load assets](guides/css-and-assets.md)
 - [Buffer or stream HTML](guides/stream-html.md)
 - [Write a framework-neutral page use case](guides/server-host-spi.md)
