@@ -92,6 +92,13 @@ its own matching bean that translates the
 authenticated principal, capabilities and verified request facts into Woge-owned values. The default
 backs off automatically.
 
+## Connect metrics, traces or development tools
+
+Spring Boot provides a no-op `WogeObserver` unless the application declares its own bean. The same
+typed events are emitted by MVC, WebFlux and Ktor, so an integration can map them to Micrometer or
+OpenTelemetry without changing portable page code. See the
+[semantic observability guide](semantic-observability.md) for a safe mapping and cardinality rules.
+
 ## Resolve mixed Spring stacks
 
 With one stack, `woge.adapter=auto` needs no property. If both Spring MVC and WebFlux are on the

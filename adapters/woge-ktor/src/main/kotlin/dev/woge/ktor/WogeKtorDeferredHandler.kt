@@ -2,6 +2,7 @@ package dev.woge.ktor
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageRequest
+import dev.woge.host.WogeObserver
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionPolicy
@@ -17,13 +18,16 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
     private val contexts: KtorRequestContextFactory,
     maxConcurrency: Int,
     regionTimeout: Duration,
+    observer: WogeObserver,
 ) {
-    private val executor = DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout))
+    private val executor = DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout), observer)
+    private val observer = observer
 
     /** Re-authorizes the request before returning an incrementally flushed patch response. */
     @Suppress("TooGenericExceptionCaught")
     public suspend fun handle(call: ApplicationCall) {
-        val pageRequest = PageRequest(input.decode(call), contexts.create(call))
+        val context = contexts.create(call)
+        val pageRequest = PageRequest(input.decode(call), context)
         val declaredRegions =
             try {
                 regions.regions(pageRequest).toList()
@@ -35,10 +39,16 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
             }
         var patchNumber = 0
         val chunks =
-            executor.execute(declaredRegions).encodeDeferredPatchStream {
-                patchNumber += 1
-                PatchId.of("deferred-$patchNumber")
-            }
+            executor
+                .execute(declaredRegions, context.trace)
+                .encodeDeferredPatchStream(
+                    patchId = {
+                        patchNumber += 1
+                        PatchId.of("deferred-$patchNumber")
+                    },
+                    observer = observer,
+                    requestTrace = context.trace,
+                )
         call.respondWogePatches(chunks)
     }
 }

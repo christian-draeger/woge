@@ -6,6 +6,7 @@ public final class dev/woge/spring/boot/autoconfigure/WogeApplicationCatalog {
 public final class dev/woge/spring/boot/autoconfigure/WogeAutoConfiguration {
 	public fun <init> ()V
 	public final fun wogeApplicationCatalog (Lorg/springframework/beans/factory/ListableBeanFactory;)Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;
+	public final fun wogeObserver ()Ldev/woge/host/WogeObserver;
 	public final fun wogeRuntimeInfo (Ldev/woge/spring/boot/autoconfigure/WogeProperties;Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;Lorg/springframework/core/io/ResourceLoader;Lorg/springframework/context/ApplicationContext;)Ldev/woge/spring/boot/autoconfigure/WogeRuntimeInfo;
 }
 

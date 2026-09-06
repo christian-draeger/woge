@@ -2,6 +2,11 @@ package dev.woge.runtime
 
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionFailure
+import dev.woge.host.RequestTrace
+import dev.woge.host.WogeObservationContext
+import dev.woge.host.WogeObserver
+import dev.woge.host.WogeOperation
+import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchHtml
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +59,7 @@ public sealed interface DeferredRegionUpdate {
 /** Runs deferred regions as children of the collecting request scope. */
 public class DeferredRegionExecutor(
     public val policy: DeferredRegionPolicy = DeferredRegionPolicy(),
+    private val observer: WogeObserver = WogeObserver.NONE,
 ) {
     /**
      * Returns a cold flow that emits updates in completion order.
@@ -61,7 +67,10 @@ public class DeferredRegionExecutor(
      * Cancelling collection cancels active and waiting region children. A content failure is
      * isolated to its region; failure-fallback rendering itself remains fail-stop.
      */
-    public fun execute(regions: Iterable<DeferredRegion>): Flow<DeferredRegionUpdate> =
+    public fun execute(
+        regions: Iterable<DeferredRegion>,
+        requestTrace: RequestTrace? = null,
+    ): Flow<DeferredRegionUpdate> =
         channelFlow {
             val declaredRegions = regions.toList()
             validateRegionSet(declaredRegions)
@@ -70,25 +79,51 @@ public class DeferredRegionExecutor(
             declaredRegions.forEach { region ->
                 launch {
                     concurrency.withPermit {
-                        send(resolve(region))
+                        send(resolve(region, requestTrace))
                     }
                 }
             }
         }
 
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun resolve(region: DeferredRegion): DeferredRegionUpdate =
+    private suspend fun resolve(
+        region: DeferredRegion,
+        requestTrace: RequestTrace?,
+    ): DeferredRegionUpdate {
+        val observation =
+            observer.startOperation(
+                WogeOperation.DEFERRED_REGION,
+                WogeObservationContext(requestTrace = requestTrace, target = region.target),
+            )
+        return resolveObserved(region, observation)
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun resolveObserved(
+        region: DeferredRegion,
+        observation: WogeOperationObservation,
+    ): DeferredRegionUpdate =
         try {
             val content = withTimeoutOrNull(policy.regionTimeout) { region.renderContent() }
             if (content == null) {
                 failed(region, DeferredRegionFailure.TIMED_OUT, cause = null)
+                    .also { observation.finish(WogeOutcome.TIMED_OUT) }
             } else {
-                DeferredRegionUpdate.Resolved(region, content)
+                DeferredRegionUpdate
+                    .Resolved(region, content)
+                    .also { observation.finish(WogeOutcome.SUCCEEDED) }
             }
         } catch (cancelled: CancellationException) {
+            observation.finish(WogeOutcome.CANCELLED)
             throw cancelled
         } catch (cause: Exception) {
-            failed(region, DeferredRegionFailure.FAILED, cause)
+            try {
+                failed(region, DeferredRegionFailure.FAILED, cause)
+                    .also { observation.finish(WogeOutcome.FAILED) }
+            } catch (fallbackFailure: Throwable) {
+                observation.finish(WogeOutcome.FAILED)
+                throw fallbackFailure
+            }
         }
 
     private fun failed(

@@ -31,14 +31,14 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
 
     override fun start(application: AdapterTckApplication): AdapterTckServer {
         val page =
-            WogeKtorHandlers().page(
+            WogeKtorHandlers(observer = application.observer).page(
                 application.pages,
                 KtorPageInput { call ->
                     AdapterTckPageScenario.fromPath(requireNotNull(call.parameters["scenario"]))
                 },
             )
         val deferred =
-            WogeKtorHandlers().deferred(
+            WogeKtorHandlers(observer = application.observer).deferred(
                 application.deferredRegions,
                 KtorPageInput { call ->
                     AdapterTckDeferredScenario.fromPath(requireNotNull(call.parameters["scenario"]))

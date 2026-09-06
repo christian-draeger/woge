@@ -46,6 +46,10 @@ Create one runtime for one active document. A full navigation creates a new page
 new runtime. Fetch/form interception is deliberately deferred; normal links and forms remain the
 baseline until the action enhancer installs this call.
 
+Pass an optional `observer` when structured tooling needs patch timing or rejected/stale outcomes.
+The callback receives no patch HTML; its operation names match the server observation port. See
+[Observe Woge without parsing logs](semantic-observability.md).
+
 ## Keep normal CSS and custom elements
 
 Replace keeps the region element and replaces only its children. Classes, inline standards CSS,

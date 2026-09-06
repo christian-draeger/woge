@@ -2,6 +2,7 @@ package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageUseCase
+import dev.woge.host.WogeObserver
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
@@ -68,6 +69,16 @@ class WogeAutoConfigurationTest {
                     CustomContextConfiguration.contexts,
                     context.getBean(WebFluxRequestContextFactory::class.java),
                 )
+            }
+    }
+
+    @Test
+    fun `backs off for an application observation adapter`() {
+        webFluxRunner()
+            .withUserConfiguration(CustomObserverConfiguration::class.java)
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertSame(CustomObserverConfiguration.observer, context.getBean(WogeObserver::class.java))
             }
     }
 
@@ -244,6 +255,16 @@ class WogeAutoConfigurationTest {
 
         companion object {
             val contexts = WebFluxRequestContextFactory { error("not executed during startup") }
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    internal class CustomObserverConfiguration {
+        @Bean
+        fun customWogeObserver(): WogeObserver = observer
+
+        companion object {
+            val observer = WogeObserver { }
         }
     }
 

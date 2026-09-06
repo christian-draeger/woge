@@ -2,6 +2,7 @@ package dev.woge.spring.mvc
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageUseCase
+import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +16,7 @@ public class WogeSpringMvcHandlers(
     private val asyncTimeout: Duration = 60.seconds,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
+    private val observer: WogeObserver = WogeObserver.NONE,
 ) {
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout)
     private val asyncTimeoutMillis: Long
@@ -32,12 +34,12 @@ public class WogeSpringMvcHandlers(
         useCase: PageUseCase<Input>,
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcPageHandler<Input> =
-        WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis)
+        WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, observer)
 
     /** Creates a Servlet handler for one typed deferred-region stream and input decoder. */
     public fun <Input : Any> deferred(
         useCase: DeferredRegionsUseCase<Input>,
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcDeferredHandler<Input> =
-        WogeSpringMvcDeferredHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, policy)
+        WogeSpringMvcDeferredHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, policy, observer)
 }

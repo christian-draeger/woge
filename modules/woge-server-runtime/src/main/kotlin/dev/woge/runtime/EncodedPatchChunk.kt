@@ -1,5 +1,10 @@
 package dev.woge.runtime
 
+import dev.woge.host.RequestTrace
+import dev.woge.host.WogeObservationContext
+import dev.woge.host.WogeObserver
+import dev.woge.host.WogeOperation
+import dev.woge.host.WogeOutcome
 import dev.woge.protocol.ByteSink
 import dev.woge.protocol.InteractionSequence
 import dev.woge.protocol.PatchId
@@ -41,7 +46,10 @@ public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
  * The first chunk also contains the stream preamble. Upstream, patch-ID, or encoder failures are
  * propagated without manufacturing a successful terminal frame.
  */
+@Suppress("TooGenericExceptionCaught")
 public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
+    observer: WogeObserver = WogeObserver.NONE,
+    requestTrace: RequestTrace? = null,
     patchId: (DeferredRegionUpdate) -> PatchId,
 ): Flow<EncodedPatchChunk> =
     flow {
@@ -49,9 +57,28 @@ public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
         val encoder = PatchStreamV1.encoder(ByteSink(pending::write))
 
         collect { update ->
-            encoder.write(update.toReplacePatch(patchId(update)))
-            emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
-            pending.reset()
+            val id = patchId(update)
+            val observation =
+                observer.startOperation(
+                    WogeOperation.PATCH_ENCODE,
+                    WogeObservationContext(
+                        requestTrace = requestTrace,
+                        target = update.region.target,
+                        patchId = id,
+                    ),
+                )
+            try {
+                encoder.write(update.toReplacePatch(id))
+                emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
+                pending.reset()
+                observation.finish(WogeOutcome.SUCCEEDED)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                observation.finish(WogeOutcome.CANCELLED)
+                throw cancelled
+            } catch (failure: Throwable) {
+                observation.finish(WogeOutcome.FAILED)
+                throw failure
+            }
         }
 
         encoder.complete()

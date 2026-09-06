@@ -4,11 +4,15 @@ import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.SameSite
+import dev.woge.host.WogeObservationContext
+import dev.woge.host.WogeObserver
+import dev.woge.host.WogeOperation
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.observeCollection
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import jakarta.servlet.http.HttpServletRequest
@@ -97,12 +101,14 @@ private class ServletCoroutineListener(
 internal suspend fun PageResult.writeToServlet(
     request: HttpServletRequest,
     response: HttpServletResponse,
+    observer: WogeObserver,
+    observationContext: WogeObservationContext,
 ) {
     when (this) {
         is PageResult.Document -> {
             response.applyMetadata(metadata)
             if (!request.method.equals("HEAD", ignoreCase = true)) {
-                writeDocument(response)
+                writeDocument(response, observer, observationContext)
             }
         }
 
@@ -127,7 +133,11 @@ internal suspend fun Flow<EncodedPatchChunk>.writeToServlet(response: HttpServle
     }
 }
 
-private suspend fun PageResult.Document.writeDocument(response: HttpServletResponse) {
+private suspend fun PageResult.Document.writeDocument(
+    response: HttpServletResponse,
+    observer: WogeObserver,
+    observationContext: WogeObservationContext,
+) {
     val output = response.outputStream
     val context = kotlinx.coroutines.currentCoroutineContext()
     val chunks =
@@ -139,7 +149,7 @@ private suspend fun PageResult.Document.writeDocument(response: HttpServletRespo
                 },
             maxChunkChars = DEFAULT_HTML_CHUNK_CHARS,
         )
-    frames.collect { frame ->
+    frames.observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext).collect { frame ->
         context.ensureActive()
         frame.writeTo(chunks)
         chunks.flush()
