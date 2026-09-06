@@ -1,6 +1,7 @@
+import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
+
 const PREAMBLE_MAGIC = Uint8Array.of(0x57, 0x4f, 0x47, 0x45);
 const PREAMBLE_BYTES = 5;
-const VERSION = 1;
 const HEADER_BYTES = 10;
 const PATCH = 1;
 const COMPLETE = 2;
@@ -146,7 +147,7 @@ export class PatchStreamDecoder {
         fail("WOGE_INVALID_PREAMBLE", "Patch stream preamble magic is invalid");
       }
     }
-    if (preamble[PREAMBLE_MAGIC.byteLength] !== VERSION) {
+    if (preamble[PREAMBLE_MAGIC.byteLength] !== WOGE_PATCH_PROTOCOL_VERSION) {
       fail("WOGE_UNSUPPORTED_VERSION", "Patch stream version is unsupported");
     }
     this.#buffer.discard(PREAMBLE_BYTES);
@@ -248,7 +249,9 @@ function decodeReplaceMetadata(value) {
   const match = replaceMetadataPattern.exec(value);
   if (!match) fail("WOGE_INVALID_METADATA", "Patch frame metadata is invalid or non-canonical");
   const version = Number(match[1]);
-  if (version !== VERSION) fail("WOGE_UNSUPPORTED_VERSION", "Patch metadata version is unsupported");
+  if (version !== WOGE_PATCH_PROTOCOL_VERSION) {
+    fail("WOGE_UNSUPPORTED_VERSION", "Patch metadata version is unsupported");
+  }
   if (match[2] !== "replace") fail("WOGE_INVALID_METADATA", "Patch operation is unsupported");
 
   const interactionSequence = parseLong(match[6]);

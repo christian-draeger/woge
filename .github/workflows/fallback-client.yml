@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "client/woge-fallback-client/**"
+      - "integrations/woge-fallback-client-assets/**"
+      - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/Patch.kt"
+      - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/PatchStreamValues.kt"
       - "modules/woge-protocol/src/test/resources/fixtures/**"
       - ".github/workflows/fallback-client.yml"
   push:
@@ -11,6 +14,9 @@ on:
       - main
     paths:
       - "client/woge-fallback-client/**"
+      - "integrations/woge-fallback-client-assets/**"
+      - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/Patch.kt"
+      - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/PatchStreamValues.kt"
       - "modules/woge-protocol/src/test/resources/fixtures/**"
       - ".github/workflows/fallback-client.yml"
 
@@ -41,5 +47,8 @@ jobs:
           if-no-files-found: warn
           path: |
             client/woge-fallback-client/build/size-metrics.json
+            client/woge-fallback-client/build/package-test-result.json
+            client/woge-fallback-client/build/pack-a/*.tgz
+            client/woge-fallback-client/dist/manifest.json
             client/woge-fallback-client/playwright-report/**
             client/woge-fallback-client/test-results/**

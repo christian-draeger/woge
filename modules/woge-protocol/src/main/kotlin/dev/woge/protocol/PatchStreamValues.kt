@@ -102,6 +102,7 @@ public interface PatchStreamDecoder {
 
 /** Public constants and factories for Woge's version-1 fallback patch stream. */
 public object PatchStreamV1 {
+    public const val VERSION: Int = 1
     public const val MEDIA_TYPE: String = "application/vnd.woge.patch-stream; version=1"
     public const val MAX_METADATA_BYTES: Int = 64 * 1024
     public const val MAX_PAYLOAD_BYTES: Int = 8 * 1024 * 1024

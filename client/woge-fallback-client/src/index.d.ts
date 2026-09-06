@@ -1,5 +1,6 @@
 export const BEFORE_REPLACE_EVENT: "woge:before-replace";
 export const AFTER_REPLACE_EVENT: "woge:after-replace";
+export const WOGE_PATCH_PROTOCOL_VERSION: 1;
 
 export interface ReplaceLifecycleDetail {
   readonly operation: "replace";

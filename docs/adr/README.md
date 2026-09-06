@@ -62,6 +62,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0033](0033-suspending-ktor-adapter.md) | Accepted | Bind Woge to idiomatic suspending Ktor routes |
 | [0034](0034-generate-html-element-wrappers-from-webref.md) | Accepted | Generate HTML element wrappers from pinned Webref data |
 | [0035](0035-framework-neutral-semantic-observation-port.md) | Accepted | Use a framework-neutral semantic observation port |
+| [0036](0036-dual-fallback-client-distribution.md) | Accepted | Distribute one fallback client through npm and a JVM asset adapter |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

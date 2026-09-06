@@ -9,6 +9,14 @@ const routes = new Map([
     { path: new URL("./deferred-bootstrap.mjs", import.meta.url), type: "text/javascript; charset=utf-8" },
   ],
   ["/woge-fallback.js", { path: new URL("../dist/woge-fallback.js", import.meta.url), type: "text/javascript; charset=utf-8" }],
+  [
+    "/package-consumer",
+    { path: new URL("./package-consumer-fixture.html", import.meta.url), type: "text/html; charset=utf-8" },
+  ],
+  [
+    "/package-consumer.js",
+    { path: new URL("../build/package-consumer/consumer-bundle.js", import.meta.url), type: "text/javascript; charset=utf-8" },
+  ],
 ]);
 
 const deferredStream = await readDeferredStream();

@@ -27,6 +27,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [AI-assisted developer-experience criteria](ai-dx/evaluation.md)
 - [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
 - [Build and test Woge](development/build-and-test.md)
+- [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
 - [Repository scaffold provenance](development/scaffold-provenance.md)
 
 ## Implemented API guides
@@ -41,6 +42,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Describe a visible update with Patch IR](guides/patch-ir.md)
 - [Encode and decode fallback patch streams](guides/patch-stream-codec.md)
 - [Apply a patch stream in the browser](guides/browser-replace-runtime.md)
+- [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
 - [Render independent page regions](guides/deferred-regions.md)
 - [Run a Woge page with Spring WebFlux](guides/spring-webflux-adapter.md)
 - [Run a Woge page with Spring MVC](guides/spring-mvc-adapter.md)
