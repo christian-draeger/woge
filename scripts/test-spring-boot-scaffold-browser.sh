@@ -21,6 +21,7 @@ evidence_root="$repository_root/build/reports/scaffold-browser"
 
 capture_evidence_and_cleanup() {
   local status=$?
+  set +e
   trap - EXIT
   if [[ -d "$fixture_root/playwright-report" ]]; then
     mkdir -p "$evidence_root/playwright-report"
@@ -31,6 +32,7 @@ capture_evidence_and_cleanup() {
     cp -R "$fixture_root/test-results/." "$evidence_root/test-results/" || true
   fi
   rm -rf "$scratch_root"
+  [[ -e "$scratch_root" ]] && printf 'Warning: deferred cleanup for %s\n' "$scratch_root" >&2
   exit "$status"
 }
 trap capture_evidence_and_cleanup EXIT
