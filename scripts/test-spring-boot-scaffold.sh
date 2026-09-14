@@ -22,14 +22,15 @@ trap 'rm -rf "$scratch_root"' EXIT
 
 for adapter in webflux mvc; do
   fixture_root="$scratch_root/$adapter"
-  "$repository_root/scripts/materialize-spring-boot-scaffold.sh" "$fixture_root"
+  "$repository_root/scripts/materialize-spring-boot-scaffold.sh" "$fixture_root" "$adapter"
+  grep -Fqx "wogeSpringAdapter=$adapter" "$fixture_root/gradle.properties"
+  grep -Fq -- "- Selected host: \`$adapter\`" "$fixture_root/AGENTS.md"
   "$fixture_root/gradlew" \
     --project-dir "$fixture_root" \
     --no-daemon \
     --stacktrace \
     test \
-    "-PwogeRepository=$published_repository" \
-    "-PwogeSpringAdapter=$adapter"
+    "-PwogeRepository=$published_repository"
 done
 
 printf 'External Spring Boot scaffold passed for WebFlux and MVC.\n'

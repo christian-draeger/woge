@@ -11,15 +11,17 @@ From the Woge checkout:
 
 ```shell
 ./scripts/materialize-spring-boot-scaffold.sh ../my-woge-application
+./scripts/materialize-spring-boot-scaffold.sh ../my-mvc-woge-application mvc
 ```
 
 The target must be absent or empty. The script copies the versioned application files and the checked-in
 Gradle wrapper; it does not create links back to Woge source. Before public Woge artifacts exist, use
 the repository verification tasks below rather than hand-editing dependency coordinates.
 
-WebFlux is the default. A consumer can select MVC with `-PwogeSpringAdapter=mvc`. Both choices compile
-the same `src/main` application and exactly one small host source set. Tailwind, Vite and Ktor are not
-installed by default.
+WebFlux is the default. The optional `mvc` argument persists MVC as `wogeSpringAdapter`. Both choices
+compile the same `src/main` application and exactly one small host source set. The materializer also
+generates a version- and host-matched root `AGENTS.md`; Tailwind, Vite and Ktor are not installed by
+default.
 
 ## Verify the consumer boundary
 
@@ -49,6 +51,8 @@ No documentation-only copy of the Kotlin page exists: the compiled scaffold sour
 - Update `scaffoldVersion` when a consumer-visible template contract changes.
 - Keep Woge, Kotlin and Spring Boot versions aligned through
   `scripts/validate-spring-boot-scaffold.sh`.
+- Change the canonical [application guidance template](../ai-dx/application-agents.template.md) or
+  framework index, then regenerate `AGENTS.md`; never patch the generated copy alone.
 - Keep the default page useful without JavaScript and the default dependency set free of optional
   frontend pipelines.
 - Prefer implementation plus external tests for clear behavior. Use a spike only when an uncertain

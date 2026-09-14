@@ -27,6 +27,21 @@
     "patchProtocolVersion": 1,
     "runtimeDependencies": []
   },
+  "agentGuidance": {
+    "templateVersion": 1,
+    "template": "docs/ai-dx/application-agents.template.md",
+    "generatedFile": "scaffolds/spring-boot/AGENTS.md",
+    "generator": "scripts/generate-spring-boot-agent-guidance.sh",
+    "canonicalSources": {
+      "kotlinGuide": "docs/guides/kotlin-for-web-developers.md",
+      "safeValuesGuide": "docs/guides/safe-html-values.md",
+      "htmlGuide": "docs/guides/html-elements.md",
+      "cssGuide": "docs/guides/css-and-assets.md",
+      "pageGuide": "docs/guides/server-host-spi.md",
+      "patchGuide": "docs/guides/patch-ir.md",
+      "compilerExamples": "examples/m1-api-corpus"
+    }
+  },
   "modules": [
     {
       "name": "woge-core",
