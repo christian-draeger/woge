@@ -5,6 +5,7 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Start here
 
 - [Spring Boot WebFlux quickstart](guides/quickstart-spring-boot.md)
+- [Versioned Spring Boot application scaffold](../scaffolds/spring-boot/README.md)
 - [Kotlin for this web task](guides/kotlin-for-web-developers.md)
 - [Project direction](../README.md)
 - [MVP boundary and definition of done](mvp-boundary.md)
@@ -30,6 +31,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [M1 compiler corpus and diagnostics](ai-dx/m1-compiler-corpus.md)
 - [Machine-readable Woge framework index](ai-dx/woge-framework-index.json)
 - [Build and test Woge](development/build-and-test.md)
+- [Maintain the Spring Boot application scaffold](development/spring-boot-application-scaffold.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
 - [Repository scaffold provenance](development/scaffold-provenance.md)
 

@@ -1,3 +1,5 @@
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Exec
 
 plugins {
@@ -7,6 +9,36 @@ plugins {
 
 group = providers.gradleProperty("wogeGroup").get()
 version = providers.gradleProperty("wogeVersion").get()
+
+val scaffoldPublicationModules =
+    setOf(
+        "woge-core",
+        "woge-protocol",
+        "woge-host-spi",
+        "woge-server-runtime",
+        "woge-spring-mvc",
+        "woge-spring-webflux",
+        "woge-spring-boot-autoconfigure",
+        "woge-spring-boot-starter",
+    )
+val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
+
+subprojects {
+    if (name in scaffoldPublicationModules) {
+        pluginManager.apply("maven-publish")
+        pluginManager.withPlugin("java-library") {
+            extensions.configure<PublishingExtension> {
+                publications.register<MavenPublication>("scaffold") {
+                    from(components.getByName("java"))
+                }
+                repositories.maven {
+                    name = "scaffold"
+                    url = uri(scaffoldMavenRepository)
+                }
+            }
+        }
+    }
+}
 
 fun registerValidation(name: String, description: String, script: String) =
     tasks.register<Exec>(name) {
@@ -42,6 +74,38 @@ val validateDocumentation = registerValidation(
     "Validates local documentation links and executable snippet references.",
     "scripts/validate-documentation.sh",
 )
+val publishScaffoldArtifacts =
+    tasks.register("publishScaffoldArtifacts") {
+        group = "publishing"
+        description = "Publishes the Woge artifacts needed by the external scaffold to a build-local repository."
+        dependsOn(
+            scaffoldPublicationModules.map { module ->
+                ":$module:publishScaffoldPublicationToScaffoldRepository"
+            },
+        )
+    }
+val testSpringBootScaffold =
+    tasks.register<Exec>("testSpringBootScaffold") {
+        group = "verification"
+        description = "Materializes and compiles the external Spring Boot scaffold with WebFlux and MVC."
+        dependsOn(publishScaffoldArtifacts)
+        commandLine(
+            "bash",
+            layout.projectDirectory.file("scripts/test-spring-boot-scaffold.sh").asFile.absolutePath,
+            scaffoldMavenRepository.get().asFile.absolutePath,
+        )
+    }
+val scaffoldBrowserSmoke =
+    tasks.register<Exec>("scaffoldBrowserSmoke") {
+        group = "verification"
+        description = "Runs the scaffold's focused no-JavaScript browser test."
+        dependsOn(publishScaffoldArtifacts)
+        commandLine(
+            "bash",
+            layout.projectDirectory.file("scripts/test-spring-boot-scaffold-browser.sh").asFile.absolutePath,
+            scaffoldMavenRepository.get().asFile.absolutePath,
+        )
+    }
 fun registerReferenceBrowserSmoke(
     name: String,
     host: String,
@@ -83,6 +147,7 @@ tasks.named("check") {
         validateModuleBoundaries,
         testModuleBoundaries,
         validateDocumentation,
+        testSpringBootScaffold,
         test,
         detekt,
         ktlintCheck,

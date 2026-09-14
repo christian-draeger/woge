@@ -4,6 +4,10 @@ Task-oriented, web-first guides live here. Start with the executable
 [Spring Boot WebFlux quickstart](quickstart-spring-boot.md), then use its focused
 [Kotlin bridge](kotlin-for-web-developers.md) when unfamiliar syntax appears.
 
+To begin from a small standalone repository rather than the multi-host framework example, use the
+[versioned Spring Boot application scaffold](../../scaffolds/spring-boot/README.md). It defaults to
+WebFlux, offers an explicit MVC switch and needs no JavaScript toolchain for normal development.
+
 Canonical Kotlin examples belong in the root [`examples`](../../examples/README.md) build. Guides link to those sources instead of maintaining a second uncompiled copy.
 
 The first implemented low-level guide is [safe HTML values](safe-html-values.md). Its temporary

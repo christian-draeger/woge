@@ -179,6 +179,11 @@
       "id": "m1-reference-application",
       "source": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt",
       "concepts": ["executable-consumer", "host-parity", "browser-smoke"]
+    },
+    {
+      "id": "spring-boot-application-scaffold",
+      "source": "scaffolds/spring-boot/src/main/kotlin/example/woge/HomePage.kt",
+      "concepts": ["standalone-consumer", "spring-webflux", "spring-mvc", "html-dsl", "plain-css", "no-javascript"]
     }
   ],
   "plannedKspDiagnosticIssues": [26, 27, 28],

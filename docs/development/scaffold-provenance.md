@@ -1,4 +1,4 @@
-# Repository scaffold provenance
+# Scaffold provenance
 
 The Woge scaffold was selectively derived from Christian Draeger's
 [Kotlin library template](https://github.com/christian-draeger/kotlin-library-template) at commit
@@ -28,3 +28,12 @@ patterns, not as a module blueprint.
 
 This record explains scaffold lineage only. Accepted architecture decisions remain authoritative in
 the [ADR index](../adr/README.md), and the version catalog is authoritative for current tool versions.
+
+## Spring Boot application scaffold
+
+The versioned [`scaffolds/spring-boot`](../../scaffolds/spring-boot/README.md) application reuses the
+same checked-in Gradle wrapper, JDK 21 build baseline, Java 17 output target, pinned Kotlin toolchain and
+small verified-project bias. It does not copy the template's library modules, publication plugins,
+release automation or credential model. Its Spring host selection, type-safe HTML page, standards-native
+CSS and generated-source boundary are Woge-specific decisions recorded in
+[ADR 0039](../adr/0039-versioned-external-spring-boot-application-scaffold.md).
