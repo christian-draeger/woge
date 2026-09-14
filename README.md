@@ -14,6 +14,11 @@ with `./gradlew :woge-reference-ktor:run`.
 `./gradlew referenceBrowserSmoke` runs the same enhanced and no-JavaScript journeys through all three
 hosts in Chromium, Firefox and WebKit.
 
+For a small standalone starting point, see the
+[versioned Spring Boot application scaffold](scaffolds/spring-boot/README.md). It consumes normal Woge
+coordinates, defaults to WebFlux, can select MVC explicitly and starts with type-safe semantic HTML and
+ordinary modern CSS without requiring Node.js.
+
 ## Direction
 
 - HTML, CSS, links, forms, HTTP, URLs and browser APIs remain visible.

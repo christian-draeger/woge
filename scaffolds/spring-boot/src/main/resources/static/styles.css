@@ -1,0 +1,87 @@
+@layer reset, theme, page;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+@layer theme {
+  :root {
+    color-scheme: light dark;
+    --accent: oklch(62% 0.19 255deg);
+    --surface: light-dark(oklch(98% 0.01 255deg), oklch(20% 0.02 255deg));
+    --text: light-dark(oklch(24% 0.02 255deg), oklch(94% 0.01 255deg));
+  }
+}
+
+@layer page {
+  body {
+    min-block-size: 100svb;
+    margin: 0;
+    color: var(--text);
+    background: var(--surface);
+    font-family: system-ui, sans-serif;
+  }
+
+  header,
+  main,
+  footer {
+    inline-size: min(100% - 2rem, 64rem);
+    margin-inline: auto;
+  }
+
+  header,
+  footer {
+    padding-block: 1.25rem;
+  }
+
+  main {
+    container-type: inline-size;
+    display: grid;
+    gap: 1rem;
+    padding-block: clamp(3rem, 10vi, 8rem);
+  }
+
+  h1 {
+    max-inline-size: 18ch;
+    margin: 0;
+    color: color-mix(in oklch, var(--accent) 82%, var(--text));
+    font-size: clamp(2.5rem, 8vi, 6rem);
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .feature-list {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+    list-style: none;
+
+    & li {
+      padding: 1rem;
+      border: 1px solid color-mix(in oklch, var(--accent) 30%, transparent);
+      border-radius: 0.75rem;
+    }
+  }
+
+  .notice {
+    padding: 1rem;
+    border-inline-start: 0.3rem solid var(--accent);
+  }
+
+  @container (width >= 36rem) {
+    .feature-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
