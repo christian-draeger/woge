@@ -21,6 +21,8 @@ The gate compiles the convention plugins, verifies explicit API mode, runs tests
 ./gradlew validateAdrs
 ./gradlew validateModuleBoundaries
 ./gradlew testModuleBoundaries
+./gradlew testSpringBootScaffold
+./gradlew scaffoldBrowserSmoke
 ./gradlew :woge-core:checkKotlinAbi
 ./gradlew :woge-protocol:checkKotlinAbi
 ./gradlew :woge-host-spi:checkKotlinAbi
@@ -34,6 +36,12 @@ The M1 API corpus compiles complete public examples and then invokes the pinned 
 deliberately invalid HTML, URL, unsafe-value, protocol and portable-host fixtures. Its second test
 keeps the machine-readable framework index aligned with module, npm, Kotlin, Spring, Ktor and patch
 protocol metadata.
+
+`testSpringBootScaffold` materializes clean WebFlux and MVC applications outside the repository build,
+resolves Woge through a build-local Maven repository and runs both real-server tests. It is part of
+`check`. `scaffoldBrowserSmoke` additionally validates the WebFlux starter in Chromium with JavaScript
+disabled; its setup and evidence paths are documented in
+[Maintain the Spring Boot application scaffold](spring-boot-application-scaffold.md).
 
 The JMH command is an explicit performance measurement rather than a pass/fail check. `check` compiles
 the benchmark fixture but does not execute it. HTML sink results are written below
@@ -96,6 +104,7 @@ public API change.
 - Hand-written tests belong in `src/test/kotlin`.
 - Generated Kotlin belongs below `build/generated`; do not copy it into `src/main` or edit it manually.
 - Executable documentation applications and snippets belong below [`examples`](../../examples/README.md) and participate in the root build once introduced.
+- New-repository starter source belongs below [`scaffolds`](../../scaffolds/spring-boot/README.md) and must pass its external consumer gates.
 - Architecture experiments remain isolated below [`spikes`](../../spikes/README.md). Production code must not depend on them.
 
 The version catalog owns tool and dependency versions. Convention plugins in `build-logic` own shared

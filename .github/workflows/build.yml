@@ -44,7 +44,9 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: client/woge-fallback-client/package-lock.json
+          cache-dependency-path: |
+            client/woge-fallback-client/package-lock.json
+            scaffolds/spring-boot/package-lock.json
       - name: Install browser-test dependencies
         working-directory: client/woge-fallback-client
         run: npm ci
@@ -53,6 +55,8 @@ jobs:
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run the reference application browser gate
         run: ./gradlew referenceBrowserSmoke --stacktrace
+      - name: Run the external Spring Boot scaffold browser gate
+        run: ./gradlew scaffoldBrowserSmoke --stacktrace
       - name: Upload reference-browser evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -62,3 +66,4 @@ jobs:
           path: |
             client/woge-fallback-client/playwright-report/reference-application/**
             client/woge-fallback-client/test-results/reference-application/**
+            build/reports/scaffold-browser/**
