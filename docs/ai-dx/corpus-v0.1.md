@@ -4,7 +4,10 @@ This corpus defines model-neutral tasks and observable results. It deliberately 
 
 ## Canonical M1 fixture
 
-ADX-01, ADX-04 and the plain-CSS half of ADX-08 begin with the maintained
+Runs begin with the versioned
+[Spring Boot application scaffold](../../scaffolds/spring-boot/README.md) and its generated,
+version-matched [`AGENTS.md`](../../scaffolds/spring-boot/AGENTS.md). ADX-01, ADX-04 and the plain-CSS
+half of ADX-08 extend the maintained
 [`ProjectPage`](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt),
 its [semantic document](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectDocument.kt)
 and the [Spring Boot quickstart](../guides/quickstart-spring-boot.md). The same source is compiled by

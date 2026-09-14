@@ -33,6 +33,8 @@ The versioned [v0.1 corpus](corpus-v0.1.md) asks a participant to:
 Each task starts from the same published consumer scaffold and public documentation. Hidden repository context or maintainer-only prompts are not allowed.
 The [M1 compiler corpus](m1-compiler-corpus.md) provides the compile-verified examples, negative
 fixtures and machine-readable framework index available before generated M2 interactions land.
+The scaffold's generated [application guidance](application-agent-guidance.md) supplies a concise,
+version- and host-matched entry point to those same sources; it adds no agent-only API.
 
 ## Measurements
 
