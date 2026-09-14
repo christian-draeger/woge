@@ -9,6 +9,7 @@ group = "example.woge"
 version = "0.1.0-SNAPSHOT"
 
 val wogeVersion: String by project
+val kotlinVersion: String by project
 val buildJdk: String by project
 val jvmTarget: String by project
 val springBootVersion: String by project
@@ -52,7 +53,33 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+val verifyWogeAgentGuidance =
+    tasks.register("verifyWogeAgentGuidance") {
+        group = "verification"
+        description = "Verifies that AGENTS.md matches the selected Woge application versions and host."
+        val guidanceFile = layout.projectDirectory.file("AGENTS.md")
+        inputs.file(guidanceFile)
+        inputs.properties(
+            mapOf(
+                "expectedKotlinLine" to "- Kotlin: $kotlinVersion",
+                "expectedSpringBootLine" to "- Spring Boot: $springBootVersion",
+                "expectedSpringHostLine" to "- Selected host: `$wogeSpringAdapter`",
+                "expectedWogeLine" to "- Woge: $wogeVersion",
+            ),
+        )
+        doLast {
+            val guidance = inputs.files.singleFile.readText()
+            inputs.properties.toSortedMap().values.forEach { expectedValue ->
+                val expectedLine = expectedValue.toString()
+                check(expectedLine in guidance) {
+                    "AGENTS.md is stale: missing '$expectedLine'. Regenerate it with matching Woge scaffold tooling."
+                }
+            }
+        }
+    }
+
 tasks.test {
+    dependsOn(verifyWogeAgentGuidance)
     useJUnitPlatform()
     systemProperty("woge.expected-adapter", wogeSpringAdapter)
 }

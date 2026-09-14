@@ -29,13 +29,15 @@ catalog_version() {
   fail "kotlinVersion differs from the version catalog"
 [[ "$(property_value "$properties" springBootVersion)" == "$(catalog_version springBoot)" ]] ||
   fail "springBootVersion differs from the version catalog"
+[[ "$(property_value "$properties" wogeSpringAdapter)" == "webflux" ]] ||
+  fail "wogeSpringAdapter must explicitly select the WebFlux default"
 [[ "$(property_value "$properties" buildJdk)" == "21" ]] || fail "buildJdk must remain 21"
 [[ "$(property_value "$properties" jvmTarget)" == "17" ]] || fail "jvmTarget must remain 17"
 [[ "$(property_value "$scaffold_root/scaffold.properties" schemaVersion)" == "1" ]] ||
   fail "unsupported scaffold schemaVersion"
 [[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldId)" == "spring-boot" ]] ||
   fail "scaffoldId must remain spring-boot"
-[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.1.0" ]] ||
+[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.2.0" ]] ||
   fail "scaffoldVersion must remain explicitly versioned"
 [[ "$(property_value "$scaffold_root/scaffold.properties" defaultHost)" == "webflux" ]] ||
   fail "defaultHost must remain webflux"
@@ -55,6 +57,14 @@ for required_path in \
   browser-tests/no-javascript.spec.mjs; do
   [[ -f "$scaffold_root/$required_path" ]] || fail "missing $required_path"
 done
+
+generated_guidance=$(mktemp)
+trap 'rm -f "$generated_guidance"' EXIT
+if ! "$repository_root/scripts/generate-spring-boot-agent-guidance.sh" "$generated_guidance"; then
+  fail "AGENTS.md could not be generated from canonical metadata"
+elif ! cmp -s "$generated_guidance" "$scaffold_root/AGENTS.md"; then
+  fail "AGENTS.md is stale; run scripts/generate-spring-boot-agent-guidance.sh scaffolds/spring-boot/AGENTS.md"
+fi
 
 if rg -n -i '(tailwind|vite|io\.ktor|woge-ktor)' \
   "$scaffold_root/build.gradle.kts" "$scaffold_root/settings.gradle.kts" "$scaffold_root/package.json" >/dev/null; then
