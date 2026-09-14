@@ -30,6 +30,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [AI-DX evaluation corpus](ai-dx/corpus-v0.1.md)
 - [M1 compiler corpus and diagnostics](ai-dx/m1-compiler-corpus.md)
 - [Machine-readable Woge framework index](ai-dx/woge-framework-index.json)
+- [Version-matched application agent guidance](ai-dx/application-agent-guidance.md)
 - [Build and test Woge](development/build-and-test.md)
 - [Maintain the Spring Boot application scaffold](development/spring-boot-application-scaffold.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)

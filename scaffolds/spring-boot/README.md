@@ -3,6 +3,8 @@
 This is the small canonical Woge application scaffold. It renders normal HTML on the server, loads an
 ordinary CSS file and remains complete when JavaScript is unavailable. You can use familiar browser
 tools and web standards; Woge supplies Kotlin type safety and a narrow server-adapter boundary.
+The generated `AGENTS.md` gives coding tools version-matched rules and links to the same canonical
+documentation used here.
 
 ## Run the first page
 
@@ -15,7 +17,8 @@ The default host is Spring Boot WebFlux:
 Open `http://localhost:8080/`. The first run needs JDK 21. It does not need Node.js, Vite, Tailwind or
 a JavaScript application build.
 
-The scaffold pins Woge, Kotlin, Spring Boot, build-JDK and JVM-target versions in `gradle.properties`.
+The scaffold pins Woge, Kotlin, Spring Boot, selected host, build-JDK and JVM-target versions in
+`gradle.properties`.
 Woge is pre-release; repository CI supplies `-PwogeRepository=/path/to/local/repository` until the
 coordinates are publicly available.
 
@@ -30,6 +33,8 @@ ecosystem, select MVC explicitly:
 
 `src/main` contains the page and application. The tiny host adapters live in `src/webflux` and
 `src/mvc`; Gradle compiles exactly one. The page itself imports no Spring, Reactor or Servlet type.
+When materializing from the Woge repository, pass `mvc` as the optional second argument to persist
+that selection and generate matching coding guidance.
 
 ## Read the project as a web developer
 
@@ -39,6 +44,8 @@ ecosystem, select MVC explicitly:
   `light-dark()`, `oklch()`, `color-mix()` and a container query. Woge does not translate it.
 - `WebFluxRoutes.kt` or `MvcRoutes.kt` maps the normal `/` HTTP route to the same page port.
 - `ApplicationTest.kt` starts a real random-port server and verifies HTML, CSS and selected adapter.
+- `AGENTS.md` is generated from the versioned framework index, public documentation and persisted
+  host choice. Change those canonical inputs instead of editing the generated file.
 
 The generated-source root is `build/generated/sources/woge/main/kotlin`. Generators own only that
 directory; edit application source under `src` and never commit generated output. The future `wogeDev`

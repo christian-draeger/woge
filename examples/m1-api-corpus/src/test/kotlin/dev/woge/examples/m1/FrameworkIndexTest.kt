@@ -85,6 +85,42 @@ class FrameworkIndexTest {
         assertRepositoryPath(index.requiredString("browserSupportPolicy"))
     }
 
+    @Test
+    fun `generated application guidance stays version matched and uses canonical public concepts`() {
+        val metadata = index.requiredObject("agentGuidance")
+        assertEquals(1, metadata.requiredInt("templateVersion"))
+        assertRepositoryPath(metadata.requiredString("template"))
+        assertRepositoryPath(metadata.requiredString("generator"))
+        metadata.requiredObject("canonicalSources").values.forEach { source ->
+            assertRepositoryPath(source.jsonPrimitive.content)
+        }
+
+        val guidancePath = metadata.requiredString("generatedFile")
+        assertRepositoryPath(guidancePath)
+        val guidance = repositoryRoot.resolve(guidancePath).readText()
+        val selectedHost = scaffoldProperty("gradle.properties", "wogeSpringAdapter")
+        val generatedSources = scaffoldProperty("scaffold.properties", "generatedSources")
+
+        assertTrue(guidance.contains("- Woge: ${index.requiredString("frameworkVersion")}"))
+        assertTrue(
+            guidance.contains("- Kotlin: ${index.requiredObject("language").requiredString("kotlinVersion")}"),
+        )
+        assertTrue(guidance.contains("- Selected host: `$selectedHost`"))
+        assertTrue(guidance.contains("`$generatedSources`"))
+        listOf(
+            "PageUseCase<ProjectInput>",
+            "normal `method`, `action`, named controls",
+            "PatchTarget(PageEpoch, RegionTargetId)",
+            "manual CSS selectors",
+            "progressive enhancement",
+            "Native Declarative Partial Updates",
+            "Generated typed page/route and action references are not part",
+        ).forEach { requiredGuidance ->
+            assertTrue(guidance.contains(requiredGuidance), "Missing generated guidance: $requiredGuidance")
+        }
+        assertTrue("{{" !in guidance, "Generated guidance contains an unresolved template token")
+    }
+
     private fun readModuleManifest(): LinkedHashMap<String, ModuleManifestEntry> =
         linkedMapOf<String, ModuleManifestEntry>().apply {
             repositoryRoot
@@ -111,6 +147,16 @@ class FrameworkIndexTest {
                 ?.groupValues
                 ?.get(1),
         )
+
+    private fun scaffoldProperty(
+        fileName: String,
+        name: String,
+    ): String =
+        repositoryRoot
+            .resolve("scaffolds/spring-boot/$fileName")
+            .readLines()
+            .first { it.startsWith("$name=") }
+            .substringAfter('=')
 
     private fun assertRepositoryPath(value: String) {
         assertTrue(Files.exists(repositoryRoot.resolve(value)), "Framework index path does not exist: $value")
