@@ -31,6 +31,12 @@ All M0 spikes are **Frozen**. Their source remains small, independently executab
 | [`tailwind-kotlin`](tailwind-kotlin/) | Optional Tailwind adapter in ADR [0017](../docs/adr/0017-optional-tailwind-build-adapter.md) | Supported build adapter [#79](https://github.com/christian-draeger/woge/issues/79) |
 | [`component-distribution`](component-distribution/) | Headless plus source-owned model in ADR [0018](../docs/adr/0018-hybrid-headless-and-source-owned-components.md) | Headless foundation [#80](https://github.com/christian-draeger/woge/issues/80) and registry [#81](https://github.com/christian-draeger/woge/issues/81) |
 
+## Post-M0 evidence
+
+| State | Spike | Decision | Production successor |
+| --- | --- | --- | --- |
+| Frozen | [`spring-boot-reload-topology`](spring-boot-reload-topology/) | Woge-owned orchestration, Spring DevTools trigger adapter, SSE lifecycle channel and no initial proxy in ADR [0041](../docs/adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Orchestrator [#147](https://github.com/christian-draeger/woge/issues/147), Spring restart [#144](https://github.com/christian-draeger/woge/issues/144) and browser channel [#145](https://github.com/christian-draeger/woge/issues/145) |
+
 ## Repository rules
 
 - Production modules, adapters, integrations and maintained examples must never depend on a spike project or import a spike package.

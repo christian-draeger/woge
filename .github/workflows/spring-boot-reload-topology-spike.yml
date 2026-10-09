@@ -1,0 +1,58 @@
+name: Spring Boot reload topology spike
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/spring-boot-reload-topology-spike.yml"
+      - "gradle/**"
+      - "gradlew"
+      - "scaffolds/spring-boot/**"
+      - "scripts/generate-spring-boot-agent-guidance.sh"
+      - "scripts/materialize-spring-boot-scaffold.sh"
+      - "spikes/spring-boot-reload-topology/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/spring-boot-reload-topology-spike.yml"
+      - "gradle/**"
+      - "gradlew"
+      - "scaffolds/spring-boot/**"
+      - "scripts/generate-spring-boot-agent-guidance.sh"
+      - "scripts/materialize-spring-boot-scaffold.sh"
+      - "spikes/spring-boot-reload-topology/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: spikes/spring-boot-reload-topology/package-lock.json
+      - name: Install browser-test dependencies
+        working-directory: spikes/spring-boot-reload-topology
+        run: npm ci
+      - name: Install Chromium
+        working-directory: spikes/spring-boot-reload-topology
+        run: npx playwright install --with-deps chromium
+      - name: Validate the bounded reload topology evidence
+        run: ./spikes/spring-boot-reload-topology/validate.sh
+      - name: Upload measurements and logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: spring-boot-reload-topology-evidence
+          if-no-files-found: warn
+          path: |
+            spikes/spring-boot-reload-topology/build/**
