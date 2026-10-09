@@ -7,6 +7,7 @@ public enum class DevelopmentSessionPhase {
     BUILD_FAILED,
     RELOAD_PENDING,
     SERVER_RESTARTING,
+    SERVER_FAILED,
     READY,
     STOPPED,
 }
