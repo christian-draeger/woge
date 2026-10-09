@@ -174,6 +174,16 @@
       "example": null
     },
     {
+      "name": "woge-ksp",
+      "role": "tooling",
+      "exposure": "public",
+      "sourcePath": "modules/woge-ksp",
+      "artifact": "dev.woge:woge-ksp",
+      "concepts": ["typed-region-descriptors", "build-diagnostics"],
+      "guide": "docs/guides/deferred-regions.md",
+      "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt"
+    },
+    {
       "name": "woge-fallback-client-assets",
       "role": "integration",
       "exposure": "public",

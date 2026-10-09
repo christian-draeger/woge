@@ -117,7 +117,46 @@ public class PageIdentity(
     /** Scope for top-level components and regions of the page. */
     public val root: IdentityScope = IdentityScope(this, parentId = ROOT_ID, path = "page")
 
+    /**
+     * Returns the target of a generated region descriptor, for example `SummaryRegion.target(page)`.
+     *
+     * Each region may be addressed once per [PageIdentity]; a second request for the same region
+     * throws [DuplicateIdentityException].
+     */
+    internal fun <Input> target(
+        region: RegionDescriptor<Input>,
+        key: IdentityKey?,
+    ): RegionTarget<Input> {
+        val parentId =
+            region.component?.let { component -> compute(ROOT_ID, COMPONENT, DEFAULT_SLOT, component, key) } ?: ROOT_ID
+        val id = compute(parentId, REGION, DEFAULT_SLOT, region.name, null)
+        issue(id) {
+            "$region is addressed twice on one page" + (if (key == null) "." else " with the same key.") +
+                " Address each region once per page; repeated regions need a @WogeKey on their component."
+        }
+        return RegionTarget(PatchTarget(epoch, RegionTargetId.of(id)), region)
+    }
+
     internal fun derive(
+        parentId: String,
+        kind: Char,
+        slot: IdentityName,
+        name: IdentityName,
+        key: IdentityKey?,
+    ): String {
+        val id = compute(parentId, kind, slot, name, key)
+        issue(id) { "Two different rendered instances produced the same ID; rendering stopped." }
+        return id
+    }
+
+    private fun issue(
+        id: String,
+        duplicateMessage: () -> String,
+    ) {
+        if (!synchronized(issued) { issued.add(id) }) throw DuplicateIdentityException(duplicateMessage())
+    }
+
+    private fun compute(
         parentId: String,
         kind: Char,
         slot: IdentityName,
@@ -133,13 +172,7 @@ public class PageIdentity(
         input.field(name.value.toByteArray(StandardCharsets.US_ASCII))
         input.field(key?.canonical ?: byteArrayOf())
         val digest = synchronized(mac) { mac.doFinal(input.toByteArray()) }
-        val id = ID_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(digest.copyOf(ID_DIGEST_BYTES))
-        if (!synchronized(issued) { issued.add(id) }) {
-            throw DuplicateIdentityException(
-                "Two different rendered instances produced the same ID; rendering stopped.",
-            )
-        }
-        return id
+        return ID_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(digest.copyOf(ID_DIGEST_BYTES))
     }
 }
 
