@@ -37,7 +37,9 @@ things a web developer already knows: a command line, a file, a port and the log
    the same from outside. Host-specific types still cannot leak into the model or orchestrator.
 8. **Unexpected child exits are observable.** The host emits `ServerExited` with the ready generation.
    The orchestrator clears the unavailable application's URLs and reports `SERVER_FAILED`; exits
-   from intentionally stopped or superseded children cannot invalidate a newer generation.
+   from intentionally stopped or superseded children cannot invalidate a newer generation. An exit
+   racing the readiness response is held against its pending generation and triggers the fallback
+   without publishing the dead child as ready.
 9. **Cancellation stops the child.** Graceful shutdown is followed by a bounded forced stop, including
    child descendants. Blocking process waits run on an IO dispatcher, not the coordinator.
 
