@@ -30,8 +30,26 @@ val scaffoldPublicationModules =
     )
 val scaffoldPluginModules = setOf("woge-gradle-plugin")
 val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
+val wogeTagline = "HTML-first reactive web development for Kotlin."
 
 subprojects {
+    afterEvaluate {
+        extensions.findByType(PublishingExtension::class.java)?.publications?.withType(MavenPublication::class.java)
+            ?.configureEach {
+                pom {
+                    name.set(project.name)
+                    description.set(project.description ?: wogeTagline)
+                    url.set("https://github.com/christian-draeger/woge")
+                    licenses {
+                        license {
+                            name.set("Apache License, Version 2.0")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                        }
+                    }
+                    scm { url.set("https://github.com/christian-draeger/woge") }
+                }
+            }
+    }
     if (name in scaffoldPublicationModules) {
         pluginManager.apply("maven-publish")
         pluginManager.withPlugin("java-library") {
