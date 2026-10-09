@@ -1,0 +1,26 @@
+#woge-development-status {
+  position: fixed;
+  inset: auto 1rem 1rem auto;
+  z-index: 2147483647;
+  max-inline-size: min(32rem, calc(100vw - 2rem));
+  max-block-size: 40vh;
+  overflow: auto;
+  padding: .75rem;
+  border: 2px solid #334155;
+  border-radius: .5rem;
+  background: #fff;
+  color: #111827;
+  font: 1rem/1.5 system-ui, sans-serif;
+}
+#woge-development-status[hidden] { display: none; }
+#woge-development-status p { margin: 0; }
+#woge-development-status ul { overflow-wrap: anywhere; padding-inline-start: 1.5rem; }
+#woge-development-status div { display: flex; gap: .75rem; flex-wrap: wrap; }
+#woge-development-status button { font: inherit; padding: .25rem .5rem; cursor: pointer; }
+#woge-development-status a { color: #1d4ed8; }
+#woge-development-status :focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+#woge-development-status[data-phase$="FAILED"] { border-color: #b91c1c; }
+@media (prefers-color-scheme: dark) {
+  #woge-development-status { background: #111827; color: #f9fafb; border-color: #94a3b8; }
+  #woge-development-status a { color: #93c5fd; }
+}

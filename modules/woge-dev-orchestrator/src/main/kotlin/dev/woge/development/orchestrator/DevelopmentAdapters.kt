@@ -7,7 +7,10 @@ import dev.woge.development.DevelopmentDiagnostic
 import dev.woge.development.DevelopmentUrl
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadLevel
+import dev.woge.development.ServerExited
 import dev.woge.development.ServerGeneration
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Runs one build. Gradle, a Kotlin daemon or a test double can implement this port.
@@ -51,6 +54,9 @@ public sealed interface DevelopmentBuildResult {
  */
 @ExperimentalWogeDevelopmentApi
 public interface DevelopmentHostAdapter {
+    /** Unexpected exits of a ready child. Intentional stops must not emit here. */
+    public val exits: Flow<ServerExited> get() = emptyFlow()
+
     public suspend fun restart(request: DevelopmentHostRestartRequest): DevelopmentHostRestartResult
 
     /** Stops the child process. Called once when the session ends and must not throw for a stopped child. */

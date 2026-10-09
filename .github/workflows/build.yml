@@ -57,6 +57,9 @@ jobs:
         run: ./gradlew referenceBrowserSmoke --stacktrace
       - name: Run the external Spring Boot scaffold browser gate
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
+      - name: Run the development SSE and overlay browser gate
+        working-directory: client/woge-fallback-client
+        run: npx playwright test --config=playwright.development.config.mjs
       - name: Upload reference-browser evidence
         if: always()
         uses: actions/upload-artifact@v7

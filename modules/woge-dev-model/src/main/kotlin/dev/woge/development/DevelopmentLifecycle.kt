@@ -4,6 +4,7 @@ package dev.woge.development
 @ExperimentalWogeDevelopmentApi
 @Suppress("TooManyFunctions")
 public object DevelopmentLifecycle {
+    @Suppress("CyclomaticComplexMethod")
     public fun reduce(
         state: DevelopmentSessionState,
         event: DevelopmentEvent,
@@ -19,6 +20,7 @@ public object DevelopmentLifecycle {
             is ServerRestarting -> reduceServerRestarting(state, event)
             is ServerReady -> reduceServerReady(state, event)
             is ServerRestartFailed -> reduceServerRestartFailed(state, event)
+            is ServerExited -> reduceServerExited(state, event)
             is CssChanged -> reduceCssChanged(state, event)
             is FrontendChanged -> reduceFrontendChanged(state, event)
             is ReloadRequired -> reduceReloadRequired(state, event)
@@ -235,6 +237,30 @@ public object DevelopmentLifecycle {
                 }
             }
         }
+
+    private fun reduceServerExited(
+        state: DevelopmentSessionState,
+        event: ServerExited,
+    ): DevelopmentTransition {
+        if (state.activeServerGeneration != event.generation) {
+            return stale(state, DevelopmentTransitionReason.STALE_SERVER_GENERATION)
+        }
+        return applied(
+            DevelopmentSessionState(
+                phase = if (state.activeBuild != null) state.phase else DevelopmentSessionPhase.SERVER_FAILED,
+                latestRequestedBuild = state.latestRequestedBuild,
+                activeBuild = state.activeBuild,
+                activeChanges = state.activeChanges,
+                latestBuildOutcome = state.latestBuildOutcome,
+                lastSuccessfulBuild = state.lastSuccessfulBuild,
+                activeServerGeneration = null,
+                pendingServerGeneration = state.pendingServerGeneration,
+                developmentUrls = emptyList(),
+                diagnostics = state.diagnostics + event.diagnostics,
+                pendingReload = state.pendingReload,
+            ),
+        )
+    }
 
     private fun reduceCssChanged(
         state: DevelopmentSessionState,

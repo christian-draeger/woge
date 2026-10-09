@@ -13,16 +13,19 @@ import dev.woge.development.DevelopmentSourcePath
 import dev.woge.development.DevelopmentUrl
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadLevel
+import dev.woge.development.ServerExited
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.testTimeSource
 import kotlin.time.Duration
 
 /** Scriptable adapters that record every call so tests can assert order and cancellation. */
-@OptIn(ExperimentalWogeDevelopmentApi::class)
+@OptIn(ExperimentalWogeDevelopmentApi::class, ExperimentalCoroutinesApi::class)
 internal class Harness(
     scope: CoroutineScope,
     private val testScope: TestScope,
@@ -74,6 +77,7 @@ internal class Harness(
     }
 
     class ScriptedHost : DevelopmentHostAdapter {
+        override val exits = MutableSharedFlow<ServerExited>(extraBufferCapacity = 8)
         val requests = mutableListOf<DevelopmentHostRestartRequest>()
         var shutdowns = 0
         var script: suspend (DevelopmentHostRestartRequest) -> DevelopmentHostRestartResult = {

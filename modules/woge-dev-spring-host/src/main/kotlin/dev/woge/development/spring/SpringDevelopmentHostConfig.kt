@@ -10,17 +10,16 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Settings for the Spring Boot child.
  *
- * [triggerFile] is the file the Spring restart tool watches. When it is `null`, only complete child
- * restarts are offered. [readyMarker] matches the log line Spring prints after startup; the host
- * treats a new match as "this generation is ready".
+ * [triggerFile] must be on the application's restart classpath. The host creates it before launch.
+ * [fastRestart] enables Spring DevTools; disabling it offers only complete child restarts.
  */
 @ExperimentalWogeDevelopmentApi
 @Suppress("LongParameterList")
 public class SpringDevelopmentHostConfig(
     public val launch: ChildLaunchSpec,
     public val port: Int,
-    public val triggerFile: Path? = null,
-    public val readyMarker: Regex = Regex("Started .+ in [0-9.]+ seconds"),
+    public val triggerFile: Path,
+    public val fastRestart: Boolean = true,
     public val startupTimeout: Duration = 60.seconds,
     public val restartTimeout: Duration = 30.seconds,
     public val stopGrace: Duration = 10.seconds,
@@ -29,6 +28,8 @@ public class SpringDevelopmentHostConfig(
     init {
         require(port in 1..MAX_PORT) { "The application port must be between 1 and $MAX_PORT" }
         require(startupTimeout.isPositive() && restartTimeout.isPositive()) { "Timeouts must be positive" }
+        require(startupTimeout.isFinite() && restartTimeout.isFinite()) { "Timeouts must be finite" }
+        require(stopGrace.isFinite() && !stopGrace.isNegative()) { "Stop grace must be finite and non-negative" }
         require(crashLoopLimit >= 1) { "The crash loop limit must be at least 1" }
     }
 

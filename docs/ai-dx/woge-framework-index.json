@@ -124,6 +124,16 @@
       "example": null
     },
     {
+      "name": "woge-dev-browser",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-browser",
+      "artifact": null,
+      "concepts": ["development-browser-channel", "development-sse", "development-overlay"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
       "name": "woge-fallback-client-assets",
       "role": "integration",
       "exposure": "public",
