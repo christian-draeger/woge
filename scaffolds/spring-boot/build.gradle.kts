@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.springframework.boot")
+    id("dev.woge.spring-boot")
 }
 
 group = "example.woge"

@@ -89,6 +89,10 @@ public final class dev/woge/html/CspNonce {
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
 }
 
+public abstract interface class dev/woge/html/DevelopmentHeadContribution {
+	public abstract fun writeTo (Ldev/woge/html/HtmlWriter;)V
+}
+
 public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/html/ExternalUrl;
 	public fun equals (Ljava/lang/Object;)Z
@@ -429,6 +433,9 @@ public final class dev/woge/html/UnsafeHtmlUrl {
 }
 
 public abstract interface annotation class dev/woge/html/UnsafeWogeHtmlApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class dev/woge/html/WogeDevelopmentHook : java/lang/annotation/Annotation {
 }
 
 public abstract interface annotation class dev/woge/html/WogeHtmlDsl : java/lang/annotation/Annotation {

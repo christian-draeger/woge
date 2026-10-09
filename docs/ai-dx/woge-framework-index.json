@@ -124,12 +124,52 @@
       "example": null
     },
     {
+      "name": "woge-dev-client",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-client",
+      "artifact": null,
+      "concepts": ["development-browser-client", "development-head-hook"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
+      "name": "woge-dev-spring-child",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-spring-child",
+      "artifact": null,
+      "concepts": ["spring-dev-host", "development-readiness"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
       "name": "woge-dev-browser",
       "role": "tooling",
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-browser",
       "artifact": null,
       "concepts": ["development-browser-channel", "development-sse", "development-overlay"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
+      "name": "woge-dev-gradle",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-gradle",
+      "artifact": null,
+      "concepts": ["woge-dev-command", "development-orchestrator", "development-diagnostics"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
+      "name": "woge-gradle-plugin",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-gradle-plugin",
+      "artifact": null,
+      "concepts": ["woge-dev-command", "production-isolation"],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },

@@ -20,7 +20,15 @@ val scaffoldPublicationModules =
         "woge-spring-webflux",
         "woge-spring-boot-autoconfigure",
         "woge-spring-boot-starter",
+        "woge-dev-model",
+        "woge-dev-orchestrator",
+        "woge-dev-client",
+        "woge-dev-spring-child",
+        "woge-dev-spring-host",
+        "woge-dev-browser",
+        "woge-dev-gradle",
     )
+val scaffoldPluginModules = setOf("woge-gradle-plugin")
 val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
 
 subprojects {
@@ -35,6 +43,16 @@ subprojects {
                     name = "scaffold"
                     url = uri(scaffoldMavenRepository)
                 }
+            }
+        }
+    }
+    if (name in scaffoldPluginModules) {
+        // java-gradle-plugin publishes the plugin jar and the plugin marker itself.
+        pluginManager.apply("maven-publish")
+        extensions.configure<PublishingExtension> {
+            repositories.maven {
+                name = "scaffold"
+                url = uri(scaffoldMavenRepository)
             }
         }
     }
@@ -81,7 +99,8 @@ val publishScaffoldArtifacts =
         dependsOn(
             scaffoldPublicationModules.map { module ->
                 ":$module:publishScaffoldPublicationToScaffoldRepository"
-            },
+            } +
+                scaffoldPluginModules.map { module -> ":$module:publishAllPublicationsToScaffoldRepository" },
         )
     }
 val testSpringBootScaffold =
@@ -92,6 +111,17 @@ val testSpringBootScaffold =
         commandLine(
             "bash",
             layout.projectDirectory.file("scripts/test-spring-boot-scaffold.sh").asFile.absolutePath,
+            scaffoldMavenRepository.get().asFile.absolutePath,
+        )
+    }
+val scaffoldDevSmoke =
+    tasks.register<Exec>("scaffoldDevSmoke") {
+        group = "verification"
+        description = "Runs wogeDev in the external Spring Boot scaffold and checks edit, error and recovery."
+        dependsOn(publishScaffoldArtifacts)
+        commandLine(
+            "bash",
+            layout.projectDirectory.file("scripts/test-spring-boot-scaffold-dev.sh").asFile.absolutePath,
             scaffoldMavenRepository.get().asFile.absolutePath,
         )
     }

@@ -150,7 +150,7 @@ if [[ -s "$edges" ]]; then
   fi
 fi
 
-for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server-runtime woge-dev-model woge-dev-orchestrator; do
+for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server-runtime woge-dev-model woge-dev-orchestrator woge-dev-client; do
   source_path=$(awk -F '\t' -v name="$module" '$1 == name { print $4; exit }' "$records")
   [[ -n "$source_path" ]] || continue
   [[ -d "$repository_root/$source_path" ]] || continue
