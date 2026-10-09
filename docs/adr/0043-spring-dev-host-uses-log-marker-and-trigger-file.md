@@ -23,32 +23,41 @@ things a web developer already knows: a command line, a file, a port and the log
    the same JVM. This happens only after a successful build, because the orchestrator calls the host
    only then.
 3. **`COLD_RESTART`** stops the child, checks that the fixed port is free, and starts a new child.
-4. **No trigger file configured** means `Unsupported`, so the orchestrator escalates to a cold restart.
-5. **Ready means a new "Started … in … seconds" log line** (the pattern is configurable). Output from
-   before the trigger is dropped, so an old line cannot count. Only the match result is used; raw
-   output never becomes a diagnostic.
+4. **Fast restart disabled** means `Unsupported`, so the orchestrator escalates to a cold restart.
+5. **Readiness update (2026-10-09):** ordinary startup logs are not sufficient. They happen before
+   application runners finish and cannot identify a generation. The host now writes a fresh random
+   token to the classpath trigger file before every attempt. A development-only Spring
+   `ApplicationReadyEvent` listener echoes that token on stdout. Only the exact current token counts.
+   Raw output never becomes a diagnostic. Fast restart can be disabled explicitly; the trigger file
+   remains the handshake request file in both modes.
 6. **Bounded failures.** Occupied port, start error, early exit and timeout each give one stable
    diagnostic code (`SPRING-HOST-*`). After a failed start the child is stopped. Repeated failures
    add `SPRING-HOST-CRASH-LOOP`.
-7. **The module has no Spring dependency.** MVC and WebFlux look the same from outside, and Spring
-   types cannot leak into the model.
+7. **The child readiness listener has a development-only Spring dependency.** MVC and WebFlux look
+   the same from outside. Host-specific types still cannot leak into the model or orchestrator.
+8. **Unexpected child exits are observable.** The host emits `ServerExited` with the ready generation.
+   The orchestrator clears the unavailable application's URLs and reports `SERVER_FAILED`; exits
+   from intentionally stopped or superseded children cannot invalidate a newer generation.
+9. **Cancellation stops the child.** Graceful shutdown is followed by a bounded forced stop, including
+   child descendants. Blocking process waits run on an IO dispatcher, not the coordinator.
 
 ## Alternatives considered
 
 - **Poll an HTTP health URL.** Needs an endpoint and cannot tell an old context from a restarted one.
-- **Depend on Spring Boot classes to hook ready events.** Couples the tool to one Spring version and
-  blocks other hosts from sharing the code.
+- **An uncorrelated startup log.** Initially selected, then replaced: runners can still fail after
+  this line. Only the small development-only child listener needs Spring types.
 - **Reverse proxy for zero-downtime restarts.** Out of scope for M1 (ADR 0041).
 
 ## Consequences
 
-- Works with MVC, WebFlux and any app that logs a startup line. A changed log format needs a changed
-  marker.
+- Real MVC and WebFlux integration tests compile Kotlin into a staging directory, publish only good
+  classes, exercise implementation and structural generated-source edits, recover from a compile
+  failure, coalesce consecutive saves and assert unchanged JVM identity on fast restarts.
 - Without DevTools, every Kotlin change is a cold restart (slower, always correct).
 
 ## Follow-up
 
-- Gradle build adapter and the `wogeDev` task wiring.
-- Real Spring Boot integration tests (implementation, generated and consecutive edits) once the
-  Gradle adapter exists.
+- Gradle build adapter and the `wogeDev` task wiring belong to
+  [#47](https://github.com/christian-draeger/woge/issues/47). The host consumes the same successful-build
+  handoff from any build adapter. KSP registration is part of that Gradle wiring.
 - [#145](https://github.com/christian-draeger/woge/issues/145): SSE browser channel.
