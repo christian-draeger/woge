@@ -1,4 +1,4 @@
-# Woge
+# 🌊 Woge
 
 **HTML-first reactive web development for Kotlin.**
 
