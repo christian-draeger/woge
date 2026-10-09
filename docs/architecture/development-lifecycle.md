@@ -35,6 +35,32 @@ Tooling may move to the right whenever a cheaper action is unsupported or uncert
 the left only with evidence that the edit is safe at that level. This makes reload an optimization;
 correct behavior never depends on hot updating successfully.
 
+## First Spring Boot topology
+
+Woge owns the development session, build outcomes, structured state, browser channel and Spring Boot
+child process. Spring DevTools is only the fast restart adapter for the canonical Spring host:
+
+1. Gradle compiles while the last valid child keeps serving.
+2. A compile failure publishes diagnostics and does not request a restart.
+3. A successful ordinary Kotlin or generated-source build updates the DevTools trigger file.
+4. DevTools replaces its restart classloader inside the same child JVM.
+5. Woge observes readiness and publishes the new build and server generation to browsers.
+
+Unsafe changes, build configuration and DevTools incompatibilities fall back to complete child
+replacement. Woge stops the valid child only after a successful build, then reuses the explicit
+loopback application port. This creates a short server gap during the fallback; the current browser
+document remains visible and refreshes only after the replacement is ready.
+
+The browser lifecycle channel uses Server-Sent Events from a stable loopback orchestrator endpoint.
+It is downstream-only and carries monotonic identity so clients can reject stale events and reconnect.
+Commands remain on separately authorized boundaries. M1 does not add a reverse proxy: the normal
+DevTools path already preserves the process and port, and the measured fallback gap does not justify
+proxy routing yet.
+
+The executable comparison and measurements are in the
+[Spring Boot reload topology evidence](../../spikes/spring-boot-reload-topology/evidence.md). The
+durable process and transport decision is [ADR 0041](../adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md).
+
 The terms used by Woge are deliberately precise:
 
 - **Live Reload** rebuilds and then refreshes the document. Browser state may be lost.
@@ -71,4 +97,5 @@ Node/Vite is optional, not a requirement for Kotlin-and-CSS applications. A stab
 also deferred until the underlying capabilities have real adapter experience.
 
 The durable decision and rejected alternatives are recorded in
-[ADR 0038](../adr/0038-build-independent-development-lifecycle.md).
+[ADR 0038](../adr/0038-build-independent-development-lifecycle.md) and
+[ADR 0041](../adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md).
