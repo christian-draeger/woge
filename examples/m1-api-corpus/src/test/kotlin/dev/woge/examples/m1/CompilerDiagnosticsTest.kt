@@ -94,6 +94,16 @@ class CompilerDiagnosticsTest {
                         ),
                 ),
                 Fixture(
+                    id = "WOGE-COMPILE-HTML-004",
+                    file = "html-boolean-string.kt",
+                    expectedFragments = listOf("[ARGUMENT_TYPE_MISMATCH]", "String", "Boolean"),
+                ),
+                Fixture(
+                    id = "WOGE-COMPILE-CSS-001",
+                    file = "css-stylesheet-as-declarations.kt",
+                    expectedFragments = listOf("[ARGUMENT_TYPE_MISMATCH]", "CssStylesheet", "CssDeclarations"),
+                ),
+                Fixture(
                     id = "WOGE-COMPILE-PROTOCOL-001",
                     file = "protocol-target-shape.kt",
                     expectedFragments =

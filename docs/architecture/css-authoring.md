@@ -107,7 +107,7 @@ elements. Asset URLs pass through Woge's URL boundary; CSP nonces, Subresource I
 and cross-origin mode are explicit values. See [Style pages and load assets](../guides/css-and-assets.md)
 for executable usage guidance.
 
-The executable [CSS authoring evidence](../../spikes/css-authoring/evidence.md) records the tested syntax,
+The executable [CSS authoring evidence](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/css-authoring/evidence.md) records the tested syntax,
 browser versions and prototype limitations. [ADR 0016](../adr/0016-standards-native-css-authoring.md)
 owns the direction; [ADR 0030](../adr/0030-materialize-css-and-head-asset-boundaries.md) records the
 implemented API and security defaults.

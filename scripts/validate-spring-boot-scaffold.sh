@@ -66,7 +66,7 @@ elif ! cmp -s "$generated_guidance" "$scaffold_root/AGENTS.md"; then
   fail "AGENTS.md is stale; run scripts/generate-spring-boot-agent-guidance.sh scaffolds/spring-boot/AGENTS.md"
 fi
 
-if rg -n -i '(tailwind|vite|io\.ktor|woge-ktor)' \
+if grep -n -i -E '(tailwind|vite|io\.ktor|woge-ktor)' \
   "$scaffold_root/build.gradle.kts" "$scaffold_root/settings.gradle.kts" "$scaffold_root/package.json" >/dev/null; then
   fail "default dependencies must not install Tailwind, Vite or Ktor"
 fi

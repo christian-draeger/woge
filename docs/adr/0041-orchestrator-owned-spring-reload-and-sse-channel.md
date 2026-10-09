@@ -23,7 +23,7 @@ generations overlap. It would also add request forwarding, upgrade handling, coo
 semantics, shutdown behavior and another security boundary before evidence shows that they are
 required.
 
-The bounded [Spring Boot reload topology spike](../../spikes/spring-boot-reload-topology/evidence.md)
+The bounded [Spring Boot reload topology spike](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-boot-reload-topology/evidence.md)
 compares DevTools restarts with complete managed-child restarts and exercises a proposed browser
 channel in real browser tabs.
 

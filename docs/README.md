@@ -67,13 +67,13 @@ The documentation grows with executable product slices. Pages describing unimple
 The spikes below justify accepted decisions. Their code is evidence, not a production API or a second source of current guidance.
 
 - [Spike lifecycle and replacement inventory](../spikes/README.md)
-- [Hand-written Spring HTML baseline](../spikes/spring-html-htmx-baseline/evidence.md)
+- [Hand-written Spring HTML baseline](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline/evidence.md)
 - [Typed web-reference spike](../spikes/typed-reference-model/evidence.md)
-- [HTML writer strategy spike](../spikes/html-writer-strategy/evidence.md)
+- [HTML writer strategy spike](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/html-writer-strategy/evidence.md)
 - [Patch framing spike](../spikes/patch-framing/evidence.md)
 - [Cross-browser fallback patch runtime spike](../spikes/fallback-patch-runtime/evidence.md)
 - [Native Declarative Partial Updates spike](../spikes/native-dpu/evidence.md)
-- [Standards-native CSS authoring spike](../spikes/css-authoring/evidence.md)
+- [Standards-native CSS authoring spike](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/css-authoring/evidence.md)
 - [Tailwind with Kotlin templates spike](../spikes/tailwind-kotlin/evidence.md)
 - [Component distribution spike](../spikes/component-distribution/evidence.md)
 
