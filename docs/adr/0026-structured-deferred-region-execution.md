@@ -71,7 +71,8 @@ request lifetime independent from protocol encoding.
 - **Cancel every sibling after one region fails:** rejected because regions are declared independent
   and each has controlled failure content.
 - **Add automatic `aria-live` and `aria-busy`:** deferred because the correct behavior depends on the
-  interaction and document-owned announcement policy, not merely asynchronous execution.
+  interaction and document-owned announcement policy, not merely asynchronous execution. [ADR 0048](0048-document-owned-accessibility-announcements.md)
+  now records that policy: deferred regions stay silent and do not get `aria-busy`.
 
 ## Consequences
 
