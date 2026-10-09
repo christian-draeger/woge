@@ -34,7 +34,7 @@ public fun HtmlWriter.developmentClient(
             put("details", settings.detailsUrl)
         }.toString(),
     )
-    if (settings.overlay) stylesheet(externalUrl("${settings.assetsUrl}/overlay.css"))
+    if (settings.overlay) stylesheet(externalUrl("${settings.assetsUrl}/overlay.css"), nonce = nonce)
     moduleScript(externalUrl("${settings.assetsUrl}/client.js"), nonce = nonce)
 }
 
@@ -59,11 +59,15 @@ public class FileDevelopmentHeadContribution internal constructor(
     @Volatile
     private var cached: Cached? = null
 
-    override fun writeTo(head: HtmlWriter) {
-        current()?.let { head.developmentClient(it) }
+    override fun writeTo(
+        head: HtmlWriter,
+        nonce: CspNonce?,
+    ) {
+        current()?.let { head.developmentClient(it, nonce) }
     }
 
-    private fun current(): DevelopmentClientSettings? {
+    /** The settings of the running session, or `null` outside `wogeDev`. */
+    public fun current(): DevelopmentClientSettings? {
         val source = file ?: return null
         val modified = runCatching { Files.getLastModifiedTime(source) }.getOrNull()
         val known = cached?.takeIf { modified != null && it.modified == modified }

@@ -2,6 +2,7 @@ package dev.woge.development.client
 
 import dev.woge.development.BuildId
 import dev.woge.development.ServerGeneration
+import dev.woge.html.cspNonce
 import dev.woge.html.renderHtml
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -43,7 +44,7 @@ class DevelopmentClientTest {
 
         Files.writeString(file, "events=http://example.com/events\nassets=http://127.0.0.1:1\nbuild=1\n")
         assertNull(DevelopmentClientSettings.readFrom(file))
-        assertEquals("", renderHtml { FileDevelopmentHeadContribution(file).writeTo(this) })
+        assertEquals("", renderHtml { FileDevelopmentHeadContribution(file).writeTo(this, null) })
     }
 
     @Test
@@ -64,19 +65,54 @@ class DevelopmentClientTest {
         val contribution = FileDevelopmentHeadContribution(file)
         settings.writeTo(file)
 
-        val first = renderHtml { contribution.writeTo(this) }
+        val first = renderHtml { contribution.writeTo(this, null) }
         settings.copy(renderedBuild = BuildId.of(4), overlay = false).writeTo(file)
         Files.setLastModifiedTime(
             file,
             java.nio.file.attribute.FileTime
                 .fromMillis(System.currentTimeMillis() + 5_000),
         )
-        val second = renderHtml { contribution.writeTo(this) }
+        val second = renderHtml { contribution.writeTo(this, null) }
 
         assertTrue("&quot;build&quot;:&quot;3&quot;" in first, first)
         assertTrue("http://127.0.0.1:4100/overlay.css" in first, first)
         assertTrue("http://127.0.0.1:4100/client.js" in first, first)
         assertTrue("&quot;build&quot;:&quot;4&quot;" in second, second)
         assertTrue("overlay.css" !in second, second)
+    }
+
+    @Test
+    fun `the client reuses the page nonce for its script and overlay`(
+        @TempDir directory: Path,
+    ) {
+        val file = directory.resolve("client.properties")
+        settings.writeTo(file)
+
+        val html = renderHtml { FileDevelopmentHeadContribution(file).writeTo(this, cspNonce("cGFnZQ==")) }
+
+        assertEquals(2, Regex("nonce=\"cGFnZQ==\"").findAll(html).count(), html)
+    }
+
+    @Test
+    fun `a strict policy gains only the session origin`() {
+        val origin = DevelopmentContentSecurityPolicy.originOf(settings)
+
+        assertEquals("http://127.0.0.1:4100", origin)
+        assertEquals(
+            "default-src 'self'; img-src 'self'; script-src 'self' 'nonce-abc' $origin; " +
+                "style-src 'self' $origin; connect-src 'self' $origin",
+            DevelopmentContentSecurityPolicy.allow(
+                "default-src 'self'; img-src 'self'; script-src 'self' 'nonce-abc'",
+                origin,
+            ),
+        )
+        assertEquals(
+            "connect-src $origin",
+            DevelopmentContentSecurityPolicy.allow("connect-src 'none'", origin),
+        )
+        assertEquals(
+            "frame-ancestors 'none'",
+            DevelopmentContentSecurityPolicy.allow("frame-ancestors 'none'", origin),
+        )
     }
 }

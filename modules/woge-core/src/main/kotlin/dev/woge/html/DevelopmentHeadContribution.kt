@@ -21,10 +21,16 @@ public annotation class WogeDevelopmentHook
  * Woge loads implementations with [ServiceLoader] only when the JVM runs with
  * `-Dwoge.development=true`, which only the `wogeDev` command sets. Contributions use the normal
  * typed DSL; they cannot replace or rewrite application markup.
+ *
+ * [nonce] is the CSP nonce the page already gave one of its own head assets (`moduleScript`,
+ * `stylesheet` or `style`), or `null`. Contributions reuse it so a strict policy accepts them.
  */
 @WogeDevelopmentHook
 public interface DevelopmentHeadContribution {
-    public fun writeTo(head: HtmlWriter)
+    public fun writeTo(
+        head: HtmlWriter,
+        nonce: CspNonce?,
+    )
 }
 
 @OptIn(WogeDevelopmentHook::class)
@@ -37,8 +43,11 @@ internal object DevelopmentHeadContributions {
             .toList()
     }
 
-    fun writeTo(head: HtmlWriter) {
+    fun writeTo(
+        head: HtmlWriter,
+        nonce: CspNonce?,
+    ) {
         if (System.getProperty(ENABLED_PROPERTY) != "true") return
-        contributions.forEach { it.writeTo(head) }
+        contributions.forEach { it.writeTo(head, nonce) }
     }
 }

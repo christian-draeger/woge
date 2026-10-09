@@ -39,6 +39,10 @@ column, while the last working version keeps serving. It needs no Node.js.
 Restart `wogeDev` after changing Gradle files. `./gradlew check` also verifies that the `bootJar`
 contains no development code.
 
+If your app sends a `Content-Security-Policy` header, `wogeDev` allows its own client in development
+only. Give your head scripts or stylesheets a nonce and the client reuses it. `./gradlew wogeTasks`
+lists all supported tasks; add `--format=json` for tools and coding agents.
+
 ## Choose WebFlux or MVC
 
 Start with the default before making an architecture decision. If your application needs the Servlet

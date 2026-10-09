@@ -33,4 +33,16 @@ for adapter in webflux mvc; do
     "-PwogeRepository=$published_repository"
 done
 
+# Human and machine-readable workflow help come from the same list in the Gradle plugin.
+workflow=$("$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+  wogeTasks --format=json "-PwogeRepository=$published_repository")
+python3 -c '
+import json, sys
+tasks = {entry["task"] for entry in json.loads(sys.argv[1])["tasks"]}
+missing = {"wogeDev", "check", "verifyWogeProductionArtifact", "bootJar"} - tasks
+sys.exit(f"wogeTasks is missing {missing}" if missing else 0)
+' "$workflow"
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+  wogeTasks "-PwogeRepository=$published_repository" | grep -Fq './gradlew wogeDev'
+
 printf 'External Spring Boot scaffold passed for WebFlux and MVC, including the production artifact check.\n'

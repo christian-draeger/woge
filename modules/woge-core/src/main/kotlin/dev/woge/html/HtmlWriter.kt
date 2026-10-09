@@ -9,6 +9,9 @@ import dev.woge.html.internal.escapeHtmlText
 public class HtmlWriter internal constructor(
     private val sink: HtmlSink,
 ) {
+    /** The CSP nonce this document already used for a head asset; development tooling reuses it. */
+    internal var documentNonce: CspNonce? = null
+
     /** Writes the standard declaration that selects standards mode for an HTML document. */
     public fun doctype() {
         sink.write("<!doctype html>")
@@ -44,7 +47,7 @@ public class HtmlWriter internal constructor(
         resolvedAttributes.writeTo(sink)
         sink.write(">")
         content()
-        if (normalizedName == "head") DevelopmentHeadContributions.writeTo(this)
+        if (normalizedName == "head") DevelopmentHeadContributions.writeTo(this, documentNonce)
         sink.write("</$name>")
     }
 

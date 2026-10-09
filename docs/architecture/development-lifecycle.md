@@ -131,9 +131,14 @@ Pages get the client in one of two explicit ways. `wogeDev` adds it to every doc
 automatically (see below). A tool that runs the channel in the same process can call
 `HtmlWriter.developmentClient(channel, renderedBuild, generation)` inside the head itself. These IDs describe the application that rendered the page, not a newer
 build that is still starting. This uses Woge's typed HTML DSL, not hand-built markup. It adds an
-external script; set `overlay = false` to omit the status panel and its stylesheet. The dev host must
-explicitly allow the channel origin in `script-src`, `style-src` and `connect-src` when it uses CSP.
-No production policy is relaxed.
+external script; set `overlay = false` to omit the status panel and its stylesheet.
+
+Strict Content Security Policies keep working under `wogeDev`. If the page gives one of its own head
+assets a nonce (`moduleScript`, `stylesheet` or `style`), the client reuses that nonce. A dev-only
+Spring filter adds the channel origin to `script-src`, `style-src` and `connect-src` of the app's
+`Content-Security-Policy` header, for MVC and WebFlux. Nothing else in the policy changes, and no
+production policy is relaxed, because the filter lives in a `developmentOnly` module. See
+[ADR 0046](../adr/0046-development-client-under-strict-csp.md).
 
 Every tab has its own native `EventSource` connection. Snapshots show rebuilding, restarting, ready
 or failed, with concise source-located diagnostics. A reconnect gets the current snapshot, including
@@ -173,6 +178,10 @@ flowchart LR
    markup to every `head`, but only when the JVM runs with `-Dwoge.development=true`.
 5. Changes to `build.gradle.kts`, `settings.gradle.kts` or the version catalog are reported. Restart
    `wogeDev` after changing dependencies.
+
+`./gradlew wogeTasks` lists the supported tasks (`wogeDev`, `check`, `bootJar` and more) with their
+options. `./gradlew wogeTasks --format=json` prints the same list as JSON for coding agents. Both come
+from one list in the plugin, which also provides the normal Gradle task descriptions.
 
 Production stays clean: the dev modules and DevTools are `developmentOnly`, which `bootJar` excludes,
 and `verifyWogeProductionArtifact` (part of `check`) fails the build if they appear in the jar anyway.

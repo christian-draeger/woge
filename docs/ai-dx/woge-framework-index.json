@@ -139,7 +139,7 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-spring-child",
       "artifact": null,
-      "concepts": ["spring-dev-host", "development-readiness"],
+      "concepts": ["spring-dev-host", "development-readiness", "development-csp"],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
