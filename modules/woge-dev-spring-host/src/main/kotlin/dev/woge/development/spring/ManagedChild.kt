@@ -1,6 +1,9 @@
 package dev.woge.development.spring
 
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -43,6 +46,8 @@ public fun interface ChildLauncher {
 /** Starts a real operating-system process with merged stdout and stderr. */
 @ExperimentalWogeDevelopmentApi
 public object ProcessChildLauncher : ChildLauncher {
+    private const val FORCE_STOP_TIMEOUT_SECONDS = 5L
+
     override fun launch(
         spec: ChildLaunchSpec,
         onLine: (String) -> Unit,
@@ -55,16 +60,30 @@ public object ProcessChildLauncher : ChildLauncher {
         builder.environment().putAll(spec.environment)
         val process = builder.start()
         thread(isDaemon = true, name = "woge-dev-child-output") {
-            process.inputStream.bufferedReader().useLines { lines -> lines.forEach(onLine) }
+            try {
+                process.inputStream.bufferedReader().useLines { lines -> lines.forEach(onLine) }
+            } catch (closed: IOException) {
+                if (process.isAlive) throw closed
+            }
+        }
+        thread(isDaemon = true, name = "woge-dev-child-exit") {
             onExit(process.waitFor())
         }
         return object : ManagedChild {
             override val isAlive: Boolean get() = process.isAlive
 
             override suspend fun stop(grace: Duration) {
-                process.destroy()
-                if (!process.waitFor(grace.toLong(DurationUnit.MILLISECONDS), TimeUnit.MILLISECONDS)) {
-                    process.destroyForcibly().waitFor()
+                withContext(Dispatchers.IO) {
+                    val descendants = process.descendants().use { it.toList() }
+                    descendants.asReversed().forEach { it.destroy() }
+                    process.destroy()
+                    if (!process.waitFor(grace.toLong(DurationUnit.MILLISECONDS), TimeUnit.MILLISECONDS)) {
+                        process.destroyForcibly()
+                    }
+                    descendants.filter { it.isAlive }.forEach { it.destroyForcibly() }
+                    check(process.waitFor(FORCE_STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                        "The development child did not stop in time"
+                    }
                 }
             }
         }

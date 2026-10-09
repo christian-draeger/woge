@@ -110,9 +110,43 @@ It starts your app as a child process and has two ways to restart it:
   running JVM.
 - **Complete:** stop the process, check the port, start a new one. Always correct, a bit slower.
 
-"Ready" means a new `Started ... in ... seconds` line in the log. If the port is taken, the process
-exits or nothing is ready in time, you get one short diagnostic code (`SPRING-HOST-*`), never raw log
-output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
+"Ready" means Spring has finished startup, including application runners, and the development listener
+has acknowledged the current restart token. A normal startup log or an old token is not enough.
+The trigger file must be in the application's classes/resources directory; Woge creates it before
+starting the child. The development launcher adds the readiness listener to the child classpath,
+binds Spring to `127.0.0.1`, and disables Spring's separate LiveReload server.
+
+If the port is taken, the process exits or nothing is ready in time, you get a short diagnostic code
+(`SPRING-HOST-*`), never raw output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
+An unexpected exit after readiness clears the dead generation and its URLs. Save again to rebuild
+and restart. Cancelling the session stops the child and its descendants.
+
+## The browser channel
+
+`woge-dev-browser` serves plain JavaScript, normal CSS and a stable SSE endpoint from the orchestrator
+process. It keeps running while the application child restarts. There is no reverse proxy, and you do
+not need Node/Vite to use it.
+
+The development host explicitly calls `HtmlWriter.developmentClient(channel, renderedBuild, generation)`
+inside the document head. These IDs describe the application that rendered the page, not a newer
+build that is still starting. This uses Woge's typed HTML DSL, not hand-built markup. It adds an
+external script; set `overlay = false` to omit the status panel and its stylesheet. The dev host must
+explicitly allow the channel origin in `script-src`, `style-src` and `connect-src` when it uses CSP.
+No production policy is relaxed.
+
+Every tab has its own native `EventSource` connection. Snapshots show rebuilding, restarting, ready
+or failed, with concise source-located diagnostics. A reconnect gets the current snapshot, including
+the last ready build, rather than replaying every old edit. Stale IDs cannot trigger a refresh.
+Offline tabs keep their document and reload only after coming online.
+
+A failed compile does not refresh or edit the document. After a successful restart, each tab
+refreshes once when its rendered build/generation is older than the ready app. A full refresh does
+**not** promise to preserve dirty controls, scroll or focus; that follow-up is #150. The optional
+overlay never moves focus and can be hidden with a normal button. A privileged raw-detail link
+appears only if a build adapter explicitly supplies detail output; raw logs are not the protocol.
+
+See [ADR 0044](../adr/0044-development-browser-snapshots-and-explicit-opt-in.md) for identity, reconnect
+and connection-budget rules. The `wogeDev` composition follows in #47.
 
 ## Security and production isolation
 

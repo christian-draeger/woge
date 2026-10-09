@@ -8,6 +8,7 @@ import dev.woge.development.orchestrator.DevelopmentHostRestartRequest
 import dev.woge.development.orchestrator.DevelopmentHostRestartResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -30,6 +31,7 @@ class SpringDevelopmentHostTest {
     private class FakeChild(
         val onLine: (String) -> Unit,
         val onExit: (Int) -> Unit,
+        val triggerFile: Path,
     ) : ManagedChild {
         override var isAlive: Boolean = true
         var stops = 0
@@ -40,6 +42,8 @@ class SpringDevelopmentHostTest {
         }
 
         fun say(line: String) = onLine(line)
+
+        fun ready() = say("WOGE-DEV-READY ${Files.readString(triggerFile).trim()}")
 
         fun die(code: Int) {
             isAlive = false
@@ -54,10 +58,10 @@ class SpringDevelopmentHostTest {
             spec: ChildLaunchSpec,
             onLine: (String) -> Unit,
             onExit: (Int) -> Unit,
-        ): ManagedChild = FakeChild(onLine, onExit).also { children += it }
+        ): ManagedChild =
+            FakeChild(onLine, onExit, Path.of(spec.environment.getValue("WOGE_DEV_TRIGGER_FILE")))
+                .also { children += it }
     }
-
-    private val started = "Started DemoApplicationKt in 1.2 seconds (process running for 1.6)"
 
     private fun config(
         trigger: Boolean = true,
@@ -66,7 +70,8 @@ class SpringDevelopmentHostTest {
     ) = SpringDevelopmentHostConfig(
         launch = ChildLaunchSpec(listOf("java", "-jar", "app.jar"), directory),
         port = 8080,
-        triggerFile = directory.resolve("trigger/restart.txt").takeIf { trigger },
+        triggerFile = directory.resolve("trigger/restart.txt"),
+        fastRestart = trigger,
         startupTimeout = startupTimeout,
         restartTimeout = 5.seconds,
         crashLoopLimit = crashLoopLimit,
@@ -90,7 +95,7 @@ class SpringDevelopmentHostTest {
             val result = async { host.restart(request(1, 1)) }
             runCurrent()
             launcher.children.single().say("noise")
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
 
             val ready = assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, result.await())
             assertEquals("http://localhost:8080/", ready.urls.single().value)
@@ -103,15 +108,15 @@ class SpringDevelopmentHostTest {
             val host = SpringDevelopmentHost(config(), launcher) { true }
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
             first.await()
 
             val second = async { host.restart(request(2, 2)) }
             runCurrent()
             val trigger = directory.resolve("trigger/restart.txt")
-            assertTrue(Files.readString(trigger).contains("build=2 generation=2"))
+            assertTrue(Files.readString(trigger).trim().matches(Regex("[a-f0-9-]{36}")))
             assertFalse(second.isCompleted)
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
 
             assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, second.await())
             assertEquals(1, launcher.children.size)
@@ -124,7 +129,7 @@ class SpringDevelopmentHostTest {
             val host = SpringDevelopmentHost(config(trigger = false), launcher) { true }
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
             first.await()
 
             assertEquals(DevelopmentHostRestartResult.Unsupported, host.restart(request(2, 2)))
@@ -137,14 +142,14 @@ class SpringDevelopmentHostTest {
             val host = SpringDevelopmentHost(config(), launcher) { true }
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
             first.await()
 
             val cold = async { host.restart(request(2, 2, ReloadLevel.COLD_RESTART)) }
             runCurrent()
             assertEquals(2, launcher.children.size)
             assertEquals(1, launcher.children.first().stops)
-            launcher.children.last().say(started)
+            launcher.children.last().ready()
 
             assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, cold.await())
         }
@@ -206,7 +211,7 @@ class SpringDevelopmentHostTest {
             val host = SpringDevelopmentHost(config(), launcher) { true }
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
-            launcher.children.single().say(started)
+            launcher.children.single().ready()
             first.await()
 
             host.shutdown()
@@ -216,16 +221,64 @@ class SpringDevelopmentHostTest {
         }
 
     @Test
+    fun `ordinary startup logs and old ready tokens cannot acknowledge a new restart`() =
+        runTest {
+            val launcher = FakeLauncher()
+            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val first = async { host.restart(request(1, 1)) }
+            runCurrent()
+            val oldToken = Files.readString(config().triggerFile).trim()
+            launcher.children.single().ready()
+            first.await()
+
+            val second = async { host.restart(request(2, 2)) }
+            runCurrent()
+            launcher.children.single().say("Started Demo in 1.2 seconds")
+            launcher.children.single().say("WOGE-DEV-READY $oldToken")
+            runCurrent()
+            assertFalse(second.isCompleted)
+            launcher.children.single().ready()
+            assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, second.await())
+            host.shutdown()
+        }
+
+    @Test
+    fun `cancelling readiness stops the child and unexpected ready child exits are observable`() =
+        runTest {
+            val launcher = FakeLauncher()
+            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val cancelled = async { host.restart(request(1, 1)) }
+            runCurrent()
+            cancelled.cancel()
+            cancelled.join()
+            assertFalse(launcher.children.single().isAlive)
+
+            val restarted = async { host.restart(request(2, 2)) }
+            runCurrent()
+            launcher.children.last().ready()
+            restarted.await()
+            val exit = async { host.exits.first() }
+            launcher.children.last().die(1)
+            assertEquals(ServerGeneration.of(2), exit.await().generation)
+            host.shutdown()
+        }
+
+    @Test
     fun `a real process is started, detected as ready and stopped`() =
         runBlocking {
             val config =
                 SpringDevelopmentHostConfig(
                     launch =
                         ChildLaunchSpec(
-                            listOf("sh", "-c", "echo 'Started Demo in 0.1 seconds'; sleep 30"),
+                            listOf(
+                                "sh",
+                                "-c",
+                                "echo \"WOGE-DEV-READY $(cat \"${'$'}WOGE_DEV_TRIGGER_FILE\")\"; sleep 30",
+                            ),
                             directory,
                         ),
                     port = 8080,
+                    triggerFile = directory.resolve("restart.txt"),
                     startupTimeout = 20.seconds,
                 )
             val host = SpringDevelopmentHost(config, ProcessChildLauncher) { true }

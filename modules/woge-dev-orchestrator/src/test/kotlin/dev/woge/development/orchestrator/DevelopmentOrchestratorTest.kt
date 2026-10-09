@@ -19,12 +19,14 @@ import dev.woge.development.DevelopmentSessionStopped
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadApplied
 import dev.woge.development.ReloadLevel
+import dev.woge.development.ServerExited
 import dev.woge.development.ServerGeneration
 import dev.woge.development.ServerReady
 import dev.woge.development.ServerRestartFailed
 import dev.woge.development.ServerRestarting
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
@@ -43,8 +45,59 @@ import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalWogeDevelopmentApi::class)
+@OptIn(ExperimentalWogeDevelopmentApi::class, ExperimentalCoroutinesApi::class)
 class DevelopmentOrchestratorTest {
+    @Test
+    fun `a child exit racing readiness never publishes the dead generation as ready`() =
+        runTest {
+            val harness = harness()
+            val ready = CompletableDeferred<Unit>()
+            harness.host.script = { request ->
+                if (request.generation == ServerGeneration.FIRST) {
+                    harness.host.exits.emit(ServerExited(request.generation, listOf(Harness.diagnostic())))
+                    ready.await()
+                }
+                DevelopmentHostRestartResult.Ready(listOf(Harness.localUrl()))
+            }
+            harness.orchestrator.reportChange(Harness.kotlinChange())
+            harness.settle()
+            ready.complete(Unit)
+            harness.settle()
+            assertEquals(
+                ReloadLevel.COLD_RESTART,
+                harness.host.requests
+                    .last()
+                    .level,
+            )
+            assertEquals(ServerGeneration.of(2), harness.orchestrator.state.value.activeServerGeneration)
+            assertFalse(harness.events.filterIsInstance<ServerReady>().any { it.generation == ServerGeneration.FIRST })
+            harness.orchestrator.stop()
+        }
+
+    @Test
+    fun `an unexpected child exit clears readiness and the next build uses a cold restart`() =
+        runTest {
+            val harness = harness()
+            harness.orchestrator.reportChange(Harness.kotlinChange())
+            harness.settle()
+            harness.host.exits.emit(ServerExited(ServerGeneration.FIRST, listOf(Harness.diagnostic())))
+            harness.settle()
+            assertEquals(DevelopmentSessionPhase.SERVER_FAILED, harness.orchestrator.state.value.phase)
+            assertTrue(harness.orchestrator.developmentUrls().isEmpty())
+            harness.orchestrator.reportChange(Harness.cssChange())
+            harness.settle()
+            assertEquals(
+                ReloadLevel.COLD_RESTART,
+                harness.host.requests
+                    .last()
+                    .level,
+            )
+            harness.host.exits.emit(ServerExited(ServerGeneration.FIRST, listOf(Harness.diagnostic())))
+            harness.settle()
+            assertEquals(DevelopmentSessionPhase.READY, harness.orchestrator.state.value.phase)
+            harness.orchestrator.stop()
+        }
+
     private fun TestScope.harness(
         quietPeriod: kotlin.time.Duration = kotlin.time.Duration.ZERO,
         frontend: suspend (BuildId, ReloadLevel) -> Boolean = { _, level -> level == ReloadLevel.DOCUMENT_REFRESH },

@@ -23,6 +23,7 @@ import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadApplied
 import dev.woge.development.ReloadLevel
 import dev.woge.development.ReloadRequired
+import dev.woge.development.ServerExited
 import dev.woge.development.ServerGeneration
 import dev.woge.development.ServerReady
 import dev.woge.development.ServerRestartFailed
@@ -79,6 +80,7 @@ internal class SessionCoordinator(
     private var nextBuild: BuildId = BuildId.FIRST
     private var lastGeneration: ServerGeneration? = null
     private var lastRestartFailed = false
+    private var pendingHostExit: ServerExited? = null
     private var followUp: ReloadLevel? = null
     private var stopRequested = false
     private var carried: Set<DevelopmentChange> = emptySet()
@@ -88,6 +90,10 @@ internal class SessionCoordinator(
     val state: StateFlow<DevelopmentSessionState> = mutableState.asStateFlow()
     val events: SharedFlow<DevelopmentEventRecord> = mutableEvents.asSharedFlow()
     private val loop: Job = scope.launch { run() }
+    private val hostMonitor: Job =
+        scope.launch {
+            adapters.host.exits.collect { inbox.send(Input.HostExited(it)) }
+        }
 
     fun reportChanges(changes: Collection<DevelopmentChange>) {
         if (changes.isEmpty()) return
@@ -143,6 +149,14 @@ internal class SessionCoordinator(
             is Input.BuildFinished -> onBuildFinished(input)
             is Input.FrontendFinished -> onFrontendFinished(input)
             is Input.HostFinished -> onHostFinished(input)
+            is Input.HostExited -> {
+                if (mutableState.value.activeServerGeneration == input.event.generation) {
+                    lastRestartFailed = true
+                    emit(input.event)
+                } else if (mutableState.value.pendingServerGeneration == input.event.generation) {
+                    pendingHostExit = input.event
+                }
+            }
             is Input.Command -> onCommand(input)
             is Input.Stop -> {
                 stopRequested = true
@@ -280,6 +294,7 @@ internal class SessionCoordinator(
     ) {
         val generation = lastGeneration?.let(ServerGeneration::after) ?: ServerGeneration.FIRST
         lastGeneration = generation
+        pendingHostExit = null
         if (!emit(ServerRestarting(buildId, generation, level))) {
             settle()
             return
@@ -307,12 +322,18 @@ internal class SessionCoordinator(
         if (running == null || running.token != input.token) return
         work = null
         val request = running.request
+        val earlyExit = pendingHostExit?.takeIf { it.generation == request.generation }
+        pendingHostExit = null
         when (val result = input.result) {
             is DevelopmentHostRestartResult.Ready -> {
-                lastRestartFailed = false
-                carried = emptySet()
-                emit(ServerReady(request.buildId, request.generation, result.urls))
-                settle()
+                if (earlyExit != null) {
+                    escalateOrFail(running, false, earlyExit.diagnostics)
+                } else {
+                    lastRestartFailed = false
+                    carried = emptySet()
+                    emit(ServerReady(request.buildId, request.generation, result.urls))
+                    settle()
+                }
             }
             DevelopmentHostRestartResult.Unsupported ->
                 escalateOrFail(
@@ -388,6 +409,7 @@ internal class SessionCoordinator(
     private suspend fun shutDown() {
         inbox.close()
         windowJob?.cancel()
+        hostMonitor.cancel()
         val running = work
         work = null
         running?.job?.cancelAndJoin()
@@ -471,6 +493,10 @@ internal class SessionCoordinator(
     }
 
     private sealed interface Input {
+        data class HostExited(
+            val event: ServerExited,
+        ) : Input
+
         data object ChangesAvailable : Input
 
         data object QuietElapsed : Input
