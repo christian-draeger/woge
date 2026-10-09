@@ -7,7 +7,7 @@ This is an architecture control, not a scored Woge consumer run. It applies corp
 - Date: 2026-09-03
 - Participant kind: maintainer-guided AI-assisted repository review
 - Corpus: [`corpus-v0.1.md`](../corpus-v0.1.md)
-- Starting point: [`spikes/spring-html-htmx-baseline`](../../../spikes/spring-html-htmx-baseline/README.md)
+- Starting point: [`spikes/spring-html-htmx-baseline`](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline/README.md)
 - Toolchain: repository Gradle wrapper; exact dependency versions in the baseline version catalog
 - Hosts: Spring MVC and Spring WebFlux
 - Command: `./gradlew test`

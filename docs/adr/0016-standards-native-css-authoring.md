@@ -11,7 +11,7 @@ Woge should feel native to web developers and keep pace with an evolving, modula
 
 Applications also need practical component-local styling and Tailwind compatibility. Any scoping design must survive server rendering, streamed replacement and source-distributed components without adding hydration, runtime style injection or unstable markup identity.
 
-The [CSS authoring spike](../../spikes/css-authoring/evidence.md) exercised external, page and declaration CSS; current platform features in three browser engines; Kotlin interpolation and context errors; IntelliJ language-injection metadata; deterministic selector/keyframe rewriting; source maps; and Tailwind-like utility coexistence.
+The [CSS authoring spike](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/css-authoring/evidence.md) exercised external, page and declaration CSS; current platform features in three browser engines; Kotlin interpolation and context errors; IntelliJ language-injection metadata; deterministic selector/keyframe rewriting; source maps; and Tailwind-like utility coexistence.
 
 ## Decision
 

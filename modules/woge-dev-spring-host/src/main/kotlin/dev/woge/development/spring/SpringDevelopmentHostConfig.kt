@@ -49,5 +49,12 @@ public fun interface PortProbe {
                 runCatching { ServerSocket(port, 1, InetAddress.getLoopbackAddress()).use { true } }
                     .getOrDefault(false)
             }
+
+        /** Also catches listeners on the wildcard address, such as an IPv6 `*:8080` server. */
+        public val local: PortProbe =
+            PortProbe { port ->
+                loopback.isFree(port) &&
+                    runCatching { ServerSocket(port).use { true } }.getOrDefault(false)
+            }
     }
 }
