@@ -6,6 +6,9 @@ path; do not load both on the same page.
 
 ## Use a frontend asset pipeline
 
+> The npm package `@woge/fallback-client` is not published yet. Until then, use the Spring Boot path
+> below; it needs no Node.js.
+
 Install the package with the package manager already used by your application:
 
 ```shell

@@ -73,6 +73,19 @@ that selection and generate matching coding guidance.
 The generated-source root is `build/generated/sources/woge/main/kotlin`. Generators own only that
 directory; edit application source under `src` and never commit generated output.
 
+## Add deferred regions
+
+The scaffold starts without browser JavaScript. When a page streams
+[deferred regions](https://github.com/christian-draeger/woge/blob/main/docs/guides/deferred-regions.md),
+add the small browser runtime as a normal dependency. Spring Boot then serves it from
+`/assets/woge/index.js`; no Node.js is needed:
+
+```kotlin
+dependencies {
+    runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion")
+}
+```
+
 ## Test
 
 Run the normal Node-free test:
