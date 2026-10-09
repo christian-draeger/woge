@@ -13,35 +13,43 @@ import java.nio.file.Path
 /**
  * Turns Gradle output into structured diagnostics.
  *
- * Kotlin reports errors as `e: file:///path/File.kt:12:5 message`. Only those lines become
- * source-located diagnostics; everything else stays in the raw build details.
+ * Two kinds of lines become source-located diagnostics:
+ * - Kotlin compiler errors: `e: file:///path/File.kt:12:5 message`;
+ * - KSP processor errors: `e: [ksp] /path/File.kt:12: WOGE-REF-002 message`, followed by
+ *   `Received:` and `Valid:` lines. The Woge diagnostic ID becomes the diagnostic code.
+ *
+ * An error inside generated code gets [generatedCode], so the session can regenerate once.
+ * Everything else stays in the raw build details.
  */
 @ExperimentalWogeDevelopmentApi
 internal object KotlinDiagnostics {
-    private val compilerLine = Regex("""^(e|w): (file://)?(.+?):(\d+):(\d+) (.+)$""")
+    private val compilerLine = Regex("""^e: (file://)?(.+?):(\d+):(\d+) (.+)$""")
+    private val processorLine = Regex("""^e: \[ksp] (.+?):(\d+): (.+)$""")
+    private val wogeCode = Regex("""^WOGE-[A-Z]+-\d+""")
+    private val continuation = listOf("Received:", "Valid:")
+    private const val URI_SCHEME = 1
+    private const val PATH = 2
+    private const val LINE = 3
+    private const val COLUMN = 4
+    private const val TEXT = 5
     private const val MAX_SUMMARY = 500
     private const val MAX_DIAGNOSTICS = 20
 
     val kotlinError: DevelopmentDiagnosticCode = DevelopmentDiagnosticCode.of("KOTLIN-COMPILE-ERROR")
+    val processorError: DevelopmentDiagnosticCode = DevelopmentDiagnosticCode.of("KSP-ERROR")
+    val generatedCode: DevelopmentDiagnosticCode = DevelopmentDiagnosticCode.of("WOGE-GENERATED-CODE")
     val buildFailed: DevelopmentDiagnosticCode = DevelopmentDiagnosticCode.of("GRADLE-BUILD-FAILED")
 
     fun parse(
         lines: List<String>,
         projectDirectory: Path,
     ): List<DevelopmentDiagnostic> {
+        val trimmed = lines.map(String::trim)
         val errors =
-            lines
+            trimmed
                 .asSequence()
-                .mapNotNull { compilerLine.matchEntire(it.trim()) }
-                .map { CompilerMessage.of(it) }
-                .filter { it.severity == "e" }
-                .map { message ->
-                    DevelopmentDiagnostic(
-                        code = kotlinError,
-                        severity = DevelopmentDiagnosticSeverity.ERROR,
-                        summary = summary(message.text),
-                        location = location(message, projectDirectory),
-                    )
+                .mapIndexedNotNull { index, line ->
+                    compiler(line, projectDirectory) ?: processor(line, trimmed.drop(index + 1), projectDirectory)
                 }.distinct()
                 .take(MAX_DIAGNOSTICS)
                 .toList()
@@ -60,12 +68,53 @@ internal object KotlinDiagnostics {
         }
     }
 
+    private fun compiler(
+        line: String,
+        projectDirectory: Path,
+    ): DevelopmentDiagnostic? {
+        val groups = compilerLine.matchEntire(line)?.groupValues ?: return null
+        val path = groups[PATH]
+        val file = if (groups[URI_SCHEME].isNotEmpty()) Path.of(URI("file://$path")) else Path.of(path)
+        val location = location(file, groups[LINE].toInt(), groups[COLUMN].toInt(), projectDirectory)
+        val text = groups[TEXT]
+        return if (location?.path?.isGenerated() == true) {
+            error(generatedCode, "Generated code does not compile: $text", location)
+        } else {
+            error(kotlinError, text, location)
+        }
+    }
+
+    private fun processor(
+        line: String,
+        following: List<String>,
+        projectDirectory: Path,
+    ): DevelopmentDiagnostic? {
+        val (path, row, text) = processorLine.matchEntire(line)?.destructured ?: return null
+        val details = following.takeWhile { next -> continuation.any(next::startsWith) }
+        val code = wogeCode.find(text)?.value?.let(DevelopmentDiagnosticCode::of) ?: processorError
+        val message = (listOf(text) + details).joinToString(" ")
+        return error(code, message, location(Path.of(path), row.toInt(), 1, projectDirectory))
+    }
+
+    private fun error(
+        code: DevelopmentDiagnosticCode,
+        message: String,
+        location: DevelopmentSourceLocation?,
+    ): DevelopmentDiagnostic =
+        DevelopmentDiagnostic(
+            code = code,
+            severity = DevelopmentDiagnosticSeverity.ERROR,
+            summary = summary(message),
+            location = location,
+        )
+
     private fun location(
-        message: CompilerMessage,
+        file: Path,
+        line: Int,
+        column: Int,
         projectDirectory: Path,
     ): DevelopmentSourceLocation? =
         runCatching {
-            val file = if (message.fileUri) Path.of(URI("file://${message.path}")) else Path.of(message.path)
             val relative =
                 projectDirectory
                     .toAbsolutePath()
@@ -74,8 +123,10 @@ internal object KotlinDiagnostics {
                     .toString()
                     .replace('\\', '/')
             require(!relative.startsWith("..") && relative.isNotBlank())
-            DevelopmentSourceLocation(DevelopmentSourcePath.of(relative), message.line.toInt(), message.column.toInt())
+            DevelopmentSourceLocation(DevelopmentSourcePath.of(relative), line, column)
         }.getOrNull()
+
+    private fun DevelopmentSourcePath.isGenerated(): Boolean = value.startsWith("build/generated/")
 
     private fun summary(message: String): DevelopmentDiagnosticSummary =
         DevelopmentDiagnosticSummary.of(
@@ -86,27 +137,4 @@ internal object KotlinDiagnostics {
                 .take(MAX_SUMMARY)
                 .ifBlank { "Compilation failed" },
         )
-
-    private class CompilerMessage(
-        val severity: String,
-        val fileUri: Boolean,
-        val path: String,
-        val line: String,
-        val column: String,
-        val text: String,
-    ) {
-        companion object {
-            fun of(match: MatchResult): CompilerMessage {
-                val groups = match.groupValues.drop(1)
-                return CompilerMessage(
-                    severity = groups[0],
-                    fileUri = groups[1].isNotEmpty(),
-                    path = groups[2],
-                    line = groups[3],
-                    column = groups[4],
-                    text = groups.last(),
-                )
-            }
-        }
-    }
 }

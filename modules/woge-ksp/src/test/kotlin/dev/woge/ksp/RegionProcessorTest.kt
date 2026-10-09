@@ -52,7 +52,7 @@ class RegionProcessorTest {
     }
 
     @Test
-    fun `component region keeps the key type and depends only on its own sources`() {
+    fun `component region keeps the key type and depends on every source that shapes it`() {
         val result = runKsp(TASK_ROW)
 
         assertEquals(emptyList<String>(), result.errors)
@@ -83,7 +83,10 @@ class RegionProcessorTest {
             result.generated.getValue("TaskStatusRegion.kt"),
         )
         assertEquals(
-            RecordedDependencies(aggregating = false, originatingFiles = listOf("TaskRow.kt", "TaskStatus.kt")),
+            RecordedDependencies(
+                aggregating = false,
+                originatingFiles = listOf("Label.kt", "TaskId.kt", "TaskRow.kt", "TaskStatus.kt"),
+            ),
             result.dependencies.getValue("TaskStatusRegion.kt"),
         )
     }
@@ -103,11 +106,21 @@ class RegionProcessorTest {
                     import dev.woge.host.WogeComponent
                     import dev.woge.host.WogeKey
 
-                    @JvmInline
-                    value class TaskId(val value: Long)
-
                     @WogeComponent
                     class TaskRow(@WogeKey val id: TaskId, val title: String)
+                    """.trimIndent(),
+                "TaskId.kt" to
+                    """
+                    package tasks
+
+                    @JvmInline
+                    value class TaskId(val value: Long)
+                    """.trimIndent(),
+                "Label.kt" to
+                    """
+                    package tasks
+
+                    internal class Label(val text: String)
                     """.trimIndent(),
                 "TaskStatus.kt" to
                     """
@@ -115,8 +128,6 @@ class RegionProcessorTest {
 
                     import dev.woge.host.WogeRegion
                     import dev.woge.html.HtmlWriter
-
-                    internal class Label(val text: String)
 
                     @WogeRegion(component = TaskRow::class)
                     fun HtmlWriter.taskStatus(labels: List<Label>?) {
