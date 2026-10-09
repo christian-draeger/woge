@@ -5,12 +5,17 @@ rootProject.name = "woge-application"
 pluginManagement {
     val kotlinVersion: String by settings
     val springBootVersion: String by settings
+    val wogeVersion: String by settings
 
     plugins {
         id("org.jetbrains.kotlin.jvm") version kotlinVersion
         id("org.springframework.boot") version springBootVersion
+        id("dev.woge.spring-boot") version wogeVersion
     }
     repositories {
+        providers.gradleProperty("wogeRepository").orNull?.let { localRepository ->
+            maven { url = uri(localRepository) }
+        }
         gradlePluginPortal()
         mavenCentral()
     }

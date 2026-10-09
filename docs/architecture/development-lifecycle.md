@@ -127,8 +127,9 @@ and restart. Cancelling the session stops the child and its descendants.
 process. It keeps running while the application child restarts. There is no reverse proxy, and you do
 not need Node/Vite to use it.
 
-The development host explicitly calls `HtmlWriter.developmentClient(channel, renderedBuild, generation)`
-inside the document head. These IDs describe the application that rendered the page, not a newer
+Pages get the client in one of two explicit ways. `wogeDev` adds it to every document `head`
+automatically (see below). A tool that runs the channel in the same process can call
+`HtmlWriter.developmentClient(channel, renderedBuild, generation)` inside the head itself. These IDs describe the application that rendered the page, not a newer
 build that is still starting. This uses Woge's typed HTML DSL, not hand-built markup. It adds an
 external script; set `overlay = false` to omit the status panel and its stylesheet. The dev host must
 explicitly allow the channel origin in `script-src`, `style-src` and `connect-src` when it uses CSP.
@@ -146,7 +147,36 @@ overlay never moves focus and can be hidden with a normal button. A privileged r
 appears only if a build adapter explicitly supplies detail output; raw logs are not the protocol.
 
 See [ADR 0044](../adr/0044-development-browser-snapshots-and-explicit-opt-in.md) for identity, reconnect
-and connection-budget rules. The `wogeDev` composition follows in #47.
+and connection-budget rules.
+
+## The `wogeDev` command
+
+`./gradlew wogeDev` is the normal way to work on a Spring Boot application. The Gradle plugin
+`dev.woge.spring-boot` registers it. It starts one small launcher process that owns everything else:
+
+```mermaid
+flowchart LR
+    Gradle["./gradlew wogeDev"] --> Launcher["Woge launcher<br/>(woge-dev-gradle)"]
+    Launcher -->|"gradlew classes"| Build["Gradle build"]
+    Launcher -->|"java -Dwoge.development=true"| App["Your Spring Boot app"]
+    Launcher --- SSE["SSE channel<br/>127.0.0.1:random"]
+    Browser["Browser tab"] -->|"normal HTTP"| App
+    Browser -->|"EventSource"| SSE
+```
+
+1. The launcher watches `src/**` and polls for changes. Saving several files quickly starts one build.
+2. It runs `./gradlew classes resolveMainClassName` for the application project. Errors stay in the
+   terminal and the overlay with file, line and column; the old app keeps serving.
+3. After a successful build it touches the Spring DevTools trigger file. If DevTools does not report
+   ready in time, it starts a new app process (the correctness fallback).
+4. The app reads the current SSE address from a small properties file. Woge core adds the client
+   markup to every `head`, but only when the JVM runs with `-Dwoge.development=true`.
+5. Changes to `build.gradle.kts`, `settings.gradle.kts` or the version catalog are reported. Restart
+   `wogeDev` after changing dependencies.
+
+Production stays clean: the dev modules and DevTools are `developmentOnly`, which `bootJar` excludes,
+and `verifyWogeProductionArtifact` (part of `check`) fails the build if they appear in the jar anyway.
+See [ADR 0045](../adr/0045-wogedev-gradle-launcher-and-development-head-hook.md).
 
 ## Security and production isolation
 

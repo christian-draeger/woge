@@ -1,4 +1,4 @@
-package dev.woge.development.spring
+package dev.woge.development.spring.child
 
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationListener

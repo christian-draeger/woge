@@ -44,6 +44,7 @@ public class HtmlWriter internal constructor(
         resolvedAttributes.writeTo(sink)
         sink.write(">")
         content()
+        if (normalizedName == "head") DevelopmentHeadContributions.writeTo(this)
         sink.write("</$name>")
     }
 

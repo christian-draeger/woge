@@ -9,6 +9,7 @@ import dev.woge.host.WogeOperationStarted
 import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -18,6 +19,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /** Executes the framework-neutral server-adapter contract over a real HTTP connection. */
@@ -254,7 +256,7 @@ private class AdapterTckVerification(
 
     private suspend fun verifySemanticObservations() {
         runContract("semantic-observations") {
-            val events = fixture.observations()
+            val events = settledObservations()
             expect(events.isNotEmpty(), "semantic-observations", "adapter emitted no semantic events")
             expectPairedLifecycle(events)
             expectOutcome(events, WogeOperation.PAGE_REQUEST, WogeOutcome.REJECTED)
@@ -274,6 +276,20 @@ private class AdapterTckVerification(
             )
         }
     }
+
+    // A reactive host may finish an operation just after the client has read the response.
+    private suspend fun settledObservations(): List<WogeObservationEvent> {
+        var events = fixture.observations()
+        val deadline = System.nanoTime() + OBSERVATION_SETTLE_TIMEOUT.inWholeNanoseconds
+        while (openOperations(events) > 0 && System.nanoTime() < deadline) {
+            delay(OBSERVATION_SETTLE_POLL)
+            events = fixture.observations()
+        }
+        return events
+    }
+
+    private fun openOperations(events: List<WogeObservationEvent>): Int =
+        events.count { it is WogeOperationStarted } - events.count { it is WogeOperationFinished }
 
     private fun expectPairedLifecycle(events: List<WogeObservationEvent>) {
         val open = mutableMapOf<Long, WogeOperationStarted>()
@@ -430,3 +446,5 @@ private const val EXPECTED_PATCH_COUNT: Int = 2
 private const val CONNECT_TIMEOUT_SECONDS: Long = 5
 private const val REQUEST_TIMEOUT_SECONDS: Long = 10
 private val CLIENT_ABORT_TIMEOUT: kotlin.time.Duration = 5.seconds
+private val OBSERVATION_SETTLE_TIMEOUT: kotlin.time.Duration = 5.seconds
+private val OBSERVATION_SETTLE_POLL: kotlin.time.Duration = 20.milliseconds

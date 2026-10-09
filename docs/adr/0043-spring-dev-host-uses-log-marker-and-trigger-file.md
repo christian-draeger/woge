@@ -62,4 +62,6 @@ things a web developer already knows: a command line, a file, a port and the log
 - Gradle build adapter and the `wogeDev` task wiring belong to
   [#47](https://github.com/christian-draeger/woge/issues/47). The host consumes the same successful-build
   handoff from any build adapter. KSP registration is part of that Gradle wiring.
+  [ADR 0045](0045-wogedev-gradle-launcher-and-development-head-hook.md) records the composition. The
+  readiness listener now lives in `woge-dev-spring-child`, which the app receives as `developmentOnly`.
 - [#145](https://github.com/christian-draeger/woge/issues/145): SSE browser channel.

@@ -9,6 +9,7 @@ dependencies {
     implementation(platform(libs.springBootDependencies))
     implementation(libs.springBoot)
 
+    testImplementation(project(":woge-dev-spring-child"))
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)
     testImplementation(libs.kotlinCompilerEmbeddable)
