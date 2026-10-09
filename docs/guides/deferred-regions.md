@@ -72,6 +72,17 @@ Do not add `aria-live` merely because content is deferred. Whether loading, succ
 be announced depends on the interaction. Woge defines that shared policy before providing a generic
 announcement API.
 
+## Keep loading states accessible
+
+The loading HTML is what screen-reader users get until the region arrives, so write a short, real
+sentence such as "Loading recent orders…" instead of an empty box or a spinner without text.
+
+Woge does not announce finished regions, does not set `aria-busy` and never moves focus when a region
+is replaced. The new content simply appears where the loading text was. If your page needs to say
+something, render your own `role="status"` element and fill it from a patch. See
+[ADR 0048](../adr/0048-document-owned-accessibility-announcements.md) for which announcement fits
+which situation.
+
 ## Execute inside the request lifetime
 
 The shared server runtime collects declarations with `DeferredRegionExecutor`. Up to eight region
