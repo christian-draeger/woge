@@ -23,6 +23,8 @@ choice visible and gives an actionable startup error if the dependencies disagre
 Boot supplies `WogeSpringMvcHandlers`. Register its handlers with Spring MVC's familiar URL mapping:
 
 ```kotlin
+import dev.woge.spring.mvc.pathVariable // Woge extension; not a Servlet member
+
 @Bean
 fun projectRoutes(
     projectPage: ProjectPage,
