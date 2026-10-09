@@ -97,6 +97,23 @@ public data class ServerReady(
     }
 }
 
+/**
+ * The requested server generation could not become ready, even after the restart fallback chain.
+ *
+ * [previousApplicationRetained] states whether the earlier ready generation still serves requests.
+ */
+@ExperimentalWogeDevelopmentApi
+public data class ServerRestartFailed(
+    public val buildId: BuildId,
+    public val expectedGeneration: ServerGeneration,
+    public val diagnostics: List<DevelopmentDiagnostic>,
+    public val previousApplicationRetained: Boolean,
+) : DevelopmentEvent {
+    init {
+        require(diagnostics.isNotEmpty()) { "A failed restart must contain at least one structured diagnostic" }
+    }
+}
+
 @ExperimentalWogeDevelopmentApi
 public data class CssChanged(
     public val buildId: BuildId,

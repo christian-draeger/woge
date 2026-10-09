@@ -18,6 +18,7 @@ public object DevelopmentLifecycle {
             is BuildCancelled -> reduceBuildCancelled(state, event)
             is ServerRestarting -> reduceServerRestarting(state, event)
             is ServerReady -> reduceServerReady(state, event)
+            is ServerRestartFailed -> reduceServerRestartFailed(state, event)
             is CssChanged -> reduceCssChanged(state, event)
             is FrontendChanged -> reduceFrontendChanged(state, event)
             is ReloadRequired -> reduceReloadRequired(state, event)
@@ -193,6 +194,45 @@ public object DevelopmentLifecycle {
                             developmentUrls = event.urls.distinct(),
                         ),
                     )
+            }
+        }
+
+    private fun reduceServerRestartFailed(
+        state: DevelopmentSessionState,
+        event: ServerRestartFailed,
+    ): DevelopmentTransition =
+        withCurrentSuccessfulBuild(state, event.buildId) {
+            val pendingGeneration =
+                state.pendingServerGeneration
+                    ?: return@withCurrentSuccessfulBuild rejected(
+                        state,
+                        DevelopmentTransitionReason.SERVER_GENERATION_NOT_REQUESTED,
+                    )
+            when {
+                event.expectedGeneration < pendingGeneration ->
+                    stale(state, DevelopmentTransitionReason.STALE_SERVER_GENERATION)
+
+                event.expectedGeneration > pendingGeneration ->
+                    rejected(state, DevelopmentTransitionReason.SERVER_GENERATION_NOT_REQUESTED)
+
+                else -> {
+                    val retained = event.previousApplicationRetained && state.activeServerGeneration != null
+                    applied(
+                        DevelopmentSessionState(
+                            phase = DevelopmentSessionPhase.SERVER_FAILED,
+                            latestRequestedBuild = state.latestRequestedBuild,
+                            activeBuild = null,
+                            activeChanges = emptySet(),
+                            latestBuildOutcome = state.latestBuildOutcome,
+                            lastSuccessfulBuild = state.lastSuccessfulBuild,
+                            activeServerGeneration = state.activeServerGeneration.takeIf { retained },
+                            pendingServerGeneration = null,
+                            diagnostics = event.diagnostics.toList(),
+                            pendingReload = state.pendingReload,
+                            developmentUrls = state.developmentUrls.takeIf { retained }.orEmpty(),
+                        ),
+                    )
+                }
             }
         }
 
