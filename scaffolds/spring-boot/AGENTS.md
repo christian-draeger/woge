@@ -7,7 +7,7 @@ use the same public APIs, compiler feedback, examples and documentation.
 
 ## Version-matched baseline
 
-- Scaffold: `spring-boot` 0.2.0
+- Scaffold: `spring-boot` 0.3.0
 - Woge: 0.1.0-SNAPSHOT
 - Kotlin: 2.4.10
 - Spring Boot: 4.1.1
@@ -58,7 +58,7 @@ available, prefer them over duplicated route, action and region strings.
   URL validation to silence the compiler.
 - Treat CSS strings as CSS, not as an HTML escape hatch. Keep untrusted values out of stylesheets and
   declaration lists.
-- Woge generators alone own `build/generated/sources/woge/main/kotlin`.
+- Woge generators alone own `build/generated/ksp/main/kotlin`.
   Never edit or commit that directory; change source declarations and regenerate.
 - Native Declarative Partial Updates remain experimental browser syntax and are not an application
   dependency. Use the supported Woge fallback behavior.

@@ -49,8 +49,9 @@ already knows its component, so one value is enough: there is nothing to bind to
 This removes three public types without losing the ownership guarantee. Nested components are not
 supported in this first version.
 
-**5. One file per region, no registry.** Each generated file depends only on the region's own source
-file and its component's source file (`aggregating = false`). KSP incremental processing therefore
+**5. One file per region, no registry.** Each generated file depends only on the source files that
+shape it: the region function, its component and the project types used for input and key
+(`aggregating = false`, refined by [ADR 0050](0050-ksp-inside-wogedev.md)). KSP incremental processing therefore
 deletes exactly the outputs of changed or removed declarations. There is no aggregate registry that
 can go stale.
 
@@ -93,8 +94,8 @@ in another file could not call it.
 
 ## Follow-up
 
-- Register the processor automatically through the Woge Gradle plugin and support it in `wogeDev`
-  in [#171](https://github.com/christian-draeger/woge/issues/171).
+- Done in [ADR 0050](0050-ksp-inside-wogedev.md): the Woge Gradle plugin registers the processor
+  and `wogeDev` runs it ([#171](https://github.com/christian-draeger/woge/issues/171)).
 - Generate typed route and action descriptors in [#27](https://github.com/christian-draeger/woge/issues/27)
   and [#28](https://github.com/christian-draeger/woge/issues/28).
 - Revisit nested components when the first real use case appears.

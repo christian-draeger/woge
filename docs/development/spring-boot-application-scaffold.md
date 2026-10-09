@@ -47,7 +47,7 @@ No documentation-only copy of the Kotlin page exists: the compiled scaffold sour
 ## Ownership and safe evolution
 
 - Edit application-owned source under `scaffolds/spring-boot/src`.
-- Reserve `build/generated/sources/woge/main/kotlin` for Woge generators and never commit it.
+- Reserve `build/generated/ksp/main/kotlin` for the Woge KSP processor and never commit it.
 - Update `scaffoldVersion` when a consumer-visible template contract changes.
 - Keep Woge, Kotlin and Spring Boot versions aligned through
   `scripts/validate-spring-boot-scaffold.sh`.

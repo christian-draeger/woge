@@ -35,9 +35,10 @@ application installs neither Tailwind, Vite nor Ktor. Node and Playwright exist 
 browser-test harness.
 
 `scaffold.properties` versions the scaffold contract and records its default host and generated-source
-root. Woge generators may own only `build/generated/sources/woge/main/kotlin`; developers own `src`,
-and generated output is not committed. Woge, Kotlin, Spring Boot, build-JDK and JVM-target versions are
-explicit and checked against repository metadata.
+root. Woge generators may own only `build/generated/ksp/main/kotlin` (changed by
+[ADR 0050](0050-ksp-inside-wogedev.md)); developers own `src`, and generated output is not committed.
+Woge, Kotlin, KSP, Spring Boot, build-JDK and JVM-target versions are explicit and checked against
+repository metadata.
 
 Repository verification publishes the exact Woge dependency closure needed by the scaffold into a
 temporary build-local Maven repository, materializes fresh external WebFlux and MVC applications and
