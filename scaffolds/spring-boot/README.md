@@ -70,8 +70,10 @@ that selection and generate matching coding guidance.
 - `AGENTS.md` is generated from the versioned framework index, public documentation and persisted
   host choice. Change those canonical inputs instead of editing the generated file.
 
-The generated-source root is `build/generated/sources/woge/main/kotlin`. Generators own only that
-directory; edit application source under `src` and never commit generated output.
+The generated-source root is `build/generated/ksp/main/kotlin`. The scaffold applies the KSP Gradle
+plugin, and the Woge plugin adds the Woge processor to it. The processor turns `@WogeRegion`
+functions into typed region descriptors; `./gradlew wogeDev` regenerates them on save. Generators own
+only that directory; edit application source under `src` and never commit generated output.
 
 ## Add deferred regions
 

@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    id("com.google.devtools.ksp")
     id("org.springframework.boot")
     id("dev.woge.spring-boot")
 }
@@ -30,7 +31,6 @@ kotlin {
     compilerOptions.jvmTarget = JvmTarget.fromTarget(jvmTarget)
     sourceSets.named("main") {
         kotlin.srcDir("src/$wogeSpringAdapter/kotlin")
-        kotlin.srcDir(layout.buildDirectory.dir("generated/sources/woge/main/kotlin"))
     }
 }
 

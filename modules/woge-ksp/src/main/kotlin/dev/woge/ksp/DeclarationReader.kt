@@ -24,10 +24,11 @@ internal data class RegionModel(
     val symbol: KSFunctionDeclaration,
 )
 
+/** [declarations] are the component class and the key types it uses. */
 internal data class ComponentModel(
     val identityName: String,
     val key: KeyModel?,
-    val declaration: KSClassDeclaration,
+    val declarations: List<KSDeclaration>,
 )
 
 /** [argument] converts a value named `key` into a type accepted by `IdentityKey.of`. */
@@ -69,7 +70,7 @@ internal class DeclarationReader(
                 .resolve()
                 .render(referenced) ?: reject(Rule.REGION_SHAPE, function.signature(), function)
         val component = function.readOwner()
-        component?.let { referenced += it.declaration }
+        component?.let { referenced += it.declarations }
         val visibility = referenced.effectiveVisibility()
         if (visibility == Visibility.PRIVATE) reject(Rule.REGION_VISIBILITY, function.signature(), function)
         val functionName = function.simpleName.asString()
@@ -81,7 +82,7 @@ internal class DeclarationReader(
             inputType = inputType,
             identityName = requireIdentityName(function.qualifiedName?.asString(), function),
             component = component,
-            sources = listOfNotNull(function.containingFile, component?.declaration?.containingFile).distinct(),
+            sources = referenced.mapNotNull { it.containingFile }.distinct().sortedBy { it.filePath },
             symbol = function,
         )
     }
@@ -108,12 +109,17 @@ internal class DeclarationReader(
             val names = keys.joinToString { it.name?.asString().orEmpty() }
             reject(Rule.COMPONENT_KEYS, "${keys.size} @WogeKey parameters: $names", declaration)
         }
-        return ComponentModel(name, keys.singleOrNull()?.let(::readKey), declaration)
+        val declarations = mutableListOf<KSDeclaration>(declaration)
+        val key = keys.singleOrNull()?.let { readKey(it, declarations) }
+        return ComponentModel(name, key, declarations)
     }
 
-    private fun readKey(parameter: KSValueParameter): KeyModel {
+    private fun readKey(
+        parameter: KSValueParameter,
+        declarations: MutableList<KSDeclaration>,
+    ): KeyModel {
         val type = parameter.type.resolve()
-        val rendered = type.render(mutableListOf())
+        val rendered = type.render(declarations)
         val argument = type.keyArgument()
         if (rendered == null || argument == null) {
             reject(Rule.COMPONENT_KEY_TYPE, "@WogeKey ${parameter.name?.asString()}: ${rendered ?: type}", parameter)

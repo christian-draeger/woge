@@ -23,7 +23,8 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
  * Adds {@code ./gradlew wogeDev} to a Spring Boot application and checks that development tooling
- * never reaches the production jar.
+ * never reaches the production jar. When the application applies KSP, the plugin also registers the
+ * Woge processor that generates typed region descriptors.
  */
 public final class WogeSpringBootPlugin implements Plugin<Project> {
     static final String DEV_TASK = "wogeDev";
@@ -31,6 +32,7 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
     static final String HELP_TASK = "wogeTasks";
     static final String TOOLING_CONFIGURATION = "wogeDevTooling";
     static final String LAUNCHER_MAIN_CLASS = "dev.woge.development.gradle.WogeDevelopmentMain";
+    static final String KSP_PLUGIN = "com.google.devtools.ksp";
 
     @Override
     public void apply(Project project) {
@@ -52,6 +54,8 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
             configuration.setVisible(false);
         });
         project.getDependencies().add(TOOLING_CONFIGURATION, "dev.woge:woge-dev-gradle:" + wogeVersion);
+        project.getPluginManager().withPlugin(KSP_PLUGIN,
+                ignored -> project.getDependencies().add("ksp", "dev.woge:woge-ksp:" + wogeVersion));
 
         registerDevelopmentTask(project, tooling);
         registerProductionCheck(project);

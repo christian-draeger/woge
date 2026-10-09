@@ -38,6 +38,57 @@ class KotlinDiagnosticsTest {
     }
 
     @Test
+    fun `woge processor errors keep their ID, location and repair hint`() {
+        val file = project.resolve("src/main/kotlin/app/Regions.kt")
+        val diagnostics =
+            KotlinDiagnostics.parse(
+                listOf(
+                    "> Task :kspKotlin FAILED",
+                    "e: [ksp] $file:6: WOGE-REF-002 A @WogeRegion function takes exactly one input parameter.",
+                    "Received: suspend fun HtmlWriter.broken(input: String)",
+                    "Valid: @WogeRegion fun HtmlWriter.summary(input: Summary) { ... }",
+                    "",
+                    "FAILURE: Build failed with an exception.",
+                ),
+                project,
+            )
+
+        val diagnostic = diagnostics.single()
+        assertEquals("WOGE-REF-002", diagnostic.code.value)
+        assertEquals(
+            "WOGE-REF-002 A @WogeRegion function takes exactly one input parameter. " +
+                "Received: suspend fun HtmlWriter.broken(input: String) " +
+                "Valid: @WogeRegion fun HtmlWriter.summary(input: Summary) { ... }",
+            diagnostic.summary.value,
+        )
+        assertEquals(DevelopmentSourcePath.of("src/main/kotlin/app/Regions.kt"), diagnostic.location?.path)
+        assertEquals(6, diagnostic.location?.line)
+    }
+
+    @Test
+    fun `other processor errors are located too`() {
+        val file = project.resolve("src/main/kotlin/app/Other.kt")
+        val diagnostic = KotlinDiagnostics.parse(listOf("e: [ksp] $file:3: Something else"), project).single()
+
+        assertEquals(KotlinDiagnostics.processorError, diagnostic.code)
+        assertEquals(3, diagnostic.location?.line)
+    }
+
+    @Test
+    fun `errors in generated code are marked as generated`() {
+        val file = project.resolve("build/generated/ksp/main/kotlin/app/SummaryRegion.kt")
+        val diagnostic =
+            KotlinDiagnostics
+                .parse(
+                    listOf("e: file://${file.toUri().rawPath}:4:9 Unresolved reference."),
+                    project,
+                ).single()
+
+        assertEquals(KotlinDiagnostics.generatedCode, diagnostic.code)
+        assertEquals("Generated code does not compile: Unresolved reference.", diagnostic.summary.value)
+    }
+
+    @Test
     fun `files outside the project keep the message but drop the location`() {
         val diagnostics = KotlinDiagnostics.parse(listOf("e: /elsewhere/Other.kt:3:1 Broken"), project)
 
