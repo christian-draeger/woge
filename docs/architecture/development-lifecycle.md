@@ -42,7 +42,10 @@ child process. Spring DevTools is only the fast restart adapter for the canonica
 
 1. Gradle compiles while the last valid child keeps serving.
 2. A compile failure publishes diagnostics and does not request a restart.
-3. A successful ordinary Kotlin or generated-source build updates the DevTools trigger file.
+3. A successful ordinary Kotlin or generated-source build updates the DevTools trigger file. The
+   build includes the Woge KSP processor, so new or changed `@WogeRegion` functions regenerate
+   their descriptors first. A compile error in generated code triggers one full regeneration
+   ([ADR 0050](../adr/0050-ksp-inside-wogedev.md)).
 4. DevTools replaces its restart classloader inside the same child JVM.
 5. Woge observes readiness and publishes the new build and server generation to browsers.
 

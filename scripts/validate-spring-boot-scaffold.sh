@@ -27,6 +27,8 @@ catalog_version() {
   fail "wogeVersion differs from the root build"
 [[ "$(property_value "$properties" kotlinVersion)" == "$(catalog_version kotlin)" ]] ||
   fail "kotlinVersion differs from the version catalog"
+[[ "$(property_value "$properties" kspVersion)" == "$(catalog_version ksp)" ]] ||
+  fail "kspVersion differs from the version catalog"
 [[ "$(property_value "$properties" springBootVersion)" == "$(catalog_version springBoot)" ]] ||
   fail "springBootVersion differs from the version catalog"
 [[ "$(property_value "$properties" wogeSpringAdapter)" == "webflux" ]] ||
@@ -37,12 +39,12 @@ catalog_version() {
   fail "unsupported scaffold schemaVersion"
 [[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldId)" == "spring-boot" ]] ||
   fail "scaffoldId must remain spring-boot"
-[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.2.0" ]] ||
+[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.3.0" ]] ||
   fail "scaffoldVersion must remain explicitly versioned"
 [[ "$(property_value "$scaffold_root/scaffold.properties" defaultHost)" == "webflux" ]] ||
   fail "defaultHost must remain webflux"
 [[ "$(property_value "$scaffold_root/scaffold.properties" generatedSources)" == \
-  "build/generated/sources/woge/main/kotlin" ]] || fail "generatedSources ownership changed"
+  "build/generated/ksp/main/kotlin" ]] || fail "generatedSources ownership changed"
 
 for required_path in \
   build.gradle.kts \

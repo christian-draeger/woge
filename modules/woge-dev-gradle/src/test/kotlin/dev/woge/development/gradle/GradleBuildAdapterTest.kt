@@ -60,6 +60,37 @@ class GradleBuildAdapterTest {
         }
 
     @Test
+    fun `an error in generated code triggers one full regeneration`() =
+        runBlocking {
+            val generated = "$project/build/generated/ksp/main/kotlin/app/SummaryRegion.kt"
+            val script =
+                """
+                case "${'$'}0" in
+                  -Pksp.incremental=false) echo regenerated ;;
+                  *) echo "e: file://$generated:4:9 Unresolved reference 'summary'."; exit 1 ;;
+                esac
+                """.trimIndent()
+            val adapter = GradleBuildAdapter(project, shell(script))
+
+            assertInstanceOf(DevelopmentBuildResult.Succeeded::class.java, adapter.build(request))
+            assertEquals("regenerated", adapter.read())
+        }
+
+    @Test
+    fun `an error that survives regeneration is reported in the generated file`() =
+        runBlocking {
+            val generated = "$project/build/generated/ksp/main/kotlin/app/SummaryRegion.kt"
+            val adapter = GradleBuildAdapter(project, shell("echo 'e: file://$generated:4:9 Broken'; exit 1"))
+
+            val result = assertInstanceOf(DevelopmentBuildResult.Failed::class.java, adapter.build(request))
+
+            val diagnostic = result.diagnostics.single()
+            assertEquals(KotlinDiagnostics.generatedCode, diagnostic.code)
+            assertEquals("Generated code does not compile: Broken", diagnostic.summary.value)
+            assertEquals("build/generated/ksp/main/kotlin/app/SummaryRegion.kt", diagnostic.location?.path?.value)
+        }
+
+    @Test
     fun `output is bounded`() =
         runBlocking {
             val adapter =

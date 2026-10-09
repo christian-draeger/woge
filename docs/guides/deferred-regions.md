@@ -74,17 +74,20 @@ internal fun HtmlWriter.cardSummary(project: Project) { /* … */ }
 val cardTargets = projects.associate { project -> project.id to CardSummaryRegion.target(page, project.id) }
 ```
 
-Typed regions need the KSP plugin and the Woge processor in your Gradle build:
+Typed regions need the KSP Gradle plugin. The Woge Spring Boot scaffold already applies it. In
+another build, add it next to the Woge plugin; the Woge plugin then adds the matching processor:
 
 ```kotlin
 plugins {
     id("com.google.devtools.ksp")
-}
-
-dependencies {
-    ksp("dev.woge:woge-ksp:<version>")
+    id("dev.woge.spring-boot")
 }
 ```
+
+Without the Woge plugin (for example with Ktor), add the processor yourself:
+`ksp("dev.woge:woge-ksp:<version>")`. `./gradlew wogeDev` regenerates descriptors on save, so a new
+or renamed region is ready after the next restart. If old generated code is left behind, wogeDev
+regenerates everything once and otherwise shows the error in the generated file.
 
 The generated ID is a short opaque value such as `w1Qm9…`. Your database keys never appear in the
 HTML. Reordering, adding or removing list items does not change the IDs of the other items.

@@ -76,6 +76,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0047](0047-canonical-failure-and-recovery-model.md) | Accepted | Map every failure to exactly one bounded recovery outcome and never replay unsafe requests automatically |
 | [0048](0048-document-owned-accessibility-announcements.md) | Accepted | Keep the patch runtime silent and let the page own announcements, focus and busy state per use case |
 | [0049](0049-generated-region-descriptors.md) | Accepted | Generate one typed descriptor per `@WogeRegion` HTML function; no string targets and no registry |
+| [0050](0050-ksp-inside-wogedev.md) | Accepted | The application applies KSP, the Woge plugin adds the processor, and `wogeDev` regenerates through the normal Gradle build |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

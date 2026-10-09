@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Runs `./gradlew wogeDev` in a fresh Spring Boot scaffold and checks the edit loop:
-# start, edit, compile error (old version keeps serving), fix, and clean shutdown.
+# start, edit, compile error (old version keeps serving), fix, a new typed region (KSP), a rejected
+# region declaration, and clean shutdown.
 
 set -eu
 
@@ -23,6 +24,7 @@ scratch_root=$(mktemp -d)
 fixture_root="$scratch_root/app"
 log_file="$scratch_root/woge-dev.log"
 page_file="$fixture_root/src/main/kotlin/example/woge/HomePage.kt"
+region_file="$fixture_root/src/main/kotlin/example/woge/Status.kt"
 gradle_pid=""
 
 stop_session() {
@@ -65,6 +67,21 @@ wait_for_log() {
 
 page() {
   curl --silent --show-error --max-time 10 "http://127.0.0.1:$port/"
+}
+
+ready_count() {
+  grep -c '^\[woge\] Ready:' "$log_file" || true
+}
+
+wait_for_page() {
+  local text=$1 seconds=$2
+  for _ in $(seq 1 "$seconds"); do
+    if page 2>/dev/null | grep -Fq -- "$text"; then
+      return 0
+    fi
+    sleep 1
+  done
+  fail "timed out waiting for the page to contain '$text'"
 }
 
 port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
@@ -151,6 +168,33 @@ grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'last working version
 sed -i.bak '/brokenOnPurpose/d' "$page_file"
 wait_for_log '^\[woge\] Ready:' 3 120
 grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'fixed version is not served'
+
+# Structural edit: a new @WogeRegion function makes KSP generate StatusRegion, which the page renders.
+cat >"$region_file" <<'KOTLIN'
+package example.woge
+
+import dev.woge.host.WogeRegion
+import dev.woge.html.HtmlWriter
+import dev.woge.html.p
+
+@WogeRegion
+internal fun HtmlWriter.status(message: String) {
+    p(attributes = { classes("status") }) { text(message) }
+}
+KOTLIN
+perl -0pi -e 's/(( *)h1 \{ text\("Edited by wogeDev"\) \}\n)/$1$2StatusRegion.render(this, "Typed region ready")\n/' "$page_file"
+grep -Fq 'StatusRegion.render' "$page_file" || fail 'could not add the region to the page'
+wait_for_page '<p class="status">Typed region ready</p>' 180
+
+# A rejected declaration is reported at its source line with its stable rule ID.
+sed -i.bak 's/status(message: String)/status(message: String, extra: Int)/' "$region_file"
+wait_for_log '^\[woge\]   src/main/kotlin/example/woge/Status.kt:[0-9]*:[0-9]* WOGE-REF-' 1 120
+grep -Fq 'Typed region ready' <<<"$(page)" || fail 'last working version stopped serving'
+
+ready_before=$(ready_count)
+sed -i.bak 's/status(message: String, extra: Int)/status(message: String)/' "$region_file"
+wait_for_log '^\[woge\] Ready:' $((ready_before + 1)) 120
+grep -Fq '<p class="status">Typed region ready</p>' <<<"$(page)" || fail 'repaired region is not served'
 
 stop_session
 if curl --silent --max-time 2 "http://127.0.0.1:$port/" >/dev/null; then
