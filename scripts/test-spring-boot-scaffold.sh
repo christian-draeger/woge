@@ -45,4 +45,18 @@ sys.exit(f"wogeTasks is missing {missing}" if missing else 0)
 "$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
   wogeTasks "-PwogeRepository=$published_repository" | grep -Fq './gradlew wogeDev'
 
+# Consumers add the browser runtime as an ordinary dependency; it must resolve and contain the module.
+cat >> "$fixture_root/build.gradle.kts" <<'GRADLE'
+
+dependencies {
+    runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion")
+}
+GRADLE
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+  bootJar "-PwogeRepository=$published_repository"
+boot_jar=$(ls "$fixture_root"/build/libs/*.jar | grep -v -- '-plain\.jar$')
+asset_jar=$(unzip -Z1 "$boot_jar" | grep -E '^BOOT-INF/lib/woge-fallback-client-assets-.*\.jar$')
+unzip -p "$boot_jar" "$asset_jar" > "$scratch_root/assets.jar"
+unzip -Z1 "$scratch_root/assets.jar" | grep -Fqx 'static/assets/woge/index.js'
+
 printf 'External Spring Boot scaffold passed for WebFlux and MVC, including the production artifact check.\n'
