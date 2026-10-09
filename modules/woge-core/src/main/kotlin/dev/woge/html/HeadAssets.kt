@@ -28,6 +28,7 @@ public fun HtmlWriter.stylesheet(
     crossOrigin: CrossOrigin? = null,
 ) {
     requireCrossOriginForExternalIntegrity(href, integrity, crossOrigin)
+    rememberNonce(nonce)
     assetLink("stylesheet", href) {
         media?.let { attribute("media", it) }
         nonce?.let { attribute("nonce", it.value) }
@@ -45,6 +46,7 @@ public fun HtmlWriter.style(
     require(!css.source.contains(STYLE_END, ignoreCase = true)) {
         "An inline stylesheet must not contain an HTML </style sequence"
     }
+    rememberNonce(nonce)
     rawTextElement(
         name = "style",
         attributes = {
@@ -63,6 +65,7 @@ public fun HtmlWriter.moduleScript(
     crossOrigin: CrossOrigin? = null,
 ) {
     requireCrossOriginForExternalIntegrity(src, integrity, crossOrigin)
+    rememberNonce(nonce)
     rawTextElement(
         name = "script",
         attributes = {
@@ -126,3 +129,7 @@ private fun requireAttributeTokenList(
 }
 
 private const val STYLE_END: String = "</style"
+
+private fun HtmlWriter.rememberNonce(nonce: CspNonce?) {
+    if (nonce != null && documentNonce == null) documentNonce = nonce
+}

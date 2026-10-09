@@ -16,7 +16,9 @@ use the same public APIs, compiler feedback, examples and documentation.
 - Frontend tooling: none is required. Playwright 1.62.1 is test-only; Tailwind and Vite
   are not installed.
 
-Run `./gradlew test` after application changes. Run `./gradlew bootRun` for the selected host. Change
+Run `./gradlew wogeDev` while developing: it rebuilds on save, restarts Spring and refreshes the
+browser. Run `./gradlew check` after application changes. `./gradlew wogeTasks --format=json` lists
+the supported tasks and options as JSON. Change
 `wogeSpringAdapter` in `gradle.properties` to `mvc` or `webflux` deliberately; do not mix both host
 adapters in application code. Regenerate this file after changing the persisted host or a pinned
 framework version; the normal test task rejects stale guidance.

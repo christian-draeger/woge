@@ -10,4 +10,14 @@ dependencies {
     runtimeOnly(libs.kotlinReflect)
     compileOnly(platform(libs.springBootDependencies))
     compileOnly(libs.springBoot)
+    compileOnly(libs.jakartaServletApi)
+    compileOnly(libs.springWebflux)
+
+    testImplementation(platform(libs.springBootDependencies))
+    testImplementation(libs.springBoot)
+    testImplementation(libs.jakartaServletApi)
+    testImplementation(libs.springWebflux)
+    testImplementation("org.springframework:spring-test")
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }

@@ -6,8 +6,11 @@ import org.junit.jupiter.api.Test
 
 @OptIn(WogeDevelopmentHook::class)
 public class TestDevelopmentHeadContribution : DevelopmentHeadContribution {
-    override fun writeTo(head: HtmlWriter) {
-        head.metadata("woge-test", "development")
+    override fun writeTo(
+        head: HtmlWriter,
+        nonce: CspNonce?,
+    ) {
+        head.metadata("woge-test", nonce?.value ?: "development")
     }
 }
 
@@ -36,5 +39,17 @@ class DevelopmentHeadContributionTest {
                 }
             },
         )
+    }
+
+    @Test
+    fun `development contributions receive the nonce the page used in head`() {
+        System.setProperty("woge.development", "true")
+
+        val html =
+            renderHtml {
+                head { moduleScript(applicationUrl("/app.js"), nonce = cspNonce("cGFnZQ==")) }
+            }
+
+        assertEquals(true, html.endsWith("<meta name=\"woge-test\" content=\"cGFnZQ==\"></head>"), html)
     }
 }

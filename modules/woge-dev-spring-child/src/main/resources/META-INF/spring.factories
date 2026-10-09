@@ -1,1 +1,2 @@
 org.springframework.context.ApplicationListener=dev.woge.development.spring.child.SpringDevelopmentReadyListener
+org.springframework.context.ApplicationContextInitializer=dev.woge.development.spring.child.DevelopmentContentSecurityPolicyInitializer
