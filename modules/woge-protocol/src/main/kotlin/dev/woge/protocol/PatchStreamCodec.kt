@@ -21,6 +21,17 @@ public class PatchStreamEncoder internal constructor(
     private var patchCount: Int = 0
     private var downstreamFailure: Throwable? = null
 
+    /**
+     * Writes the stream preamble now, before any patch is ready.
+     *
+     * Hosts call this so status, headers and the preamble reach the client before slow regions finish.
+     * Calling it more than once has no further effect.
+     */
+    public fun start() {
+        ensureOpen()
+        ensurePreamble()
+    }
+
     /** Encodes one fully validated semantic patch without terminating the stream. */
     public fun write(patch: Patch) {
         ensureOpen()

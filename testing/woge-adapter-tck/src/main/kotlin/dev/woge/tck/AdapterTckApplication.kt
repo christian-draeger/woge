@@ -57,6 +57,7 @@ public enum class AdapterTckDeferredScenario(
 ) {
     COMPLETION_ORDER("completion-order"),
     CLIENT_ABORT("client-abort"),
+    HEADERS_BEFORE_REGIONS("headers-before-regions"),
     ;
 
     public companion object {
@@ -83,6 +84,7 @@ internal class AdapterTckFixtureState {
     val documentTail: CompletableDeferred<Unit> = CompletableDeferred()
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()
+    val gatedRegions: CompletableDeferred<Unit> = CompletableDeferred()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 
@@ -122,6 +124,17 @@ internal class AdapterTckFixtureState {
                         }
                     },
                     region("ready") { patch("Ready region") },
+                )
+            AdapterTckDeferredScenario.HEADERS_BEFORE_REGIONS ->
+                listOf(
+                    region("gated-first") {
+                        gatedRegions.await()
+                        patch("Gated first")
+                    },
+                    region("gated-second") {
+                        gatedRegions.await()
+                        patch("Gated second")
+                    },
                 )
         }
 

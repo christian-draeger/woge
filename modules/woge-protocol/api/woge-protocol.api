@@ -119,6 +119,7 @@ public abstract interface class dev/woge/protocol/PatchStreamDecoder {
 public final class dev/woge/protocol/PatchStreamEncoder {
 	public final fun complete ()V
 	public final fun error (Ldev/woge/protocol/RemotePatchFailure;)V
+	public final fun start ()V
 	public final fun write (Ldev/woge/protocol/Patch;)V
 }
 
