@@ -9,51 +9,97 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 
 /** Entry point that KSP finds through `META-INF/services`. */
 public class WogeProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
-        RegionProcessor(environment.codeGenerator, environment.logger)
+        WogeProcessor(environment.codeGenerator, environment.logger)
 }
 
 /**
- * Generates one descriptor file per `@WogeRegion` function.
+ * Generates one descriptor file per `@WogeRegion` function and per `@WogeRoute` class.
  *
- * Each file depends only on the region's own source file and its component's source file. KSP can
- * therefore delete exactly the outputs of changed or removed sources; there is no shared registry
- * that could go stale.
+ * A region file depends only on the source files that shape it, so KSP regenerates exactly the
+ * regions whose sources changed. Route files are aggregating instead: KSP then hands every route
+ * to each run, which the collision check needs. Routes are few and cheap to regenerate.
  */
-internal class RegionProcessor(
+internal class WogeProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val reader = DeclarationReader(logger)
         val annotated =
-            resolver.getSymbolsWithAnnotation(WOGE_COMPONENT) + resolver.getSymbolsWithAnnotation(WOGE_REGION)
-        val (ready, deferred) = annotated.toList().partition { it.validate() }
-
-        ready.filterIsInstance<KSClassDeclaration>().forEach(reader::component)
-        val regions = ready.filterIsInstance<KSFunctionDeclaration>().mapNotNull(reader::region)
-        regions
-            .groupBy { it.packageName to it.descriptorName }
-            .values
-            .forEach { sameName ->
-                if (sameName.size == 1) write(sameName.single()) else sameName.forEach(reader::reportDuplicateName)
-            }
+            listOf(WOGE_COMPONENT, WOGE_REGION, WOGE_ROUTE).flatMap { resolver.getSymbolsWithAnnotation(it).toList() }
+        val (ready, deferred) = annotated.partition { it.validate() }
+        val classes = ready.filterIsInstance<KSClassDeclaration>()
+        processRegions(classes, ready.filterIsInstance<KSFunctionDeclaration>())
+        processRoutes(classes.filter { it.hasAnnotation(WOGE_ROUTE) })
         return deferred
     }
 
-    @Suppress("SpreadOperator") // KSP only offers a vararg constructor; the array has at most two files.
-    private fun write(region: RegionModel) {
+    private fun processRegions(
+        classes: List<KSClassDeclaration>,
+        functions: List<KSFunctionDeclaration>,
+    ) {
+        val reader = RegionReader(logger)
+        classes.filter { it.hasAnnotation(WOGE_COMPONENT) }.forEach(reader::component)
+        functions
+            .mapNotNull(reader::region)
+            .groupBy { it.packageName to it.descriptorName }
+            .values
+            .forEach { sameName ->
+                if (sameName.size == 1) {
+                    val region = sameName.single()
+                    write(
+                        region.packageName,
+                        region.descriptorName,
+                        region.sources,
+                        aggregating = false,
+                        region.source(),
+                    )
+                } else {
+                    sameName.forEach(reader::reportDuplicateName)
+                }
+            }
+    }
+
+    private fun processRoutes(classes: List<KSClassDeclaration>) {
+        val reader = RouteReader(logger)
+        val routes = classes.mapNotNull(reader::route)
+        val names = routes.groupBy { it.packageName to it.descriptorName }
+        val patterns = routes.groupBy { it.pattern }
+        routes.forEach { route ->
+            val sameName = names.getValue(route.packageName to route.descriptorName)
+            val samePattern = patterns.getValue(route.pattern)
+            when {
+                sameName.size > 1 -> reader.reportDuplicateName(route)
+                samePattern.size > 1 -> reader.reportCollision(route, samePattern - route)
+                else ->
+                    write(
+                        route.packageName,
+                        route.descriptorName,
+                        route.sources,
+                        aggregating = true,
+                        route.source(),
+                    )
+            }
+        }
+    }
+
+    @Suppress("SpreadOperator") // KSP only offers a vararg constructor; the array holds a few files.
+    private fun write(
+        packageName: String,
+        fileName: String,
+        sources: List<KSFile>,
+        aggregating: Boolean,
+        source: String,
+    ) {
         codeGenerator
-            .createNewFile(
-                Dependencies(aggregating = false, *region.sources.toTypedArray()),
-                region.packageName,
-                region.descriptorName,
-            ).bufferedWriter()
-            .use { it.write(region.source()) }
+            .createNewFile(Dependencies(aggregating, *sources.toTypedArray()), packageName, fileName)
+            .bufferedWriter()
+            .use { it.write(source) }
     }
 }

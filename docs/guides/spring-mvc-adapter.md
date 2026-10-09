@@ -44,7 +44,8 @@ fun projectRoutes(
 }
 ```
 
-The application owns paths and input decoding. Page handlers accept GET and HEAD; deferred handlers
+The application owns paths and input decoding. With a [typed page route](typed-routes.md), map
+`ProjectPageRoute.path to handlers.page(projectPage, ProjectPageRoute)` instead of writing the decoder. Page handlers accept GET and HEAD; deferred handlers
 accept GET and return an ordinary 405 with `Allow` for other methods. The adapter owns Servlet async
 mode, response metadata, body streaming and cancellation. There is no application controller that
 must repeat Woge transport code.

@@ -56,6 +56,17 @@ internal fun KSType.render(declarations: MutableList<KSDeclaration>): String? {
     return (name + typeArguments + if (isMarkedNullable) "?" else "").takeUnless { null in rendered }
 }
 
+/** Renders a type with simple names, as people write it in diagnostics: `List<String>?`. */
+internal fun KSType.shortName(): String {
+    val typeArguments =
+        arguments
+            .map { it.type?.resolve()?.shortName() ?: "*" }
+            .takeUnless { it.isEmpty() }
+            ?.joinToString(", ", "<", ">")
+            .orEmpty()
+    return declaration.simpleName.asString() + typeArguments + if (isMarkedNullable) "?" else ""
+}
+
 private fun KSTypeArgument.render(declarations: MutableList<KSDeclaration>): String? {
     val rendered = type?.resolve()?.render(declarations)
     return when {

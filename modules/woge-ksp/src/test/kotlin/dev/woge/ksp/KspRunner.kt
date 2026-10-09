@@ -39,7 +39,7 @@ internal fun runKsp(sources: Map<String, String>): KspResult {
         val provider =
             object : SymbolProcessorProvider {
                 override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
-                    RegionProcessor(RecordingCodeGenerator(environment.codeGenerator, dependencies), environment.logger)
+                    WogeProcessor(RecordingCodeGenerator(environment.codeGenerator, dependencies), environment.logger)
             }
         val config =
             KSPJvmConfig

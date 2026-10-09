@@ -50,6 +50,48 @@ internal enum class Rule(
         "Region and component names must use ASCII letters, digits and '_', and stay within 128 characters.",
         "rename the declaration or shorten its package name",
     ),
+    ROUTE_PATH(
+        "WOGE-ROUTE-001",
+        "A @WogeRoute path starts with '/' and has segments that are literal text " +
+            "(letters, digits, '-', '.', '_', '~') or one {name} parameter; each name appears once.",
+        "@WogeRoute(\"/projects/{project}/tasks\")",
+    ),
+    ROUTE_TARGET(
+        "WOGE-ROUTE-002",
+        "@WogeRoute marks an object or a class whose primary constructor has only val properties.",
+        "@WogeRoute(\"/projects/{project}\") data class ProjectPageInput(val project: String)",
+    ),
+    ROUTE_PATH_PARAMETER(
+        "WOGE-ROUTE-003",
+        "Every {name} in a @WogeRoute path needs a non-null constructor property with the same name.",
+        "@WogeRoute(\"/projects/{project}\") data class ProjectPageInput(val project: String)",
+    ),
+    ROUTE_QUERY_PARAMETER(
+        "WOGE-ROUTE-004",
+        "A property that is not in the path is a query parameter and must be nullable.",
+        "val view: ProjectView? = null",
+    ),
+    ROUTE_VALUE_TYPE(
+        "WOGE-ROUTE-005",
+        "Route values are String, Int, Long, Boolean, java.util.UUID, an enum class " +
+            "or a value class wrapping one of them.",
+        "val project: String, val page: Int? = null or @JvmInline value class TaskId(val value: Long)",
+    ),
+    ROUTE_VISIBILITY(
+        "WOGE-ROUTE-006",
+        "A @WogeRoute class, its constructor and its value types must not be private.",
+        "make them internal or public",
+    ),
+    ROUTE_NAME(
+        "WOGE-ROUTE-007",
+        "Each @WogeRoute class needs a unique generated route name in its package.",
+        "rename one class; ProjectPageInput generates ProjectPageRoute",
+    ),
+    ROUTE_COLLISION(
+        "WOGE-ROUTE-008",
+        "Two routes in one module must not use the same path pattern; parameter names do not make them different.",
+        "change one path, for example /projects/{project} and /archive/{project}",
+    ),
     ;
 
     fun message(received: String): String = "$id $rule\nReceived: $received\nValid: $valid"
