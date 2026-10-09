@@ -63,6 +63,7 @@ Raw URLs and application-owned DOM/JavaScript remain available at explicit web e
 
 ## Follow-up
 
+- [ADR 0049](0049-generated-region-descriptors.md) settles the region syntax for [#26](https://github.com/christian-draeger/woge/issues/26): one owner-aware descriptor replaces the separate slot and instance types.
 - Settle annotation/declaration syntax and implement deterministic KSP output in [#26](https://github.com/christian-draeger/woge/issues/26), [#27](https://github.com/christian-draeger/woge/issues/27) and [#28](https://github.com/christian-draeger/woge/issues/28).
 - Implement opaque rendered-instance/region IDs without exposing canonical keys in [#25](https://github.com/christian-draeger/woge/issues/25).
 - Use `RegionInstance` in Patch IR and multi-target update APIs in [#19](https://github.com/christian-draeger/woge/issues/19) and [#33](https://github.com/christian-draeger/woge/issues/33).
