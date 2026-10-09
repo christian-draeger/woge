@@ -5,6 +5,7 @@ import {
   WogeRemotePatchError,
   fail,
 } from "./protocol.js";
+import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 
 /** Owns one active document's region registry and applies validated patch streams to it. */
@@ -114,6 +115,8 @@ function patchOutcome(problem) {
 export {
   AFTER_REPLACE_EVENT,
   BEFORE_REPLACE_EVENT,
+  classifyWogeFailure,
+  createWogeRecoveryBudget,
   WogePatchError,
   WogeRemotePatchError,
   WOGE_PATCH_PROTOCOL_VERSION,

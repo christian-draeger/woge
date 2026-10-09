@@ -73,6 +73,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0044](0044-development-browser-snapshots-and-explicit-opt-in.md) | Accepted | Send development snapshots over SSE and opt in through the HTML DSL |
 | [0045](0045-wogedev-gradle-launcher-and-development-head-hook.md) | Accepted | Run `wogeDev` as a Gradle-launched process and add the client through a guarded head hook |
 | [0046](0046-development-client-under-strict-csp.md) | Accepted | Keep the development client working under a strict CSP with nonce reuse and a dev-only header filter |
+| [0047](0047-canonical-failure-and-recovery-model.md) | Accepted | Map every failure to exactly one bounded recovery outcome and never replay unsafe requests automatically |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
