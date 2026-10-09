@@ -398,6 +398,17 @@ public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult 
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 }
 
+public abstract class dev/woge/host/PageRoute {
+	public fun <init> (Ljava/lang/String;)V
+	protected final fun buildUrl-pQSiukU (Ljava/util/Map;Ljava/util/List;)Ljava/lang/String;
+	public abstract fun decode (Ldev/woge/host/RouteParameters;)Ljava/lang/Object;
+	public final fun getPath ()Ljava/lang/String;
+	protected final fun pathValue (Ldev/woge/host/RouteParameters;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	protected final fun queryValue (Ldev/woge/host/RouteParameters;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+	public abstract fun url-szXyUj8 (Ljava/lang/Object;)Ljava/lang/String;
+}
+
 public abstract interface class dev/woge/host/PageUseCase {
 	public abstract fun open (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -694,6 +705,21 @@ public final class dev/woge/host/ResponseStatus$Companion {
 	public final fun of-TJVu4T0 (I)I
 }
 
+public abstract interface class dev/woge/host/RouteParameters {
+	public abstract fun path (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun query (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/RouteValueException : java/lang/RuntimeException {
+	public final fun getCategory ()Ldev/woge/host/FailureCategory;
+}
+
+public final class dev/woge/host/RouteValues {
+	public static final field INSTANCE Ldev/woge/host/RouteValues;
+	public final fun format (Ljava/lang/Enum;)Ljava/lang/String;
+	public final fun uuid (Ljava/lang/String;)Ljava/util/UUID;
+}
+
 public final class dev/woge/host/SameSite : java/lang/Enum {
 	public static final field LAX Ldev/woge/host/SameSite;
 	public static final field NONE Ldev/woge/host/SameSite;
@@ -831,5 +857,9 @@ public final class dev/woge/host/WogeOutcome : java/lang/Enum {
 
 public abstract interface annotation class dev/woge/host/WogeRegion : java/lang/annotation/Annotation {
 	public abstract fun component ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class dev/woge/host/WogeRoute : java/lang/annotation/Annotation {
+	public abstract fun path ()Ljava/lang/String;
 }
 

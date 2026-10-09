@@ -5,6 +5,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
+import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
@@ -44,12 +45,14 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     AdapterTckDeferredScenario.fromPath(requireNotNull(call.parameters["scenario"]))
                 },
             )
+        val route = WogeKtorHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 routing {
                     get(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     head(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     get(AdapterTckRoutes.DEFERRED_PATTERN) { deferred.handle(call) }
+                    get(AdapterTckRoute.path) { route.handle(call) }
                 }
             }.start(wait = false)
         return KtorTckServer(server)

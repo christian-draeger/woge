@@ -25,6 +25,9 @@ The [HTML sink guide](stream-html.md) explains when to buffer or stream the same
 The [server host SPI guide](server-host-spi.md) introduces typed page use cases, immutable request
 facts, streamed HTML frames, redirects and safe failures shared by the Spring and Ktor adapters.
 
+The [typed page routes guide](typed-routes.md) declares a URL once on the page input, builds links
+from it and lets every host read the same path and query values.
+
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
 
