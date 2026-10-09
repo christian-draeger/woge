@@ -195,6 +195,9 @@ public abstract interface class dev/woge/host/DeferredRegionsUseCase {
 	public abstract fun regions (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class dev/woge/host/DuplicateIdentityException : java/lang/IllegalStateException {
+}
+
 public final class dev/woge/host/ExternalRedirectLocation : dev/woge/host/RedirectLocation {
 	public final fun getUrl-k-WF5Ao ()Ljava/lang/String;
 	public fun getValue ()Ljava/lang/String;
@@ -274,6 +277,44 @@ public final class dev/woge/host/HttpValuesKt {
 	public static final fun responseCookie (Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/ResponseCookie;
 }
 
+public final class dev/woge/host/IdentityKey {
+	public static final field Companion Ldev/woge/host/IdentityKey$Companion;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/IdentityKey$Companion {
+	public final fun of (J)Ldev/woge/host/IdentityKey;
+	public final fun of (Ljava/lang/String;)Ldev/woge/host/IdentityKey;
+	public final fun of (Ljava/util/UUID;)Ldev/woge/host/IdentityKey;
+}
+
+public final class dev/woge/host/IdentityName {
+	public static final field Companion Ldev/woge/host/IdentityName$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/IdentityName;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/IdentityName$Companion {
+	public final fun of-MvJaUxw (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/IdentityScope {
+	public final fun component-vwXD5pw (Ljava/lang/String;Ldev/woge/host/IdentityKey;Ljava/lang/String;)Ldev/woge/host/RenderedComponent;
+	public static synthetic fun component-vwXD5pw$default (Ldev/woge/host/IdentityScope;Ljava/lang/String;Ldev/woge/host/IdentityKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/RenderedComponent;
+	public final fun region-vwXD5pw (Ljava/lang/String;Ldev/woge/host/IdentityKey;Ljava/lang/String;)Ldev/woge/protocol/PatchTarget;
+	public static synthetic fun region-vwXD5pw$default (Ldev/woge/host/IdentityScope;Ljava/lang/String;Ldev/woge/host/IdentityKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/protocol/PatchTarget;
+}
+
 public final class dev/woge/host/LanguageTag {
 	public static final field Companion Ldev/woge/host/LanguageTag$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/LanguageTag;
@@ -310,6 +351,12 @@ public final class dev/woge/host/MediaType {
 public final class dev/woge/host/MediaType$Companion {
 	public final fun getHTML-HET_288 ()Ljava/lang/String;
 	public final fun of-NFEhphM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/PageIdentity {
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RenderIdentitySecret;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getEpoch-5npnCUI ()Ljava/lang/String;
+	public final fun getRoot ()Ldev/woge/host/IdentityScope;
 }
 
 public final class dev/woge/host/PageRequest {
@@ -399,6 +446,20 @@ public final class dev/woge/host/PublicFailure {
 
 public abstract interface class dev/woge/host/RedirectLocation {
 	public abstract fun getValue ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/RenderIdentitySecret {
+	public static final field Companion Ldev/woge/host/RenderIdentitySecret$Companion;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/RenderIdentitySecret$Companion {
+	public final fun of ([B)Ldev/woge/host/RenderIdentitySecret;
+	public final fun random ()Ldev/woge/host/RenderIdentitySecret;
+}
+
+public final class dev/woge/host/RenderedComponent {
+	public final fun getChildren ()Ldev/woge/host/IdentityScope;
 }
 
 public final class dev/woge/host/RequestContext {
