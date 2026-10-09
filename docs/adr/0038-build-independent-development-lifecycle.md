@@ -110,7 +110,8 @@ first release.
 ## Follow-up
 
 - Validate process ownership, ports and proxy necessity in
-  [#141](https://github.com/christian-draeger/woge/issues/141).
+  [#141](https://github.com/christian-draeger/woge/issues/141), with the accepted result recorded in
+  [ADR 0041](0041-orchestrator-owned-spring-reload-and-sse-channel.md).
 - Build the shared orchestrator over this reducer and capability boundary in
   [#147](https://github.com/christian-draeger/woge/issues/147).
 - Add Spring Boot restart and browser-channel adapters in
