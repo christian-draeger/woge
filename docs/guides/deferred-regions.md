@@ -99,14 +99,43 @@ executor.execute(regions).encodeDeferredPatchStream { update ->
 }
 ```
 
-The patch-ID source and `writeAndFlush` operation shown here belong to the host adapter. Every
-non-terminal chunk contains one complete patch frame; the last chunk contains the completion frame.
-Network boundaries can split or combine those writes without changing the wire protocol.
+The patch-ID source and `writeAndFlush` operation shown here belong to the host adapter. The first
+chunk is the stream preamble. It is sent before any region is awaited, so the status line and headers
+reach the browser right away. Every following non-terminal chunk contains one complete patch frame;
+the last chunk contains the completion frame. Network boundaries can split or combine those writes
+without changing the wire protocol.
 
 The browser applies the first frame while the Fetch response is still open, so a fast region declared
 after a slow one becomes visible first. A no-JavaScript request must never be left permanently on
 loading HTML; the host integration resolves required final content into the document or keeps a
 complete normal navigation path.
+
+## Test the patch stream
+
+Spring MVC, Spring WebFlux and Ktor all send status and headers before the first region finishes.
+A test can therefore hold every region back and still read the response headers. Use this order:
+
+1. Gate the regions, for example with a `CompletableDeferred` the region `content` awaits.
+2. Send the request and read status and headers. This returns without releasing the gate.
+3. Release the gate.
+4. Read the frames until the completion frame.
+
+```kotlin
+val gate = CompletableDeferred<Unit>()
+// region content: gate.await(); patchHtml { ... }
+
+val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+assertEquals(200, response.statusCode())
+assertTrue(response.headers().firstValue("content-type").get().startsWith("application/vnd.woge.patch-stream"))
+
+gate.complete(Unit)
+val decoder = PatchStreamV1.decoder()
+val events = decoder.feed(response.body().readAllBytes()).also { decoder.finish() }
+assertEquals(PatchStreamEvent.Complete(2), events.last())
+```
+
+Do not release the gate inside a callback that runs only after the response is complete. That waits
+on itself and the test hangs.
 
 See [ADR 0026](../adr/0026-structured-deferred-region-execution.md) for lifecycle and ownership and
 [ADR 0027](../adr/0027-fetch-deferred-patches-after-html-shell.md) for the two-response transport

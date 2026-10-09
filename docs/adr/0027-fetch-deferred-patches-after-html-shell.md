@@ -41,6 +41,11 @@ adapter boundary; the portable runtime does not invent global identity. The enco
 fresh `EncodedPatchChunk` per patch and one terminal chunk. A host adapter writes and flushes each
 chunk, while arbitrary TCP, proxy and browser byte boundaries remain valid protocol behavior.
 
+The encoder's first chunk is the stream preamble alone, emitted before any region is awaited. Every
+adapter therefore commits status, content type and the preamble immediately, so a Fetch or test client
+sees headers while slow regions are still running. The adapter TCK proves this with all regions gated
+([#175](https://github.com/christian-draeger/woge/issues/175)).
+
 The patch endpoint must perform the same authentication and authorization as the document use case.
 A page epoch and region ID identify state but never grant access. Concrete URL generation, request
 correlation, disconnect handling and post-commit failure mapping belong to host adapters and the

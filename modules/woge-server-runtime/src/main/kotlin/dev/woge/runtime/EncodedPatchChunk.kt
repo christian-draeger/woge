@@ -41,9 +41,10 @@ public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
     )
 
 /**
- * Encodes each deferred update as an independently flushable chunk followed by a terminal chunk.
+ * Encodes the stream preamble, then each deferred update, as independently flushable chunks.
  *
- * The first chunk also contains the stream preamble. Upstream, patch-ID, or encoder failures are
+ * The preamble chunk is emitted before any region is awaited so hosts commit status and headers early.
+ * A terminal chunk follows the last update. Upstream, patch-ID, or encoder failures are
  * propagated without manufacturing a successful terminal frame.
  */
 @Suppress("TooGenericExceptionCaught")
@@ -55,6 +56,9 @@ public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
     flow {
         val pending = ByteArrayOutputStream()
         val encoder = PatchStreamV1.encoder(ByteSink(pending::write))
+        encoder.start()
+        emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
+        pending.reset()
 
         collect { update ->
             val id = patchId(update)
