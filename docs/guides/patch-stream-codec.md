@@ -4,8 +4,8 @@ The fallback patch stream is Woge's compact byte protocol for enhanced actions a
 Application code normally creates `ReplacePatch` values; Spring MVC, Spring WebFlux or Ktor adapter
 code turns them into response bytes.
 
-The implementation exists now. The browser-side DOM runtime that consumes these events lands in the
-next issue.
+The [browser replace runtime](browser-replace-runtime.md) reads this stream and applies each patch to
+the page.
 
 ## Encode incrementally
 

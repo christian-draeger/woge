@@ -86,6 +86,29 @@ dependencies {
 }
 ```
 
+The dependency only serves the file. Your page still needs a small module of its own that fetches
+the patch URL and applies it. Put it in `src/main/resources/static/` and load it with
+`<script type="module">` from the page:
+
+```js
+import { createWogePatchRuntime } from "/assets/woge/index.js";
+
+const controller = new AbortController();
+window.addEventListener("pagehide", () => controller.abort(), { once: true });
+
+try {
+  const response = await fetch(document.body.dataset.wogePatchUrl, { signal: controller.signal });
+  if (!response.ok || !response.body) throw new Error("Updates unavailable");
+  await createWogePatchRuntime(document).applyPatchStream(response.body, { signal: controller.signal });
+} catch (error) {
+  // Keep the normal "complete page" link usable when enhancement fails.
+  if (!controller.signal.aborted) console.warn("Woge updates unavailable", error);
+}
+```
+
+Without JavaScript the loading text stays, so also link to a complete version of the page that
+renders every region on the server (for example `?view=complete`).
+
 ## Test
 
 Run the normal Node-free test:
