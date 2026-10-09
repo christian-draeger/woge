@@ -71,6 +71,53 @@ port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0));
 
 "$repository_root/scripts/materialize-spring-boot-scaffold.sh" "$fixture_root" "$adapter"
 
+# A strict application policy: wogeDev must allow its own client origin without other changes.
+policy_file="$fixture_root/src/main/kotlin/example/woge/StrictPolicy.kt"
+if [[ "$adapter" == "mvc" ]]; then
+  cat >"$policy_file" <<'KOTLIN'
+package example.woge
+
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.OncePerRequestFilter
+
+@Component
+public class StrictPolicy : OncePerRequestFilter() {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        response.setHeader("Content-Security-Policy", "default-src 'self'")
+        chain.doFilter(request, response)
+    }
+}
+KOTLIN
+else
+  cat >"$policy_file" <<'KOTLIN'
+package example.woge
+
+import org.springframework.stereotype.Component
+import org.springframework.web.server.ServerWebExchange
+import org.springframework.web.server.WebFilter
+import org.springframework.web.server.WebFilterChain
+import reactor.core.publisher.Mono
+
+@Component
+public class StrictPolicy : WebFilter {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: WebFilterChain,
+    ): Mono<Void> {
+        exchange.response.headers.set("Content-Security-Policy", "default-src 'self'")
+        return chain.filter(exchange)
+    }
+}
+KOTLIN
+fi
+
 "$fixture_root/gradlew" \
   --project-dir "$fixture_root" \
   --no-daemon \
@@ -84,6 +131,12 @@ html=$(page)
 grep -Fq '<h1>Hello from Woge</h1>' <<<"$html" || fail 'first page is missing the heading'
 grep -Fq 'name="woge-development"' <<<"$html" || fail 'development client meta tag is missing'
 grep -Fq '/client.js' <<<"$html" || fail 'development client script is missing'
+client_origin=$(grep -o 'src="http://127.0.0.1:[0-9]*/' <<<"$html" | head -1 | sed 's/^src="//; s|/$||')
+[[ -n "$client_origin" ]] || fail 'development client origin is missing'
+policy=$(curl --silent --max-time 10 --dump-header - --output /dev/null "http://127.0.0.1:$port/" |
+  tr -d '\r' | grep -i '^content-security-policy:' || true)
+grep -Fq "connect-src 'self' $client_origin" <<<"$policy" ||
+  fail "strict CSP does not allow the development client: $policy"
 
 sed -i.bak 's/Hello from Woge/Edited by wogeDev/g' "$page_file"
 wait_for_log '^\[woge\] Ready:' 2 120
