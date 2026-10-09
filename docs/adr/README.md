@@ -67,6 +67,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0038](0038-build-independent-development-lifecycle.md) | Accepted | Share one build-independent development lifecycle across tool adapters |
 | [0039](0039-versioned-external-spring-boot-application-scaffold.md) | Accepted | Maintain one versioned external Spring Boot application scaffold |
 | [0040](0040-generate-application-agent-guidance-from-public-metadata.md) | Accepted | Generate application agent guidance from public framework metadata |
+| [0041](0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Accepted | Let Woge own Spring development orchestration and use SSE for browser lifecycle events |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
