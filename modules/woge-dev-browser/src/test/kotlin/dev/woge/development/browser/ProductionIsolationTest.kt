@@ -22,6 +22,10 @@ class ProductionIsolationTest {
                     entry.name.startsWith("dev/woge/development/"),
                     "$path contains development code or resources: ${entry.name}",
                 )
+                assertFalse(
+                    entry.name == "META-INF/services/dev.woge.html.DevelopmentHeadContribution",
+                    "$path registers a development head contribution",
+                )
                 verifyFactories(jar, entry, path)
             }
         }

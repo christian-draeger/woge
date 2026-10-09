@@ -3,18 +3,23 @@ package dev.woge.development.browser
 import dev.woge.development.BuildId
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ServerGeneration
+import dev.woge.development.client.DevelopmentClientSettings
+import dev.woge.development.client.developmentClient
 import dev.woge.html.CspNonce
 import dev.woge.html.HtmlWriter
-import dev.woge.html.externalUrl
-import dev.woge.html.metadata
-import dev.woge.html.moduleScript
-import dev.woge.html.stylesheet
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+
+/** The settings a page rendered by [renderedBuild] and [generation] needs to connect to this channel. */
+@ExperimentalWogeDevelopmentApi
+public fun DevelopmentBrowserChannel.clientSettings(
+    renderedBuild: BuildId?,
+    generation: ServerGeneration?,
+    overlay: Boolean = true,
+): DevelopmentClientSettings =
+    DevelopmentClientSettings(eventsUrl, baseUrl, detailsUrl, renderedBuild, generation, overlay)
 
 /**
- * Explicit opt-in for a development document. Call only from the development host, never from a
- * production template. The IDs must describe the application generation that rendered this page.
+ * Explicit opt-in for a development document in the same process as the channel. Applications
+ * started by `wogeDev` receive the client automatically through `woge-dev-client`.
  */
 @ExperimentalWogeDevelopmentApi
 public fun HtmlWriter.developmentClient(
@@ -24,16 +29,5 @@ public fun HtmlWriter.developmentClient(
     overlay: Boolean = true,
     nonce: CspNonce? = null,
 ) {
-    metadata(
-        "woge-development",
-        buildJsonObject {
-            put("endpoint", channel.eventsUrl)
-            put("build", renderedBuild?.value?.toString() ?: "0")
-            put("generation", generation?.value?.toString() ?: "0")
-            put("overlay", overlay)
-            put("details", channel.detailsUrl)
-        }.toString(),
-    )
-    if (overlay) stylesheet(externalUrl("${channel.baseUrl}/overlay.css"))
-    moduleScript(externalUrl("${channel.baseUrl}/client.js"), nonce = nonce)
+    developmentClient(channel.clientSettings(renderedBuild, generation, overlay), nonce)
 }

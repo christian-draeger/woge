@@ -21,6 +21,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Run clean repository gate without task-output caches
         run: ./gradlew clean check --no-build-cache --stacktrace
+      - name: Run the wogeDev edit loop in the external Spring Boot scaffold
+        run: ./gradlew scaffoldDevSmoke --stacktrace
       - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@v7

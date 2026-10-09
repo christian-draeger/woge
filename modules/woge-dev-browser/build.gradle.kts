@@ -7,6 +7,7 @@ description = "Development-only SSE browser channel and optional accessible stat
 dependencies {
     api(project(":woge-dev-orchestrator"))
     api(project(":woge-core"))
+    api(project(":woge-dev-client"))
     implementation(libs.kotlinxSerializationJson)
 
     testImplementation(libs.junitJupiter)
