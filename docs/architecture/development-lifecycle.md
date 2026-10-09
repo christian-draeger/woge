@@ -101,6 +101,19 @@ Rules in short (details in [ADR 0042](../adr/0042-single-actor-development-orche
   when the host says so.
 - `reload` and `restart` commands only work for the latest successful build.
 
+## The Spring Boot host
+
+`woge-dev-spring-host` is the first host adapter ([ADR 0043](../adr/0043-spring-dev-host-uses-log-marker-and-trigger-file.md)).
+It starts your app as a child process and has two ways to restart it:
+
+- **Fast:** after a successful build, write the trigger file. Spring DevTools restarts inside the
+  running JVM.
+- **Complete:** stop the process, check the port, start a new one. Always correct, a bit slower.
+
+"Ready" means a new `Started ... in ... seconds` line in the log. If the port is taken, the process
+exits or nothing is ready in time, you get one short diagnostic code (`SPRING-HOST-*`), never raw log
+output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
+
 ## Security and production isolation
 
 - Development URLs accept loopback HTTP(S) hosts only and cannot contain credentials, query values or

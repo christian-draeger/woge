@@ -114,6 +114,16 @@
       "example": null
     },
     {
+      "name": "woge-dev-spring-host",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-spring-host",
+      "artifact": null,
+      "concepts": ["spring-dev-host", "development-restart", "reload-correctness"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
       "name": "woge-fallback-client-assets",
       "role": "integration",
       "exposure": "public",

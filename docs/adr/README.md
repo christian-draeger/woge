@@ -69,6 +69,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0040](0040-generate-application-agent-guidance-from-public-metadata.md) | Accepted | Generate application agent guidance from public framework metadata |
 | [0041](0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Accepted | Let Woge own Spring development orchestration and use SSE for browser lifecycle events |
 | [0042](0042-single-actor-development-orchestrator.md) | Accepted | Run the development orchestrator as one single-threaded coordinator |
+| [0043](0043-spring-dev-host-uses-log-marker-and-trigger-file.md) | Accepted | Drive the Spring Boot dev host with a child process, a trigger file and a log marker |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
