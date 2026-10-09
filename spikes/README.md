@@ -17,25 +17,25 @@ Changing an accepted architectural conclusion requires the normal [ADR lifecycle
 
 ## M0 inventory
 
-All M0 spikes are **Frozen**. Their source remains small, independently executable evidence while M1–M4 build the supported implementation.
+Frozen spikes stay in the repository as small, executable evidence. Retired spikes were removed after production code and tests covered their decision; their links point to the last commit that contained them.
 
-| Spike | Decision | Production successor |
-| --- | --- | --- |
-| [`spring-html-htmx-baseline`](spring-html-htmx-baseline/) | Reference journey and host comparison in ADRs [0004](../docs/adr/0004-project-operations-reference-application.md) and [0005](../docs/adr/0005-server-host-use-case-ports.md) | Multi-host slice [#24](https://github.com/christian-draeger/woge/issues/24) and adapter TCK [#65](https://github.com/christian-draeger/woge/issues/65) |
-| [`typed-reference-model`](typed-reference-model/) | Typed web references in ADR [0011](../docs/adr/0011-typed-web-references.md) | Identity and KSP descriptors [#25](https://github.com/christian-draeger/woge/issues/25), [#26](https://github.com/christian-draeger/woge/issues/26), [#27](https://github.com/christian-draeger/woge/issues/27) and [#28](https://github.com/christian-draeger/woge/issues/28) |
-| [`html-writer-strategy`](html-writer-strategy/) | Streaming writer and `kotlinx.html` interop in ADR [0012](../docs/adr/0012-html-writer-and-kotlinx-interop.md) | Safe rendering [#16](https://github.com/christian-draeger/woge/issues/16) and sinks [#17](https://github.com/christian-draeger/woge/issues/17) |
-| [`patch-framing`](patch-framing/) | Length-prefixed framing in ADR [0013](../docs/adr/0013-length-prefixed-patch-framing.md) | Fallback encoding [#20](https://github.com/christian-draeger/woge/issues/20) and fuzzing [#41](https://github.com/christian-draeger/woge/issues/41) |
-| [`fallback-patch-runtime`](fallback-patch-runtime/) | Small owned browser runtime in ADR [0014](../docs/adr/0014-small-owned-fallback-patch-runtime.md) | Runtime [#21](https://github.com/christian-draeger/woge/issues/21) and browser conformance [#39](https://github.com/christian-draeger/woge/issues/39) |
-| [`native-dpu`](native-dpu/) | Experimental native ceiling in ADR [0015](../docs/adr/0015-limit-native-dpu-to-initial-document-optimization.md) | Optional encoder [#40](https://github.com/christian-draeger/woge/issues/40) |
-| [`css-authoring`](css-authoring/) | Standards-native CSS in ADR [0016](../docs/adr/0016-standards-native-css-authoring.md) | Asset/style contract [#78](https://github.com/christian-draeger/woge/issues/78) |
-| [`tailwind-kotlin`](tailwind-kotlin/) | Optional Tailwind adapter in ADR [0017](../docs/adr/0017-optional-tailwind-build-adapter.md) | Supported build adapter [#79](https://github.com/christian-draeger/woge/issues/79) |
-| [`component-distribution`](component-distribution/) | Headless plus source-owned model in ADR [0018](../docs/adr/0018-hybrid-headless-and-source-owned-components.md) | Headless foundation [#80](https://github.com/christian-draeger/woge/issues/80) and registry [#81](https://github.com/christian-draeger/woge/issues/81) |
+| State | Spike | Decision | Production successor |
+| --- | --- | --- | --- |
+| Retired | [`spring-html-htmx-baseline`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline) | Reference journey and host comparison in ADRs [0004](../docs/adr/0004-project-operations-reference-application.md) and [0005](../docs/adr/0005-server-host-use-case-ports.md) | Multi-host slice [#24](https://github.com/christian-draeger/woge/issues/24) and adapter TCK [#65](https://github.com/christian-draeger/woge/issues/65) |
+| Frozen | [`typed-reference-model`](typed-reference-model/) | Typed web references in ADR [0011](../docs/adr/0011-typed-web-references.md) | Identity and KSP descriptors [#25](https://github.com/christian-draeger/woge/issues/25), [#26](https://github.com/christian-draeger/woge/issues/26), [#27](https://github.com/christian-draeger/woge/issues/27) and [#28](https://github.com/christian-draeger/woge/issues/28) |
+| Retired | [`html-writer-strategy`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/html-writer-strategy) | Streaming writer and `kotlinx.html` interop in ADR [0012](../docs/adr/0012-html-writer-and-kotlinx-interop.md) | Safe rendering [#16](https://github.com/christian-draeger/woge/issues/16) and sinks [#17](https://github.com/christian-draeger/woge/issues/17) |
+| Frozen | [`patch-framing`](patch-framing/) | Length-prefixed framing in ADR [0013](../docs/adr/0013-length-prefixed-patch-framing.md) | Fallback encoding [#20](https://github.com/christian-draeger/woge/issues/20) and fuzzing [#41](https://github.com/christian-draeger/woge/issues/41) |
+| Frozen | [`fallback-patch-runtime`](fallback-patch-runtime/) | Small owned browser runtime in ADR [0014](../docs/adr/0014-small-owned-fallback-patch-runtime.md) | Runtime [#21](https://github.com/christian-draeger/woge/issues/21) and browser conformance [#39](https://github.com/christian-draeger/woge/issues/39) |
+| Frozen | [`native-dpu`](native-dpu/) | Experimental native ceiling in ADR [0015](../docs/adr/0015-limit-native-dpu-to-initial-document-optimization.md) | Optional encoder [#40](https://github.com/christian-draeger/woge/issues/40) |
+| Retired | [`css-authoring`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/css-authoring) | Standards-native CSS in ADR [0016](../docs/adr/0016-standards-native-css-authoring.md) | Asset/style contract [#78](https://github.com/christian-draeger/woge/issues/78) |
+| Frozen | [`tailwind-kotlin`](tailwind-kotlin/) | Optional Tailwind adapter in ADR [0017](../docs/adr/0017-optional-tailwind-build-adapter.md) | Supported build adapter [#79](https://github.com/christian-draeger/woge/issues/79) |
+| Frozen | [`component-distribution`](component-distribution/) | Headless plus source-owned model in ADR [0018](../docs/adr/0018-hybrid-headless-and-source-owned-components.md) | Headless foundation [#80](https://github.com/christian-draeger/woge/issues/80) and registry [#81](https://github.com/christian-draeger/woge/issues/81) |
 
 ## Post-M0 evidence
 
 | State | Spike | Decision | Production successor |
 | --- | --- | --- | --- |
-| Frozen | [`spring-boot-reload-topology`](spring-boot-reload-topology/) | Woge-owned orchestration, Spring DevTools trigger adapter, SSE lifecycle channel and no initial proxy in ADR [0041](../docs/adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Orchestrator [#147](https://github.com/christian-draeger/woge/issues/147), Spring restart [#144](https://github.com/christian-draeger/woge/issues/144) and browser channel [#145](https://github.com/christian-draeger/woge/issues/145) |
+| Retired | [`spring-boot-reload-topology`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-boot-reload-topology) | Woge-owned orchestration, Spring DevTools trigger adapter, SSE lifecycle channel and no initial proxy in ADR [0041](../docs/adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Orchestrator [#147](https://github.com/christian-draeger/woge/issues/147), Spring restart [#144](https://github.com/christian-draeger/woge/issues/144) and browser channel [#145](https://github.com/christian-draeger/woge/issues/145) |
 
 ## Repository rules
 

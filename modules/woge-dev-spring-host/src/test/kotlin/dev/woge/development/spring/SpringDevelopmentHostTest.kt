@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.net.ServerSocket
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration
@@ -286,4 +287,11 @@ class SpringDevelopmentHostTest {
             assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, host.restart(request(1, 1)))
             host.shutdown()
         }
+
+    @Test
+    fun `local port probe sees a wildcard listener`() {
+        ServerSocket(0).use { listener ->
+            assertFalse(PortProbe.local.isFree(listener.localPort))
+        }
+    }
 }

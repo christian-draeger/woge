@@ -58,7 +58,7 @@ DevTools path already preserves the process and port, and the measured fallback 
 proxy routing yet.
 
 The executable comparison and measurements are in the
-[Spring Boot reload topology evidence](../../spikes/spring-boot-reload-topology/evidence.md). The
+[Spring Boot reload topology evidence](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-boot-reload-topology/evidence.md). The
 durable process and transport decision is [ADR 0041](../adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md).
 
 The terms used by Woge are deliberately precise:

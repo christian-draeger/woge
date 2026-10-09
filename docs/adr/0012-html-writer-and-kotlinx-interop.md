@@ -9,7 +9,7 @@
 
 Woge components need safe HTML output that can reach a host response incrementally and pause at generated region/frame boundaries. The API should look like HTML to a web developer, preserve current/future attributes and CSS, provide useful completion and make raw content visibly unsafe.
 
-The [executable comparison](../../spikes/html-writer-strategy/evidence.md) rendered one utility-heavy custom-element component through a purpose-built writer and `kotlinx.html` 0.12.0. Both escaped hostile text, represented Boolean/custom/data/ARIA attributes and streamed to a sink without a DOM. `kotlinx.html` has mature known-tag completion; the purpose-built sink gives Woge direct control over region, framing and trusted-content boundaries. An `Appendable` bridge proved streaming interoperability.
+The [executable comparison](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/html-writer-strategy/evidence.md) rendered one utility-heavy custom-element component through a purpose-built writer and `kotlinx.html` 0.12.0. Both escaped hostile text, represented Boolean/custom/data/ARIA attributes and streamed to a sink without a DOM. `kotlinx.html` has mature known-tag completion; the purpose-built sink gives Woge direct control over region, framing and trusted-content boundaries. An `Appendable` bridge proved streaming interoperability.
 
 ## Decision
 
