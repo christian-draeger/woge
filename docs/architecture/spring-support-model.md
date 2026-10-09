@@ -2,7 +2,7 @@
 
 This M0 report records the evidence and support decision for issue
 [#64](https://github.com/christian-draeger/woge/issues/64). The executable fixture is the
-[hand-written Spring baseline](../../spikes/spring-html-htmx-baseline/README.md).
+[hand-written Spring baseline](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline/README.md).
 The production page adapters now provide real-server evidence through the
 [shared adapter TCK](server-adapter-parity.md); MVC's concrete lifecycle is recorded in
 [ADR 0032](../adr/0032-async-servlet-spring-mvc-adapter.md).

@@ -109,4 +109,4 @@ Exact thresholds belong to the performance-budget decision after baseline data e
 | M4 | Navigation, themes and the accessible component catalog produce a polished complex application |
 
 The hand-written M0 comparison and its measurements live in the
-[Spring HTML + htmx baseline](../../spikes/spring-html-htmx-baseline/evidence.md).
+[Spring HTML + htmx baseline](https://github.com/christian-draeger/woge/blob/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline/evidence.md).

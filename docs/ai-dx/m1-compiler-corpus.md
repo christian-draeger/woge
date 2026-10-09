@@ -28,6 +28,8 @@ the source filename, expected and received concepts, and searchable diagnostic i
 | `WOGE-COMPILE-HTML-001` | A `String` cannot become raw HTML | Keep data in `text(...)`; only audited sanitizer output uses `raw(unsafeHtml(...))` |
 | `WOGE-COMPILE-HTML-002` | A URL attribute does not accept a plain `String` | Use `applicationUrl(...)` or `externalUrl(...)` and pass that value to `url(...)` |
 | `WOGE-COMPILE-HTML-003` | An unsafe conversion lacks an audit marker | Add `@OptIn(UnsafeWogeHtmlApi::class)` at the narrow reviewed boundary, never merely to silence a failure |
+| `WOGE-COMPILE-HTML-004` | A boolean attribute got the string `"true"` | Pass a Kotlin `Boolean`: `boolean("disabled", isDisabled)` |
+| `WOGE-COMPILE-CSS-001` | A whole stylesheet was used as a `style` attribute | Use `styles(declarations("color: red;"))` inline; put rule sets in a CSS file |
 | `WOGE-COMPILE-PROTOCOL-001` | Page epoch and region ID were swapped | Construct `PatchTarget(PageEpoch, RegionTargetId)` with the two distinct types |
 | `WOGE-COMPILE-PORT-001` | Portable code imports a server framework | Move request decoding to the Spring/Ktor adapter and pass an application input to `PageUseCase` |
 

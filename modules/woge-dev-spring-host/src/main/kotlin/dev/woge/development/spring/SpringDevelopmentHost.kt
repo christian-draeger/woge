@@ -45,7 +45,7 @@ import kotlin.time.Duration
 public class SpringDevelopmentHost(
     private val config: SpringDevelopmentHostConfig,
     private val launcher: ChildLauncher = ProcessChildLauncher,
-    private val portProbe: PortProbe = PortProbe.loopback,
+    private val portProbe: PortProbe = PortProbe.local,
 ) : DevelopmentHostAdapter {
     private sealed interface Signal {
         data class Ready(

@@ -36,7 +36,7 @@ npm ci --ignore-scripts
 For continuous development CSS rebuilds:
 
 ```shell
-../spring-html-htmx-baseline/gradlew -p . tailwindCssWatch
+../../gradlew -p . tailwindCssWatch
 ```
 
 The task uses polling so the optional Parcel watcher install script is not required. Browser reload or HMR belongs to the consuming application dev server, not the Woge runtime.

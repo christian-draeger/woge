@@ -1,12 +1,15 @@
 # M1 multi-host walking-skeleton baseline
 
-Recorded on 2026-09-06 for the maintained reference application. Run both commands from the
+Recorded on 2026-09-06 for the maintained reference application. Run this command from the
 repository root to reproduce the source measurements:
 
 ```shell
-./spikes/spring-html-htmx-baseline/measure.sh
 ./examples/reference-application/measure.sh
 ```
+
+The M0 comparison came from the retired
+[Spring HTML + htmx baseline](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-html-htmx-baseline).
+Check out that commit to rerun its `measure.sh`.
 
 These are structural measurements, not throughput claims. Generated code, tests, build files and
 blank or comment-only lines are excluded. The M0 fixture already contains actions and SSE that the M1
