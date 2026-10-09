@@ -27,6 +27,7 @@ val scaffoldPublicationModules =
         "woge-dev-spring-host",
         "woge-dev-browser",
         "woge-dev-gradle",
+        "woge-fallback-client-assets",
     )
 val scaffoldPluginModules = setOf("woge-gradle-plugin")
 val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
