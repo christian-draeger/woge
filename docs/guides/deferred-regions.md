@@ -33,6 +33,33 @@ val summary = deferredRegion(
 )
 ```
 
+### Name the target
+
+`projectSummaryTarget` says which element the result replaces. Create it from one `PageIdentity` per
+rendered page instead of writing ID strings yourself:
+
+```kotlin
+val identity = PageIdentity(pageEpoch, renderIdentitySecret)
+val projectSummaryTarget = identity.root.region(IdentityName.of("project-summary"))
+
+// Repeated items need a key that stays the same while the item exists, never the list index.
+val cardTargets = projects.associate { project ->
+    project.id to identity.root
+        .component(IdentityName.of("ProjectCard"), IdentityKey.of(project.id))
+        .children
+        .region(IdentityName.of("summary"))
+}
+```
+
+The generated ID is a short opaque value such as `w1Qm9…`. Your database keys never appear in the
+HTML. Reordering, adding or removing list items does not change the IDs of the other items. Rendering
+the same name twice at one level, or the same key twice, stops with an error that tells you where.
+
+Load `renderIdentitySecret` (at least 32 random bytes) from your secret store and use the same value
+on every server of one deployment. `RenderIdentitySecret.random()` is fine for tests.
+
+### Run the work
+
 `content` is a suspending Kotlin function: it can wait for database or network work without owning a
 thread while it waits. Creating `summary` does not start that work.
 

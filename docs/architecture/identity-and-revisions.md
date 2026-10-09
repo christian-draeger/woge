@@ -2,7 +2,9 @@
 
 This document defines observable identity and ordering behavior. The first implemented protocol values
 are `PageEpoch`, `RegionTargetId`, `PatchTarget`, `InteractionSequence`, `TargetRevision` and
-`TargetRevisionStep`; generated component/region descriptor names remain follow-up work. Identity
+`TargetRevisionStep`, plus rendered component and region identities through `PageIdentity` in
+`woge-host-spi`; generated component/region descriptor names remain follow-up work in
+[#26](https://github.com/christian-draeger/woge/issues/26). Identity
 locates a rendered instance; it never grants permission to read or mutate it.
 
 ## Identity model
@@ -26,6 +28,13 @@ Rendered IDs use canonical key encoding and an application/deployment integrity 
 ```text
 base64url(HMAC(key, protocol | epoch | parent | slot | descriptor | canonical-component-key))
 ```
+
+Version 1 (`w1` prefix) is implemented as HMAC-SHA256 over length-prefixed fields
+`woge-identity-v1 | epoch | parent ID | kind (component or region) | slot | name | typed key`, cut to
+18 bytes (144 bits) and written as base64url without padding: always 26 characters from
+`[A-Za-z0-9_-]`. Typed keys (`String`, `Long`, `UUID`) carry a type tag, so `"7"` and `7L` differ.
+The HMAC secret is a deployment secret of at least 32 bytes. Diagnostics name the component path and
+slot but print `[key]` instead of the raw key.
 
 The exact algorithm/version is protocol metadata. A collision among rendered siblings, including a duplicate explicit key, fails rendering with an actionable source/component path. Cryptographic output collisions are treated as fatal diagnostics, never as “last element wins”. Key rotation either retains a bounded verification key ring or deterministically marks the old page stale.
 

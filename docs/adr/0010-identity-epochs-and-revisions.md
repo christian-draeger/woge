@@ -59,7 +59,7 @@ Browser sequences and Woge target revisions coordinate presentation only. They d
 ## Follow-up
 
 - Align typed rendered-instance references with this model in [#7](https://github.com/christian-draeger/woge/issues/7).
-- Implement canonical key/ID generation and duplicate diagnostics in [#25](https://github.com/christian-draeger/woge/issues/25) and [#26](https://github.com/christian-draeger/woge/issues/26).
+- Canonical key/ID generation and duplicate diagnostics are implemented by `PageIdentity` ([#25](https://github.com/christian-draeger/woge/issues/25)): HMAC-SHA256 with a deployment secret, 144-bit base64url IDs, redacted keys in diagnostics. Generated descriptors follow in [#26](https://github.com/christian-draeger/woge/issues/26).
 - Put epoch, target, base/next revision and operation-specific identity in the Patch IR in [#19](https://github.com/christian-draeger/woge/issues/19) and [#32](https://github.com/christian-draeger/woge/issues/32).
 - Turn every required scenario into browser/fuzz fixtures in [#37](https://github.com/christian-draeger/woge/issues/37), [#38](https://github.com/christian-draeger/woge/issues/38) and [#41](https://github.com/christian-draeger/woge/issues/41).
 - Select concrete cryptographic primitives, token lifetime and key-rotation configuration during the host/runtime implementation security review.
