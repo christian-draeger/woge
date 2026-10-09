@@ -67,6 +67,57 @@ export class WogeRemotePatchError extends WogePatchError {
   readonly recovery: "none" | "reload";
 }
 
+/** Failure groups from the canonical failure and recovery model (ADR 0047). */
+export type WogeFailureCategory =
+  | "request-decoding"
+  | "security"
+  | "domain-conflict"
+  | "rendering"
+  | "transport"
+  | "protocol"
+  | "stale"
+  | "incompatible-client"
+  | "browser-apply"
+  | "resource-exhaustion"
+  | "cancelled"
+  | "unknown";
+
+/** The single bounded reaction for one failure. */
+export type WogeRecoveryOutcome =
+  | "fail-closed"
+  | "error-response"
+  | "ignore-stale"
+  | "refetch-region"
+  | "reload-page"
+  | "retry-safe";
+
+export interface WogeFailureClassification {
+  readonly code: string;
+  readonly category: WogeFailureCategory;
+  readonly outcome: WogeRecoveryOutcome;
+}
+
+export interface ClassifyWogeFailureOptions {
+  /** True only for idempotent requests without side effects, such as a deferred-region GET. */
+  readonly safeRequest?: boolean;
+}
+
+export function classifyWogeFailure(
+  problem: unknown,
+  options?: ClassifyWogeFailureOptions,
+): WogeFailureClassification;
+
+export interface WogeRecoveryBudget {
+  /** True at most once per page epoch in this browser tab. */
+  tryReload(pageEpoch: string): boolean;
+  /** True at most once per request key. */
+  tryRetry(requestKey: string): boolean;
+}
+
+export function createWogeRecoveryBudget(options?: {
+  readonly storage?: Pick<Storage, "getItem" | "setItem">;
+}): WogeRecoveryBudget;
+
 export function createWogePatchRuntime(root?: Document, options?: WogePatchRuntimeOptions): WogePatchRuntime;
 
 declare global {
