@@ -71,9 +71,9 @@ There is no string operation name and no generic map of extra fields. Append, re
 announcement will appear only after their ordering, focus, accessibility and recovery behavior is
 specified and tested.
 
-There is also no JSON or binary encoding in the IR. Issue #20 maps this semantic value to canonical
-metadata and the version-1 length-prefixed fallback stream. A checked-in golden fixture already proves
-the IR's field order and rendered content are deterministic; it is not yet the public wire format.
+There is also no JSON or binary encoding in the IR. The [patch stream codec](patch-stream-codec.md)
+turns these values into the version-1 wire format. A checked-in golden fixture proves the IR's field
+order and rendered content are deterministic.
 
 See the executable [`PatchTest`](../../modules/woge-protocol/src/test/kotlin/dev/woge/protocol/PatchTest.kt)
 for valid values, invalid selectors, revision gaps, protocol mismatch and fixture serialization.

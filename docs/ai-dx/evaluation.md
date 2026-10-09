@@ -82,4 +82,4 @@ The rubric rewards small orthogonal APIs, explicit types, deterministic defaults
 - Rerun the corpus before MVP API freeze and each compatibility release.
 - Publish limitations and methodology with results.
 
-The [pre-API control](results/2026-09-03-pre-api-control.md) establishes the initial comparison and concrete design improvements. The [first M1 consumer run](results/2026-10-09-m1-consumer-ai.md) compares three model families on the published scaffold; the human control is still open in [#93](https://github.com/christian-draeger/woge/issues/93).
+The [pre-API control](results/2026-09-03-pre-api-control.md) establishes the initial comparison and concrete design improvements. The [first M1 consumer run](results/2026-10-09-m1-consumer-ai.md) compares three model families on the published scaffold; the [ADX-04 re-run](results/2026-10-09-m1-adx04-rerun.md) confirms the browser enhancement path on both Spring hosts. A human-authored control must be written by a person and is tracked for beta in [#181](https://github.com/christian-draeger/woge/issues/181).
