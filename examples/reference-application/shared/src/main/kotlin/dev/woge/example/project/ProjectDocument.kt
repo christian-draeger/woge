@@ -25,11 +25,12 @@ import dev.woge.html.title
 internal fun HtmlWriter.renderProjectDocument(
     project: ProjectSnapshot,
     view: ProjectPageView,
+    regions: List<ProjectRegion>,
 ) {
     doctype()
     html(attributes = { attribute("lang", "en") }) {
         renderHead(project, view)
-        renderBody(project, view)
+        renderBody(project, view, regions)
     }
 }
 
@@ -53,6 +54,7 @@ private fun HtmlWriter.renderHead(
 private fun HtmlWriter.renderBody(
     project: ProjectSnapshot,
     view: ProjectPageView,
+    regions: List<ProjectRegion>,
 ) {
     body(
         attributes = {
@@ -88,7 +90,7 @@ private fun HtmlWriter.renderBody(
                 renderCompleteProject(project)
             } else {
                 renderFullNavigationFallback(project)
-                renderDeferredProject(project)
+                renderDeferredProject(regions)
             }
         }
         footer(attributes = { classes("site-footer") }) {
@@ -123,11 +125,11 @@ private fun HtmlWriter.renderFullNavigationFallback(project: ProjectSnapshot) {
     }
 }
 
-private fun HtmlWriter.renderDeferredProject(project: ProjectSnapshot) {
-    deferredRegions(project).forEach { region ->
-        regionPlaceholder(region, elementName = "section") {
+private fun HtmlWriter.renderDeferredProject(regions: List<ProjectRegion>) {
+    regions.forEach { region ->
+        regionPlaceholder(region.deferred, elementName = "section") {
             classes("project-region")
-            aria("labelledby", "${region.target.region.value}-heading")
+            aria("labelledby", "${region.name}-heading")
         }
     }
 }

@@ -38,7 +38,8 @@ class WogeMvcQuickstartApplicationTest {
         assertEquals(200, shell.statusCode())
         assertTrue(shell.header("content-type").startsWith("text/html"))
         assertTrue(shell.body().startsWith("<!doctype html><html lang=\"en\">"))
-        assertTrue(shell.body().contains("data-woge-region=\"summary\""))
+        val shellRegions = REGION_ID.findAll(shell.body()).map { it.groupValues[1] }.toSet()
+        assertEquals(3, shellRegions.size)
         assertTrue(shell.body().contains("action=\"/projects/woge\" method=\"get\""))
         assertTrue(shell.body().contains("src=\"/assets/application.js\""))
         assertFalse(shell.body().contains("Publish the first web-first guide"))
@@ -49,7 +50,7 @@ class WogeMvcQuickstartApplicationTest {
         assertTrue(patches.header("content-type").contains("version=1"))
         val events = decode(patches.body())
         val frames = events.filterIsInstance<PatchStreamEvent.PatchFrame>()
-        assertEquals(setOf("summary", "tasks", "activity"), frames.map { it.patch.target.region.value }.toSet())
+        assertEquals(shellRegions, frames.map { it.patch.target.region.value }.toSet())
         assertEquals(PatchStreamEvent.Complete(3), events.last())
         assertTrue(frames.any { (it.patch as ReplacePatch).html.value.contains("Publish the first web-first guide") })
 
@@ -119,3 +120,5 @@ class WogeMvcQuickstartApplicationTest {
         private val CLIENT: HttpClient = HttpClient.newHttpClient()
     }
 }
+
+private val REGION_ID = Regex("""data-woge-region="([^"]+)"""")

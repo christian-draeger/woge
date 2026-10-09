@@ -1,6 +1,7 @@
 package dev.woge.example.project
 
 import dev.woge.host.DeferredRegionFailure
+import dev.woge.host.WogeRegion
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
 import dev.woge.html.applicationUrl
@@ -27,23 +28,24 @@ internal fun HtmlWriter.renderCompleteProject(project: ProjectSnapshot) {
         classes("project-region")
         aria("labelledby", "summary-heading")
     }) {
-        renderSummary(project)
+        projectSummary(project)
     }
     section(attributes = {
         classes("project-region")
         aria("labelledby", "tasks-heading")
     }) {
-        renderTasks(project)
+        projectTasks(project)
     }
     section(attributes = {
         classes("project-region")
         aria("labelledby", "activity-heading")
     }) {
-        renderActivity(project)
+        projectActivity(project)
     }
 }
 
-internal fun HtmlWriter.renderSummary(project: ProjectSnapshot) {
+@WogeRegion
+internal fun HtmlWriter.projectSummary(project: ProjectSnapshot) {
     h2(attributes = { attribute("id", "summary-heading") }) { text("Project summary") }
     dl(attributes = { classes("summary-grid") }) {
         metric("Open tasks", project.tasks.count { it.status != "Complete" })
@@ -52,7 +54,8 @@ internal fun HtmlWriter.renderSummary(project: ProjectSnapshot) {
     }
 }
 
-internal fun HtmlWriter.renderTasks(project: ProjectSnapshot) {
+@WogeRegion
+internal fun HtmlWriter.projectTasks(project: ProjectSnapshot) {
     h2(attributes = { attribute("id", "tasks-heading") }) { text("Tasks") }
     table {
         caption { text("Current tasks for ${project.name}") }
@@ -75,7 +78,8 @@ internal fun HtmlWriter.renderTasks(project: ProjectSnapshot) {
     }
 }
 
-internal fun HtmlWriter.renderActivity(project: ProjectSnapshot) {
+@WogeRegion
+internal fun HtmlWriter.projectActivity(project: ProjectSnapshot) {
     h2(attributes = { attribute("id", "activity-heading") }) { text("Recent activity") }
     ol(attributes = { classes("activity-list") }) {
         project.activity.forEach { event ->

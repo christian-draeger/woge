@@ -315,6 +315,12 @@ public final class dev/woge/host/IdentityScope {
 	public static synthetic fun region-vwXD5pw$default (Ldev/woge/host/IdentityScope;Ljava/lang/String;Ldev/woge/host/IdentityKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/protocol/PatchTarget;
 }
 
+public abstract class dev/woge/host/KeyedRegion : dev/woge/host/RegionDescriptor {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	protected abstract fun identityKey (Ljava/lang/Object;)Ldev/woge/host/IdentityKey;
+	public final fun target (Ldev/woge/host/PageIdentity;Ljava/lang/Object;)Ldev/woge/host/RegionTarget;
+}
+
 public final class dev/woge/host/LanguageTag {
 	public static final field Companion Ldev/woge/host/LanguageTag$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/LanguageTag;
@@ -357,6 +363,12 @@ public final class dev/woge/host/PageIdentity {
 	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RenderIdentitySecret;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getEpoch-5npnCUI ()Ljava/lang/String;
 	public final fun getRoot ()Ldev/woge/host/IdentityScope;
+}
+
+public abstract class dev/woge/host/PageRegion : dev/woge/host/RegionDescriptor {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun target (Ldev/woge/host/PageIdentity;)Ldev/woge/host/RegionTarget;
 }
 
 public final class dev/woge/host/PageRequest {
@@ -446,6 +458,17 @@ public final class dev/woge/host/PublicFailure {
 
 public abstract interface class dev/woge/host/RedirectLocation {
 	public abstract fun getValue ()Ljava/lang/String;
+}
+
+public abstract class dev/woge/host/RegionDescriptor {
+	public abstract fun render (Ldev/woge/html/HtmlWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/RegionTarget {
+	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public final fun render (Ljava/lang/Object;)Ldev/woge/protocol/PatchHtml;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/woge/host/RenderIdentitySecret {
@@ -680,6 +703,19 @@ public final class dev/woge/host/SameSite : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/SameSite;
 }
 
+public final class dev/woge/host/TypedRegionsKt {
+	public static final fun deferredRegion-IloEfL4 (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/DeferredRegion;
+	public static synthetic fun deferredRegion-IloEfL4$default (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/DeferredRegion;
+	public static final fun region-yGY75_w (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public static synthetic fun region-yGY75_w$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public abstract interface annotation class dev/woge/host/WogeComponent : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class dev/woge/host/WogeKey : java/lang/annotation/Annotation {
+}
+
 public final class dev/woge/host/WogeObservationContext {
 	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -791,5 +827,9 @@ public final class dev/woge/host/WogeOutcome : java/lang/Enum {
 	public final fun getSemanticName ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/WogeOutcome;
 	public static fun values ()[Ldev/woge/host/WogeOutcome;
+}
+
+public abstract interface annotation class dev/woge/host/WogeRegion : java/lang/annotation/Annotation {
+	public abstract fun component ()Ljava/lang/Class;
 }
 

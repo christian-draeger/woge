@@ -35,25 +35,77 @@ val summary = deferredRegion(
 
 ### Name the target
 
-`projectSummaryTarget` says which element the result replaces. Create it from one `PageIdentity` per
-rendered page instead of writing ID strings yourself:
+`projectSummaryTarget` says which element the result replaces. Mark the HTML function that renders
+the region with `@WogeRegion`. The build then generates a small descriptor object for it:
 
 ```kotlin
-val identity = PageIdentity(pageEpoch, renderIdentitySecret)
-val projectSummaryTarget = identity.root.region(IdentityName.of("project-summary"))
+@WogeRegion
+internal fun HtmlWriter.projectSummary(project: Project) {
+    element("p") { text("${project.openTasks} open tasks") }
+}
 
-// Repeated items need a key that stays the same while the item exists, never the list index.
-val cardTargets = projects.associate { project ->
-    project.id to identity.root
-        .component(IdentityName.of("ProjectCard"), IdentityKey.of(project.id))
-        .children
-        .region(IdentityName.of("summary"))
+// Generated: ProjectSummaryRegion. One PageIdentity per rendered page.
+val page = PageIdentity(pageEpoch, renderIdentitySecret)
+val projectSummaryTarget = ProjectSummaryRegion.target(page)
+```
+
+With a typed target, `deferredRegion` only needs the data. The descriptor renders it with your
+function, so a summary target can never receive task-list HTML:
+
+```kotlin
+val summary = deferredRegion(
+    target = projectSummaryTarget,
+    loading = { element("p") { text("Loading project summary…") } },
+    onFailure = { patchHtml { element("p") { text("Summary unavailable") } } },
+    content = { projectRepository.load() },
+)
+```
+
+Repeated regions belong to a component with a key that stays the same while the item exists, never
+the list index:
+
+```kotlin
+@WogeComponent
+class ProjectCard(@WogeKey val id: ProjectId)
+
+@WogeRegion(component = ProjectCard::class)
+internal fun HtmlWriter.cardSummary(project: Project) { /* … */ }
+
+val cardTargets = projects.associate { project -> project.id to CardSummaryRegion.target(page, project.id) }
+```
+
+Typed regions need the KSP plugin and the Woge processor in your Gradle build:
+
+```kotlin
+plugins {
+    id("com.google.devtools.ksp")
+}
+
+dependencies {
+    ksp("dev.woge:woge-ksp:<version>")
 }
 ```
 
 The generated ID is a short opaque value such as `w1Qm9…`. Your database keys never appear in the
-HTML. Reordering, adding or removing list items does not change the IDs of the other items. Rendering
-the same name twice at one level, or the same key twice, stops with an error that tells you where.
+HTML. Reordering, adding or removing list items does not change the IDs of the other items.
+Addressing the same region, or the same key, twice on one page stops with an error that names it.
+
+If the build rejects a declaration, the message starts with a stable ID and shows the valid form:
+
+| ID | Rule |
+| --- | --- |
+| `WOGE-REF-001` | A region is a top-level `HtmlWriter` extension function |
+| `WOGE-REF-002` | It has exactly one input, no type parameters and is not `suspend` |
+| `WOGE-REF-003` | It and its input types are not `private` |
+| `WOGE-REF-004` | The `component` of a region is marked `@WogeComponent` |
+| `WOGE-REF-005` | A component has at most one `@WogeKey` |
+| `WOGE-REF-006` | A key is `String`, `Long`, `Int`, `UUID` or a value class around one of them |
+| `WOGE-REF-007` | Two regions in one package do not generate the same descriptor name |
+| `WOGE-REF-008` | Names use letters, digits, `_` and `.` and stay below 128 characters |
+
+Without the processor you can still name targets by hand with
+`page.root.region(IdentityName.of("project-summary"))` and
+`page.root.component(IdentityName.of("ProjectCard"), IdentityKey.of(id)).children.region(...)`.
 
 Load `renderIdentitySecret` (at least 32 random bytes) from your secret store and use the same value
 on every server of one deployment. `RenderIdentitySecret.random()` is fine for tests.
