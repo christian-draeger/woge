@@ -19,8 +19,8 @@ Open `http://localhost:8080/projects/woge`. Stop the server with <kbd>Ctrl</kbd>
 
 The command needs no Node.js installation. The example consumes the versioned
 `dev.woge:woge-fallback-client-assets` JVM artifact, whose ES modules Spring Boot serves from
-`/assets/woge/`. Applications with a frontend build can instead install `@woge/fallback-client` from
-npm. Both paths contain the same runtime and protocol version; see the
+`/assets/woge/`. Applications with a frontend build will be able to install `@woge/fallback-client` from
+npm once it is published. Both paths contain the same runtime and protocol version; see the
 [installation guide](fallback-client-installation.md).
 
 ## Read the page as normal web traffic
