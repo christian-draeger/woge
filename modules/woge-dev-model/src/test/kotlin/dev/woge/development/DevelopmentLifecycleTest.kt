@@ -171,6 +171,60 @@ class DevelopmentLifecycleTest {
         assertSame(state, later.state)
     }
 
+    @Test
+    fun `a failed restart reports diagnostics and only keeps the previous server when it still serves`() {
+        val buildTwo = BuildId.after(BuildId.FIRST)
+        val secondGeneration = ServerGeneration.after(ServerGeneration.FIRST)
+        val failure = ServerRestartFailed(buildTwo, secondGeneration, listOf(compileDiagnostic()), false)
+
+        var state = restartingState(buildTwo, secondGeneration)
+        state = apply(state, failure)
+        assertEquals(DevelopmentSessionPhase.SERVER_FAILED, state.phase)
+        assertNull(state.activeServerGeneration)
+        assertFalse(state.hasLastValidApplication)
+        assertEquals(listOf(compileDiagnostic()), state.diagnostics)
+        assertEquals(ReloadLevel.COLD_RESTART, state.pendingReload)
+
+        val retained =
+            apply(restartingState(buildTwo, secondGeneration), failure.copy(previousApplicationRetained = true))
+        assertEquals(ServerGeneration.FIRST, retained.activeServerGeneration)
+        assertTrue(retained.hasLastValidApplication)
+    }
+
+    @Test
+    fun `restart failures for stale or unrequested generations cannot change the state`() {
+        val buildTwo = BuildId.after(BuildId.FIRST)
+        val secondGeneration = ServerGeneration.after(ServerGeneration.FIRST)
+        val thirdGeneration = ServerGeneration.after(secondGeneration)
+        val state = restartingState(buildTwo, secondGeneration)
+
+        val stale =
+            DevelopmentLifecycle.reduce(
+                state,
+                ServerRestartFailed(buildTwo, ServerGeneration.FIRST, listOf(compileDiagnostic()), false),
+            )
+        assertEquals(DevelopmentEventDisposition.IGNORED_STALE, stale.disposition)
+        assertSame(state, stale.state)
+
+        val unrequested =
+            DevelopmentLifecycle.reduce(
+                state,
+                ServerRestartFailed(buildTwo, thirdGeneration, listOf(compileDiagnostic()), false),
+            )
+        assertEquals(DevelopmentTransitionReason.SERVER_GENERATION_NOT_REQUESTED, unrequested.reason)
+        assertSame(state, unrequested.state)
+    }
+
+    private fun restartingState(
+        buildId: BuildId,
+        generation: ServerGeneration,
+    ): DevelopmentSessionState {
+        var state = readyState(BuildId.FIRST, ServerGeneration.FIRST)
+        state = apply(state, BuildStarted(buildId, setOf(DevelopmentChange(DevelopmentChangeKind.BUILD_CONFIGURATION))))
+        state = apply(state, BuildSucceeded(buildId, 10.milliseconds, ReloadLevel.COLD_RESTART))
+        return apply(state, ServerRestarting(buildId, generation, ReloadLevel.COLD_RESTART))
+    }
+
     private fun successfulBuildState(
         buildId: BuildId,
         reloadLevel: ReloadLevel,

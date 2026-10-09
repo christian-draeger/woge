@@ -79,6 +79,28 @@ Vite, MCP, tests and future IDE support remain replaceable adapters.
 The application manifest has only a minimal interface here. Its concrete, versioned and non-secret
 schema belongs to [issue #146](https://github.com/christian-draeger/woge/issues/146).
 
+## The orchestrator
+
+`woge-dev-orchestrator` turns file edits into the events above. It is plain Kotlin with coroutines
+and knows nothing about Gradle, Spring or Ktor. You plug in four small adapters:
+
+| Adapter | Job |
+| --- | --- |
+| build | Compile and report success or diagnostics |
+| host | Start, restart and stop the application child process |
+| frontend | Apply a hot CSS or module update, or say "not possible" |
+| manifest | Provide the application manifest for the last good build |
+
+Rules in short (details in [ADR 0042](../adr/0042-single-actor-development-orchestrator.md)):
+
+- A newer edit cancels a running build. Old results are never shown.
+- A running restart finishes first; later edits become one new build.
+- If a failed build is fixed by a CSS-only edit, the server still restarts, because Kotlin changed.
+- Fallbacks go up, never down: hot update, document refresh, server restart, cold restart.
+- If even the cold restart fails, the phase is `SERVER_FAILED`. The previous app keeps running only
+  when the host says so.
+- `reload` and `restart` commands only work for the latest successful build.
+
 ## Security and production isolation
 
 - Development URLs accept loopback HTTP(S) hosts only and cannot contain credentials, query values or

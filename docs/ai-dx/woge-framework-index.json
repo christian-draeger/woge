@@ -104,6 +104,16 @@
       "example": null
     },
     {
+      "name": "woge-dev-orchestrator",
+      "role": "tooling",
+      "exposure": "internal",
+      "sourcePath": "modules/woge-dev-orchestrator",
+      "artifact": null,
+      "concepts": ["development-orchestrator", "reload-correctness", "development-adapters"],
+      "guide": "docs/architecture/development-lifecycle.md",
+      "example": null
+    },
+    {
       "name": "woge-fallback-client-assets",
       "role": "integration",
       "exposure": "public",

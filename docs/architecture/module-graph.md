@@ -16,6 +16,7 @@ flowchart BT
     Runtime --> Protocol
     Runtime --> SPI
     DevModel[woge-dev-model<br/>internal tooling model]
+    DevOrchestrator[woge-dev-orchestrator<br/>internal tooling] --> DevModel
     TCK[woge-adapter-tck<br/>test support] --> Core
     TCK --> Protocol
     TCK --> SPI
@@ -51,6 +52,7 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Page/action/live use cases | `woge-host-spi` | Application code sees Woge-owned ports, not server requests |
 | Shared execution machinery | `woge-server-runtime` | Adapters reuse implementation without making it public API |
 | Development lifecycle semantics | `woge-dev-model` | Tool adapters share ordering and fallback rules without entering production artifacts |
+| Development orchestration (builds, restarts, fallbacks) | `woge-dev-orchestrator` | One framework-neutral coordinator; Gradle, Spring and Ktor plug in as adapters |
 | Adapter parity fixtures | `woge-adapter-tck` | Every host proves the same observable contract |
 | Spring Boot setup | auto-configuration and starter | Spring is first-class without becoming the core abstraction |
 | Browser patch application | npm `@woge/fallback-client` | It is a small web artifact, not a JVM or component runtime |
