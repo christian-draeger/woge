@@ -28,6 +28,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 public final class WogeSpringBootPlugin implements Plugin<Project> {
     static final String DEV_TASK = "wogeDev";
     static final String VERIFY_TASK = "verifyWogeProductionArtifact";
+    static final String HELP_TASK = "wogeTasks";
     static final String TOOLING_CONFIGURATION = "wogeDevTooling";
     static final String LAUNCHER_MAIN_CLASS = "dev.woge.development.gradle.WogeDevelopmentMain";
 
@@ -54,6 +55,11 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
 
         registerDevelopmentTask(project, tooling);
         registerProductionCheck(project);
+        project.getTasks().register(HELP_TASK, WogeTasksTask.class, task -> {
+            task.setGroup("help");
+            task.setDescription("Lists the supported Woge workflow. Use --format=json for coding agents.");
+            task.getFormat().convention("text");
+        });
     }
 
     private void registerDevelopmentTask(Project project, Configuration tooling) {
@@ -68,8 +74,7 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
 
         project.getTasks().register(DEV_TASK, WogeDevTask.class, task -> {
             task.setGroup("application");
-            task.setDescription(
-                    "Runs the application with live reload: rebuilds on save, restarts Spring and refreshes browsers.");
+            task.setDescription(WogeWorkflow.DEVELOP.summary());
             task.setClasspath(tooling);
             task.getMainClass().set(LAUNCHER_MAIN_CLASS);
             task.getJavaLauncher().set(toolchains.launcherFor(java.getToolchain()));
@@ -93,7 +98,7 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
         TaskProvider<VerifyWogeProductionArtifact> verify = project.getTasks()
                 .register(VERIFY_TASK, VerifyWogeProductionArtifact.class, task -> {
                     task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                    task.setDescription("Checks that the production jar contains no Woge development tooling.");
+                    task.setDescription(WogeWorkflow.VERIFY_ARTIFACT.summary());
                     task.getArchive().set(bootJar.flatMap(Jar::getArchiveFile));
                     task.getReport().set(project.getLayout().getBuildDirectory().file("woge/production-artifact.txt"));
                 });

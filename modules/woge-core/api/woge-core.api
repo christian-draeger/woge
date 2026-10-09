@@ -90,7 +90,7 @@ public final class dev/woge/html/CspNonce {
 }
 
 public abstract interface class dev/woge/html/DevelopmentHeadContribution {
-	public abstract fun writeTo (Ldev/woge/html/HtmlWriter;)V
+	public abstract fun writeTo-ZSNIQDo (Ldev/woge/html/HtmlWriter;Ljava/lang/String;)V
 }
 
 public final class dev/woge/html/ExternalUrl : dev/woge/html/HtmlUrl {

@@ -68,13 +68,14 @@ editing templates? How do we make sure none of this reaches the production jar?
   (`scaffoldDevSmoke`): start, edit, compile error with location, recovery and shutdown.
 - `woge-core` contains a small ServiceLoader lookup that is inactive unless the system property is
   set. Production apps pay one property read per `head`.
-- Applications with a strict Content Security Policy currently block the dev client. Dev-only CSP
-  allowances are a follow-up.
+- Applications with a strict Content Security Policy keep working; see
+  [ADR 0046](0046-development-client-under-strict-csp.md).
 - Restarting `wogeDev` is required after dependency or plugin changes.
 
 ## Follow-up
 
-- Dev-only CSP allowances and nonce support for the injected client.
-- KSP registration and stale-output detection inside the session.
+- ~~Dev-only CSP allowances and nonce support for the injected client.~~ Done in ADR 0046.
+- KSP registration and stale-output detection inside the session (needs #26, so it moves to M2).
 - Optional Vite/Tailwind integration and versioned production assets.
-- Machine-readable task help for coding agents.
+- ~~Machine-readable task help for coding agents.~~ Done: `./gradlew wogeTasks [--format=json]`
+  prints one workflow list that also supplies the Gradle task descriptions.

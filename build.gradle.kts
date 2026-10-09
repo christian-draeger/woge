@@ -117,13 +117,11 @@ val testSpringBootScaffold =
 val scaffoldDevSmoke =
     tasks.register<Exec>("scaffoldDevSmoke") {
         group = "verification"
-        description = "Runs wogeDev in the external Spring Boot scaffold and checks edit, error and recovery."
+        description = "Runs wogeDev in the external Spring Boot scaffold (WebFlux, then MVC) and checks edit, error and recovery."
         dependsOn(publishScaffoldArtifacts)
-        commandLine(
-            "bash",
-            layout.projectDirectory.file("scripts/test-spring-boot-scaffold-dev.sh").asFile.absolutePath,
-            scaffoldMavenRepository.get().asFile.absolutePath,
-        )
+        val script = layout.projectDirectory.file("scripts/test-spring-boot-scaffold-dev.sh").asFile.absolutePath
+        val repository = scaffoldMavenRepository.get().asFile.absolutePath
+        commandLine("bash", "-c", "bash \"$1\" \"$2\" webflux && bash \"$1\" \"$2\" mvc", "woge-dev-smoke", script, repository)
     }
 val scaffoldBrowserSmoke =
     tasks.register<Exec>("scaffoldBrowserSmoke") {
