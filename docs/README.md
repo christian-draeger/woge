@@ -1,5 +1,7 @@
 # Woge documentation
 
+Woge (`/ˈvoːɡə/`): HTML-first reactive web development for Kotlin. See the [project README](../README.md) for the name and positioning.
+
 The documentation grows with executable product slices. Pages describing unimplemented behavior must say so clearly.
 
 ## Start here
