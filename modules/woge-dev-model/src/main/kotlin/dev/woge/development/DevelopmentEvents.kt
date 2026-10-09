@@ -115,6 +115,16 @@ public data class ServerRestartFailed(
 }
 
 @ExperimentalWogeDevelopmentApi
+public data class ServerExited(
+    public val generation: ServerGeneration,
+    public val diagnostics: List<DevelopmentDiagnostic>,
+) : DevelopmentEvent {
+    init {
+        require(diagnostics.isNotEmpty()) { "A child exit must contain a structured diagnostic" }
+    }
+}
+
+@ExperimentalWogeDevelopmentApi
 public data class CssChanged(
     public val buildId: BuildId,
     public val resources: Set<DevelopmentSourcePath>,

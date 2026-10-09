@@ -110,9 +110,16 @@ It starts your app as a child process and has two ways to restart it:
   running JVM.
 - **Complete:** stop the process, check the port, start a new one. Always correct, a bit slower.
 
-"Ready" means a new `Started ... in ... seconds` line in the log. If the port is taken, the process
-exits or nothing is ready in time, you get one short diagnostic code (`SPRING-HOST-*`), never raw log
-output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
+"Ready" means Spring has finished startup, including application runners, and the development listener
+has acknowledged the current restart token. A normal startup log or an old token is not enough.
+The trigger file must be in the application's classes/resources directory; Woge creates it before
+starting the child. The development launcher adds the readiness listener to the child classpath,
+binds Spring to `127.0.0.1`, and disables Spring's separate LiveReload server.
+
+If the port is taken, the process exits or nothing is ready in time, you get a short diagnostic code
+(`SPRING-HOST-*`), never raw output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
+An unexpected exit after readiness clears the dead generation and its URLs. Save again to rebuild
+and restart. Cancelling the session stops the child and its descendants.
 
 ## Security and production isolation
 

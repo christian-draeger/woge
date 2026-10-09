@@ -23,6 +23,7 @@ import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadApplied
 import dev.woge.development.ReloadLevel
 import dev.woge.development.ReloadRequired
+import dev.woge.development.ServerExited
 import dev.woge.development.ServerGeneration
 import dev.woge.development.ServerReady
 import dev.woge.development.ServerRestartFailed
@@ -88,6 +89,10 @@ internal class SessionCoordinator(
     val state: StateFlow<DevelopmentSessionState> = mutableState.asStateFlow()
     val events: SharedFlow<DevelopmentEventRecord> = mutableEvents.asSharedFlow()
     private val loop: Job = scope.launch { run() }
+    private val hostMonitor: Job =
+        scope.launch {
+            adapters.host.exits.collect { inbox.send(Input.HostExited(it)) }
+        }
 
     fun reportChanges(changes: Collection<DevelopmentChange>) {
         if (changes.isEmpty()) return
@@ -143,6 +148,12 @@ internal class SessionCoordinator(
             is Input.BuildFinished -> onBuildFinished(input)
             is Input.FrontendFinished -> onFrontendFinished(input)
             is Input.HostFinished -> onHostFinished(input)
+            is Input.HostExited -> {
+                if (mutableState.value.activeServerGeneration == input.event.generation) {
+                    lastRestartFailed = true
+                    emit(input.event)
+                }
+            }
             is Input.Command -> onCommand(input)
             is Input.Stop -> {
                 stopRequested = true
@@ -388,6 +399,7 @@ internal class SessionCoordinator(
     private suspend fun shutDown() {
         inbox.close()
         windowJob?.cancel()
+        hostMonitor.cancel()
         val running = work
         work = null
         running?.job?.cancelAndJoin()
@@ -471,6 +483,10 @@ internal class SessionCoordinator(
     }
 
     private sealed interface Input {
+        data class HostExited(
+            val event: ServerExited,
+        ) : Input
+
         data object ChangesAvailable : Input
 
         data object QuietElapsed : Input

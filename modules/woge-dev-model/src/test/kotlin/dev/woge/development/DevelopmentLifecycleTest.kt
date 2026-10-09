@@ -215,6 +215,29 @@ class DevelopmentLifecycleTest {
         assertSame(state, unrequested.state)
     }
 
+    @Test
+    fun `child exits invalidate only the matching generation and do not interrupt an active build`() {
+        val ready = readyState(BuildId.FIRST, ServerGeneration.FIRST)
+        val exit = ServerExited(ServerGeneration.FIRST, listOf(compileDiagnostic()))
+        val failed = apply(ready, exit)
+        assertEquals(DevelopmentSessionPhase.SERVER_FAILED, failed.phase)
+        assertFalse(failed.hasLastValidApplication)
+        assertTrue(failed.developmentUrls.isEmpty())
+        assertSame(
+            ready,
+            DevelopmentLifecycle
+                .reduce(
+                    ready,
+                    exit.copy(generation = ServerGeneration.after(ServerGeneration.FIRST)),
+                ).state,
+        )
+        val building = apply(ready, BuildStarted(BuildId.after(BuildId.FIRST), emptySet()))
+        val exitedDuringBuild = apply(building, exit)
+        assertEquals(DevelopmentSessionPhase.BUILDING, exitedDuringBuild.phase)
+        assertEquals(building.activeBuild, exitedDuringBuild.activeBuild)
+        assertFalse(exitedDuringBuild.hasLastValidApplication)
+    }
+
     private fun restartingState(
         buildId: BuildId,
         generation: ServerGeneration,
