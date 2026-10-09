@@ -93,6 +93,7 @@ private class AdapterTckVerification(
         verifyDocumentGetAndHead()
         verifyRedirectAndFailures()
         verifyDeferredCompletionOrder()
+        verifyDeferredHeadersBeforeRegions()
         if (AdapterTckCapability.CLIENT_ABORT_CANCELLATION in server.capabilities) {
             verifyClientAbortCancellation()
         }
@@ -236,6 +237,45 @@ private class AdapterTckVerification(
                 expect(
                     events.lastOrNull() == PatchStreamEvent.Complete(EXPECTED_PATCH_COUNT),
                     "deferred-completion-order",
+                    "stream incomplete",
+                )
+            }
+        }
+    }
+
+    private suspend fun verifyDeferredHeadersBeforeRegions() {
+        runContract("deferred-headers-before-regions") {
+            // HttpClient.send returns once headers arrive; a host that waits for a region would time out here.
+            val response =
+                client.open(
+                    RequestMethod.GET,
+                    AdapterTckRoutes.deferred(AdapterTckDeferredScenario.HEADERS_BEFORE_REGIONS),
+                )
+            response.body().use { body ->
+                expect(
+                    response.statusCode() == ResponseStatus.OK.code,
+                    "deferred-headers-before-regions",
+                    "expected HTTP 200",
+                )
+                expect(
+                    response.header("content-type")?.startsWith("application/vnd.woge.patch-stream") == true,
+                    "deferred-headers-before-regions",
+                    "patch media type changed",
+                )
+                val preamble = body.readNBytes(PREAMBLE_PROBE_BYTES)
+                expect(
+                    !fixture.gatedRegions.isCompleted,
+                    "deferred-headers-before-regions",
+                    "headers or preamble waited for region work",
+                )
+                fixture.gatedRegions.complete(Unit)
+                val events =
+                    PatchStreamV1.decoder().let { decoder ->
+                        decoder.feed(preamble + body.readAllBytes()).also { decoder.finish() }
+                    }
+                expect(
+                    events.lastOrNull() == PatchStreamEvent.Complete(EXPECTED_PATCH_COUNT),
+                    "deferred-headers-before-regions",
                     "stream incomplete",
                 )
             }
@@ -443,6 +483,7 @@ private fun patch(text: String): dev.woge.protocol.PatchHtml =
 
 private const val MAX_STREAM_PREFIX_BYTES: Int = 64 * 1024
 private const val EXPECTED_PATCH_COUNT: Int = 2
+private const val PREAMBLE_PROBE_BYTES: Int = 1
 private const val CONNECT_TIMEOUT_SECONDS: Long = 5
 private const val REQUEST_TIMEOUT_SECONDS: Long = 10
 private val CLIENT_ABORT_TIMEOUT: kotlin.time.Duration = 5.seconds

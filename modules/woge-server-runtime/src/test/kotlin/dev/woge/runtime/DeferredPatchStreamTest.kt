@@ -43,7 +43,7 @@ class DeferredPatchStreamTest {
     }
 
     @Test
-    fun `first completed region is encoded before the stream completes`() =
+    fun `preamble precedes regions and first completed region is encoded before the stream completes`() =
         runTest {
             val slow = CompletableDeferred<dev.woge.protocol.PatchHtml>()
             val fast = CompletableDeferred<dev.woge.protocol.PatchHtml>()
@@ -65,6 +65,11 @@ class DeferredPatchStreamTest {
             val decoder = PatchStreamV1.decoder()
 
             runCurrent()
+            val preamble = chunks.receive()
+            assertTrue(decoder.feed(preamble.bytes).isEmpty())
+            assertFalse(preamble.terminal)
+            assertFalse(fast.isCompleted || slow.isCompleted)
+
             fast.complete(html("Fast result"))
             runCurrent()
             val first = chunks.receive()

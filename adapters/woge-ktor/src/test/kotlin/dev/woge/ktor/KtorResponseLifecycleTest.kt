@@ -40,9 +40,12 @@ class KtorResponseLifecycleTest {
                 .execute(regions)
                 .encodeDeferredPatchStream { PatchId.of("lifecycle-${it.region.target.region.value}") }
 
+        var writes = 0
         assertThrows(IOException::class.java) {
             runBlocking {
                 chunks.writeAndFlushKtorChunks {
+                    writes += 1
+                    if (writes == 1) return@writeAndFlushKtorChunks // preamble is written before regions start
                     waitingStarted.await()
                     throw IOException("simulated downstream failure")
                 }
