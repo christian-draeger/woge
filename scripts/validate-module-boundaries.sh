@@ -62,7 +62,7 @@ role_allows() {
     adapter:foundation|adapter:protocol|adapter:port|adapter:runtime) return 0 ;;
     test-support:foundation|test-support:protocol|test-support:port|test-support:runtime) return 0 ;;
     integration:foundation|integration:protocol|integration:port|integration:runtime|integration:adapter|integration:integration) return 0 ;;
-    tooling:foundation|tooling:ui|tooling:protocol|tooling:port|tooling:runtime|tooling:adapter|tooling:integration|tooling:tooling-model) return 0 ;;
+    tooling:foundation|tooling:ui|tooling:protocol|tooling:port|tooling:runtime|tooling:adapter|tooling:integration|tooling:tooling-model|tooling:tooling) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -150,7 +150,7 @@ if [[ -s "$edges" ]]; then
   fi
 fi
 
-for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server-runtime woge-dev-model woge-dev-orchestrator; do
+for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server-runtime woge-dev-model woge-dev-orchestrator woge-dev-spring-host; do
   source_path=$(awk -F '\t' -v name="$module" '$1 == name { print $4; exit }' "$records")
   [[ -n "$source_path" ]] || continue
   [[ -d "$repository_root/$source_path" ]] || continue
