@@ -1,6 +1,17 @@
 # Woge
 
+**HTML-first reactive web development for Kotlin.**
+
 Woge is an HTML-first Kotlin framework for typed, server-driven and progressively enhanced web applications.
+
+Woge is pronounced `/ˈvoːɡə/` ("VOH-guh"). It is the German word for a wave or swell: the server
+renders a working HTML page first, and small updates then roll in over it. The name is only a
+picture; Woge does not invent wave-themed API names.
+
+Woge is for teams who want to build web applications with HTML, HTTP, forms and CSS on the server.
+Client-side UI toolkits such as React, Vue or Compose for Web are a good fit when the browser should
+own most of the UI state. Woge takes the other path: the server owns the HTML, every page works
+without JavaScript, and Kotlin types catch mistakes at compile time.
 
 The M0 architecture and product-validation baseline is complete. The first M1 multi-host vertical
 slice is executable on Spring Boot WebFlux, Spring MVC and Ktor; Woge is not ready for production use

@@ -1,5 +1,7 @@
 # Woge Spring Boot application
 
+Woge (`/ˈvoːɡə/`): HTML-first reactive web development for Kotlin.
+
 This is the small canonical Woge application scaffold. It renders normal HTML on the server, loads an
 ordinary CSS file and remains complete when JavaScript is unavailable. You can use familiar browser
 tools and web standards; Woge supplies Kotlin type safety and a narrow server-adapter boundary.
