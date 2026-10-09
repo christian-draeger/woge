@@ -67,6 +67,37 @@ Fetch/form interception is intentionally not part of this module yet. Issue
 [#31](https://github.com/christian-draeger/woge/issues/31) will add that progressive-enhancement
 policy without changing the decoder or DOM sink.
 
+## Handle failures
+
+Every failure maps to exactly one reaction. `classifyWogeFailure` turns an error or a non-OK
+`Response` into `{ code, category, outcome }`. The outcome is one of `fail-closed`,
+`error-response`, `ignore-stale`, `refetch-region`, `reload-page` or `retry-safe`.
+`createWogeRecoveryBudget` makes sure recovery cannot loop: one reload per page epoch and tab,
+one retry per request.
+
+```js
+import { classifyWogeFailure, createWogeRecoveryBudget } from "@woge/fallback-client";
+
+const budget = createWogeRecoveryBudget();
+
+try {
+  const response = await fetch(url, { headers: { Accept: "application/vnd.woge.patch-stream; version=1" } });
+  if (!response.ok || !response.body) throw response;
+  await runtime.applyPatchStream(response.body);
+} catch (problem) {
+  // Only an idempotent GET without side effects may be retried.
+  const failure = classifyWogeFailure(problem, { safeRequest: true });
+  if (failure.outcome === "retry-safe" && budget.tryRetry(url)) {
+    // fetch once more
+  } else if (failure.outcome === "reload-page" && budget.tryReload(pageEpoch)) {
+    location.reload();
+  }
+  // Otherwise keep the server-rendered content; it still works without JavaScript.
+}
+```
+
+The [failure and recovery model](../../docs/architecture/failure-and-recovery.md) lists every case.
+
 ## Lifecycle events
 
 Immediately before and after a valid replacement, the target emits bubbling
