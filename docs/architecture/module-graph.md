@@ -27,6 +27,7 @@ flowchart BT
     DevGradle[woge-dev-gradle<br/>wogeDev launcher] --> DevSpring
     DevGradle --> DevBrowser
     GradlePlugin[woge-gradle-plugin<br/>dev.woge.spring-boot]
+    Ksp[woge-ksp<br/>build-time code generation]
     TCK[woge-adapter-tck<br/>test support] --> Core
     TCK --> Protocol
     TCK --> SPI
@@ -69,6 +70,7 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Spring readiness inside the application | `woge-dev-spring-child` | The only dev code inside the app process; added as `developmentOnly`, never packaged |
 | The `wogeDev` command | `woge-dev-gradle` | Watches files, runs Gradle builds and composes host, orchestrator and browser channel |
 | Gradle plugin `dev.woge.spring-boot` | `woge-gradle-plugin` | Registers `wogeDev` and checks that `bootJar` contains no dev code |
+| Typed region descriptors from `@WogeRegion` | `woge-ksp` | Build-time only; generated code uses `woge-host-spi` types |
 | Adapter parity fixtures | `woge-adapter-tck` | Every host proves the same observable contract |
 | Spring Boot setup | auto-configuration and starter | Spring is first-class without becoming the core abstraction |
 | Browser patch application | npm `@woge/fallback-client` | It is a small web artifact, not a JVM or component runtime |

@@ -12,6 +12,7 @@ woge-dev-spring-child	tooling	internal	modules/woge-dev-spring-child	woge-dev-cl
 woge-dev-browser	tooling	internal	modules/woge-dev-browser	woge-dev-orchestrator,woge-core,woge-dev-client	-
 woge-dev-gradle	tooling	internal	modules/woge-dev-gradle	woge-dev-spring-host,woge-dev-browser	-
 woge-gradle-plugin	tooling	internal	modules/woge-gradle-plugin	-	-
+woge-ksp	tooling	public	modules/woge-ksp	-	-
 woge-fallback-client-assets	integration	public	integrations/woge-fallback-client-assets	-	-
 woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
