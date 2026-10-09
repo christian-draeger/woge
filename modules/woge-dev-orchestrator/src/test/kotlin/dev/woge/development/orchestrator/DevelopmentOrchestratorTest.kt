@@ -48,6 +48,33 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalWogeDevelopmentApi::class, ExperimentalCoroutinesApi::class)
 class DevelopmentOrchestratorTest {
     @Test
+    fun `a child exit racing readiness never publishes the dead generation as ready`() =
+        runTest {
+            val harness = harness()
+            val ready = CompletableDeferred<Unit>()
+            harness.host.script = { request ->
+                if (request.generation == ServerGeneration.FIRST) {
+                    harness.host.exits.emit(ServerExited(request.generation, listOf(Harness.diagnostic())))
+                    ready.await()
+                }
+                DevelopmentHostRestartResult.Ready(listOf(Harness.localUrl()))
+            }
+            harness.orchestrator.reportChange(Harness.kotlinChange())
+            harness.settle()
+            ready.complete(Unit)
+            harness.settle()
+            assertEquals(
+                ReloadLevel.COLD_RESTART,
+                harness.host.requests
+                    .last()
+                    .level,
+            )
+            assertEquals(ServerGeneration.of(2), harness.orchestrator.state.value.activeServerGeneration)
+            assertFalse(harness.events.filterIsInstance<ServerReady>().any { it.generation == ServerGeneration.FIRST })
+            harness.orchestrator.stop()
+        }
+
+    @Test
     fun `an unexpected child exit clears readiness and the next build uses a cold restart`() =
         runTest {
             val harness = harness()

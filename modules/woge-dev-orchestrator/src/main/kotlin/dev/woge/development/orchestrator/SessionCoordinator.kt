@@ -80,6 +80,7 @@ internal class SessionCoordinator(
     private var nextBuild: BuildId = BuildId.FIRST
     private var lastGeneration: ServerGeneration? = null
     private var lastRestartFailed = false
+    private var pendingHostExit: ServerExited? = null
     private var followUp: ReloadLevel? = null
     private var stopRequested = false
     private var carried: Set<DevelopmentChange> = emptySet()
@@ -152,6 +153,8 @@ internal class SessionCoordinator(
                 if (mutableState.value.activeServerGeneration == input.event.generation) {
                     lastRestartFailed = true
                     emit(input.event)
+                } else if (mutableState.value.pendingServerGeneration == input.event.generation) {
+                    pendingHostExit = input.event
                 }
             }
             is Input.Command -> onCommand(input)
@@ -291,6 +294,7 @@ internal class SessionCoordinator(
     ) {
         val generation = lastGeneration?.let(ServerGeneration::after) ?: ServerGeneration.FIRST
         lastGeneration = generation
+        pendingHostExit = null
         if (!emit(ServerRestarting(buildId, generation, level))) {
             settle()
             return
@@ -318,12 +322,18 @@ internal class SessionCoordinator(
         if (running == null || running.token != input.token) return
         work = null
         val request = running.request
+        val earlyExit = pendingHostExit?.takeIf { it.generation == request.generation }
+        pendingHostExit = null
         when (val result = input.result) {
             is DevelopmentHostRestartResult.Ready -> {
-                lastRestartFailed = false
-                carried = emptySet()
-                emit(ServerReady(request.buildId, request.generation, result.urls))
-                settle()
+                if (earlyExit != null) {
+                    escalateOrFail(running, false, earlyExit.diagnostics)
+                } else {
+                    lastRestartFailed = false
+                    carried = emptySet()
+                    emit(ServerReady(request.buildId, request.generation, result.urls))
+                    settle()
+                }
             }
             DevelopmentHostRestartResult.Unsupported ->
                 escalateOrFail(
