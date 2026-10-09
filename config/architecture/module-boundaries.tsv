@@ -7,7 +7,11 @@ woge-server-runtime	runtime	internal	modules/woge-server-runtime	woge-core,woge-
 woge-dev-model	tooling-model	internal	modules/woge-dev-model	-	-
 woge-dev-orchestrator	tooling	internal	modules/woge-dev-orchestrator	woge-dev-model	-
 woge-dev-spring-host	tooling	internal	modules/woge-dev-spring-host	woge-dev-orchestrator	-
-woge-dev-browser	tooling	internal	modules/woge-dev-browser	woge-dev-orchestrator,woge-core	-
+woge-dev-client	tooling	internal	modules/woge-dev-client	woge-core,woge-dev-model	-
+woge-dev-spring-child	tooling	internal	modules/woge-dev-spring-child	woge-dev-client	-
+woge-dev-browser	tooling	internal	modules/woge-dev-browser	woge-dev-orchestrator,woge-core,woge-dev-client	-
+woge-dev-gradle	tooling	internal	modules/woge-dev-gradle	woge-dev-spring-host,woge-dev-browser	-
+woge-gradle-plugin	tooling	internal	modules/woge-gradle-plugin	-	-
 woge-fallback-client-assets	integration	public	integrations/woge-fallback-client-assets	-	-
 woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-

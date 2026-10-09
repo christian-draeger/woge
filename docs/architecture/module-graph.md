@@ -20,6 +20,13 @@ flowchart BT
     DevSpring[woge-dev-spring-host<br/>internal tooling] --> DevOrchestrator
     DevBrowser[woge-dev-browser<br/>dev-only SSE and status] --> DevOrchestrator
     DevBrowser --> Core
+    DevBrowser --> DevClient
+    DevClient[woge-dev-client<br/>dev-only head markup] --> Core
+    DevClient --> DevModel
+    DevChild[woge-dev-spring-child<br/>dev-only, inside the app] --> DevClient
+    DevGradle[woge-dev-gradle<br/>wogeDev launcher] --> DevSpring
+    DevGradle --> DevBrowser
+    GradlePlugin[woge-gradle-plugin<br/>dev.woge.spring-boot]
     TCK[woge-adapter-tck<br/>test support] --> Core
     TCK --> Protocol
     TCK --> SPI
@@ -58,6 +65,10 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Spring Boot dev host (child process, trigger-file restart) | `woge-dev-spring-host` | Spring Boot is the first complete host; no Spring types are needed to drive it |
 | Development browser channel | `woge-dev-browser` | Stable loopback SSE, typed opt-in markup and optional status overlay, outside the application process |
 | Development orchestration (builds, restarts, fallbacks) | `woge-dev-orchestrator` | One framework-neutral coordinator; Gradle, Spring and Ktor plug in as adapters |
+| Development client markup for every page | `woge-dev-client` | Adds the SSE client to each `head` while `wogeDev` runs, using the typed DSL |
+| Spring readiness inside the application | `woge-dev-spring-child` | The only dev code inside the app process; added as `developmentOnly`, never packaged |
+| The `wogeDev` command | `woge-dev-gradle` | Watches files, runs Gradle builds and composes host, orchestrator and browser channel |
+| Gradle plugin `dev.woge.spring-boot` | `woge-gradle-plugin` | Registers `wogeDev` and checks that `bootJar` contains no dev code |
 | Adapter parity fixtures | `woge-adapter-tck` | Every host proves the same observable contract |
 | Spring Boot setup | auto-configuration and starter | Spring is first-class without becoming the core abstraction |
 | Browser patch application | npm `@woge/fallback-client` | It is a small web artifact, not a JVM or component runtime |

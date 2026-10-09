@@ -72,7 +72,9 @@ Reconnecting tabs need the current result, not an unbounded history of every key
 ## Follow-up
 
 - [#47](https://github.com/christian-draeger/woge/issues/47): compose the Gradle dev command, build detail
-  source, child development metadata and explicit CSP configuration.
+  source, child development metadata and explicit CSP configuration. The command, build details and
+  child metadata are done ([ADR 0045](0045-wogedev-gradle-launcher-and-development-head-hook.md)).
+  Dev-only CSP allowances remain open.
 - [#150](https://github.com/christian-draeger/woge/issues/150): preserve browser-owned state on refresh.
 - [#153](https://github.com/christian-draeger/woge/issues/153): measure sustained development sessions and
   refine resource budgets before beta.

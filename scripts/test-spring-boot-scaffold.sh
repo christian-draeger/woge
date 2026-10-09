@@ -29,8 +29,8 @@ for adapter in webflux mvc; do
     --project-dir "$fixture_root" \
     --no-daemon \
     --stacktrace \
-    test \
+    check \
     "-PwogeRepository=$published_repository"
 done
 
-printf 'External Spring Boot scaffold passed for WebFlux and MVC.\n'
+printf 'External Spring Boot scaffold passed for WebFlux and MVC, including the production artifact check.\n'

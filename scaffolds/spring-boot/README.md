@@ -22,6 +22,23 @@ The scaffold pins Woge, Kotlin, Spring Boot, selected host, build-JDK and JVM-ta
 Woge is pre-release; repository CI supplies `-PwogeRepository=/path/to/local/repository` until the
 coordinates are publicly available.
 
+## Develop with live reload
+
+```shell
+./gradlew wogeDev
+```
+
+`wogeDev` builds the application, starts it and rebuilds after every save. Open tabs refresh once the
+new version is ready. Compile errors appear in the terminal and in a small overlay with file, line and
+column, while the last working version keeps serving. It needs no Node.js.
+
+- `--port=9090` uses another HTTP port.
+- `--full-restart` always starts a new JVM instead of the faster Spring DevTools restart.
+- `-PwogeSpringAdapter=mvc` works here too.
+
+Restart `wogeDev` after changing Gradle files. `./gradlew check` also verifies that the `bootJar`
+contains no development code.
+
 ## Choose WebFlux or MVC
 
 Start with the default before making an architecture decision. If your application needs the Servlet
@@ -48,8 +65,7 @@ that selection and generate matching coding guidance.
   host choice. Change those canonical inputs instead of editing the generated file.
 
 The generated-source root is `build/generated/sources/woge/main/kotlin`. Generators own only that
-directory; edit application source under `src` and never commit generated output. The future `wogeDev`
-command and generated `AGENTS.md` will use this scaffold without changing its application boundary.
+directory; edit application source under `src` and never commit generated output.
 
 ## Test
 
