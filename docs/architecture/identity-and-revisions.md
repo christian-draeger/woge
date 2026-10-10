@@ -78,7 +78,18 @@ Initial deferred patches use the page's initial interaction sequence. They canno
 
 ### Search race
 
+The fallback runtime exposes `beginInteraction(targets)` for this intent registration. Its frozen
+result carries the page epoch, interaction sequence and current base revision per target. Call it
+before starting a request, and send that context through the request's typed input. Do not edit
+registry ordering attributes directly. Ignored frames report `WOGE_STALE_PATCH` to the observer
+without lifecycle events, content mutation or focus movement.
+
 The search region is at revision 7. The user starts query `ko` as interaction 41, then `kotlin` as interaction 42. Both server calls legitimately start from revision 7 and propose revision 8. Interaction 42 completes first and applies because it is the newest registered intent. Interaction 41 arrives later and is dropped before parsing/mutating its HTML because its interaction sequence is no longer current. No server-side page object is needed.
+
+`refetchRegion(target, load, { signal })` performs one explicitly provided safe refresh loader at the
+current target revision. The result must be one Replace for that target and new intent. Failed
+attempts also consume the budget, preventing a loop. Applications retain visible fallback content
+when a target disappeared or recovery is exhausted. The primitive does not retry an unsafe action.
 
 ## Append revision rule
 

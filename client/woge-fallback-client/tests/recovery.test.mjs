@@ -49,6 +49,8 @@ test("version skew reloads the page", () => {
 });
 
 test("stale and missing targets never apply out of order", () => {
+  assert.equal(classifyWogeFailure(new WogePatchError("WOGE_STALE_PATCH", "x")).outcome, "ignore-stale");
+  assert.equal(classifyWogeFailure(new WogePatchError("WOGE_INTERACTION_EXHAUSTED", "x")).outcome, "reload-page");
   assert.equal(classifyWogeFailure(new WogePatchError("WOGE_INTERACTION_MISMATCH", "x")).outcome, "ignore-stale");
   assert.equal(classifyWogeFailure(new WogePatchError("WOGE_REVISION_MISMATCH", "x")).outcome, "refetch-region");
   assert.equal(classifyWogeFailure(new WogePatchError("WOGE_UNKNOWN_TARGET", "x")).outcome, "refetch-region");

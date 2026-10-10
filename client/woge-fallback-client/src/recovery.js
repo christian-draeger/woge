@@ -34,12 +34,17 @@ const BROWSER_APPLY_CODES = new Set([
   "WOGE_ITEM_CHANGED",
   "WOGE_INVALID_BROWSER_STATE",
   "WOGE_BROWSER_STATE_CONFLICT",
+  "WOGE_INVALID_INTERACTION",
+  "WOGE_INVALID_RESYNC",
+  "WOGE_RESYNC_EXHAUSTED",
 ]);
 const LOCAL_OUTCOMES = new Map([
   ["WOGE_UNSAFE_ACTION_NAVIGATION", ["security", "fail-closed"]],
   ["WOGE_UNSUPPORTED_VERSION", ["incompatible-client", "reload-page"]],
   ["WOGE_STALE_PAGE_EPOCH", ["stale", "reload-page"]],
   ["WOGE_INTERACTION_MISMATCH", ["stale", "ignore-stale"]],
+  ["WOGE_STALE_PATCH", ["stale", "ignore-stale"]],
+  ["WOGE_INTERACTION_EXHAUSTED", ["stale", "reload-page"]],
   ["WOGE_CANCELLED", ["cancelled", "ignore-stale"]],
   ["WOGE_REVISION_MISMATCH", ["stale", "refetch-region"]],
   ["WOGE_UNKNOWN_TARGET", ["stale", "refetch-region"]],

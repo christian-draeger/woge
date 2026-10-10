@@ -53,6 +53,8 @@ export interface RemoveLifecycleDetail extends Omit<ReplaceLifecycleDetail, "ope
 
 export interface PatchCompletion {
   readonly patchCount: number;
+  /** Present when valid wire frames were ignored as superseded work; they are included in patchCount. */
+  readonly stalePatchCount?: number;
 }
 
 export interface ApplyPatchStreamOptions {
@@ -63,6 +65,13 @@ export interface WogeObservationContext {
   readonly pageEpoch: string;
   readonly target: string;
   readonly patchId: string;
+}
+
+/** Browser ordering context only; never grants authorization or duplicate-mutation permission. */
+export interface WogeInteraction {
+  readonly pageEpoch: string;
+  readonly interactionSequence: string;
+  readonly targets: readonly { readonly target: string; readonly baseRevision: string }[];
 }
 
 export type WogeObservationEvent =
@@ -79,6 +88,7 @@ export type WogeObservationEvent =
       readonly outcome: "succeeded" | "failed" | "cancelled" | "rejected" | "stale";
       readonly durationMs: number;
       readonly context: WogeObservationContext;
+      readonly code?: "WOGE_STALE_PATCH";
     };
 
 export interface WogePatchRuntimeOptions {
@@ -86,6 +96,14 @@ export interface WogePatchRuntimeOptions {
 }
 
 export interface WogePatchRuntime {
+  /** Registers latest intent before starting a request; pass the returned context through its typed input. */
+  beginInteraction(targets: readonly string[]): WogeInteraction;
+  /** One safe authoritative replacement per target revision; never use this loader for mutations. */
+  refetchRegion(
+    target: string,
+    load: (context: WogeInteraction, options: ApplyPatchStreamOptions) => Promise<ReadableStream<Uint8Array>>,
+    options?: ApplyPatchStreamOptions,
+  ): Promise<PatchCompletion>;
   applyPatchStream(
     stream: ReadableStream<Uint8Array>,
     options?: ApplyPatchStreamOptions,

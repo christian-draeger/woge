@@ -81,7 +81,7 @@ test("removal with no usable focus fallback leaves the item and revision intact"
   await expect(page.locator("ul")).toHaveAttribute("data-woge-revision", "1");
 });
 
-test("collection lifecycle events run only for real mutations and stale frames cannot deduplicate", async ({ page }) => {
+test("collection lifecycle events run only for real mutations and stale frames are ignored", async ({ page }) => {
   await page.evaluate(() => {
     globalThis.events = [];
     for (const name of ["before-append", "after-append", "before-remove", "after-remove"]) {
@@ -89,7 +89,7 @@ test("collection lifecycle events run only for real mutations and stale frames c
     }
   });
   expect(await apply(page, stream(append()))).toBeNull();
-  expect(await apply(page, stream(append()))).toBe("WOGE_REVISION_MISMATCH");
+  expect(await apply(page, stream(append()))).toBeNull();
   expect(await apply(page, stream(append({ baseRevision: 1, nextRevision: 2 })))).toBeNull();
   expect(await apply(page, stream(remove({ baseRevision: 2, nextRevision: 3 })))).toBeNull();
   expect(await apply(page, stream(remove({ baseRevision: 3, nextRevision: 4 })))).toBeNull();

@@ -27,6 +27,28 @@ opaque region ID and current revision:
 Region IDs are registry keys, never CSS selectors. `data-woge-interaction-sequence` is optional for
 the initial page/deferred-work sequence and defaults to `0`.
 
+## Register latest intent and recover one region
+
+Before starting an enhanced request, call `runtime.beginInteraction(["summary-1"])`. Its frozen
+result contains the document epoch, a new interaction sequence and each target's known base revision.
+Pass these values through the request's typed input and echo them in its resulting patches.
+An older search or initial deferred response cannot overwrite a newer registered intent.
+
+Lower sequences and duplicate/lower revisions are dropped silently in the DOM, with
+`WOGE_STALE_PATCH` on a finished `stale` observer event. Other current targets in that stream still
+apply. A forward gap instead classifies as `refetch-region`; it is not silently skipped.
+
+`runtime.refetchRegion(target, load, { signal })` invokes your explicit **safe GET** loader with new
+intent and current revision context. Return the response byte stream containing one authoritative
+Replace for that target and context. The loader must authorize normally and render current domain
+data; never use it to replay a POST. Recovery validates ordinary patch HTML/state rules and cannot
+overwrite newer intent. One attempt is allowed per target revision, including failed attempts, with
+at most 128 budget entries. Exhaustion fails closed; unknown removed targets need an explicit,
+bounded full-navigation fallback rather than a guessed selector.
+
+This primitive does not invent an HTTP endpoint or automatically change native action forms.
+The typed server refresh integration remains part of #37.
+
 ## Apply a response body
 
 The production entry point is an ES module:

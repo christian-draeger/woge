@@ -108,8 +108,8 @@ async function submit(root, runtime, submission, signal) {
     await response.body?.cancel();
     throw new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "Action did not return a compatible patch stream");
   }
-  await runtime.applyPatchStream(response.body, { signal });
-  if (validation && !signal.aborted) {
+  const completion = await runtime.applyPatchStream(response.body, { signal });
+  if (validation && !signal.aborted && !completion.stalePatchCount) {
     const summary = root.getElementById(validation);
     if (!(summary instanceof root.defaultView.HTMLElement) ||
         summary.getAttribute("tabindex") !== "-1" ||
