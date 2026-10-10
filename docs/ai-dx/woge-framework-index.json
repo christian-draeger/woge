@@ -179,7 +179,7 @@
       "exposure": "public",
       "sourcePath": "modules/woge-ksp",
       "artifact": "dev.woge:woge-ksp",
-      "concepts": ["typed-region-descriptors", "build-diagnostics"],
+      "concepts": ["typed-region-descriptors", "typed-page-routes", "build-diagnostics"],
       "guide": "docs/guides/deferred-regions.md",
       "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt"
     },

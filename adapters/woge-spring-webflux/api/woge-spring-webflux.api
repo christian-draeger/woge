@@ -7,6 +7,10 @@ public abstract interface class dev/woge/spring/webflux/WebFluxPageInput {
 	public abstract fun decode (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class dev/woge/spring/webflux/WebFluxPageInputKt {
+	public static final fun webFluxInput (Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WebFluxPageInput;
+}
+
 public abstract interface class dev/woge/spring/webflux/WebFluxRequestContextFactory {
 	public abstract fun create (Lorg/springframework/web/reactive/function/server/ServerRequest;)Ldev/woge/host/RequestContext;
 }
@@ -21,6 +25,7 @@ public final class dev/woge/spring/webflux/WogeWebFluxHandlers {
 	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxDeferredHandler;
+	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;
 }
 

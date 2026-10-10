@@ -5,6 +5,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
+import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
@@ -43,11 +44,13 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 },
                 observer = application.observer,
             )
+        val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
         val routes =
             coRouter {
                 GET(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 HEAD(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 GET(AdapterTckRoutes.DEFERRED_PATTERN, deferred::handle)
+                GET(AdapterTckRoute.path, route::handle)
             }
         return WebFluxTckServer(
             HttpServer

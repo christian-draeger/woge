@@ -114,7 +114,8 @@ class FrameworkIndexTest {
             "manual CSS selectors",
             "progressive enhancement",
             "Native Declarative Partial Updates",
-            "Generated typed page/route and action references are not part",
+            "@WogeRoute(\"/projects/{project}\")",
+            "Generated action references are not part",
         ).forEach { requiredGuidance ->
             assertTrue(guidance.contains(requiredGuidance), "Missing generated guidance: $requiredGuidance")
         }

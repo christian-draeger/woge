@@ -45,32 +45,20 @@ the integration and browser tests:
 public fun Application.wogeReferenceModule() {
     val projectPage = ProjectPage()
     val handlers = WogeKtorHandlers()
-    val page =
-        handlers.page(
-            projectPage,
-            KtorPageInput { call ->
-                ProjectPageInput(
-                    project = requireNotNull(call.parameters["project"]),
-                    view = parseView(call.request.queryParameters["view"].orEmpty()),
-                )
-            },
-        )
-    val patches =
-        handlers.deferred(
-            projectPage,
-            KtorPageInput { call -> ProjectPageInput(requireNotNull(call.parameters["project"])) },
-        )
+    val page = handlers.page(projectPage, ProjectPageRoute)
+    val patches = handlers.deferred(projectPage, ProjectPageRoute.ktorInput())
 
     routing {
-        get("/projects/{project}") { page.handle(call) }
-        head("/projects/{project}") { page.handle(call) }
-        get("/projects/{project}/woge-patches") { patches.handle(call) }
+        get(ProjectPageRoute.path) { page.handle(call) }
+        head(ProjectPageRoute.path) { page.handle(call) }
+        get("${ProjectPageRoute.path}/woge-patches") { patches.handle(call) }
         staticResources("/assets", "static/assets")
     }
 }
 ```
 
-The route still owns its URL and input decoding. The handler maps the portable result to status,
+`ProjectPageRoute` is generated from `@WogeRoute("/projects/{project}")` on the page input; see
+[Typed page routes](typed-routes.md). Ktor still owns the routing table. The handler maps the portable result to status,
 headers, cookies and `text/html; charset=UTF-8`. Each Woge HTML frame is flushed before the next one
 is requested.
 

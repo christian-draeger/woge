@@ -1,6 +1,7 @@
 package dev.woge.ktor
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
@@ -23,6 +24,15 @@ public class WogeKtorHandlers(
         useCase: PageUseCase<Input>,
         input: KtorPageInput<Input>,
     ): WogeKtorPageHandler<Input> = WogeKtorPageHandler(useCase, input, contexts, observer)
+
+    /**
+     * Creates a handler for a page with a generated route. Register it at the route's own path:
+     * `get(ProjectPageRoute.path) { page.handle(call) }`.
+     */
+    public fun <Input : Any> page(
+        useCase: PageUseCase<Input>,
+        route: PageRoute<Input>,
+    ): WogeKtorPageHandler<Input> = page(useCase, route.ktorInput())
 
     /** Creates a handler for one typed deferred-region stream and its route-local input decoder. */
     public fun <Input : Any> deferred(

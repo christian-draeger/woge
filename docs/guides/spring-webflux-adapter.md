@@ -35,7 +35,8 @@ requests. Signed page context and generated descriptors replace manual target re
 
 ## Connect functional routes
 
-The WebFlux-only bootstrap owns path decoding and handlers:
+The WebFlux-only bootstrap owns the routes and handlers. This example decodes the path by hand; a
+[typed page route](typed-routes.md) can do it for you with `handlers.page(projectPage, ProjectPageRoute)`.
 
 ```kotlin
 val projectPage = ProjectPage()

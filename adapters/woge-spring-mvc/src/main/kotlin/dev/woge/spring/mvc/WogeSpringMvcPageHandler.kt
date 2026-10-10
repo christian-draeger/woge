@@ -2,9 +2,11 @@ package dev.woge.spring.mvc
 
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
+import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.failure
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import jakarta.servlet.http.HttpServletRequest
@@ -31,16 +33,21 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
             return
         }
         val context = contexts.create(request)
-        val pageRequest = PageRequest(input.decode(request), context)
+        val decoded = runCatching { input.decode(request) }
+        val invalid = decoded.exceptionOrNull()?.let { it as? RouteValueException ?: throw it }
         val observationContext = WogeObservationContext(requestTrace = context.trace)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
             val result =
-                observer.observeOperation(
-                    operation = WogeOperation.PAGE_REQUEST,
-                    context = observationContext,
-                    successfulOutcome = { it.observationOutcome() },
-                ) {
-                    page.open(pageRequest)
+                if (invalid != null) {
+                    failure(invalid.category, context.correlationId)
+                } else {
+                    observer.observeOperation(
+                        operation = WogeOperation.PAGE_REQUEST,
+                        context = observationContext,
+                        successfulOutcome = { it.observationOutcome() },
+                    ) {
+                        page.open(PageRequest(decoded.getOrThrow(), context))
+                    }
                 }
             result.writeToServlet(request, response, observer, observationContext)
         }

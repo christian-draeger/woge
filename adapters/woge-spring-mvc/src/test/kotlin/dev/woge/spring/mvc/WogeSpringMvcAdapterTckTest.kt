@@ -6,6 +6,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
+import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
@@ -132,6 +133,7 @@ private class SpringMvcTckConfiguration {
             mapOf(
                 AdapterTckRoutes.PAGE_PATTERN to page,
                 AdapterTckRoutes.DEFERRED_PATTERN to deferred,
+                AdapterTckRoute.path to handlers.page(application.routePages, AdapterTckRoute),
             ),
             0,
         )

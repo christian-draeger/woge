@@ -2,9 +2,11 @@ package dev.woge.ktor
 
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
+import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.failure
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import io.ktor.server.application.ApplicationCall
@@ -22,9 +24,9 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
     public suspend fun handle(call: ApplicationCall) {
         val context = contexts.create(call)
         val observationContext = WogeObservationContext(requestTrace = context.trace)
-        val pageRequest = PageRequest(input.decode(call), context)
         val result =
             try {
+                val pageRequest = PageRequest(input.decode(call), context)
                 observer.observeOperation(
                     operation = WogeOperation.PAGE_REQUEST,
                     context = observationContext,
@@ -32,6 +34,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 ) {
                     page.open(pageRequest)
                 }
+            } catch (invalid: RouteValueException) {
+                failure(invalid.category, context.correlationId)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
