@@ -10,6 +10,9 @@ import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
+import dev.woge.tck.TckActionCommand
+import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.tckActionContext
 import org.junit.jupiter.api.Test
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
@@ -49,6 +52,14 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
         val failures =
             WogeWebFluxHandlers(failurePages = application.failurePages)
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
+        val action =
+            WogeWebFluxHandlers().action(
+                TckSubmitAction,
+                WebFluxPageInput { request -> TckActionCommand(request.queryParam("value").orElse("")) },
+                WebFluxRequestContextFactory { request ->
+                    tckActionContext(request.headers().firstHeader("X-Tck-Subject"))
+                },
+            )
         val routes =
             coRouter {
                 GET(AdapterTckRoutes.PAGE_PATTERN, page::handle)
@@ -57,6 +68,8 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 GET(AdapterTckRoute.path, route::handle)
                 GET(AdapterTckFailureRoute.path, failures::handle)
                 HEAD(AdapterTckFailureRoute.path, failures::handle)
+                POST(TckSubmitAction.path, action::handle)
+                GET(TckSubmitAction.path, action::handle)
             }
         return WebFluxTckServer(
             HttpServer

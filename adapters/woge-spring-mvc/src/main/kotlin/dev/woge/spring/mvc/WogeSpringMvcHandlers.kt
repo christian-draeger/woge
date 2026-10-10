@@ -1,5 +1,6 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
@@ -29,9 +30,27 @@ public class WogeSpringMvcHandlers(
         require(asyncTimeout.isFinite() && asyncTimeout > Duration.ZERO) {
             "Spring MVC async timeout must be positive and finite"
         }
+
         asyncTimeoutMillis = asyncTimeout.inWholeMilliseconds
         require(asyncTimeoutMillis > 0) { "Spring MVC async timeout must be at least one millisecond" }
     }
+
+    /** Binds a POST action. The explicit context factory must establish authentication and CSRF policy first. */
+    public fun <Command : Any> action(
+        executor: ActionExecutor<Command>,
+        input: SpringMvcPageInput<Command>,
+        securityContexts: SpringMvcRequestContextFactory,
+    ): WogeSpringMvcPageHandler<Command> =
+        WogeSpringMvcPageHandler(
+            PageUseCase { request -> executor.execute(request) },
+            input,
+            securityContexts,
+            dispatcher,
+            asyncTimeoutMillis,
+            observer,
+            failurePages,
+            setOf("POST"),
+        )
 
     /** Creates a Servlet handler for one typed page and its route-local input decoder. */
     public fun <Input : Any> page(

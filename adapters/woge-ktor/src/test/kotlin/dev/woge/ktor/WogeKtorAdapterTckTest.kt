@@ -10,12 +10,16 @@ import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
+import dev.woge.tck.TckActionCommand
+import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.tckActionContext
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.routing.get
 import io.ktor.server.routing.head
+import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
@@ -50,6 +54,12 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
         val failures =
             WogeKtorHandlers(failurePages = application.failurePages)
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
+        val action =
+            WogeKtorHandlers().action(
+                TckSubmitAction,
+                KtorPageInput { call -> TckActionCommand(call.request.queryParameters["value"].orEmpty()) },
+                KtorRequestContextFactory { call -> tckActionContext(call.request.headers["X-Tck-Subject"]) },
+            )
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 routing {
@@ -59,6 +69,8 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     get(AdapterTckRoute.path) { route.handle(call) }
                     get(AdapterTckFailureRoute.path) { failures.handle(call) }
                     head(AdapterTckFailureRoute.path) { failures.handle(call) }
+                    post(TckSubmitAction.path) { action.handle(call) }
+                    get(TckSubmitAction.path) { action.handle(call) }
                 }
             }.start(wait = false)
         return KtorTckServer(server)

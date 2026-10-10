@@ -43,6 +43,10 @@ resolves Woge through a build-local Maven repository and runs both real-server t
 disabled; its setup and evidence paths are documented in
 [Maintain the Spring Boot application scaffold](spring-boot-application-scaffold.md).
 
+`scaffoldDevSmoke` checks edits, compiler-error recovery and generated regions in both Spring hosts.
+It also proves incremental typed action addition, ID changes, duplicate-ID rejection and removal of
+obsolete generated descriptors and registries.
+
 The JMH command is an explicit performance measurement rather than a pass/fail check. `check` compiles
 the benchmark fixture but does not execute it. HTML sink results are written below
 `modules/woge-core/build/results/jmh` and interpreted in the
