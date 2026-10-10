@@ -48,5 +48,12 @@ because a principal exists. The application still configures ingress and domain 
 
 ## Follow-up
 
-Keep real Security filter-chain tests for MVC and WebFlux. Native hidden CSRF fields need body-safe
-integration, since host form collectors can consume or buffer a submission before Woge reads it.
+Keep real Security filter-chain tests for MVC and WebFlux. Their native hidden-field configuration
+reads a bounded submission once before CSRF verification and saves it as request-owned input.
+The Security token resolver reads exactly one token from that input, never a merged query parameter
+or an unbounded host form collector. After the filter chain, the Woge input binding returns the
+saved submission. Domain authorization and validation still run only after ingress verification.
+
+This is explicit application-owned integration using existing public form and input APIs, not a
+new Security starter or a Woge-owned authentication policy. Header and hidden-field paths share the
+same real-HTTP contract, including rejection of malformed and oversized bodies.

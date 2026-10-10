@@ -73,17 +73,34 @@ routing { post(CreateTaskAction.path) { action.handle(call) } }
 The context factory is **required**, even if the surrounding handlers use default page contexts.
 Those defaults only support safe page methods. Establish the host's security policy first, reject
 missing or invalid CSRF verification at ingress, and only then supply `RequestContext`. Never trust a
-submitted principal or CSRF-status field. Decode runs after context creation; domain authorization
-still happens in the action.
+submitted principal or CSRF-status field. The Woge handler reads its input after context creation;
+domain authorization still happens in the action.
 
 The body must still be readable when decoding starts. A Servlet security filter that calls
 `getParameter` can consume the form before Woge sees it. Such integrations need a bounded,
 replayable request body or a verification path that leaves the body intact; the bindings do not
-silently fall back to merged Servlet parameters. End-to-end native Spring Security integration
-is part of #30, not supplied automatically by this decoder. WebFlux's default CSRF token resolver
+silently fall back to merged Servlet parameters. Spring Security integration is not installed
+automatically by this decoder. WebFlux's default CSRF token resolver
 also collects form data, even when a token header is present. For a header-based endpoint, explicitly
 configure a header-only Spring Security token resolver so the body remains readable. This is not
 a replacement for hidden-field CSRF on JavaScript-free forms.
+
+For native forms, the real Spring Security test configurations demonstrate a body-once integration:
+
+1. A filter scoped to the action POST uses `springMvcSubmission()` or `webFluxSubmission()` to read
+   bounded input, and stores the immutable submission on the request. Invalid encoding and budget
+   failures stop at this boundary.
+2. Spring Security checks the header or exactly one `_csrf` value from that submission. Query
+   parameters do not supply a token. Its normal token generation and verification stay in place.
+3. After authentication and CSRF verification, an explicit `SpringMvcPageInput` or `WebFluxPageInput`
+   returns the saved submission. Woge creates the security context and runs the same action or
+   validation renderer; neither can execute in the preparation filter.
+
+Allow the host-owned `_csrf` field explicitly with `UnknownFormFields.IGNORE`; it still consumes
+the same budgets. The application owns this filter and its security policy, not Woge.
+See the [MVC configuration](../../adapters/woge-spring-mvc/src/test/kotlin/dev/woge/spring/mvc/SpringSecurityFormTest.kt)
+and [WebFlux configuration](../../adapters/woge-spring-webflux/src/test/kotlin/dev/woge/spring/webflux/WebFluxSecurityFormTest.kt).
+These are executable fixtures, not an automatically installed security starter.
 
 `WebFluxRequestContextFactory.create` suspends: a factory can await
 `request.principal().awaitSingle()` without blocking the event loop. Configure authentication and
@@ -171,9 +188,9 @@ The shared real-HTTP and Chromium tests verify a successful mutation followed by
 and refresh, without repeating the mutation. Browser tests run with JavaScript disabled and enabled
 on MVC, WebFlux and Ktor, including validation and domain rejection. Their security facts are
 explicit test fixtures. Separate real Spring Security filter-chain tests verify authentication,
-header-CSRF rejection and domain authorization on both Spring adapters. This foundation does not
-complete #30: actual enhanced-submission parity and native hidden-field Spring Security ingress
-are still pending.
+header and hidden-field CSRF rejection and domain authorization on both Spring adapters. They also
+reject repeated tokens, query-only tokens, malformed encoding and excessive input. This foundation
+does not complete #30: actual enhanced-submission parity is still pending.
 
 ## Request limits
 

@@ -35,6 +35,38 @@ public class SecurityFormContract {
         expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "other-user", token.body(), "value=accepted"))
         expectStatus(ResponseStatus.BAD_REQUEST, post(client, origin, "tck-user", token.body(), "value=a&value=b"))
         expectStatus(ResponseStatus.UNAUTHORIZED, post(client, origin, null, token.body(), "value=accepted"))
+        verifyNative(client, origin, token.body())
+    }
+
+    private fun verifyNative(
+        client: HttpClient,
+        origin: URI,
+        token: String,
+    ) {
+        val field = "_csrf=${java.net.URLEncoder.encode(token, Charsets.UTF_8)}"
+        expectStatus(ResponseStatus.SEE_OTHER, post(client, origin, "tck-user", null, "value=accepted&$field"))
+        expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "tck-user", null, "value=accepted&_csrf=invalid"))
+        expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "tck-user", null, "value=accepted&$field&$field"))
+        expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "other-user", null, "value=accepted&$field"))
+        expectStatus(ResponseStatus.BAD_REQUEST, post(client, origin, "tck-user", null, "value=a&value=b&$field"))
+        expectStatus(ResponseStatus.UNAUTHORIZED, post(client, origin, null, null, "value=accepted&$field"))
+        expectStatus(
+            ResponseStatus.PAYLOAD_TOO_LARGE,
+            post(client, origin, "tck-user", null, "value=${"a".repeat(tckSecurityForm.limits.valueBytes + 1)}&$field"),
+        )
+        expectStatus(ResponseStatus.BAD_REQUEST, post(client, origin, "tck-user", null, "value=%GG&$field"))
+        expectStatus(
+            ResponseStatus.FORBIDDEN,
+            client.send(
+                HttpRequest
+                    .newBuilder(origin.resolve("${TckSubmitAction.path}?$field"))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Authorization", basic("tck-user"))
+                    .POST(HttpRequest.BodyPublishers.ofString("value=accepted"))
+                    .build(),
+                HttpResponse.BodyHandlers.ofString(),
+            ),
+        )
     }
 
     private fun post(

@@ -1,11 +1,18 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.FormDecodingException
 import dev.woge.host.withFormValidation
+import dev.woge.tck.PREPARED_SECURITY_FORM_ATTRIBUTE
+import dev.woge.tck.PreparedSecurityForm
 import dev.woge.tck.SecurityFormContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
-import dev.woge.tck.tckActionForm
 import dev.woge.tck.tckActionValidation
+import dev.woge.tck.tckSecurityForm
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequestWrapper
+import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.SpringBootConfiguration
@@ -18,8 +25,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.web.HttpRequestHandler
+import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping
 import java.net.URI
 
@@ -53,6 +62,7 @@ private class SecurityFormConfiguration {
         http
             .authorizeHttpRequests { it.anyRequest().authenticated() }
             .httpBasic(Customizer.withDefaults())
+            .addFilterBefore(BoundedSecurityFormFilter(), CsrfFilter::class.java)
             .build()
 
     @Bean
@@ -72,7 +82,9 @@ private class SecurityFormConfiguration {
         val action =
             WogeSpringMvcHandlers().action(
                 TckSubmitAction.withFormValidation(tckActionValidation),
-                tckActionForm.springMvcSubmission(),
+                SpringMvcPageInput { request ->
+                    (request.getAttribute(PREPARED_SECURITY_FORM_ATTRIBUTE) as PreparedSecurityForm).submission
+                },
                 SpringMvcRequestContextFactory { request ->
                     // Only reached after this configuration's Authentication and CsrfFilter.
                     tckActionContext(checkNotNull(request.userPrincipal).name)
@@ -84,6 +96,34 @@ private class SecurityFormConfiguration {
                 response.contentType = "text/plain"
                 response.writer.write(token.token)
             }
+
         return SimpleUrlHandlerMapping(mapOf(TckSubmitAction.path to action, "/csrf" to csrf), 0)
+    }
+}
+
+private class BoundedSecurityFormFilter : OncePerRequestFilter() {
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean =
+        request.method != "POST" || request.requestURI != TckSubmitAction.path
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain,
+    ) {
+        val prepared =
+            try {
+                PreparedSecurityForm(tckSecurityForm.springMvcSubmission().decode(request))
+            } catch (error: FormDecodingException) {
+                response.sendError(error.category.status.code)
+                return
+            }
+        request.setAttribute(PREPARED_SECURITY_FORM_ATTRIBUTE, prepared)
+        filterChain.doFilter(
+            object : HttpServletRequestWrapper(request) {
+                override fun getParameter(name: String): String? =
+                    if (name == "_csrf") prepared.csrfToken else super.getParameter(name)
+            },
+            response,
+        )
     }
 }
