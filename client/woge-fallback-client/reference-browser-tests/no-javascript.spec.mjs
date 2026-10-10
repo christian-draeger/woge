@@ -17,3 +17,20 @@ test("uses an ordinary full navigation when JavaScript is unavailable", async ({
   await expect(page.locator("[data-woge-region]")).toHaveCount(0);
   await expect(page.getByText("Loading from the server…")).toHaveCount(0);
 });
+
+test("the same board action uses POST redirect GET and refresh never resubmits", async ({ page }) => {
+  await page.goto("/projects/woge/tasks");
+  const title = `Native ${test.info().project.name}`;
+  const count = Number((await page.locator("#task-count").textContent()).split(" ")[0]);
+  await page.getByLabel("Task title").fill(title);
+  const response = page.waitForResponse((response) =>
+    response.request().method() === "POST" && response.url().endsWith("/woge-actions/add-board-task"));
+  await page.getByRole("button", { name: "Add task" }).click();
+  expect((await response).status()).toBe(303);
+  await expect(page).toHaveURL(/\/projects\/woge\/tasks$/);
+  await expect(page.locator("#task-count")).toHaveText(`${count + 1} tasks`);
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+  await page.reload();
+  await expect(page.locator("#task-count")).toHaveText(`${count + 1} tasks`);
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+});

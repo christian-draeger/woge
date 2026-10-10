@@ -41,8 +41,8 @@ applications must deploy the updated client before using them. Unsupported opera
 through the canonical recovery contract, never through best-effort DOM mutation or POST replay.
 
 The runtime exposes `Flow<Patch>.encodePatchStream` through the same host chunk transport. Deferred
-and prepared action replacements reuse that encoder. Typed action collection builders and the
-reference application's multi-region workflow remain #33.
+and prepared action replacements reuse that encoder. The reference application's multi-region
+workflow is covered by #33; it reuses authoritative typed replacements.
 
 ## Alternatives considered
 
@@ -67,4 +67,5 @@ still not one atomic transaction.
 
 The shared JVM/browser golden covers Replace, Append and Remove. Browser conformance covers
 deduplication, revisions, removal focus, nested target cleanup and invalid item payloads. Full
-interaction state preservation remains #36; typed multi-region collection composition remains #33.
+interaction state preservation remains #36. Additional collection-oriented action conveniences
+should follow concrete application needs rather than duplicating the existing typed builder.

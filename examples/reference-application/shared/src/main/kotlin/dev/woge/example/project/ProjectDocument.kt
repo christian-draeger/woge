@@ -76,6 +76,9 @@ private fun HtmlWriter.renderBody(
                 a(attributes = { url("href", ProjectPageRoute.url(ProjectPageInput(project.slug))) }) {
                     text("Projects")
                 }
+                a(attributes = { url("href", TaskBoardRoute.url(TaskBoardInput())) }) {
+                    text("Task board")
+                }
             }
         }
         main(attributes = {
