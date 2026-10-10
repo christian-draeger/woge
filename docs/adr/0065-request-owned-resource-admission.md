@@ -47,6 +47,20 @@ releases any acquired runtime slot, and throws `WOGE_RESOURCE_LIMIT_EXCEEDED` wi
 limit name and threshold. Recovery is `resource-exhaustion` / `fail-closed`, never replay, retry or
 automatic reload. Earlier valid DOM updates are not rolled back; native navigation remains available.
 
+HTML documents carry a positive cumulative byte allowance, defaulting to 16 MiB. `htmlPage` and
+`streamingHtmlPage` expose `maxBytes`; all hosts and the direct document writer enforce it on bounded
+UTF-8 chunks before retaining or writing them. The allowance belongs to one collection/HTTP response,
+not one frame. Exactly-threshold output is valid. Exhaustion stops rendering and later frames,
+propagates a safe exception, and reports `PAGE_BYTES` / threshold with `REJECTED` in host observations.
+HEAD still skips rendering. Hosts keep their existing safe pre-commit failures and post-commit
+stream failure behavior; already written HTML is not replaced or rolled back.
+
+One shared runtime frame renderer serves all three hosts. MVC writes its encoded chunks directly;
+WebFlux and Ktor retain one bounded frame for their transport integration. Cancellation is checked
+on each DSL writer call. `patchHtml` also enforces the fixed 8 MiB protocol payload ceiling through
+bounded chunks before retaining an oversized fragment, rather than discovering it only at encoding.
+These guards cannot bound application-owned eager strings, lists, or custom blocking render code.
+
 ## Alternatives considered
 
 - **Only keep the semaphore:** limits active tasks, not declarations or waiting children.
@@ -68,8 +82,9 @@ are recorded for this pre-release version.
 
 ## Follow-up
 
-This implements the deferred admission/pending-result and browser response/decoder parts of #122.
-Full page/patch aggregate byte accounting, multipart/upload policy, SSE subscription ownership and
+This implements deferred admission/pending results, HTML response bytes, patch fragment bytes and
+browser response/decoder parts of #122. Aggregate server patch stream accounting, multipart/upload
+policy, SSE subscription ownership and
 application/session-wide admission remain open. SSE does not yet have a production API; its future
 implementation must apply explicit subscription budgets rather than inherit an unlimited registry.
 Do not mark #122 complete until those remaining boundaries and exhaustion paths are implemented.

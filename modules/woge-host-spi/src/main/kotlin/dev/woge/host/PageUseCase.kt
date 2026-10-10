@@ -3,6 +3,7 @@ package dev.woge.host
 import dev.woge.html.ApplicationUrl
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.ExternalUrl
+import dev.woge.html.HtmlByteBudget
 import dev.woge.html.HtmlSink
 import dev.woge.html.HtmlWriter
 import dev.woge.html.StreamingHtmlSink
@@ -14,6 +15,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import java.nio.charset.StandardCharsets
 
 /** One typed page request after routing and input decoding by a host adapter. */
 public class PageRequest<Input : Any>(
@@ -45,8 +47,10 @@ public sealed interface PageResult {
     public class Document(
         override val metadata: ResponseMetadata,
         public val frames: Flow<HtmlFrame>,
+        public val maxBytes: Long = DEFAULT_PAGE_BYTES,
     ) : PageResult {
         init {
+            require(maxBytes > 0) { "HTML page byte budget must be positive" }
             require(metadata.status.allowsBody) {
                 "Woge HTML document status ${metadata.status.code} does not permit a response body"
             }
@@ -132,14 +136,19 @@ public fun interface ExternalRedirectPolicy {
 /** Creates a complete one-frame HTML page. */
 public fun htmlPage(
     metadata: ResponseMetadata = ResponseMetadata(),
+    maxBytes: Long = DEFAULT_PAGE_BYTES,
     content: HtmlWriter.() -> Unit,
-): PageResult.Document = PageResult.Document(metadata, flowOf(htmlFrame(content)))
+): PageResult.Document = PageResult.Document(metadata, flowOf(htmlFrame(content)), maxBytes)
 
 /** Creates an HTML page whose ordered frames are produced lazily during collection. */
 public fun streamingHtmlPage(
     frames: Flow<HtmlFrame>,
     metadata: ResponseMetadata = ResponseMetadata(),
-): PageResult.Document = PageResult.Document(metadata, frames)
+    maxBytes: Long = DEFAULT_PAGE_BYTES,
+): PageResult.Document = PageResult.Document(metadata, frames, maxBytes)
+
+/** Default cumulative rendered UTF-8 bytes for one HTML response, across every frame. */
+public const val DEFAULT_PAGE_BYTES: Long = 16L * 1024 * 1024
 
 /** Creates a bodyless same-application redirect. */
 public fun redirect(
@@ -206,7 +215,15 @@ public suspend fun PageResult.Document.writeTo(
     maxChunkChars: Int = DEFAULT_HTML_CHUNK_CHARS,
 ) {
     val context = currentCoroutineContext()
-    val streamingSink = StreamingHtmlSink(downstream, maxChunkChars)
+    val budget = HtmlByteBudget(maxBytes)
+    val streamingSink =
+        StreamingHtmlSink(
+            HtmlSink { chunk ->
+                budget.consume(chunk.toByteArray(StandardCharsets.UTF_8).size)
+                downstream.write(chunk)
+            },
+            maxChunkChars,
+        )
     val cancellableSink =
         HtmlSink { value ->
             context.ensureActive()

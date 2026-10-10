@@ -11,14 +11,12 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
-import dev.woge.html.HtmlSink
-import dev.woge.html.StreamingHtmlSink
-import dev.woge.protocol.HtmlFrame
+import dev.woge.html.HtmlByteBudget
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
+import dev.woge.runtime.renderByteChunks
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -30,11 +28,8 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.utils.io.writeFully
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import java.nio.charset.StandardCharsets
 
 internal suspend fun ApplicationCall.respondWogePage(
     result: PageResult,
@@ -114,8 +109,9 @@ private suspend fun ApplicationCall.respondDocument(
         contentType = ContentType.parse(requireNotNull(document.metadata.contentType).value),
         status = HttpStatusCode.fromValue(document.metadata.status.code),
     ) {
+        val budget = HtmlByteBudget(document.maxBytes)
         document.frames.observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext).collect { frame ->
-            frame.renderChunks().forEach { bytes -> writeFully(bytes) }
+            frame.renderByteChunks(budget, observer, observationContext).forEach { bytes -> writeFully(bytes) }
             flush()
         }
     }
@@ -148,22 +144,3 @@ private val SameSite.httpValue: String
     get() = name.lowercase().replaceFirstChar(Char::uppercase)
 
 private object BodylessContent : OutgoingContent.NoContent()
-
-private suspend fun HtmlFrame.renderChunks(): List<ByteArray> {
-    val context = currentCoroutineContext()
-    val chunks = mutableListOf<ByteArray>()
-    val sink =
-        StreamingHtmlSink(
-            downstream =
-                HtmlSink { value ->
-                    context.ensureActive()
-                    chunks += value.toByteArray(StandardCharsets.UTF_8)
-                },
-            maxChunkChars = DEFAULT_HTML_CHUNK_CHARS,
-        )
-    context.ensureActive()
-    writeTo(sink)
-    context.ensureActive()
-    sink.flush()
-    return chunks
-}

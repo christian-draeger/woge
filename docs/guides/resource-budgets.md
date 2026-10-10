@@ -31,6 +31,25 @@ response. Collection through `execute` enforces the same bound again. Cancelling
 cancels its active and waiting children. Runtime backpressure bounds completed results to active
 workers plus the collector's current result; it does not claim to bound every host/socket buffer.
 
+## Server HTML responses
+
+An HTML document defaults to 16 MiB of rendered UTF-8 bytes, shared across every frame in that
+response. Set `htmlPage(maxBytes = 1024 * 1024) { ... }`, or pass `maxBytes` to
+`streamingHtmlPage(frames, maxBytes = ...)`. The value must be positive. The document carries this
+allowance, so MVC, WebFlux, Ktor and direct `document.writeTo(sink)` integrations use the same limit.
+Each fresh collection gets a fresh allowance; HEAD does not render or spend it.
+
+Woge checks bounded encoded chunks before retaining or writing them. Unicode and escaped HTML count
+as their actual output bytes, not Kotlin string length. A chunk that would cross the threshold is
+not written; rendering and later frames stop. An already committed response may contain an earlier
+prefix, but Woge never appends a replacement error document. Hosts retain their existing safe failure
+or connection-abort behavior. Observers report `PAGE_BYTES` and the threshold with `REJECTED`, without
+rendered HTML. Direct rendering throws `HtmlByteLimitException` with its safe threshold.
+
+`patchHtml { ... }` checks the fixed version-1 8 MiB payload ceiling while rendering, before
+accumulating an oversized fragment. That ceiling cannot be raised by an application override.
+Application-owned strings or eagerly prepared collections are still the application's responsibility.
+
 ## Browser responses
 
 ```js
@@ -68,8 +87,8 @@ The versioned patch codec enforces fixed frame ceilings on server and browser; s
 
 ## Remaining boundaries
 
-[#122](https://github.com/christian-draeger/woge/issues/122) remains open for full page/patch
-aggregate byte accounting, multipart uploads, SSE subscription budgets and explicit application/
+[#122](https://github.com/christian-draeger/woge/issues/122) remains open for aggregate server patch
+stream accounting, multipart uploads, SSE subscription budgets and explicit application/
 session-wide ownership. Do not interpret per-request or per-runtime budgets as process-wide quotas.
 The current form decoder does not accept multipart uploads, and no new live-channel API is enabled
 by these limits.

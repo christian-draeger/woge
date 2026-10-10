@@ -45,6 +45,7 @@ public enum class AdapterTckPageScenario(
     REDIRECT("redirect"),
     CONTROLLED_FAILURE("controlled-failure"),
     PRE_STREAM_FAILURE("pre-stream-failure"),
+    PAGE_BYTE_BUDGET("page-byte-budget"),
     ;
 
     public companion object {
@@ -99,6 +100,7 @@ internal class AdapterTckFixtureState {
     val gatedRegions: CompletableDeferred<Unit> = CompletableDeferred()
     val budgetContentCalls: AtomicInteger = AtomicInteger()
     val budgetDeclarations: AtomicInteger = AtomicInteger()
+    val afterPageBudget: AtomicInteger = AtomicInteger()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 
@@ -116,6 +118,16 @@ internal class AdapterTckFixtureState {
             AdapterTckPageScenario.CONTROLLED_FAILURE ->
                 failure(FailureCategory.NOT_FOUND, request.context.correlationId)
             AdapterTckPageScenario.PRE_STREAM_FAILURE -> error(PRE_STREAM_PRIVATE_DETAIL)
+            AdapterTckPageScenario.PAGE_BYTE_BUDGET ->
+                streamingHtmlPage(
+                    flow {
+                        emit(htmlFrame { text("1234") })
+                        emit(htmlFrame { text("5") })
+                        afterPageBudget.incrementAndGet()
+                        emit(htmlFrame { text("Must not render") })
+                    },
+                    maxBytes = TCK_PAGE_BYTE_BUDGET,
+                )
         }
     }
 
