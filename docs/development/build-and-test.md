@@ -62,6 +62,14 @@ the deterministic negative compiler fixtures, JVM tests, formatting, static anal
 module-boundary checks, ADR metadata and documentation/snippet-link validation. It never calls an AI
 model.
 
+Generated Kotlin is compiled and tested, but excluded from ktlint and Detekt: formatting checks
+apply to hand-written sources, not compiler output.
+
+Each build CI job has a 15-minute limit, including setup and smoke tests. A timeout is a failure,
+not a reason to rerun indefinitely or increase the limit. Locally, use `./gradlew check --console=plain`
+to see progress. If a task stops progressing well beyond its usual duration, inspect its process and
+logs, stop that build, and fix the cause before retrying.
+
 The multi-host reference application has a separate browser gate. Install its pinned Node and
 Playwright dependencies once, then invoke the same Gradle task as CI:
 
