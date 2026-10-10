@@ -32,7 +32,8 @@ default.
 
 `testSpringBootScaffold` first validates pinned versions, metadata and required files. It publishes the
 needed Woge modules to `build/scaffold-maven-repository`, creates clean external WebFlux and MVC copies,
-and runs each copy's real-server test. The publication is disposable build evidence, not a local or
+and runs each copy's real-server test. It also runs the fresh WebFlux copy with a temporary MVC
+override, without modifying its generated guidance. The publication is disposable build evidence, not a local or
 remote release.
 
 `scaffoldBrowserSmoke` materializes another clean WebFlux copy and runs Chromium with JavaScript

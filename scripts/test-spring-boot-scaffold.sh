@@ -31,6 +31,16 @@ for adapter in webflux mvc; do
     --stacktrace \
     check \
     "-PwogeRepository=$published_repository"
+  if [[ "$adapter" == webflux ]]; then
+    "$fixture_root/gradlew" \
+      --project-dir "$fixture_root" \
+      --no-daemon \
+      --stacktrace \
+      check \
+      -PwogeSpringAdapter=mvc \
+      "-PwogeRepository=$published_repository"
+    grep -Fq -- '- Selected host: `webflux`' "$fixture_root/AGENTS.md"
+  fi
 done
 
 # Human and machine-readable workflow help come from the same list in the Gradle plugin.
@@ -59,4 +69,4 @@ asset_jar=$(unzip -Z1 "$boot_jar" | grep -E '^BOOT-INF/lib/woge-fallback-client-
 unzip -p "$boot_jar" "$asset_jar" > "$scratch_root/assets.jar"
 unzip -Z1 "$scratch_root/assets.jar" | grep -Fqx 'static/assets/woge/index.js'
 
-printf 'External Spring Boot scaffold passed for WebFlux and MVC, including the production artifact check.\n'
+printf 'External Spring Boot scaffold passed for WebFlux, MVC and temporary MVC override, including production artifacts.\n'

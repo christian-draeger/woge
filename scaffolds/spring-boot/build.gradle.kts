@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
@@ -20,6 +21,16 @@ val wogeSpringAdapter = providers.gradleProperty("wogeSpringAdapter").orElse("we
 require(wogeSpringAdapter in setOf("webflux", "mvc")) {
     "wogeSpringAdapter must be 'webflux' or 'mvc', but was '$wogeSpringAdapter'"
 }
+
+val guidanceHost =
+    providers.fileContents(layout.projectDirectory.file("gradle.properties")).asText.map { source ->
+        val properties = Properties().apply { source.reader().use(::load) }
+        requireNotNull(properties.getProperty("wogeSpringAdapter")) {
+            "Persist wogeSpringAdapter in gradle.properties before generating AGENTS.md."
+        }.lowercase().also {
+            require(it in setOf("webflux", "mvc")) { "Persisted wogeSpringAdapter must be 'webflux' or 'mvc'." }
+        }
+    }
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(buildJdk)
@@ -57,14 +68,14 @@ dependencies {
 val verifyWogeAgentGuidance =
     tasks.register("verifyWogeAgentGuidance") {
         group = "verification"
-        description = "Verifies that AGENTS.md matches the selected Woge application versions and host."
+        description = "Verifies that AGENTS.md matches the Woge application versions and persisted host."
         val guidanceFile = layout.projectDirectory.file("AGENTS.md")
         inputs.file(guidanceFile)
         inputs.properties(
             mapOf(
                 "expectedKotlinLine" to "- Kotlin: $kotlinVersion",
                 "expectedSpringBootLine" to "- Spring Boot: $springBootVersion",
-                "expectedSpringHostLine" to "- Selected host: `$wogeSpringAdapter`",
+                "expectedSpringHostLine" to "- Selected host: `${guidanceHost.get()}`",
                 "expectedWogeLine" to "- Woge: $wogeVersion",
             ),
         )
@@ -73,7 +84,8 @@ val verifyWogeAgentGuidance =
             inputs.properties.toSortedMap().values.forEach { expectedValue ->
                 val expectedLine = expectedValue.toString()
                 check(expectedLine in guidance) {
-                    "AGENTS.md is stale: missing '$expectedLine'. Regenerate it with matching Woge scaffold tooling."
+                    "AGENTS.md is stale: missing '$expectedLine'. From the application root, run " +
+                        "/path/to/woge/scripts/generate-spring-boot-agent-guidance.sh AGENTS.md ."
                 }
             }
         }

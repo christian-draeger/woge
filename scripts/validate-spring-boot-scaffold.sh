@@ -39,7 +39,7 @@ catalog_version() {
   fail "unsupported scaffold schemaVersion"
 [[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldId)" == "spring-boot" ]] ||
   fail "scaffoldId must remain spring-boot"
-[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.3.0" ]] ||
+[[ "$(property_value "$scaffold_root/scaffold.properties" scaffoldVersion)" == "0.3.1" ]] ||
   fail "scaffoldVersion must remain explicitly versioned"
 [[ "$(property_value "$scaffold_root/scaffold.properties" defaultHost)" == "webflux" ]] ||
   fail "defaultHost must remain webflux"
