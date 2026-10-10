@@ -204,7 +204,10 @@ See [ADR 0045](../adr/0045-wogedev-gradle-launcher-and-development-head-hook.md)
 - Production packaging must contain no development endpoint, watcher, token, manifest endpoint or
   tooling resource. A disabled runtime switch is not sufficient isolation.
 
-Node/Vite is optional, not a requirement for Kotlin-and-CSS applications. A stable public MCP API is
+Node/Vite is optional, not a requirement for Kotlin-and-CSS applications. When an application picks
+Vite, `wogeDev` runs it as one more child process: Vite hot-updates its own modules, while Woge
+alone reloads the page after server changes. Kotlin sources are never Vite inputs
+([ADR 0070](../adr/0070-optional-direct-vite-frontend-adapter.md)). A stable public MCP API is
 also deferred until the underlying capabilities have real adapter experience.
 
 The durable decision and rejected alternatives are recorded in
