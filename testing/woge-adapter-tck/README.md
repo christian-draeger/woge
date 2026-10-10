@@ -20,7 +20,9 @@ The optional native-form browser gate submits a real file with JavaScript disabl
 
 HTTP caching is part of the core contract: explicitly cacheable pages preserve validators and Vary
 on bodyless GET/HEAD 304 responses, skip frame collection and never bypass current authorization.
-Dynamic results without an explicit policy use no-store. See the
+Dynamic results without an explicit policy use no-store. The `shared-cache-safety` contract checks
+every response class against the RFC 9111 rules a reverse proxy or CDN follows; none may be
+storable. See the
 [HTTP caching guide](../../docs/guides/http-caching.md).
 
 Resource exhaustion is part of the core contract: deferred admission must reject before work,

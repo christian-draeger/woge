@@ -64,11 +64,23 @@ under one validator when its HTML differs by user, mode or protocol.
 
 ## Proxies and assets
 
-Keep these headers intact at your proxy/CDN. Do not override private or no-store dynamic pages with a
-global cache rule. Ordinary browser DevTools show the same HTTP headers and 200/304 behavior as any
-other web application. The shared [adapter TCK](../../testing/woge-adapter-tck/README.md) runs the
-conditional flow over actual HTTP in all three hosts; dedicated proxy/CDN fixtures remain open in
-[#117](https://github.com/christian-draeger/woge/issues/117).
+A reverse proxy or CDN (nginx, Varnish, Cloudflare, CloudFront, ...) is a **shared cache**: one
+stored copy may be sent to many users. Woge keeps every dynamic response out of shared caches by
+default — pages, 304s, redirects, errors, deferred streams and action results all carry `no-store`,
+or `private` if you chose it. The [adapter TCK](../../testing/woge-adapter-tck/README.md) checks this
+in MVC, WebFlux and Ktor with the storage rules every standard shared cache follows.
+
+At your proxy or CDN:
+
+- Keep `Cache-Control`, `ETag`, `Last-Modified` and `Vary` intact. Do not let a global rule such as
+  "cache all HTML for 5 minutes" override `private` or `no-store`.
+- Prefer "respect origin headers" cache modes. Watch out for CDN settings that ignore `Vary` or
+  `Set-Cookie`.
+- Only `public` (or `s-maxage`) lets a shared cache store a response requested with an
+  `Authorization` header.
+- Fingerprinted asset URLs under `/_woge/assets/` can be cached at the edge forever.
+
+Browser DevTools show the same headers and 200/304 behavior as for any other web application.
 
 Static files stay with the host's resource handler. Only immutable, content-fingerprinted URLs should
 receive `public, max-age=31536000, immutable`; unversioned URLs need a shorter lifetime or revalidation.
