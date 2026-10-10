@@ -26,17 +26,28 @@ public data class WogeDevelopmentSettings(
     public val pollIntervalMillis: Long = DEFAULT_POLL_INTERVAL_MILLIS,
     /** The Vite dev server to run next to the application; `null` without the `dev.woge.vite` plugin. */
     public val vite: ViteDevServerSettings? = null,
+    /** Starts the experimental MCP endpoint for coding agents (ADR 0075). */
+    public val mcp: Boolean = false,
+    /** The MCP port; 0 picks a free port. */
+    public val mcpPort: Int = 0,
 ) {
     init {
         require(buildCommand.isNotEmpty()) { "The build command must not be empty" }
         require(childJava.isNotBlank()) { "The Java executable must not be blank" }
         require(port in 1..MAX_PORT) { "The application port must be between 1 and $MAX_PORT" }
         require(pollIntervalMillis > 0) { "The poll interval must be positive" }
+        require(mcpPort in 0..MAX_PORT) { "The MCP port must be between 0 and $MAX_PORT" }
     }
 
     /** The trigger file must sit in its own classpath directory, see ADR 0041. */
     public val triggerFile: Path get() = stateDirectory.resolve("trigger").resolve(".woge-restart-trigger")
     public val clientFile: Path get() = stateDirectory.resolve("client.properties")
+
+    /** Where coding agents find the MCP URL and token while `wogeDev --mcp` runs. */
+    public val mcpFile: Path get() = stateDirectory.resolve("mcp.json")
+
+    /** Written by the `wogeManifest` task. */
+    public val manifestFile: Path get() = projectDirectory.resolve(".woge").resolve("manifest.json")
 
     /**
      * The command for the application child. For Spring Boot the main class comes from
@@ -70,6 +81,8 @@ public data class WogeDevelopmentSettings(
         properties["host"] = host.id
         properties["fastRestart"] = fastRestart.toString()
         properties["pollInterval"] = pollIntervalMillis.toString()
+        properties["mcp"] = mcp.toString()
+        properties["mcp.port"] = mcpPort.toString()
         properties.putList("build.command", buildCommand)
         properties["child.java"] = childJava
         properties["child.mainClassFile"] = mainClassFile.toString()
@@ -108,6 +121,8 @@ public data class WogeDevelopmentSettings(
                 host = WogeDevelopmentHost.of(properties.getProperty("host") ?: WogeDevelopmentHost.SPRING_BOOT.id),
                 fastRestart = value("fastRestart").toBooleanStrict(),
                 pollIntervalMillis = value("pollInterval").toLong(),
+                mcp = properties.getProperty("mcp")?.toBooleanStrict() ?: false,
+                mcpPort = properties.getProperty("mcp.port")?.toInt() ?: 0,
                 vite =
                     properties.list("vite.command").takeIf { it.isNotEmpty() }?.let { command ->
                         ViteDevServerSettings(

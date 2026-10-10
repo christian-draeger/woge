@@ -77,6 +77,11 @@ final class WogeDevelopmentTasks {
                 project.getExtensions().findByType(WogeTailwindExtension.class))));
         task.getBuildFiles().set(buildFiles);
         task.getPort().convention("8080");
+        task.getMcp().convention(false);
+        task.getMcpPort().convention("0");
+        String manifestTask = (project.getPath().equals(":") ? ":" : project.getPath() + ":") + "wogeManifest";
+        task.getManifestTask().set(project.provider(() ->
+                project.getTasks().getNames().contains("wogeManifest") ? manifestTask : null));
         if (host == Host.SPRING_BOOT) {
             task.getMainClassFile().set(buildDirectory.file("resolvedMainClassName"));
             task.getApplicationMainClass().unset();

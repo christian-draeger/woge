@@ -6,8 +6,10 @@ import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.browser.DevelopmentBrowserChannel
 import dev.woge.development.browser.clientSettings
 import dev.woge.development.client.FileDevelopmentHeadContribution
+import dev.woge.development.mcp.DevelopmentMcpServer
 import dev.woge.development.orchestrator.DevelopmentAdapters
 import dev.woge.development.orchestrator.DevelopmentHostAdapter
+import dev.woge.development.orchestrator.DevelopmentManifestSource
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
 import dev.woge.development.process.ChildLaunchSpec
 import dev.woge.development.process.ChildProcessDevelopmentHost
@@ -60,7 +62,12 @@ public class WogeDevelopmentSession(
             val orchestrator =
                 DevelopmentOrchestrator.start(
                     this,
-                    DevelopmentAdapters(build, host, ClientFileFrontendAdapter { clientFile.get() }),
+                    DevelopmentAdapters(
+                        build,
+                        host,
+                        ClientFileFrontendAdapter { clientFile.get() },
+                        if (settings.mcp) FileManifestSource(settings.manifestFile) else DevelopmentManifestSource.none,
+                    ),
                 )
             val channel =
                 DevelopmentBrowserChannel(
@@ -74,12 +81,25 @@ public class WogeDevelopmentSession(
             )
             val reporter = TerminalReporter(print)
             launch { orchestrator.events.collect { reporter.report(it.event) } }
+            val mcp = if (settings.mcp) startMcp(orchestrator) else null
             try {
                 watch(orchestrator)
             } finally {
                 channel.close()
+                mcp?.close()
+                if (mcp != null) settings.mcpFile.deleteIfExists()
             }
         }
+
+    private fun startMcp(orchestrator: DevelopmentOrchestrator): DevelopmentMcpServer {
+        val server = DevelopmentMcpServer(orchestrator, settings.mcpPort)
+        writeMcpConnection(settings.mcpFile, server)
+        print(
+            "[woge] Experimental MCP endpoint for coding agents: ${server.url} " +
+                "(URL and token in ${settings.projectDirectory.relativize(settings.mcpFile)})",
+        )
+        return server
+    }
 
     private suspend fun kotlinx.coroutines.CoroutineScope.watch(orchestrator: DevelopmentOrchestrator) {
         val watcher = SourceWatcher(settings.projectDirectory, settings.watchRoots, settings.buildFiles)

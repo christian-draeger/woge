@@ -10,7 +10,8 @@ woge-dev-process-host	tooling	internal	modules/woge-dev-process-host	woge-dev-or
 woge-dev-client	tooling	internal	modules/woge-dev-client	woge-core,woge-dev-model	-
 woge-dev-spring-child	tooling	internal	modules/woge-dev-spring-child	woge-dev-client	-
 woge-dev-browser	tooling	internal	modules/woge-dev-browser	woge-dev-orchestrator,woge-core,woge-dev-client	-
-woge-dev-gradle	tooling	internal	modules/woge-dev-gradle	woge-dev-process-host,woge-dev-browser	-
+woge-dev-mcp	tooling	internal	modules/woge-dev-mcp	woge-dev-model	-
+woge-dev-gradle	tooling	internal	modules/woge-dev-gradle	woge-dev-process-host,woge-dev-browser,woge-dev-mcp	-
 woge-gradle-plugin	tooling	internal	modules/woge-gradle-plugin	-	-
 woge-ksp	tooling	public	modules/woge-ksp	-	-
 woge-fallback-client-assets	integration	public	integrations/woge-fallback-client-assets	-	-

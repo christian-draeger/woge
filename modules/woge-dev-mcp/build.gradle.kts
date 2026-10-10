@@ -2,12 +2,11 @@ plugins {
     id("dev.woge.kotlin-jvm-library")
 }
 
-description = "The wogeDev command: Gradle builds, Spring Boot child and browser channel in one session."
+description = "Experimental loopback MCP endpoint over the Woge development capabilities (ADR 0075)."
 
 dependencies {
-    api(project(":woge-dev-process-host"))
-    api(project(":woge-dev-browser"))
-    implementation(project(":woge-dev-mcp"))
+    api(project(":woge-dev-model"))
+    implementation(libs.kotlinxCoroutinesCore)
     implementation(libs.kotlinxSerializationJson)
 
     testImplementation(libs.junitJupiter)

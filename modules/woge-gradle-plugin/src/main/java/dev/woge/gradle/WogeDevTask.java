@@ -85,6 +85,24 @@ public abstract class WogeDevTask extends JavaExec {
     @Optional
     public abstract Property<Integer> getVitePort();
 
+    /** Opt-in experimental MCP endpoint for coding agents (ADR 0075). */
+    @Input
+    public abstract Property<Boolean> getMcp();
+
+    @Option(option = "mcp", description = "Start the experimental MCP endpoint for coding agents.")
+    public void setMcpOption(boolean enabled) {
+        getMcp().set(enabled);
+    }
+
+    /** The MCP port; 0 picks a free port. The URL and token are written to {@code build/woge-dev/mcp.json}. */
+    @Input
+    @Option(option = "mcp-port", description = "The local MCP port (default: a free port).")
+    public abstract Property<String> getMcpPort();
+
+    /** The task that writes {@code .woge/manifest.json}; added to development builds while MCP is on. */
+    @Internal
+    public abstract Property<String> getManifestTask();
+
     @Option(option = "full-restart", description = "Always restart the whole application process.")
     public void setFullRestart(boolean fullRestart) {
         getFastRestart().set(!fullRestart);
@@ -110,7 +128,13 @@ public abstract class WogeDevTask extends JavaExec {
         properties.setProperty("pollInterval", "250");
         properties.setProperty("child.java", getChildJava().get());
         properties.setProperty("child.mainClassFile", getMainClassFile().get().getAsFile().getAbsolutePath());
-        putList(properties, "build.command", getBuildCommand().get());
+        List<String> buildCommand = new java.util.ArrayList<>(getBuildCommand().get());
+        if (getMcp().get() && getManifestTask().isPresent()) {
+            buildCommand.add(getManifestTask().get());
+        }
+        putList(properties, "build.command", buildCommand);
+        properties.setProperty("mcp", getMcp().get().toString());
+        properties.setProperty("mcp.port", getMcpPort().get());
         putList(properties, "child.classpath", getChildClasspath().get());
         putList(properties, "watch.root", getWatchRoots().get());
         putList(properties, "watch.buildFile", getBuildFiles().get());
