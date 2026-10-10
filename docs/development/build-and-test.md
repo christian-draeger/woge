@@ -70,6 +70,10 @@ not a reason to rerun indefinitely or increase the limit. Locally, use `./gradle
 to see progress. If a task stops progressing well beyond its usual duration, inspect its process and
 logs, stop that build, and fix the cause before retrying.
 
+On macOS, system sleep pauses local builds and inflates their elapsed time. For an unattended run,
+`caffeinate -i ./gradlew check --console=plain` prevents idle sleep only while that command runs.
+Keep the lid open; this does not override lid-close sleep or change permanent power settings.
+
 The multi-host reference application has a separate browser gate. Install its pinned Node and
 Playwright dependencies once, then invoke the same Gradle task as CI:
 

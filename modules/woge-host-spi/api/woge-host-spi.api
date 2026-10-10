@@ -222,6 +222,19 @@ public final class dev/woge/host/FailureCategory : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/FailureCategory;
 }
 
+public abstract interface class dev/woge/host/FailurePages {
+	public static final field Companion Ldev/woge/host/FailurePages$Companion;
+	public abstract fun render (Ldev/woge/host/PublicFailure;)Ldev/woge/protocol/HtmlFrame;
+}
+
+public final class dev/woge/host/FailurePages$Companion {
+	public final fun getNONE ()Ldev/woge/host/FailurePages;
+}
+
+public final class dev/woge/host/FailurePagesKt {
+	public static final fun withFailurePages (Ldev/woge/host/PageResult;Ldev/woge/host/FailurePages;)Ldev/woge/host/PageResult;
+}
+
 public final class dev/woge/host/HeaderName {
 	public static final field Companion Ldev/woge/host/HeaderName$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/HeaderName;

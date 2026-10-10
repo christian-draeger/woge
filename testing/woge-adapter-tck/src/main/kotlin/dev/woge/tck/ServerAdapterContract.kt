@@ -1,5 +1,6 @@
 package dev.woge.tck
 
+import dev.woge.host.FailureCategory
 import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeObservationEvent
@@ -98,7 +99,60 @@ private class AdapterTckVerification(
             verifyClientAbortCancellation()
         }
         verifyTypedRoute()
+        verifyFailurePages()
         verifySemanticObservations()
+    }
+
+    private suspend fun verifyFailurePages() {
+        runContract("configured-failure-pages") {
+            listOf(FailureCategory.NOT_FOUND, FailureCategory.INTERNAL).forEach { category ->
+                val status = category.status.code
+                val path = AdapterTckFailureRoute.url(status).value
+                val response = client.text(RequestMethod.GET, path)
+                expect(response.statusCode() == status, "configured-failure-pages", "failure status changed")
+                expect(
+                    response.header("content-type")?.lowercase()?.replace(" ", "") == "text/html;charset=utf-8",
+                    "configured-failure-pages",
+                    "failure HTML has the wrong content type",
+                )
+                expect(
+                    response.body() == "<p>Page failure: $category</p>",
+                    "configured-failure-pages",
+                    "configured failure HTML was not rendered",
+                )
+                val head = client.bytes(RequestMethod.HEAD, path)
+                expect(head.statusCode() == status, "configured-failure-pages", "HEAD status changed")
+                expect(head.body().isEmpty(), "configured-failure-pages", "HEAD exposed failure HTML")
+            }
+            val invalid = client.text(RequestMethod.GET, "/woge-tck/failures/invalid")
+            expect(
+                invalid.statusCode() == ResponseStatus.NOT_FOUND.code,
+                "configured-failure-pages",
+                "invalid path status changed",
+            )
+            expect(
+                invalid.body() == "<p>Page failure: NOT_FOUND</p>",
+                "configured-failure-pages",
+                "decode failure bypassed configured HTML",
+            )
+            val declined =
+                client.text(
+                    RequestMethod.GET,
+                    AdapterTckFailureRoute.url(ResponseStatus.BAD_REQUEST.code).value,
+                )
+            expect(
+                declined.statusCode() == ResponseStatus.BAD_REQUEST.code,
+                "configured-failure-pages",
+                "declined failure status changed",
+            )
+            expect(declined.body().isEmpty(), "configured-failure-pages", "declined failure exposed a body")
+            val ok = client.text(RequestMethod.GET, AdapterTckFailureRoute.url(ResponseStatus.OK.code).value)
+            expect(
+                ok.statusCode() == ResponseStatus.OK.code && ok.body() == "<p>OK</p>",
+                "configured-failure-pages",
+                "success changed",
+            )
+        }
     }
 
     private suspend fun verifyDocumentGetAndHead() {

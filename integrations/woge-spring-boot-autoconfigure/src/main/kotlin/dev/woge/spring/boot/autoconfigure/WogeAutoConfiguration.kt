@@ -1,6 +1,7 @@
 package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
 import dev.woge.protocol.PatchProtocolVersion
@@ -22,6 +23,11 @@ import org.springframework.core.io.ResourceLoader
 @EnableConfigurationProperties(WogeProperties::class)
 @Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
 public class WogeAutoConfiguration {
+    /** Bodyless by default; applications can provide shared not-found and error HTML. */
+    @Bean
+    @ConditionalOnMissingBean
+    public fun wogeFailurePages(): FailurePages = FailurePages.NONE
+
     /** Framework-neutral no-op that applications can replace with Micrometer or OpenTelemetry. */
     @Bean
     @ConditionalOnMissingBean
