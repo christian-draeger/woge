@@ -9,19 +9,38 @@ import dev.woge.html.applicationUrl
 import dev.woge.html.body
 import dev.woge.html.button
 import dev.woge.html.h1
+import dev.woge.html.h2
 import dev.woge.html.head
+import dev.woge.html.header
 import dev.woge.html.html
 import dev.woge.html.input
 import dev.woge.html.label
 import dev.woge.html.li
 import dev.woge.html.metadata
 import dev.woge.html.moduleScript
+import dev.woge.html.nav
 import dev.woge.html.p
+import dev.woge.html.section
 import dev.woge.html.stylesheet
 import dev.woge.html.title
 import dev.woge.html.ul
+import dev.woge.ui.LiveRegion
+import dev.woge.ui.UiId
+import dev.woge.ui.dialogCloseButton
+import dev.woge.ui.dialogLink
+import dev.woge.ui.disclosure
+import dev.woge.ui.liveRegion
+import dev.woge.ui.modalDialog
+import dev.woge.ui.popoverButton
+import dev.woge.ui.popoverPanel
 
-internal fun HtmlWriter.renderTaskBoard(snapshot: TaskBoardSnapshot) {
+private val boardHelpDialog = UiId("board-help")
+private val liveUpdatesPopover = UiId("live-updates")
+
+internal fun HtmlWriter.renderTaskBoard(
+    snapshot: TaskBoardSnapshot,
+    view: TaskBoardView? = null,
+) {
     doctype()
     html(attributes = { attribute("lang", "en") }) {
         head {
@@ -32,24 +51,67 @@ internal fun HtmlWriter.renderTaskBoard(snapshot: TaskBoardSnapshot) {
             moduleScript(applicationUrl("/assets/application.js"))
         }
         body {
-            h1 { text("Task board") }
+            header(attributes = { classes("board-header") }) {
+                h1 { text("Task board") }
+                boardTools()
+            }
+            if (view == TaskBoardView.HELP) {
+                section(attributes = {
+                    classes("board-help")
+                    aria("labelledby", "board-help-page-title")
+                }) {
+                    h2(attributes = { attribute("id", "board-help-page-title") }) { text("Board help") }
+                    boardHelp()
+                }
+            }
             region(BoardSummaryRegion.target(snapshot.page), snapshot.titles.size, elementName = "section")
             region(BoardTasksRegion.target(snapshot.page), snapshot.titles, elementName = "section")
             region(BoardStateRegion.target(snapshot.page), snapshot, elementName = "div")
             boardForm()
+            disclosure(summary = { text("What happens when I add a task?") }, attributes = { classes("board-faq") }) {
+                p {
+                    text("With JavaScript, only the task list, the count and the status line change. ")
+                    text("Without it, the browser posts the form and loads the board again.")
+                }
+            }
             region(BoardStatusRegion.target(snapshot.page), "", elementName = "p", attributes = {
                 attribute("id", "board-status")
-                attribute("role", "status")
+                liveRegion()
             })
             region(BoardActivityRegion.target(snapshot.page), 0L, elementName = "div", attributes = {
                 attribute("id", "board-activity")
-                attribute("role", "status")
+                liveRegion()
             })
             p(attributes = {
                 attribute("id", "board-alert")
-                attribute("role", "alert")
+                liveRegion(LiveRegion.ALERT)
             }) {}
+            modalDialog(boardHelpDialog, title = "Board help", attributes = { classes("board-dialog") }) {
+                boardHelp()
+                dialogCloseButton { text("Close") }
+            }
         }
+    }
+}
+
+private fun HtmlWriter.boardTools() {
+    nav(attributes = {
+        classes("board-tools")
+        aria("label", "Board tools")
+    }) {
+        popoverButton(liveUpdatesPopover) { text("Live updates") }
+        popoverPanel(liveUpdatesPopover, attributes = { classes("board-popover") }) {
+            p { text("When another visitor adds a task, a notice appears below the form. Nothing moves on its own.") }
+        }
+        dialogLink(boardHelpDialog, TaskBoardRoute.url(TaskBoardInput(TaskBoardView.HELP))) { text("Board help") }
+    }
+}
+
+private fun HtmlWriter.boardHelp() {
+    ul {
+        li { text("Type a title and press Enter to add a task.") }
+        li { text("The status line below the form tells you whether it worked.") }
+        li { text("Everything also works without JavaScript, as ordinary pages and forms.") }
     }
 }
 

@@ -35,8 +35,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
+/** `HELP` renders the board help as a normal page section: the no-JavaScript fallback of the help dialog. */
+public enum class TaskBoardView {
+    HELP,
+}
+
+/** The typed URL `/projects/woge/tasks?view=help` of the task board. */
 @WogeRoute("/projects/woge/tasks")
-public class TaskBoardInput
+public data class TaskBoardInput(
+    public val view: TaskBoardView? = null,
+)
 
 @WogeRoute("/projects/woge/tasks/regions/{epoch}/{target}/{revision}/{interaction}")
 public data class BoardRegionInput(
@@ -124,9 +132,9 @@ public class TaskBoard {
         MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     public val page: PageUseCase<TaskBoardInput> =
-        PageUseCase {
+        PageUseCase { request ->
             val snapshot = synchronized(this) { snapshot(0) }
-            htmlPage { renderTaskBoard(snapshot) }
+            htmlPage { renderTaskBoard(snapshot, request.input.view) }
         }
 
     public val action: ActionExecutor<AddBoardTask> =

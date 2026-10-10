@@ -6,6 +6,7 @@ import dev.woge.host.PageUseCase
 import dev.woge.host.WogeRoute
 import dev.woge.host.htmlPage
 import dev.woge.html.AssetUrls
+import dev.woge.html.HtmlWriter
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
 import dev.woge.html.h1
@@ -19,10 +20,26 @@ import dev.woge.html.p
 import dev.woge.html.span
 import dev.woge.html.stylesheet
 import dev.woge.html.title
+import dev.woge.html.moduleScript
+import dev.woge.html.nav
+import dev.woge.html.section
 import dev.woge.html.ul
+import dev.woge.ui.UiId
+import dev.woge.ui.dialogCloseButton
+import dev.woge.ui.dialogLink
+import dev.woge.ui.disclosure
+import dev.woge.ui.liveRegion
+import dev.woge.ui.modalDialog
+import dev.woge.ui.popoverButton
+import dev.woge.ui.popoverPanel
+
+/** `INCIDENT` shows the incident note as a normal page: the fallback of the dialog without JavaScript. */
+public enum class StatusView { INCIDENT }
 
 @WogeRoute("/")
-public data object StatusInput
+public data class StatusInput(
+    public val view: StatusView? = null,
+)
 
 public enum class Tone { OK, WARNING, DOWN }
 
@@ -52,6 +69,7 @@ public class StatusPage(
                     title("Service status")
                     stylesheet(assets.url(applicationUrl("/tailwind.css")))
                     stylesheet(assets.url(applicationUrl("/site.css")))
+                    moduleScript(assets.url(applicationUrl("/site.js")))
                 }
                 body(attributes = { classes("bg-surface text-ink font-sans") }) {
                     main(attributes = { classes("mx-auto max-w-xl p-6 grid gap-4") }) {
@@ -67,8 +85,55 @@ public class StatusPage(
                                 }
                             }
                         }
+                        if (request.input.view == StatusView.INCIDENT) {
+                            section(attributes = { classes("rounded-lg border border-line p-3") }) { incidentNote() }
+                        }
+                        nav(attributes = {
+                            classes("flex gap-3 items-center")
+                            aria("label", "Status tools")
+                        }) {
+                            popoverButton(legend, attributes = { classes("rounded-lg border border-line px-3 py-1") }) {
+                                text("Legend")
+                            }
+                            popoverPanel(legend, attributes = {
+                                classes("m-auto rounded-lg border border-line bg-surface p-4 text-ink shadow-lg")
+                            }) {
+                                p { text("ok works, warning is slow, down does not work.") }
+                            }
+                            dialogLink(incident, StatusRoute.url(StatusInput(StatusView.INCIDENT)), attributes = {
+                                classes("underline")
+                            }) { text("Uploads incident") }
+                        }
+                        disclosure(
+                            summary = { text("How often is this page updated?") },
+                            attributes = { classes("rounded-lg border border-line p-3") },
+                            summaryAttributes = { classes("cursor-pointer font-semibold") },
+                        ) {
+                            p(attributes = { classes("text-muted") }) { text("Every time you load it.") }
+                        }
+                        p(attributes = {
+                            classes("text-muted")
+                            liveRegion()
+                        }) {}
+                        modalDialog(incident, title = "Uploads incident", attributes = {
+                            classes("m-auto max-w-md rounded-lg border border-line bg-surface p-6 text-ink backdrop:bg-black/50")
+                        }, titleAttributes = { classes("text-xl font-bold") }) {
+                            incidentNote()
+                            dialogCloseButton(attributes = { classes("mt-4 rounded-lg border border-line px-3 py-1") }) {
+                                text("Close")
+                            }
+                        }
                     }
                 }
             }
         }
+
+    private fun HtmlWriter.incidentNote() {
+        p { text("Uploads are paused while storage is moved. Files you already uploaded are safe.") }
+    }
+
+    private companion object {
+        val legend = UiId("legend")
+        val incident = UiId("incident")
+    }
 }

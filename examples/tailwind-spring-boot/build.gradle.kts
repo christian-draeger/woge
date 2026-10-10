@@ -36,5 +36,6 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
     implementation("dev.woge:woge-spring-boot-starter:$wogeVersion")
     implementation("dev.woge:woge-spring-webflux:$wogeVersion")
+    implementation("dev.woge:woge-ui-headless:$wogeVersion")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 }
