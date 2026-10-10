@@ -80,7 +80,16 @@ The body must still be readable when decoding starts. A Servlet security filter 
 `getParameter` can consume the form before Woge sees it. Such integrations need a bounded,
 replayable request body or a verification path that leaves the body intact; the bindings do not
 silently fall back to merged Servlet parameters. End-to-end native Spring Security integration
-is part of #30, not supplied automatically by this decoder.
+is part of #30, not supplied automatically by this decoder. WebFlux's default CSRF token resolver
+also collects form data, even when a token header is present. For a header-based endpoint, explicitly
+configure a header-only Spring Security token resolver so the body remains readable. This is not
+a replacement for hidden-field CSRF on JavaScript-free forms.
+
+`WebFluxRequestContextFactory.create` suspends: a factory can await
+`request.principal().awaitSingle()` without blocking the event loop. Configure authentication and
+CSRF first; a principal alone does not prove CSRF verification. Explicit factory implementations
+must declare `suspend fun create`. This pre-beta API change is recorded in
+[ADR 0055](../adr/0055-suspending-webflux-security-context.md).
 
 The action binding accepts only POST. A direct call using another method returns 405 with
 `Allow: POST`, before creating a context or reading the command. The existing page response mapper
@@ -161,8 +170,10 @@ manage short-lived state.
 The shared real-HTTP and Chromium tests verify a successful mutation followed by a canonical GET
 and refresh, without repeating the mutation. Browser tests run with JavaScript disabled and enabled
 on MVC, WebFlux and Ktor, including validation and domain rejection. Their security facts are
-explicit test fixtures. This foundation does not complete #30: actual enhanced-submission parity
-and end-to-end Spring Security ingress are still pending.
+explicit test fixtures. Separate real Spring Security filter-chain tests verify authentication,
+header-CSRF rejection and domain authorization on both Spring adapters. This foundation does not
+complete #30: actual enhanced-submission parity and native hidden-field Spring Security ingress
+are still pending.
 
 ## Request limits
 

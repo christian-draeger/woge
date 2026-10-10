@@ -52,5 +52,7 @@ springBootStarterWebflux = { module = "org.springframework.boot:spring-boot-star
 springBootStarterWeb = { module = "org.springframework.boot:spring-boot-starter-web" }
 springBootTest = { module = "org.springframework.boot:spring-boot-test" }
 springContext = { module = "org.springframework:spring-context" }
+springSecurityConfig = { module = "org.springframework.security:spring-security-config" }
+springSecurityWeb = { module = "org.springframework.security:spring-security-web" }
 springWebmvc = { module = "org.springframework:spring-webmvc" }
 springWebflux = { module = "org.springframework:spring-webflux" }

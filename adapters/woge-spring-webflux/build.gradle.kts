@@ -25,6 +25,8 @@ dependencies {
     testImplementation(libs.junitJupiter)
     testImplementation(libs.reactorNettyHttp)
     testImplementation(libs.springContext)
+    testImplementation(libs.springSecurityConfig)
+    testImplementation(libs.springSecurityWeb)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 

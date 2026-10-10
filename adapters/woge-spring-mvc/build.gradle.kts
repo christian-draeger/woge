@@ -23,6 +23,8 @@ dependencies {
     testImplementation(project(":woge-adapter-tck"))
     testImplementation(libs.junitJupiter)
     testImplementation(libs.springBootStarterWeb)
+    testImplementation(libs.springSecurityConfig)
+    testImplementation(libs.springSecurityWeb)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
