@@ -55,5 +55,8 @@ Node-free JVM asset, static deployment, version alignment, caching, source maps,
 The [deferred-region guide](deferred-regions.md) shows ordinary loading HTML, independently completing
 server work, bounded concurrency and request-owned cancellation.
 
+The [live updates guide](live-updates.md) pushes "this region changed" notices over Server-Sent
+Events; the browser reloads each region with its normal, authorized GET.
+
 The [Ktor adapter guide](ktor-adapter.md) connects the same portable page to ordinary suspending Ktor
 routes while keeping Spring Boot as the primary getting-started path.

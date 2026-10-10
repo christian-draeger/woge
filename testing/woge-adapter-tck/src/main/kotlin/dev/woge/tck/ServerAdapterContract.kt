@@ -112,6 +112,7 @@ private class AdapterTckVerification(
             "native-multipart",
         ) { client.verifyMultipartUploads(server.origin, fixture.uploadDirectory, ::expect) }
         client.verifyMutationReplay(::expect)
+        runContract("live-sse") { client.verifyLive(fixture.live, ::expect) }
         verifySemanticObservations()
         // Runs last: its probes add observations that earlier contracts count.
         runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }
@@ -587,6 +588,7 @@ private class AdapterTckVerification(
             expectOutcome(events, WogeOperation.SHELL_RENDER, WogeOutcome.SUCCEEDED)
             expectOutcome(events, WogeOperation.DEFERRED_REGION, WogeOutcome.SUCCEEDED)
             expectOutcome(events, WogeOperation.PATCH_ENCODE, WogeOutcome.SUCCEEDED)
+            expectOutcome(events, WogeOperation.LIVE_SUBSCRIPTION, WogeOutcome.REJECTED)
             expect(
                 events.all { it.context.requestTrace?.correlationId != null },
                 "semantic-observations",

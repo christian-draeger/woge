@@ -738,6 +738,74 @@ public final class dev/woge/host/LanguageTag$Companion {
 	public final fun of-0bfmgbQ (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/host/LiveLimits {
+	public static final field Companion Ldev/woge/host/LiveLimits$Companion;
+	public static final field DEFAULT_MAX_SUBSCRIPTIONS I
+	public static final field DEFAULT_MAX_SUBSCRIPTIONS_PER_SESSION I
+	public static final field MAX_TARGETS I
+	public synthetic fun <init> (IIJJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (IIJJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun component5-UwyO8pc ()J
+	public final fun copy-dzcTWTo (IIJJJ)Ldev/woge/host/LiveLimits;
+	public static synthetic fun copy-dzcTWTo$default (Ldev/woge/host/LiveLimits;IIJJJILjava/lang/Object;)Ldev/woge/host/LiveLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeartbeat-UwyO8pc ()J
+	public final fun getMaxLifetime-UwyO8pc ()J
+	public final fun getMaxSubscriptions ()I
+	public final fun getMaxSubscriptionsPerSession ()I
+	public final fun getRetry-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/LiveLimits$Companion {
+}
+
+public abstract interface class dev/woge/host/LiveResult {
+}
+
+public final class dev/woge/host/LiveResult$Refused : dev/woge/host/LiveResult {
+	public final fun getFailure ()Ldev/woge/host/PageResult$Failure;
+}
+
+public final class dev/woge/host/LiveResult$Subscription : dev/woge/host/LiveResult {
+	public final fun getInvalidations ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getSession-43mm7f0 ()Ljava/lang/String;
+	public final fun getTargets ()Ljava/util/Set;
+}
+
+public final class dev/woge/host/LiveSessionKey {
+	public static final field Companion Ldev/woge/host/LiveSessionKey$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/LiveSessionKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/LiveSessionKey$Companion {
+	public final fun of-LgPwHvM (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/LiveUpdatesKt {
+	public static final fun liveRefused-nm--y0w (Ldev/woge/host/FailureCategory;Ljava/lang/String;)Ldev/woge/host/LiveResult$Refused;
+	public static final fun liveSubscription-su897xg (Ljava/util/Collection;Lkotlinx/coroutines/flow/Flow;Ljava/lang/String;)Ldev/woge/host/LiveResult$Subscription;
+	public static synthetic fun liveSubscription-su897xg$default (Ljava/util/Collection;Lkotlinx/coroutines/flow/Flow;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/LiveResult$Subscription;
+}
+
+public abstract interface class dev/woge/host/LiveUseCase {
+	public abstract fun subscribe (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class dev/woge/host/ManifestHostAdapter : java/lang/Enum {
 	public static final field Companion Ldev/woge/host/ManifestHostAdapter$Companion;
 	public static final field KTOR Ldev/woge/host/ManifestHostAdapter;
@@ -1208,6 +1276,8 @@ public final class dev/woge/host/RequestTrace {
 
 public final class dev/woge/host/ResourceLimit : java/lang/Enum {
 	public static final field DEFERRED_TASK_COUNT Ldev/woge/host/ResourceLimit;
+	public static final field LIVE_SESSION_SUBSCRIPTIONS Ldev/woge/host/ResourceLimit;
+	public static final field LIVE_SUBSCRIPTIONS Ldev/woge/host/ResourceLimit;
 	public static final field PAGE_BYTES Ldev/woge/host/ResourceLimit;
 	public static final field PATCH_COUNT Ldev/woge/host/ResourceLimit;
 	public static final field PATCH_STREAM_BYTES Ldev/woge/host/ResourceLimit;

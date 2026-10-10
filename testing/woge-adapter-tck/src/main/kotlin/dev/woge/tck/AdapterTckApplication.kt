@@ -8,6 +8,8 @@ import dev.woge.host.FailureCategory
 import dev.woge.host.FailurePages
 import dev.woge.host.FormSubmission
 import dev.woge.host.HeaderName
+import dev.woge.host.LiveLimits
+import dev.woge.host.LiveUseCase
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
@@ -95,6 +97,10 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
     public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
     public val failureRoutePages: PageUseCase<Int> = FAILURE_ROUTE_PAGE
     public val failurePages: FailurePages = FAILURE_PAGES
+
+    /** Bind with `handlers(liveLimits = liveLimits).live(live, AdapterTckLiveRoute)`. */
+    public val live: LiveUseCase<AdapterTckLiveInput> = state.live.useCase
+    public val liveLimits: LiveLimits = TCK_LIVE_LIMITS
     public val uploadDirectory: java.nio.file.Path
         get() = state.uploadDirectory
 
@@ -118,6 +124,7 @@ internal class AdapterTckFixtureState {
     val budgetDeclarations: AtomicInteger = AtomicInteger()
     val afterPageBudget: AtomicInteger = AtomicInteger()
     val cacheRenders: AtomicInteger = AtomicInteger()
+    val live: AdapterTckLiveFixture = AdapterTckLiveFixture()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 

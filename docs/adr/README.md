@@ -95,6 +95,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0066](0066-request-owned-native-multipart-uploads.md) | Accepted | Parse bounded native uploads consistently and own temporary file resources for one request |
 | [0067](0067-safe-http-cache-defaults-and-conditional-pages.md) | Accepted | Default dynamic HTTP responses to no-store and revalidate authorized pages without rendering |
 | [0068](0068-content-addressed-production-asset-trees.md) | Accepted | Package one reproducible asset tree and resolve typed content-hashed URLs without Node |
+| [0069](0069-live-invalidations-over-sse.md) | Accepted | Push live region invalidations over SSE and refresh regions with normal authorized GETs |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

@@ -14,6 +14,7 @@ import dev.woge.host.enhancedActionNavigation
 import dev.woge.html.HtmlByteBudget
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.LiveEventStream
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import dev.woge.runtime.renderByteChunks
@@ -22,6 +23,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.http.withCharset
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.log
 import io.ktor.server.request.httpMethod
@@ -30,6 +32,7 @@ import io.ktor.server.response.respondBytesWriter
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import java.io.IOException
 
 internal suspend fun ApplicationCall.respondWogePage(
     result: PageResult,
@@ -81,6 +84,20 @@ internal suspend fun ApplicationCall.respondWogePatches(chunks: Flow<EncodedPatc
         chunks.writeAndFlushKtorChunks { bytes ->
             writeFully(bytes)
             flush()
+        }
+    }
+}
+
+internal suspend fun ApplicationCall.respondWogeLive(events: Flow<ByteArray>) {
+    LiveEventStream.HEADERS.forEach { (name, value) -> response.headers.append(name, value) }
+    respondBytesWriter(contentType = ContentType.Text.EventStream.withCharset(Charsets.UTF_8)) {
+        try {
+            events.collect { bytes ->
+                writeFully(bytes)
+                flush()
+            }
+        } catch (_: IOException) {
+            // The browser went away. EventSource reconnects on its own when it is still open.
         }
     }
 }

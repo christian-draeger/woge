@@ -115,9 +115,30 @@ the next byte. Overflow returns 413 and closes partial files; completed submissi
 the action, including rejection, failure and cancellation, before lazy rendering.
 See [native multipart uploads](native-multipart-uploads.md) for security and host configuration.
 
-## Remaining boundaries
+## Live streams
 
-[#122](https://github.com/christian-draeger/woge/issues/122) remains open for
-SSE subscription budgets and explicit application/session-wide ownership. Do not interpret
-per-request or per-runtime budgets as process-wide quotas.
-No new live-channel API is enabled by these limits.
+Live update streams (Server-Sent Events, see [live updates](live-updates.md)) have limits for the
+whole application and for each session. One handler factory owns them: every `live(...)` handler
+created by the same `WogeSpringMvcHandlers`, `WogeWebFluxHandlers` or `WogeKtorHandlers`
+shares one count.
+
+| Limit | Default | When exceeded |
+| --- | --- | --- |
+| `maxSubscriptions` (whole application) | 1024 open streams | `503`, limit `LIVE_SUBSCRIPTIONS` |
+| `maxSubscriptionsPerSession` | 8 open streams | `429`, limit `LIVE_SESSION_SUBSCRIPTIONS` |
+| `heartbeat` | 15 seconds | an idle stream sends a comment so dead connections are noticed |
+| `maxLifetime` | 30 minutes | the stream ends; the browser reconnects and authorization runs again |
+| declared region targets | 128 per stream | the subscription is rejected while it is created |
+
+Configure them with `liveLimits = LiveLimits(maxSubscriptions = 200, maxSubscriptionsPerSession = 4)`
+on the handler factory. Both refusals happen before the first byte and are reported as `REJECTED`
+`live.subscription` observations with the limit and threshold. A stream never buffers changes: a
+slow browser makes the server merge pending changes, so its memory is bounded by the declared
+targets. Closing the connection releases the slot within one heartbeat.
+
+The session limit applies only when the application passes a session key to `liveSubscription`.
+Without one, only the application limit applies.
+
+Budgets have one owner each: page, patch and upload budgets belong to one request, browser stream
+limits to one browser runtime and live limits to one handler factory. None of them is a
+process-wide quota across several factories.

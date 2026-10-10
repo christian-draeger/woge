@@ -6,6 +6,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
+import dev.woge.tck.AdapterTckLiveRoute
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
@@ -130,6 +131,7 @@ private class SpringMvcTckConfiguration {
         WogeSpringMvcHandlers(
             observer = application.observer,
             patchStreamLimits = application.deferredPatchStreamLimits,
+            liveLimits = application.liveLimits,
         )
 
     @Bean
@@ -159,6 +161,7 @@ private class SpringMvcTckConfiguration {
                 AdapterTckRoutes.PAGE_PATTERN to page,
                 AdapterTckRoutes.DEFERRED_PATTERN to deferred,
                 AdapterTckRoute.path to handlers.page(application.routePages, AdapterTckRoute),
+                AdapterTckLiveRoute.path to handlers.live(application.live, AdapterTckLiveRoute),
                 AdapterTckFailureRoute.path to
                     WogeSpringMvcHandlers(failurePages = application.failurePages)
                         .page(application.failureRoutePages, AdapterTckFailureRoute),

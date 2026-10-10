@@ -98,7 +98,7 @@ are recorded for this pre-release version.
 
 This implements deferred admission/pending results, HTML response bytes, patch fragment/stream bytes
 and browser response/decoder parts of #122. [ADR 0066](0066-request-owned-native-multipart-uploads.md)
-adds bounded request-owned multipart uploads. SSE subscription ownership and
-application/session-wide admission remain open. SSE does not yet have a production API; its future
-implementation must apply explicit subscription budgets rather than inherit an unlimited registry.
-Do not mark #122 complete until those remaining boundaries and exhaustion paths are implemented.
+adds bounded request-owned multipart uploads. [ADR 0069](0069-live-invalidations-over-sse.md)
+completes #122 with live-stream budgets owned by the handler factory: an application-wide
+subscription limit (503), an optional per-session limit (429), a bounded set of declared targets that
+merges pending changes instead of queueing them, heartbeats and a maximum lifetime.

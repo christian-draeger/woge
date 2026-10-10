@@ -52,7 +52,8 @@ three rows into a CI release gate.
 ## Additive suites
 
 `AdapterTckExtension` runs after the core page/deferred contract against the same live harness.
-Action and CSRF, cache validators, multipart uploads and SSE each add a focused extension only when
-their framework-neutral capability exists. Until then they remain absent rather than receiving
-placeholder production APIs. Failures use stable `[WOGE-TCK]` messages naming the adapter, contract
+Actions, CSRF, caching, multipart uploads and live updates (SSE) have since moved into the core
+contract. New capabilities add a focused extension only when their framework-neutral port exists,
+never a placeholder production API. All three hosts notice a closed live stream at the next
+heartbeat write, so the `live-sse` contract checks cleanup within a few heartbeats. Failures use stable `[WOGE-TCK]` messages naming the adapter, contract
 and whether the TCK contract, fixture or adapter owns the divergence.
