@@ -172,11 +172,11 @@ test("one action updates the authoritative board regions repeatedly without movi
   await expect(input).toBeFocused();
   await expect(input).toHaveValue(title);
   await expect(page.locator("#board-status")).toHaveText("Task added");
-  await expect(page.locator("[data-woge-revision='1']")).toHaveCount(4);
+  await expect(page.locator("[data-woge-revision='1']:not(#board-activity)")).toHaveCount(4);
   await input.fill(`${title} again`);
   await input.press("Enter");
   await expect(page.locator("#task-count")).toHaveText(`${count + 2} tasks`);
-  await expect(page.locator("[data-woge-revision='2']")).toHaveCount(4);
+  await expect(page.locator("[data-woge-revision='2']:not(#board-activity)")).toHaveCount(4);
   await expect(input).toBeFocused();
   await page.reload();
   await expect(page.locator("#task-count")).toHaveText(`${count + 2} tasks`);
@@ -218,4 +218,31 @@ test("stale board versions fail without replay or losing the editable input", as
   await expect(page.locator("#task-count")).toHaveText(before);
   await page.reload();
   await expect(page.locator("#task-count")).toHaveText(before);
+});
+
+test("a task from another visitor shows one silent live notice without moving focus", async ({ page, context }) => {
+  const connected = page.waitForResponse((response) => response.url().includes("/projects/woge/tasks/live/"));
+  await page.goto("/projects/woge/tasks");
+  expect((await connected).headers()["content-type"]).toContain("text/event-stream");
+  const input = page.getByLabel("Task title");
+  await input.focus();
+  await input.fill("Draft stays");
+  const other = await context.newPage();
+  await other.goto("/projects/woge/tasks");
+  const title = `Live ${test.info().project.name}`;
+  const otherInput = other.getByLabel("Task title");
+  await otherInput.fill(title);
+  await otherInput.press("Enter");
+  await expect(other.locator("#board-status")).toHaveText("Task added");
+
+  const notice = page.locator("#board-activity");
+  await expect(notice).toHaveAttribute("role", "status");
+  await expect(notice).toHaveText("1 new task was added. Show the latest board");
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue("Draft stays");
+  await expect(other.locator("#board-activity")).toHaveText("");
+
+  await notice.getByRole("link", { name: "Show the latest board" }).click();
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+  await expect(page.locator("#board-activity")).toHaveText("");
 });

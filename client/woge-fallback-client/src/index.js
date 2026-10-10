@@ -14,6 +14,7 @@ import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 import { installWogeActionForms, ACTION_ERROR_EVENT } from "./actions.js";
 import { captureWogeBrowserState, prepareWogeBrowserState } from "./state.js";
+import { connectWogeLive } from "./live.js";
 
 /** Owns one active document's region registry and applies validated patch streams to it. */
 class WogePatchRuntime {
@@ -47,6 +48,16 @@ class WogePatchRuntime {
       fail("WOGE_RESYNC_EXHAUSTED", "Region recovery budget is exhausted");
     }
     this.#refetched.set(target, revision);
+    return this.#replaceFrom(target, load, signal);
+  }
+
+  async refreshRegion(target, load, { signal } = {}) {
+    if (typeof load !== "function") fail("WOGE_INVALID_INTERACTION", "Region refresh requires an explicit safe loader");
+    if (signal?.aborted) fail("WOGE_CANCELLED", "Region refresh was cancelled");
+    return this.#replaceFrom(target, load, signal);
+  }
+
+  async #replaceFrom(target, load, signal) {
     const interaction = this.beginInteraction([target]);
     const stream = await load(interaction, { signal });
     return this.#applyStream(stream, { signal }, interaction);
@@ -181,6 +192,7 @@ function patchOutcome(problem) {
 }
 
 export {
+  connectWogeLive,
   captureWogeBrowserState,
   prepareWogeBrowserState,
   ACTION_ERROR_EVENT,

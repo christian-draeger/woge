@@ -90,6 +90,8 @@ The search region is at revision 7. The user starts query `ko` as interaction 41
 current target revision. The result must be one Replace for that target and new intent. Failed
 attempts also consume the budget, preventing a loop. Applications retain visible fallback content
 when a target disappeared or recovery is exhausted. The primitive does not retry an unsafe action.
+`refreshRegion` follows the same Replace rules without the budget and is meant for server-requested
+refreshes such as live updates, which are bounded by one running refresh per region.
 
 ## Append revision rule
 

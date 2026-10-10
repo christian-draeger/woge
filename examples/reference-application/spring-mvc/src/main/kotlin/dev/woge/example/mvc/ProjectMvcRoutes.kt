@@ -1,6 +1,8 @@
 package dev.woge.example.mvc
 
 import dev.woge.example.project.AddBoardTaskAction
+import dev.woge.example.project.BoardActivityRoute
+import dev.woge.example.project.BoardLiveRoute
 import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
@@ -59,6 +61,8 @@ public class ProjectMvcRoutes {
             mapOf(
                 TaskBoardRoute.path to handlers.page(board.page, TaskBoardRoute),
                 BoardRegionRoute.path to handlers.page(board.refresh, BoardRegionRoute),
+                BoardActivityRoute.path to handlers.page(board.activity, BoardActivityRoute),
+                BoardLiveRoute.path to handlers.live(board.live, BoardLiveRoute),
                 AddBoardTaskAction.path to protectedAction,
             ),
             0,

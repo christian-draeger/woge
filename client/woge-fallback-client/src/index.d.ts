@@ -112,6 +112,15 @@ export interface WogePatchRuntime {
     load: (context: WogeInteraction, options: ApplyPatchStreamOptions) => Promise<ReadableStream<Uint8Array>>,
     options?: ApplyPatchStreamOptions,
   ): Promise<PatchCompletion>;
+  /**
+   * Replaces one region from a safe loader without a per-revision budget. Use it for refreshes the
+   * server asked for, such as live updates; use refetchRegion for failure recovery.
+   */
+  refreshRegion(
+    target: string,
+    load: (context: WogeInteraction, options: ApplyPatchStreamOptions) => Promise<ReadableStream<Uint8Array>>,
+    options?: ApplyPatchStreamOptions,
+  ): Promise<PatchCompletion>;
   applyPatchStream(
     stream: ReadableStream<Uint8Array>,
     options?: ApplyPatchStreamOptions,
@@ -189,6 +198,25 @@ export function createWogeRecoveryBudget(options?: {
 }): WogeRecoveryBudget;
 
 export function createWogePatchRuntime(root?: Document, options?: WogePatchRuntimeOptions): WogePatchRuntime;
+
+export interface WogeLiveOptions {
+  /** Safe region GET for one target, the same loader you use for refreshRegion. */
+  readonly load: (context: WogeInteraction, options: ApplyPatchStreamOptions) => Promise<ReadableStream<Uint8Array>>;
+  /** Called for failed refreshes or invalid events. The connection stays open. */
+  readonly onError?: (problem: unknown) => void;
+  /** Defaults to the browser's EventSource. */
+  readonly EventSource?: typeof EventSource;
+}
+
+export interface WogeLiveConnection {
+  /** Refreshes one region now, in order with live events for the same region. */
+  refresh(target: string): void;
+  /** Closes the EventSource and cancels running refreshes. */
+  close(): void;
+}
+
+/** Listens for server-sent region invalidations and refreshes each changed region. */
+export function connectWogeLive(runtime: WogePatchRuntime, url: string | URL, options: WogeLiveOptions): WogeLiveConnection;
 
 declare global {
   interface DocumentEventMap {

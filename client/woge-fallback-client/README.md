@@ -49,6 +49,28 @@ bounded full-navigation fallback rather than a guessed selector.
 This primitive does not invent an HTTP endpoint or automatically change native action forms.
 The [typed actions guide](../../docs/guides/typed-actions.md) describes the server refresh integration.
 
+`runtime.refreshRegion(target, load, { signal })` does the same replacement without the
+per-revision budget. Use it only when the server asked for the refresh, for example from live
+updates; use `refetchRegion` for failure recovery.
+
+## Live updates
+
+```js
+import { connectWogeLive } from "@woge/fallback-client";
+
+const live = connectWogeLive(runtime, liveUrl, {
+  load: (context, { signal }) => loadRegion(context, signal), // your safe region GET
+  onError: (problem) => console.warn(problem),
+});
+```
+
+`connectWogeLive` opens one `EventSource`. Each `invalidate` or `resync` event lists region ids; the
+connector calls `runtime.refreshRegion` for each one. A region has at most one running refresh plus
+one follow-up, however many events arrive. Failed refreshes go to `onError` and the connection stays
+open. `live.refresh(target)` queues the same refresh yourself, and `live.close()` stops everything.
+Updates are silent and never move focus; put the region inside `role="status"` only when a short
+announcement helps. See the [live updates guide](../../docs/guides/live-updates.md).
+
 ## Apply a response body
 
 The production entry point is an ES module:
