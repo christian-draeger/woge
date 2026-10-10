@@ -2,7 +2,10 @@ package dev.woge.spring.webflux
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageRequest
+import dev.woge.host.RouteValueException
+import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
+import dev.woge.host.failure
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionPolicy
@@ -27,7 +30,14 @@ public class WogeWebFluxDeferredHandler<Input : Any>(
     /** Re-authorizes the request before returning an incrementally flushed patch response. */
     public suspend fun handle(request: ServerRequest): ServerResponse {
         val context = contexts.create(request)
-        val pageRequest = PageRequest(input.decode(request), context)
+        val decoded =
+            try {
+                input.decode(request)
+            } catch (invalid: RouteValueException) {
+                return failure(invalid.category, context.correlationId)
+                    .toWebFluxResponse(observer, WogeObservationContext(requestTrace = context.trace))
+            }
+        val pageRequest = PageRequest(decoded, context)
         val declaredRegions = regions.regions(pageRequest).toList()
         var patchNumber = 0
         val chunks =

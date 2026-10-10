@@ -66,6 +66,7 @@ class WogeKtorQuickstartTest {
         assertFalse(complete.body().contains("data-woge-region"))
         assertEquals(404, get(origin, "/projects/missing").statusCode())
         assertEquals(400, get(origin, "/projects/woge?view=unknown").statusCode())
+        assertEquals(404, get(origin, "/projects/woge/woge-patches/invalid-epoch").statusCode())
 
         assertTrue(get(origin, "/assets/application.css").body().contains("@container (width >= 32rem)"))
         assertTrue(get(origin, "/assets/application.js").body().contains("createWogePatchRuntime"))

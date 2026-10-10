@@ -2,7 +2,10 @@ package dev.woge.ktor
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageRequest
+import dev.woge.host.RouteValueException
+import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
+import dev.woge.host.failure
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionPolicy
@@ -27,7 +30,18 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
     @Suppress("TooGenericExceptionCaught")
     public suspend fun handle(call: ApplicationCall) {
         val context = contexts.create(call)
-        val pageRequest = PageRequest(input.decode(call), context)
+        val decoded =
+            try {
+                input.decode(call)
+            } catch (invalid: RouteValueException) {
+                call.respondWogePage(
+                    failure(invalid.category, context.correlationId),
+                    observer,
+                    WogeObservationContext(requestTrace = context.trace),
+                )
+                return
+            }
+        val pageRequest = PageRequest(decoded, context)
         val declaredRegions =
             try {
                 regions.regions(pageRequest).toList()

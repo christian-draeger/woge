@@ -75,6 +75,10 @@ that do not fit a route.
 By default the response is the same bodyless failure that `failure(...)` produces. The received
 value is never echoed or logged.
 
+Generated route decoding has the same status rules before a deferred stream starts: an invalid
+epoch/path value returns a bodyless 404, and an invalid query value returns a bodyless 400. No
+deferred work starts and no successful patch stream is returned for invalid routing context.
+
 ## Configure not-found and error pages
 
 Install `FailurePages` on your handlers to share error markup across pages without changing their

@@ -2,7 +2,9 @@ package dev.woge.spring.mvc
 
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.PageRequest
+import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObserver
+import dev.woge.host.failure
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionPolicy
@@ -36,7 +38,14 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
             return
         }
         val context = contexts.create(request)
-        val pageRequest = PageRequest(input.decode(request), context)
+        val decoded =
+            try {
+                input.decode(request)
+            } catch (invalid: RouteValueException) {
+                response.status = failure(invalid.category, context.correlationId).metadata.status.code
+                return
+            }
+        val pageRequest = PageRequest(decoded, context)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
             val declaredRegions = regions.regions(pageRequest).toList()
             var patchNumber = 0
