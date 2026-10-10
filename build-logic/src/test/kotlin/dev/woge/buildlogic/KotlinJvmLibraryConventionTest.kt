@@ -36,7 +36,7 @@ class KotlinJvmLibraryConventionTest {
             """.trimIndent(),
         )
         val failure = runner("compileKotlin", "--rerun-tasks").buildAndFail()
-        assertTrue(failure.output.contains("Visibility must be specified in explicit API mode"))
+        assertTrue(failure.output.contains("Visibility must be specified in explicit API mode"), failure.output)
     }
 
     private fun writeProject() {
