@@ -2,6 +2,7 @@ package dev.woge.examples.m1
 
 import dev.woge.css.CssStylesheet
 import dev.woge.css.declarations
+import dev.woge.html.AssetUrls
 import dev.woge.html.HtmlSink
 import dev.woge.html.a
 import dev.woge.html.applicationUrl
@@ -10,6 +11,7 @@ import dev.woge.html.h2
 import dev.woge.html.p
 import dev.woge.html.renderHtml
 import dev.woge.html.streamHtml
+import dev.woge.html.stylesheet
 import dev.woge.css.stylesheet as cssStylesheet
 
 internal val projectStyles: CssStylesheet =
@@ -47,3 +49,6 @@ internal fun streamProjectCard(
         article { h2 { text(projectName) } }
     }
 }
+
+internal fun renderAssetHead(assets: AssetUrls): String =
+    renderHtml { stylesheet(assets.url(applicationUrl("/styles.css"))) }

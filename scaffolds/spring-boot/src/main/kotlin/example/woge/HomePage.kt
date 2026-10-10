@@ -6,6 +6,7 @@ import dev.woge.host.PageUseCase
 import dev.woge.host.WogeRoute
 import dev.woge.host.htmlPage
 import dev.woge.html.applicationUrl
+import dev.woge.html.AssetUrls
 import dev.woge.html.body
 import dev.woge.html.footer
 import dev.woge.html.h1
@@ -27,7 +28,9 @@ import dev.woge.html.ul
 public data object HomeInput
 
 /** A server-rendered page with normal HTML and no required browser runtime. */
-public class HomePage : PageUseCase<HomeInput> {
+public class HomePage(
+    private val assets: AssetUrls,
+) : PageUseCase<HomeInput> {
     override suspend fun open(request: PageRequest<HomeInput>): PageResult =
         htmlPage {
             doctype()
@@ -37,7 +40,7 @@ public class HomePage : PageUseCase<HomeInput> {
                     metadata("viewport", "width=device-width, initial-scale=1")
                     metadata("description", "A small web-native Woge application")
                     title("Hello from Woge")
-                    stylesheet(applicationUrl("/styles.css"))
+                    stylesheet(assets.url(applicationUrl("/styles.css")))
                 }
                 body {
                     header {

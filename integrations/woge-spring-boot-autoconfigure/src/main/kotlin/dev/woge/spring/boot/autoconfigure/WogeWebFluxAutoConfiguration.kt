@@ -7,9 +7,14 @@ import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.CacheControl
+import org.springframework.web.reactive.config.ResourceHandlerRegistry
+import org.springframework.web.reactive.config.WebFluxConfigurer
+import java.time.Duration
 import kotlin.time.toKotlinDuration
 
 /** WebFlux-specific bean definitions isolated from the optional adapter classpath. */
@@ -17,6 +22,23 @@ import kotlin.time.toKotlinDuration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnClass(name = ["dev.woge.spring.webflux.WogeWebFluxHandlers"])
 internal class WogeWebFluxAutoConfiguration {
+    @Bean
+    @ConditionalOnResource(resources = ["classpath:META-INF/woge/assets.properties"])
+    public fun wogeWebFluxAssets(): WebFluxConfigurer =
+        object : WebFluxConfigurer {
+            override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+                registry
+                    .addResourceHandler("/_woge/assets/**")
+                    .addResourceLocations("classpath:/META-INF/woge/assets/")
+                    .setCacheControl(
+                        CacheControl
+                            .maxAge(Duration.ofDays(IMMUTABLE_ASSET_CACHE_DAYS))
+                            .cachePublic()
+                            .immutable(),
+                    )
+            }
+        }
+
     /** Safe-method anonymous default; security-aware applications should provide their own bean. */
     @Bean
     @ConditionalOnMissingBean

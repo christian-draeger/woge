@@ -17,6 +17,16 @@ public final class WogeApplicationPlugin implements Plugin<Project> {
     private void configure(Project project) {
         var output = project.getLayout().getProjectDirectory().file(".woge/manifest.json");
         SourceSet main = project.getExtensions().getByType(SourceSetContainer.class).getByName("main");
+        TaskProvider<WogeAssetsTask> assets = project.getTasks().register("wogeAssets", WogeAssetsTask.class, task -> {
+            task.setGroup("build");
+            task.setDescription("Packages content-hashed static resources and a reproducible asset manifest.");
+            var source = project.getLayout().getProjectDirectory().dir("src/main/resources/static");
+            task.getSourceDirectory().convention(source);
+            task.getSourceFiles().from(project.fileTree(source));
+            task.getOutputDirectory().convention(project.getLayout().getBuildDirectory().dir("generated/woge-assets/resources"));
+        });
+        main.getOutput().dir(java.util.Map.of("builtBy", assets), assets.flatMap(WogeAssetsTask::getOutputDirectory));
+        project.getTasks().named(main.getClassesTaskName(), task -> task.dependsOn(assets));
         TaskProvider<WogeManifestTask> manifest = project.getTasks().register("wogeManifest", WogeManifestTask.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Writes deterministic, non-secret build metadata to .woge/manifest.json.");

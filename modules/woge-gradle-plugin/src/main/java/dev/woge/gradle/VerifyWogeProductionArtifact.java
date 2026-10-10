@@ -17,6 +17,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -29,6 +30,11 @@ public abstract class VerifyWogeProductionArtifact extends DefaultTask {
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getArchive();
+
+    @InputFile
+    @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getAssetManifest();
 
     @OutputFile
     public abstract RegularFileProperty getReport();
@@ -49,6 +55,10 @@ public abstract class VerifyWogeProductionArtifact extends DefaultTask {
                 } else if (name.endsWith(".jar") && containsHeadContribution(archive, entry)) {
                     problems.add(name + "!/" + HEAD_CONTRIBUTION_SERVICE);
                 }
+                if (getAssetManifest().isPresent()) {
+                    WogeAssetVerification.verify(archive,
+                            Files.readString(getAssetManifest().get().getAsFile().toPath(), StandardCharsets.UTF_8), problems);
+                }
             }
             String report = problems.isEmpty() ? "OK\n" : String.join("\n", problems) + "\n";
             Files.writeString(getReport().get().getAsFile().toPath(), report, StandardCharsets.UTF_8);
@@ -56,9 +66,9 @@ public abstract class VerifyWogeProductionArtifact extends DefaultTask {
             throw new UncheckedIOException(error);
         }
         if (!problems.isEmpty()) {
-            throw new GradleException("The production jar contains development-only Woge tooling: "
+            throw new GradleException("The production jar failed Woge verification: "
                     + String.join(", ", problems)
-                    + ". Keep development tools in 'developmentOnly' and do not add them to 'implementation'.");
+                    + ". Keep development tools in 'developmentOnly' and rebuild generated assets before packaging.");
         }
     }
 

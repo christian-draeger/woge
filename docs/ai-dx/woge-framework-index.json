@@ -50,7 +50,7 @@
       "exposure": "public",
       "sourcePath": "modules/woge-core",
       "artifact": "dev.woge:woge-core",
-      "concepts": ["html-dsl", "safe-html-values", "html-sinks", "css-values", "head-assets"],
+      "concepts": ["html-dsl", "safe-html-values", "html-sinks", "css-values", "head-assets", "content-hashed-assets"],
       "guide": "docs/guides/html-elements.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HtmlCssAndSinks.kt"
     },

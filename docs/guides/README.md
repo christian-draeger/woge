@@ -37,6 +37,9 @@ text and file decoding, request-owned cleanup and the explicit Spring MVC resolv
 The [HTTP caching guide](http-caching.md) explains no-store defaults, explicit page validators,
 conditional GET/HEAD responses and ordinary Vary/intermediary rules.
 
+The [production asset guide](production-assets.md) packages ordinary static files under reproducible
+content-hashed URLs, preserves relative CSS references and verifies the actual production JAR.
+
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
 
