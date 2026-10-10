@@ -24,6 +24,7 @@ class WogeDevelopmentSettingsTest {
                 watchRoots = listOf(directory.resolve("my app/src/main")),
                 buildFiles = listOf(directory.resolve("my app/build.gradle.kts")),
                 port = 8080,
+                host = WogeDevelopmentHost.KTOR,
                 fastRestart = false,
                 pollIntervalMillis = 100,
             )
@@ -32,5 +33,28 @@ class WogeDevelopmentSettingsTest {
         settings.writeTo(file)
 
         assertEquals(settings, WogeDevelopmentSettings.readFrom(file))
+    }
+
+    @Test
+    fun `only Spring Boot children get the trigger directory on their classpath`() {
+        val spring =
+            WogeDevelopmentSettings(
+                projectDirectory = directory,
+                stateDirectory = directory.resolve("state"),
+                buildCommand = listOf("gradlew", ":classes"),
+                childJava = "java",
+                childClasspath = listOf(directory.resolve("classes")),
+                mainClassFile = directory.resolve("main-class.txt"),
+                watchRoots = emptyList(),
+                buildFiles = emptyList(),
+                port = 8080,
+            )
+        val ktor = spring.copy(host = WogeDevelopmentHost.KTOR)
+
+        assertEquals(
+            listOf(directory.resolve("classes"), spring.triggerFile.parent).joinToString(java.io.File.pathSeparator),
+            spring.childCommand("App")[3],
+        )
+        assertEquals(directory.resolve("classes").toString(), ktor.childCommand("App")[3])
     }
 }

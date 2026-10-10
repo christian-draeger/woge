@@ -18,7 +18,7 @@ final class WogeWorkflow {
     static final Step DEVELOP = new Step(
             WogeSpringBootPlugin.DEV_TASK,
             "development",
-            "Runs the application with live reload: rebuilds on save, restarts Spring and refreshes browsers.",
+            "Runs the application with live reload: rebuilds on save, restarts the server and refreshes browsers.",
             List.of(
                     new Option("--port=<port>", "The local application port (default 8080)."),
                     new Option("--full-restart", "Always restart the whole application process.")));

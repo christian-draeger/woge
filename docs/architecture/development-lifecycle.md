@@ -106,8 +106,9 @@ Rules in short (details in [ADR 0042](../adr/0042-single-actor-development-orche
 
 ## The Spring Boot host
 
-`woge-dev-spring-host` is the first host adapter ([ADR 0043](../adr/0043-spring-dev-host-uses-log-marker-and-trigger-file.md)).
-It starts your app as a child process and has two ways to restart it:
+`woge-dev-process-host` runs the application as a child process
+([ADR 0043](../adr/0043-spring-dev-host-uses-log-marker-and-trigger-file.md)). For Spring Boot it has
+two ways to restart it:
 
 - **Fast:** after a successful build, write the trigger file. Spring DevTools restarts inside the
   running JVM.
@@ -123,6 +124,14 @@ If the port is taken, the process exits or nothing is ready in time, you get a s
 (`SPRING-HOST-*`), never raw output. Three failed starts in a row add `SPRING-HOST-CRASH-LOOP`.
 An unexpected exit after readiness clears the dead generation and its URLs. Save again to rebuild
 and restart. Cancelling the session stops the child and its descendants.
+
+## The Ktor host
+
+The same process host runs Ktor ([ADR 0074](../adr/0074-ktor-development-restart-parity.md)). Ktor has
+no fast restart: after every successful build Woge stops the process and starts a new one. "Ready"
+means the port accepts connections; Woge checks that the port is free before each start, so an old
+process cannot answer. The app must read its port from the `PORT` environment variable. Diagnostic
+codes use the `KTOR-HOST-*` prefix.
 
 ## The browser channel
 

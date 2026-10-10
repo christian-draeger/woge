@@ -1,17 +1,11 @@
-package dev.woge.development.spring
+package dev.woge.development.process
 
 import dev.woge.development.DevelopmentChange
 import dev.woge.development.DevelopmentChangeKind
-import dev.woge.development.DevelopmentDiagnostic
-import dev.woge.development.DevelopmentDiagnosticCode
-import dev.woge.development.DevelopmentDiagnosticSeverity
-import dev.woge.development.DevelopmentDiagnosticSummary
 import dev.woge.development.DevelopmentSessionPhase
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ServerReady
 import dev.woge.development.orchestrator.DevelopmentAdapters
-import dev.woge.development.orchestrator.DevelopmentBuildAdapter
-import dev.woge.development.orchestrator.DevelopmentBuildResult
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,19 +13,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.kotlin.cli.common.ExitCode
-import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.URI
@@ -40,7 +29,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.seconds
@@ -57,7 +45,7 @@ class SpringDevelopmentIntegrationTest {
         runBlocking {
             val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
             val fixture = Fixture(directory, webType)
-            val host = SpringDevelopmentHost(fixture.config)
+            val host = ChildProcessDevelopmentHost(fixture.config)
             val orchestrator = DevelopmentOrchestrator.start(scope, DevelopmentAdapters(fixture.build, host))
             try {
                 fixture.edit("one")
@@ -70,7 +58,7 @@ class SpringDevelopmentIntegrationTest {
                 assertEquals("two generated-one", fixture.fetch())
                 assertEquals(firstPid, fixture.pid(), "DevTools must retain the JVM for a fast restart")
 
-                val beforeFailure = Files.readString(fixture.config.triggerFile)
+                val beforeFailure = Files.readString(fixture.triggerFile)
                 fixture.edit("broken", broken = true)
                 orchestrator.reportChange(DevelopmentChange(DevelopmentChangeKind.KOTLIN_SOURCE))
                 val failed =
@@ -81,7 +69,7 @@ class SpringDevelopmentIntegrationTest {
                         }
                     }
                 assertTrue(failed.hasLastValidApplication)
-                assertEquals(beforeFailure, Files.readString(fixture.config.triggerFile))
+                assertEquals(beforeFailure, Files.readString(fixture.triggerFile))
                 assertEquals("two generated-one", fixture.fetch())
 
                 fixture.edit("recovered")
@@ -152,8 +140,9 @@ class SpringDevelopmentIntegrationTest {
         private val classpath = System.getProperty("woge.dev.test.classpath")
         private val port = ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { it.localPort }
         private val client = HttpClient.newHttpClient()
+        val triggerFile: Path = live.resolve(".woge-restart")
         val config =
-            SpringDevelopmentHostConfig(
+            ChildProcessHostConfig.springBoot(
                 launch =
                     ChildLaunchSpec(
                         listOf(
@@ -169,56 +158,14 @@ class SpringDevelopmentIntegrationTest {
                         root,
                     ),
                 port = port,
-                triggerFile = live.resolve(".woge-restart"),
+                triggerFile = triggerFile,
             )
 
         init {
             generate("generated-one")
         }
 
-        val build =
-            DevelopmentBuildAdapter {
-                withContext(Dispatchers.IO) {
-                    val destination = root.resolve("candidate-${it.buildId.value}").createDirectories()
-                    val messages = ByteArrayOutputStream()
-                    val exit =
-                        PrintStream(messages).use { output ->
-                            K2JVMCompiler().exec(
-                                output,
-                                "-no-stdlib",
-                                "-no-reflect",
-                                "-jvm-target",
-                                "17",
-                                "-classpath",
-                                classpath,
-                                "-d",
-                                destination.toString(),
-                                source.toString(),
-                                generated.toString(),
-                            )
-                        }
-                    if (exit == ExitCode.OK) {
-                        Files.walk(destination).use { paths ->
-                            paths.filter { Files.isRegularFile(it) }.forEach { file ->
-                                val target = live.resolve(destination.relativize(file))
-                                target.parent.createDirectories()
-                                file.copyTo(target, overwrite = true)
-                            }
-                        }
-                        DevelopmentBuildResult.Succeeded()
-                    } else {
-                        DevelopmentBuildResult.Failed(
-                            listOf(
-                                DevelopmentDiagnostic(
-                                    DevelopmentDiagnosticCode.of("FIXTURE-COMPILE-FAILED"),
-                                    DevelopmentDiagnosticSeverity.ERROR,
-                                    DevelopmentDiagnosticSummary.of("Fix the Kotlin source and save again."),
-                                ),
-                            ),
-                        )
-                    }
-                }
-            }
+        val build = fixtureBuild(root, live, classpath, listOf(source, generated))
 
         fun edit(
             value: String,

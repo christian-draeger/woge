@@ -1,4 +1,4 @@
-package dev.woge.development.spring
+package dev.woge.development.process
 
 import dev.woge.development.DevelopmentDiagnostic
 import dev.woge.development.DevelopmentDiagnosticCode
@@ -13,8 +13,11 @@ import dev.woge.development.orchestrator.DevelopmentHostAdapter
 import dev.woge.development.orchestrator.DevelopmentHostRestartRequest
 import dev.woge.development.orchestrator.DevelopmentHostRestartResult
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.sync.Mutex
@@ -27,26 +30,32 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Runs the Spring Boot application as a child process owned by Woge.
+ * Runs the application as a child process owned by Woge.
  *
- * - `SERVER_RESTART` with a live child touches the trigger file. Spring's restart tool then swaps
- *   its class loader inside the same JVM. A Spring ready listener echoes the new request token.
+ * - `SERVER_RESTART` with a live child and [ChildReadiness.ReadyMarker] fast restart touches the
+ *   trigger file. Spring's restart tool then swaps its class loader inside the same JVM. A ready
+ *   listener echoes the new request token.
  * - `SERVER_RESTART` without a live child starts a fresh child.
- * - `SERVER_RESTART` with fast restart disabled answers [DevelopmentHostRestartResult.Unsupported], so
- *   the orchestrator escalates.
+ * - `SERVER_RESTART` without fast restart answers [DevelopmentHostRestartResult.Unsupported], so the
+ *   orchestrator escalates to a complete restart.
  * - `COLD_RESTART` stops the child, checks that the port is free and starts a new child.
  *
  * Child output is only matched against the ready marker. It never ends up in diagnostics.
  */
 @ExperimentalWogeDevelopmentApi
 @Suppress("TooManyFunctions")
-public class SpringDevelopmentHost(
-    private val config: SpringDevelopmentHostConfig,
+public class ChildProcessDevelopmentHost(
+    private val config: ChildProcessHostConfig,
     private val launcher: ChildLauncher = ProcessChildLauncher,
     private val portProbe: PortProbe = PortProbe.local,
+    private val listenProbe: ListenProbe = ListenProbe.loopback,
+    private val probeDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : DevelopmentHostAdapter {
+    private val marker = config.readiness as? ChildReadiness.ReadyMarker
+
     private sealed interface Signal {
         data class Ready(
             val token: String,
@@ -77,8 +86,8 @@ public class SpringDevelopmentHost(
                 when {
                     request.level == ReloadLevel.COLD_RESTART -> startFresh(request.generation)
                     current == null -> startFresh(request.generation)
-                    !config.fastRestart -> DevelopmentHostRestartResult.Unsupported
-                    else -> triggerRestart(current, request.generation)
+                    marker == null || !marker.fastRestart -> DevelopmentHostRestartResult.Unsupported
+                    else -> triggerRestart(current, marker, request.generation)
                 }
             } catch (cancelled: CancellationException) {
                 withContext(NonCancellable) { stopCurrent() }
@@ -104,7 +113,7 @@ public class SpringDevelopmentHost(
             return failed(PORT_IN_USE, "The application port ${config.port} is already in use", retained = false)
         }
         val token = UUID.randomUUID().toString()
-        if (!writeTrigger(token)) {
+        if (marker != null && !writeTrigger(marker, token)) {
             return failed(TRIGGER_FAILED, "The restart trigger file could not be written", retained = false)
         }
         val signals = Channel<Signal>(Channel.CONFLATED)
@@ -113,9 +122,9 @@ public class SpringDevelopmentHost(
         val child =
             try {
                 launcher.launch(
-                    childLaunch(),
+                    config.launch,
                     { line ->
-                        if (line.startsWith(READY_PREFIX)) {
+                        if (marker != null && line.startsWith(READY_PREFIX)) {
                             signals.trySend(Signal.Ready(line.removePrefix(READY_PREFIX).trim()))
                         }
                     },
@@ -151,13 +160,14 @@ public class SpringDevelopmentHost(
 
     private suspend fun triggerRestart(
         current: Running,
+        marker: ChildReadiness.ReadyMarker,
         generation: ServerGeneration,
     ): DevelopmentHostRestartResult {
         while (current.signals.tryReceive().isSuccess) {
             // Drop output from the previous generation so only a new ready line counts.
         }
         val token = UUID.randomUUID().toString()
-        if (!writeTrigger(token)) {
+        if (!writeTrigger(marker, token)) {
             return failed(
                 TRIGGER_FAILED,
                 "The restart trigger file could not be written",
@@ -167,24 +177,13 @@ public class SpringDevelopmentHost(
         return awaitReady(config.restartTimeout, token, generation)
     }
 
-    private fun childLaunch(): ChildLaunchSpec =
-        config.launch.copy(
-            environment =
-                config.launch.environment +
-                    mapOf(
-                        "WOGE_DEV_TRIGGER_FILE" to config.triggerFile.toAbsolutePath().toString(),
-                        "SERVER_ADDRESS" to "127.0.0.1",
-                        "SERVER_PORT" to config.port.toString(),
-                        "SPRING_DEVTOOLS_RESTART_TRIGGER_FILE" to config.triggerFile.fileName.toString(),
-                        "SPRING_DEVTOOLS_RESTART_ENABLED" to config.fastRestart.toString(),
-                        "SPRING_DEVTOOLS_LIVERELOAD_ENABLED" to "false",
-                    ),
-        )
-
-    private fun writeTrigger(token: String): Boolean =
+    private fun writeTrigger(
+        marker: ChildReadiness.ReadyMarker,
+        token: String,
+    ): Boolean =
         try {
-            config.triggerFile.parent?.let { Files.createDirectories(it) }
-            Files.writeString(config.triggerFile, "$token\n")
+            marker.triggerFile.parent?.let { Files.createDirectories(it) }
+            Files.writeString(marker.triggerFile, "$token\n")
             true
         } catch (expected: IOException) {
             false
@@ -196,7 +195,10 @@ public class SpringDevelopmentHost(
         generation: ServerGeneration,
     ): DevelopmentHostRestartResult {
         val current = checkNotNull(running)
-        val outcome = withTimeoutOrNull(timeout) { nextOutcome(current.signals, token) }
+        val outcome =
+            withTimeoutOrNull(timeout) {
+                if (marker == null) listening(current.signals) else nextOutcome(current.signals, token)
+            }
         if (outcome == Outcome.READY) {
             current.generation.set(generation)
         }
@@ -209,7 +211,14 @@ public class SpringDevelopmentHost(
         return if (exited) {
             failed(EXITED, "The application child exited before it was ready", retained = false)
         } else {
-            failed(START_TIMEOUT, "The application child was not ready in time", retained = false)
+            val summary =
+                if (marker == null) {
+                    "The application did not accept connections on port ${config.port} in time. " +
+                        "Start the server on the port from the PORT environment variable."
+                } else {
+                    "The application child was not ready in time"
+                }
+            failed(START_TIMEOUT, summary, retained = false)
         }
     }
 
@@ -226,6 +235,14 @@ public class SpringDevelopmentHost(
                 }
         }
         return outcome
+    }
+
+    private suspend fun listening(signals: Channel<Signal>): Outcome {
+        while (true) {
+            if (signals.tryReceive().getOrNull() is Signal.Exited) return Outcome.EXITED
+            if (withContext(probeDispatcher) { listenProbe.isListening(config.port) }) return Outcome.READY
+            delay(LISTEN_POLL)
+        }
     }
 
     private enum class Outcome { READY, EXITED }
@@ -248,18 +265,19 @@ public class SpringDevelopmentHost(
         summary: String,
     ): DevelopmentDiagnostic =
         DevelopmentDiagnostic(
-            DevelopmentDiagnosticCode.of(code),
+            DevelopmentDiagnosticCode.of("${config.diagnosticPrefix}-$code"),
             DevelopmentDiagnosticSeverity.ERROR,
             DevelopmentDiagnosticSummary.of(summary),
         )
 
     private companion object {
         const val READY_PREFIX = "WOGE-DEV-READY "
-        const val PORT_IN_USE = "SPRING-HOST-PORT-IN-USE"
-        const val START_FAILED = "SPRING-HOST-START-FAILED"
-        const val START_TIMEOUT = "SPRING-HOST-START-TIMEOUT"
-        const val EXITED = "SPRING-HOST-EXITED"
-        const val TRIGGER_FAILED = "SPRING-HOST-TRIGGER-FAILED"
-        const val CRASH_LOOP = "SPRING-HOST-CRASH-LOOP"
+        const val PORT_IN_USE = "PORT-IN-USE"
+        const val START_FAILED = "START-FAILED"
+        const val START_TIMEOUT = "START-TIMEOUT"
+        const val EXITED = "EXITED"
+        const val TRIGGER_FAILED = "TRIGGER-FAILED"
+        const val CRASH_LOOP = "CRASH-LOOP"
+        val LISTEN_POLL = 50.milliseconds
     }
 }

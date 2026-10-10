@@ -95,4 +95,36 @@ Run the maintained example with:
 Then open `http://localhost:8080/projects/woge`. The same `ProjectPage`, HTML, CSS and JavaScript are
 also exercised by both Spring Boot launchers.
 
-See [ADR 0033](../adr/0033-suspending-ktor-adapter.md) for the lifecycle and buffering tradeoffs.
+## Develop with live reload
+
+Apply Gradle's `application` plugin together with `dev.woge.application`:
+
+```kotlin
+plugins {
+    application
+    id("org.jetbrains.kotlin.jvm")
+    id("com.google.devtools.ksp")
+    id("dev.woge.application")
+}
+
+application { mainClass = "example.ApplicationKt" }
+```
+
+Read the port from the `PORT` environment variable in your `main` function:
+
+```kotlin
+val port = System.getenv("PORT")?.toInt() ?: 8080
+embeddedServer(Netty, port = port) { /* routes */ }.start(wait = true)
+```
+
+Then run `./gradlew wogeDev` (or `./gradlew wogeDev --port=9000`). After each save Woge compiles,
+restarts the Ktor process and refreshes the browser. A compile error is shown in the terminal and the
+browser while the last working version keeps serving. Ktor always gets a full process restart; Woge
+does not use Ktor's own auto-reload.
+
+If your app sends a strict `Content-Security-Policy`, allow the development origin in `script-src`
+and `connect-src` while developing. It is the `http://127.0.0.1:<port>` origin of the development
+client script in the page `head`. Spring does this automatically; Ktor has no hook for it.
+
+See [ADR 0033](../adr/0033-suspending-ktor-adapter.md) for the lifecycle and buffering tradeoffs and
+[ADR 0074](../adr/0074-ktor-development-restart-parity.md) for the development loop.

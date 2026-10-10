@@ -1,4 +1,4 @@
-package dev.woge.development.spring
+package dev.woge.development.process
 
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import kotlinx.coroutines.Dispatchers

@@ -21,11 +21,12 @@ val scaffoldPublicationModules =
         "woge-spring-webflux",
         "woge-spring-boot-autoconfigure",
         "woge-spring-boot-starter",
+        "woge-ktor",
         "woge-dev-model",
         "woge-dev-orchestrator",
         "woge-dev-client",
         "woge-dev-spring-child",
-        "woge-dev-spring-host",
+        "woge-dev-process-host",
         "woge-dev-browser",
         "woge-dev-gradle",
         "woge-fallback-client-assets",
@@ -138,11 +139,20 @@ val testSpringBootScaffold =
 val scaffoldDevSmoke =
     tasks.register<Exec>("scaffoldDevSmoke") {
         group = "verification"
-        description = "Runs wogeDev in the external Spring Boot scaffold (WebFlux, then MVC) and checks edit, error and recovery."
+        description = "Runs wogeDev in external Spring Boot (WebFlux, MVC) and Ktor apps and checks edit, error and recovery."
         dependsOn(publishScaffoldArtifacts)
         val script = layout.projectDirectory.file("scripts/test-spring-boot-scaffold-dev.sh").asFile.absolutePath
+        val ktorScript = layout.projectDirectory.file("scripts/test-ktor-dev.sh").asFile.absolutePath
         val repository = scaffoldMavenRepository.get().asFile.absolutePath
-        commandLine("bash", "-c", "bash \"$1\" \"$2\" webflux && bash \"$1\" \"$2\" mvc", "woge-dev-smoke", script, repository)
+        commandLine(
+            "bash",
+            "-c",
+            "bash \"$1\" \"$2\" webflux && bash \"$1\" \"$2\" mvc && bash \"$3\" \"$2\"",
+            "woge-dev-smoke",
+            script,
+            repository,
+            ktorScript,
+        )
     }
 val scaffoldBrowserSmoke =
     tasks.register<Exec>("scaffoldBrowserSmoke") {

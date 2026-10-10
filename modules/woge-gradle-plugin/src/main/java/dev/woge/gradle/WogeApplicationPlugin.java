@@ -7,11 +7,23 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 
-/** Host-independent manifest wiring. Ktor applications use this plugin directly. */
+/**
+ * Host-independent wiring: manifest, assets and the Woge KSP processor. Ktor applications use this
+ * plugin directly; together with Gradle's {@code application} plugin it also adds {@code ./gradlew wogeDev}.
+ */
 public final class WogeApplicationPlugin implements Plugin<Project> {
+    static final String KSP_PLUGIN = "com.google.devtools.ksp";
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("org.jetbrains.kotlin.jvm", ignored -> configure(project));
+        project.getPluginManager().withPlugin(KSP_PLUGIN, ignored -> project.getDependencies()
+                .add("ksp", "dev.woge:woge-ksp:" + WogeSpringBootPlugin.wogeVersion()));
+        project.getPluginManager().withPlugin("application", ignored -> {
+            if (!project.getPluginManager().hasPlugin("org.springframework.boot")) {
+                WogeDevelopmentTasks.register(project, WogeDevelopmentTasks.Host.KTOR, WogeSpringBootPlugin.wogeVersion());
+            }
+        });
     }
 
     private void configure(Project project) {
