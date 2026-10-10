@@ -154,6 +154,16 @@ val scaffoldBrowserSmoke =
             scaffoldMavenRepository.get().asFile.absolutePath,
         )
     }
+tasks.register<Exec>("testTailwindExample") {
+    group = "verification"
+    description = "Builds the external Tailwind example with npm and checks the generated, hashed stylesheet."
+    dependsOn(publishScaffoldArtifacts)
+    commandLine(
+        "bash",
+        layout.projectDirectory.file("scripts/test-tailwind-example.sh").asFile.absolutePath,
+        scaffoldMavenRepository.get().asFile.absolutePath,
+    )
+}
 fun registerReferenceBrowserSmoke(
     name: String,
     host: String,

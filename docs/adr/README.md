@@ -98,6 +98,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0069](0069-live-invalidations-over-sse.md) | Accepted | Push live region invalidations over SSE and refresh regions with normal authorized GETs |
 | [0070](0070-optional-direct-vite-frontend-adapter.md) | Accepted | Offer Vite as an optional, directly invoked frontend adapter; plain HTML/CSS stays Node-free |
 | [0071](0071-in-place-stylesheet-updates-in-development.md) | Accepted | Update stylesheets in place during development; other changes still refresh or restart |
+| [0072](0072-optional-tailwind-gradle-plugin.md) | Accepted | Ship Tailwind as an optional Gradle plugin that writes the entry file and checks for dynamic class names |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

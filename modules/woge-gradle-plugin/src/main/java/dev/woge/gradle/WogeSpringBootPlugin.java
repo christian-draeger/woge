@@ -95,7 +95,8 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
                     .launcherFor(java.getToolchain())
                     .map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
             task.getMainClassFile().set(buildDirectory.file("resolvedMainClassName"));
-            task.getWatchRoots().set(project.provider(() -> watchRoots(main, buildDirectory)));
+            task.getWatchRoots().set(project.provider(() -> watchRoots(main, buildDirectory,
+                    project.getExtensions().findByType(WogeTailwindExtension.class))));
             task.getBuildFiles().set(buildFiles);
             task.getPort().convention("8080");
             task.getFastRestart().convention(true);
@@ -157,10 +158,14 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
         return files;
     }
 
-    private static List<String> watchRoots(SourceSet main, Directory buildDirectory) {
+    private static List<String> watchRoots(SourceSet main, Directory buildDirectory, WogeTailwindExtension tailwind) {
         java.nio.file.Path build = buildDirectory.getAsFile().toPath().toAbsolutePath().normalize();
         List<String> roots = new ArrayList<>();
-        for (java.io.File directory : main.getAllSource().getSrcDirs()) {
+        List<java.io.File> directories = new ArrayList<>(main.getAllSource().getSrcDirs());
+        if (tailwind != null) {
+            directories.add(tailwind.getInput().get().getAsFile().getParentFile());
+        }
+        for (java.io.File directory : directories) {
             java.nio.file.Path path = directory.toPath().toAbsolutePath().normalize();
             if (!path.startsWith(build) && !roots.contains(path.toString())) {
                 roots.add(path.toString());

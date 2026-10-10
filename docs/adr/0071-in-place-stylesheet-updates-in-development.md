@@ -73,5 +73,6 @@ development modules, and production asset URLs stay content-addressed (ADR 0068)
 ## Follow-up
 
 - Let the Gradle Tailwind adapter report its output as a CSS change so Tailwind rebuilds use the
-  same path ([#79](https://github.com/christian-draeger/woge/issues/79)).
+  same path ([#79](https://github.com/christian-draeger/woge/issues/79)). Done in
+  [ADR 0072](0072-optional-tailwind-gradle-plugin.md): `wogeDev` watches the Tailwind input.
 - Leave Vite-owned stylesheets to Vite HMR ([#205](https://github.com/christian-draeger/woge/issues/205)).
