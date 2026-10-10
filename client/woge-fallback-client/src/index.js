@@ -1,4 +1,7 @@
-import { AFTER_REPLACE_EVENT, BEFORE_REPLACE_EVENT, PageRegionRegistry } from "./dom.js";
+import {
+  AFTER_REPLACE_EVENT, BEFORE_REPLACE_EVENT, AFTER_APPEND_EVENT, BEFORE_APPEND_EVENT,
+  AFTER_REMOVE_EVENT, BEFORE_REMOVE_EVENT, PageRegionRegistry,
+} from "./dom.js";
 import {
   PatchStreamDecoder,
   WogePatchError,
@@ -71,7 +74,7 @@ class WogePatchRuntime {
     const started = performance.now();
     this.#emit(Object.freeze({ observationId, phase: "started", operation: "patch.apply", context }));
     try {
-      this.#registry.applyReplace(patch);
+      this.#registry.applyPatch(patch);
       this.#emitFinished(observationId, context, "succeeded", started);
     } catch (problem) {
       this.#emitFinished(observationId, context, patchOutcome(problem), started);
@@ -118,6 +121,10 @@ export {
   installWogeActionForms,
   AFTER_REPLACE_EVENT,
   BEFORE_REPLACE_EVENT,
+  AFTER_APPEND_EVENT,
+  BEFORE_APPEND_EVENT,
+  AFTER_REMOVE_EVENT,
+  BEFORE_REMOVE_EVENT,
   classifyWogeFailure,
   createWogeRecoveryBudget,
   WogePatchError,

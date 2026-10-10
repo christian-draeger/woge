@@ -1,3 +1,15 @@
+public final class dev/woge/protocol/AppendPatch : dev/woge/protocol/Patch {
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/TargetRevisionStep;Ldev/woge/protocol/PatchItem;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getInteractionSequence-_Y98rLg ()J
+	public final fun getItem ()Ldev/woge/protocol/PatchItem;
+	public fun getOperation ()Ldev/woge/protocol/PatchOperation;
+	public fun getPatchId-9SDvvjQ ()Ljava/lang/String;
+	public fun getProtocolVersion-JnwDiMo ()I
+	public fun getRevision ()Ldev/woge/protocol/TargetRevisionStep;
+	public fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class dev/woge/protocol/ByteSink {
 	public abstract fun write ([B)V
 }
@@ -81,11 +93,39 @@ public final class dev/woge/protocol/PatchId$Companion {
 	public final fun of-GSU-mag (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/protocol/PatchItem {
+	public final fun getHtml ()Ldev/woge/protocol/PatchHtml;
+	public final fun getId-nwRjvpA ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchItemId {
+	public static final field Companion Ldev/woge/protocol/PatchItemId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/protocol/PatchItemId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/PatchItemId$Companion {
+	public final fun of-CnllRk4 (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class dev/woge/protocol/PatchKt {
 	public static final fun patchHtml (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/PatchHtml;
+	public static final fun patchItem-j1r_VL0 (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/PatchItem;
+	public static synthetic fun patchItem-j1r_VL0$default (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/protocol/PatchItem;
 }
 
 public final class dev/woge/protocol/PatchOperation : java/lang/Enum {
+	public static final field APPEND Ldev/woge/protocol/PatchOperation;
+	public static final field REMOVE Ldev/woge/protocol/PatchOperation;
 	public static final field REPLACE Ldev/woge/protocol/PatchOperation;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/protocol/PatchOperation;
@@ -127,6 +167,7 @@ public final class dev/woge/protocol/PatchStreamErrorCode : java/lang/Enum {
 	public static final field ACTIVE_CONTENT Ldev/woge/protocol/PatchStreamErrorCode;
 	public static final field BYTES_AFTER_TERMINAL Ldev/woge/protocol/PatchStreamErrorCode;
 	public static final field INVALID_CONTENT_TYPE Ldev/woge/protocol/PatchStreamErrorCode;
+	public static final field INVALID_ITEM Ldev/woge/protocol/PatchStreamErrorCode;
 	public static final field INVALID_LENGTH Ldev/woge/protocol/PatchStreamErrorCode;
 	public static final field INVALID_METADATA Ldev/woge/protocol/PatchStreamErrorCode;
 	public static final field INVALID_PREAMBLE Ldev/woge/protocol/PatchStreamErrorCode;
@@ -283,6 +324,19 @@ public final class dev/woge/protocol/RemotePatchFailure {
 	public final fun getCorrelationId-MLdUSC4 ()Ljava/lang/String;
 	public final fun getRecovery ()Ldev/woge/protocol/RecoveryIntent;
 	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/protocol/RemovePatch : dev/woge/protocol/Patch {
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/TargetRevisionStep;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFocusTarget-WW14DhI ()Ljava/lang/String;
+	public fun getInteractionSequence-_Y98rLg ()J
+	public final fun getItemId-nwRjvpA ()Ljava/lang/String;
+	public fun getOperation ()Ldev/woge/protocol/PatchOperation;
+	public fun getPatchId-9SDvvjQ ()Ljava/lang/String;
+	public fun getProtocolVersion-JnwDiMo ()I
+	public fun getRevision ()Ldev/woge/protocol/TargetRevisionStep;
+	public fun getTarget ()Ldev/woge/protocol/PatchTarget;
 	public fun toString ()Ljava/lang/String;
 }
 

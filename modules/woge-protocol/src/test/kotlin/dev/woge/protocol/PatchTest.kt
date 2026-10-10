@@ -88,7 +88,7 @@ private fun examplePatch(protocolVersion: PatchProtocolVersion = PatchProtocolVe
         protocolVersion = protocolVersion,
     )
 
-private fun serializeFixture(patch: Patch): String =
+private fun serializeFixture(patch: ReplacePatch): String =
     when (patch) {
         is ReplacePatch ->
             "{" +
@@ -107,6 +107,8 @@ private fun serializeFixture(patch: Patch): String =
 private fun PatchOperation.fixtureName(): String =
     when (this) {
         PatchOperation.REPLACE -> "replace"
+        PatchOperation.APPEND -> "append"
+        PatchOperation.REMOVE -> "remove"
     }
 
 private fun String.asJsonString(): String =

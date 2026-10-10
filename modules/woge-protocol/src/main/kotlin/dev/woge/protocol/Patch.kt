@@ -1,5 +1,6 @@
 package dev.woge.protocol
 
+import dev.woge.html.Attributes
 import dev.woge.html.HtmlWriter
 import dev.woge.html.renderHtml
 
@@ -128,6 +129,73 @@ public fun patchHtml(content: HtmlWriter.() -> Unit): PatchHtml = PatchHtml(rend
 /** Semantic patch operation. Only operations with implemented behavior are present. */
 public enum class PatchOperation {
     REPLACE,
+    APPEND,
+    REMOVE,
+}
+
+/** Stable item identity scoped to the direct children of one collection region. */
+@JvmInline
+public value class PatchItemId private constructor(
+    public val value: String,
+) {
+    public companion object {
+        public fun of(value: String): PatchItemId = PatchItemId(validateOpaqueId(value, "Patch item ID"))
+    }
+}
+
+/** One typed HTML element owned by a collection item. */
+public class PatchItem internal constructor(
+    public val id: PatchItemId,
+    public val html: PatchHtml,
+) {
+    override fun toString(): String = "PatchItem(id=${id.value}, html=$html)"
+}
+
+/** Writes exactly one item root; the application chooses its normal HTML element and attributes. */
+public fun patchItem(
+    id: PatchItemId,
+    elementName: String = "div",
+    attributes: Attributes.() -> Unit = {},
+    content: HtmlWriter.() -> Unit,
+): PatchItem =
+    PatchItem(
+        id,
+        patchHtml {
+            element(elementName, attributes = {
+                attributes()
+                attribute("data-woge-item", id.value)
+            }, content = content)
+        },
+    )
+
+/** Appends one identified item; an already present ID retains its existing content. */
+public class AppendPatch(
+    override val patchId: PatchId,
+    override val target: PatchTarget,
+    override val interactionSequence: InteractionSequence,
+    override val revision: TargetRevisionStep,
+    public val item: PatchItem,
+) : Patch {
+    override val protocolVersion: PatchProtocolVersion = PatchProtocolVersion.CURRENT
+    override val operation: PatchOperation = PatchOperation.APPEND
+
+    override fun toString(): String = "AppendPatch(patchId=$patchId, target=$target, revision=$revision, item=$item)"
+}
+
+/** Removes one collection item; focus moves to a known region only when the removed item owned it. */
+public class RemovePatch(
+    override val patchId: PatchId,
+    override val target: PatchTarget,
+    override val interactionSequence: InteractionSequence,
+    override val revision: TargetRevisionStep,
+    public val itemId: PatchItemId,
+    public val focusTarget: RegionTargetId,
+) : Patch {
+    override val protocolVersion: PatchProtocolVersion = PatchProtocolVersion.CURRENT
+    override val operation: PatchOperation = PatchOperation.REMOVE
+
+    override fun toString(): String =
+        "RemovePatch(patchId=$patchId, target=$target, revision=$revision, itemId=$itemId, focusTarget=$focusTarget)"
 }
 
 /** Transport-neutral visible update. Framing and native-browser syntax are separate adapters. */

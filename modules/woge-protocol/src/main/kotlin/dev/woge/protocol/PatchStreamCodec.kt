@@ -1,12 +1,12 @@
 package dev.woge.protocol
 
-import dev.woge.protocol.internal.ReplaceMetadata
+import dev.woge.protocol.internal.PatchMetadata
 import dev.woge.protocol.internal.decodeCompletionMetadata
+import dev.woge.protocol.internal.decodePatchMetadata
 import dev.woge.protocol.internal.decodeRemoteFailureMetadata
-import dev.woge.protocol.internal.decodeReplaceMetadata
 import dev.woge.protocol.internal.encodeCompletionMetadata
+import dev.woge.protocol.internal.encodePatchMetadata
 import dev.woge.protocol.internal.encodeRemoteFailureMetadata
-import dev.woge.protocol.internal.encodeReplaceMetadata
 import dev.woge.protocol.internal.protocolFailure
 import dev.woge.protocol.internal.validatePatchHtml
 import java.io.ByteArrayOutputStream
@@ -35,9 +35,7 @@ public class PatchStreamEncoder internal constructor(
     /** Encodes one fully validated semantic patch without terminating the stream. */
     public fun write(patch: Patch) {
         ensureOpen()
-        when (patch) {
-            is ReplacePatch -> writeReplace(patch)
-        }
+        writePatch(patch)
     }
 
     /** Writes the required terminal completion frame. */
@@ -56,14 +54,20 @@ public class PatchStreamEncoder internal constructor(
         terminal = true
     }
 
-    private fun writeReplace(patch: ReplacePatch) {
+    private fun writePatch(patch: Patch) {
         if (patchCount == Int.MAX_VALUE) {
             protocolFailure(PatchStreamErrorCode.INVALID_SEQUENCE, "Patch count exceeds the version-1 limit")
         }
-        val metadata = encodeReplaceMetadata(patch).encodeUtf8()
-        val payload = patch.html.value.encodeUtf8()
+        val metadata = encodePatchMetadata(patch).encodeUtf8()
+        val html =
+            when (patch) {
+                is ReplacePatch -> patch.html.value
+                is AppendPatch -> patch.item.html.value
+                is RemovePatch -> ""
+            }
+        val payload = html.encodeUtf8()
         validateFrameLengths(PATCH_CONTENT_TYPE.length, metadata.size, payload.size)
-        validatePatchHtml(patch.html.value)
+        validatePatchHtml(html, (patch as? AppendPatch)?.item?.id)
         writeFrame(FrameKind.PATCH, PATCH_CONTENT_TYPE, metadata, payload)
         patchCount += 1
     }
@@ -229,10 +233,13 @@ internal class VersionOnePatchStreamDecoder : PatchStreamDecoder {
         payloadOffset: Int,
         payloadLength: Int,
     ): PatchStreamEvent.PatchFrame {
-        val metadata = decodeReplaceMetadata(metadataValue)
+        val metadata = decodePatchMetadata(metadataValue)
+        if (metadata.operation == PatchOperation.REMOVE && payloadLength != 0) {
+            protocolFailure(PatchStreamErrorCode.INVALID_LENGTH, "Remove patch payload must be empty")
+        }
         val html = buffer.copyOfRange(payloadOffset, payloadOffset + payloadLength).decodeUtf8()
-        validatePatchHtml(html)
-        return PatchStreamEvent.PatchFrame(metadata.toReplacePatch(PatchHtml(html)))
+        validatePatchHtml(html, if (metadata.operation == PatchOperation.APPEND) metadata.itemId else null)
+        return PatchStreamEvent.PatchFrame(metadata.toPatch(PatchHtml(html)))
     }
 
     private fun decodeComplete(
@@ -288,12 +295,32 @@ internal fun encodePatchStream(patches: Iterable<Patch>): ByteArray {
     return output.toByteArray()
 }
 
-private fun ReplaceMetadata.toReplacePatch(html: PatchHtml): ReplacePatch =
-    ReplacePatch(
-        protocolVersion = protocolVersion,
-        patchId = patchId,
-        target = PatchTarget(pageEpoch, target),
-        interactionSequence = interactionSequence,
-        revision = revision,
-        html = html,
-    )
+private fun PatchMetadata.toPatch(html: PatchHtml): Patch =
+    when (operation) {
+        PatchOperation.REPLACE ->
+            ReplacePatch(
+                protocolVersion = protocolVersion,
+                patchId = patchId,
+                target = PatchTarget(pageEpoch, target),
+                interactionSequence = interactionSequence,
+                revision = revision,
+                html = html,
+            )
+        PatchOperation.APPEND ->
+            AppendPatch(
+                patchId,
+                PatchTarget(pageEpoch, target),
+                interactionSequence,
+                revision,
+                PatchItem(requireNotNull(itemId), html),
+            )
+        PatchOperation.REMOVE ->
+            RemovePatch(
+                patchId,
+                PatchTarget(pageEpoch, target),
+                interactionSequence,
+                revision,
+                requireNotNull(itemId),
+                requireNotNull(focusTarget),
+            )
+    }

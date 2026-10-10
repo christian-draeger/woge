@@ -10,12 +10,17 @@ export function patchFrame({
   baseRevision = 0,
   nextRevision = 1,
   html = "<p>Updated</p>",
+  operation = "replace",
+  itemId,
+  focusTarget,
 } = {}) {
   const metadata =
-    `{"protocolVersion":1,"operation":"replace","patchId":"${patchId}",` +
+    `{"protocolVersion":1,"operation":"${operation}","patchId":"${patchId}",` +
     `"epoch":"${epoch}","target":"${target}",` +
     `"interactionSequence":${interactionSequence},"baseRevision":${baseRevision},` +
-    `"nextRevision":${nextRevision}}`;
+    `"nextRevision":${nextRevision}` +
+    (itemId === undefined ? "" : `,"itemId":"${itemId}"`) +
+    (focusTarget === undefined ? "" : `,"focusTarget":"${focusTarget}"`) + "}";
   return rawFrame(1, "text/html; charset=utf-8", metadata, html);
 }
 
@@ -49,9 +54,9 @@ export function encodeStream(frames) {
   return concatenate([Uint8Array.of(0x57, 0x4f, 0x47, 0x45, 0x01), ...frames]);
 }
 
-export async function readGoldenStream() {
+export async function readGoldenStream(name = "patch-stream-v1") {
   const value = await readFile(
-    new URL("../../../modules/woge-protocol/src/test/resources/fixtures/patch-stream-v1.hex", import.meta.url),
+    new URL(`../../../modules/woge-protocol/src/test/resources/fixtures/${name}.hex`, import.meta.url),
     "utf8",
   );
   return Uint8Array.from(value.trim().match(/.{2}/g), (pair) => Number.parseInt(pair, 16));

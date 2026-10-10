@@ -50,6 +50,35 @@ test("the JVM golden stream decodes one byte at a time", async () => {
   assertGoldenEvents(events);
 });
 
+test("the collection golden stream decodes every operation at every two-chunk boundary", async () => {
+  const bytes = await readGoldenStream("collection-patch-stream-v1");
+  for (let split = 0; split <= bytes.byteLength; split++) {
+    const decoder = new PatchStreamDecoder();
+    const events = [...decoder.push(bytes.slice(0, split)), ...decoder.push(bytes.slice(split))];
+    decoder.finish();
+    assert.deepEqual(events.slice(0, 3).map((event) => event.patch.operation), ["replace", "append", "remove"]);
+    assert.equal(events[1].patch.itemId, "item-1");
+    assert.equal(events[2].patch.focusTarget, "summary-1");
+    assert.equal(events[3].patchCount, 3);
+  }
+});
+
+test("collection metadata rejects missing identity, unknown operations and nonempty removal payloads", () => {
+  for (const frame of [
+    patchFrame({ operation: "append" }),
+    patchFrame({ operation: "remove", itemId: "item-1", html: "" }),
+    patchFrame({ operation: "unknown" }),
+    patchFrame({ operation: "replace", itemId: "item-1" }),
+  ]) {
+    assert.throws(() => new PatchStreamDecoder().push(encodeStream([frame, completeFrame()])),
+      (problem) => problem.code === "WOGE_INVALID_METADATA");
+  }
+  assert.throws(() => new PatchStreamDecoder().push(encodeStream([
+    patchFrame({ operation: "remove", itemId: "item-1", focusTarget: "summary-1", html: "not empty" }),
+    completeFrame(),
+  ])), (problem) => problem.code === "WOGE_INVALID_LENGTH");
+});
+
 test("signed 64-bit protocol counters do not lose JavaScript number precision", () => {
   const base = 9_223_372_036_854_775_806n;
   const bytes = encodeStream([

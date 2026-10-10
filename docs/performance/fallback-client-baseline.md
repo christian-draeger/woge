@@ -23,6 +23,10 @@ media-type parameter handling and accessible validation-summary focus. The sourc
 includes both `actions.js` and `recovery.js`; the compressed metrics always measure the actual bundle.
 This remains evidence, not a new release budget.
 
+After identified collection operations were added on the same date, the bundle measured 22,932
+minified bytes, 7,964 gzip bytes and 7,002 Brotli bytes. This includes item deduplication, explicit
+removal focus recovery and operation-specific lifecycle events.
+
 ## Browser timing smoke measurement
 
 The Playwright contract applies 20 small Replace frames to 20 registered regions and reports the

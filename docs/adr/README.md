@@ -85,6 +85,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0056](0056-explicit-action-form-enhancement.md) | Accepted | Enhance explicitly opted-in native forms with existing patch streams and never replay uncertain mutations |
 | [0057](0057-prepared-typed-action-region-updates.md) | Accepted | Prepare typed action replacements before responding and retain a native canonical redirect |
 | [0058](0058-shared-accessible-form-errors.md) | Accepted | Share typed form errors and native 400 HTML while enhanced validation focuses one document-owned summary |
+| [0059](0059-identified-collection-patches.md) | Accepted | Append and remove identified collection items with contiguous revisions and explicit removal focus recovery |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

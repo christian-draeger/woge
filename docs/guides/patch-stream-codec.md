@@ -1,7 +1,7 @@
 # Encode and decode fallback patch streams
 
 The fallback patch stream is Woge's compact byte protocol for enhanced actions and deferred regions.
-Application code normally creates `ReplacePatch` values; Spring MVC, Spring WebFlux or Ktor adapter
+Application code creates typed `ReplacePatch`, `AppendPatch` or `RemovePatch` values; Spring MVC, Spring WebFlux or Ktor adapter
 code turns them into response bytes.
 
 The [browser replace runtime](browser-replace-runtime.md) reads this stream and applies each patch to
@@ -37,6 +37,11 @@ encoder.error(
 Complete and Error are mutually exclusive. Writing after either terminal event fails. A downstream
 write exception is propagated unchanged, so an adapter can connect it to request cancellation and
 structured cleanup.
+
+For coroutine-based host integration, `flowOf(firstPatch, secondPatch).encodePatchStream()` produces
+the same `EncodedPatchChunk` boundaries used by the adapters' existing transports. The stream
+preamble is sent first; each patch and the terminal frame have their own flush boundary.
+Remove uses an empty payload; append includes its item ID and one DSL-rendered item root.
 
 ## Do not treat writes as frames
 
@@ -108,3 +113,7 @@ output generation; it does not make network bytes trusted.
 is the exact encoded form of one Replace patch followed by Complete. JVM tests decode it at every
 possible split and one byte at a time. The browser runtime will consume the same fixture so a field,
 length, endianness or canonical-JSON change cannot drift silently.
+
+[`collection-patch-stream-v1.hex`](../../modules/woge-protocol/src/test/resources/fixtures/collection-patch-stream-v1.hex)
+adds a shared Replace/Append/Remove sequence. JVM and JavaScript decoders check every two-chunk
+boundary, and browser tests apply it one byte at a time. Existing Replace bytes are unchanged.
