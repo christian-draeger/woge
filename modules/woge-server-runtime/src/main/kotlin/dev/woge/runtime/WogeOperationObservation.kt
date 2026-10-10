@@ -82,6 +82,8 @@ public fun PageResult.observationOutcome(): WogeOutcome =
         is PageResult.Redirect,
         -> WogeOutcome.SUCCEEDED
 
+        is PageResult.RegionUpdates -> if (focusSummary == null) WogeOutcome.SUCCEEDED else WogeOutcome.REJECTED
+
         is PageResult.Failure ->
             when (failure.category) {
                 FailureCategory.INTERNAL,

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="woge-page-epoch" content="epoch-a">
+    <title>Woge native and enhanced forms</title>
+  </head>
+  <body>
+    <form action="/action" method="post" data-woge-action data-woge-status="status"
+      data-woge-alert="alert" data-woge-error-summary="errors"
+      data-woge-failure-message="The result is unknown. Check before submitting again.">
+      <input id="title" name="title" value="A &amp; B"><input name="tag" value="one"><input name="tag" value="two">
+      <input name="unchecked" type="checkbox"><input name="disabled" value="no" disabled>
+      <input name="_csrf" value="token">
+      <button name="intent" value="save">Save</button>
+      <button name="intent" value="preview" formaction="/preview">Preview</button>
+    </form>
+    <p id="status" role="status" data-woge-region="status-1" data-woge-revision="0"></p>
+    <p id="alert" role="alert"></p>
+    <main data-woge-region="summary-1" data-woge-revision="0"><p>Original</p></main>
+    <script type="module">
+      globalThis.Woge = await import("/woge-fallback.js");
+      globalThis.actionErrors = [];
+      document.addEventListener("woge:action-error", (event) => actionErrors.push(event.detail.code));
+      globalThis.actions = Woge.installWogeActionForms(document, Woge.createWogePatchRuntime());
+    </script>
+  </body>
+</html>

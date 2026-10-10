@@ -190,7 +190,131 @@ on MVC, WebFlux and Ktor, including validation and domain rejection. Their secur
 explicit test fixtures. Separate real Spring Security filter-chain tests verify authentication,
 header and hidden-field CSRF rejection and domain authorization on both Spring adapters. They also
 reject repeated tokens, query-only tokens, malformed encoding and excessive input. This foundation
-does not complete #30: actual enhanced-submission parity is still pending.
+also covers actual enhanced submissions: field errors keep the same status and values, while
+successful updates and refresh never repeat a mutation.
+
+The action bindings recognize an explicit `Accept: application/vnd.woge.patch-stream; version=1`.
+For a successful application-owned 303, they return a bodyless 200 with `Woge-Navigate` instead.
+The opt-in browser client then loads that canonical URL with GET, without repeating the mutation.
+Native requests, external redirects and method-preserving 307/308 responses retain their behavior.
+The all-host TCK verifies both paths and exact mutation counts. See
+[action-form enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement).
+
+To run the optional real-browser adapter contracts, install the client's npm dependencies and
+Playwright Chromium, then build the client before running the tests:
+
+```shell
+npm --prefix client/woge-fallback-client run build
+WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
+  ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test --tests '*AdapterTckTest'
+```
+
+These tests load the built bundle; a source checkout alone is not enough. Normal JVM checks
+without this explicit environment variable still require no Node installation.
+
+## Update typed regions after an action
+
+Return `actionRegionUpdates` when an enhanced form should update part of the current page instead
+of navigating. Use the generated region descriptors that also render the original HTML:
+
+```kotlin
+val page = PageIdentity(activePageEpoch, applicationIdentitySecret)
+val summary = TaskSummaryRegion.target(page)
+val status = TaskStatusRegion.target(page)
+
+return actionRegionUpdates(
+    fallback = applicationUrl("/tasks"),
+    interaction = activeInteractionSequence,
+) {
+    replace(summary, updatedTasks, revision = summaryRevision)
+    replace(status, "Task saved", revision = statusRevision)
+}
+```
+
+`TaskSummaryRegion` and `TaskStatusRegion` are generated from your `@WogeRegion` functions;
+their input types must match. Use the same page identity and region keys as the current document.
+Submit or otherwise track the active revisions and interaction sequence explicitly. Their initial
+defaults only describe a region that has not yet been updated; they do not automatically synchronize
+with the browser. These fields never replace authorization.
+
+An ordinary POST gets a 303 to the canonical fallback URL. An opted-in enhanced POST gets the existing
+patch stream, with replacements in declaration order and `Cache-Control: no-store`. Render the
+success text into the document-owned status region referenced by your form. Woge does not invent
+an extra announcement or move focus.
+
+Every region renders through the safe DSL before the HTTP response starts. Duplicate targets,
+mixed page epochs, more than 128 replacements, invalid protocol payloads or a rendering error reject
+the whole prepared result. This prevents sending a successfully rendered subset, but does not
+undo a mutation that your application already committed. Network delivery can still fail partway;
+never automatically repeat the POST.
+
+The shared JVM HTTP tests and optional Chromium flows exercise native and enhanced two-region
+updates on all three hosts, including refresh without mutation replay. This is a Replace-only
+foundation for #33, not its complete collection-update API. See
+[ADR 0057](../adr/0057-prepared-typed-action-region-updates.md).
+
+## Share accessible field and form errors
+
+Create field descriptors once from your decoder. Reuse the same descriptor when assigning an error
+and rendering its field. Names come from the generated serializer, not reflective property access:
+
+```kotlin
+val title = createTaskForm.field(CreateTask::title, FormElementId.of("task-title"))
+val summary = FormElementId.of("task-errors")
+val errors = FormErrors(
+    submitted.values,
+    listOf(FormError(title, "Enter a task title"), FormError(null, "Check the task details")),
+)
+```
+
+For `@SerialName("task-title")`, pass `serializedName = "task-title"` to `field`. A wrong command
+property does not type-check; an unknown submitted name fails when the descriptor is created.
+Translate decoder error codes into your application's safe messages. Business-rule errors use the
+same model. Always authorize the renderer and run server validation for every submission.
+
+The form stays ordinary HTML:
+
+```kotlin
+actionForm(CreateTaskAction, attributes = {
+    data("woge-action", "")
+    data("woge-status", "task-status")
+    data("woge-alert", "task-alert")
+    data("woge-error-summary", summary.value)
+    data("woge-failure-message", "Check the result before submitting again.")
+}) {
+    formErrorSummary(errors, summary, "Check the task")
+    input(attributes = {
+        formField(title, errors)
+        attribute("value", errors.value(title).orEmpty())
+    })
+    formFieldErrors(title, errors)
+    button { text("Create task") }
+}
+```
+
+The field helper adds its name, ID and error references. Pass `describedBy = listOf(hintId)` to
+retain application help text. Text preservation is explicit: do not add the value attribute for
+passwords or CSRF tokens. `FormValues.EMPTY` is available for the initial form.
+The summary is focusable and links to invalid fields; it is not a live region.
+
+Use the same typed form region to render a native 400 document and enhanced replacements:
+
+```kotlin
+val nativePage = htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
+    region(formTarget, errors, elementName = "section")
+}
+return actionValidationUpdates(nativePage, summary) {
+    replace(formTarget, errors, revision = currentFormRevision)
+}
+```
+
+Here `formTarget` comes from your `@WogeRegion` form function and takes `FormErrors<CreateTask>`.
+The surrounding native document still needs your normal HTML head, title and other page content.
+Native requests receive that HTML with status 400. Enhanced requests receive prepared patches with
+the same status, then focus the named summary. No extra alert or success announcement is added.
+The referenced status/alert elements still belong in your document shell for other action outcomes.
+Supply the active interaction sequence and revisions as for other region updates.
+See [ADR 0058](../adr/0058-shared-accessible-form-errors.md).
 
 ## Request limits
 
@@ -225,7 +349,8 @@ Nullable fields are supported. Parsing policies and size limits belong to the fo
 the descriptor.
 
 The function must be top-level, suspend, non-generic, and take exactly `(command, RequestContext)`.
-Its declared return type is `PageResult`: normal HTML, a redirect or a controlled failure.
+Its declared return type is `PageResult`: normal HTML, a redirect, prepared typed region updates
+or a controlled failure.
 Woge reports unsupported declarations with `WOGE-ACTION-001` through `WOGE-ACTION-007`, including
 duplicate IDs and generated names.
 

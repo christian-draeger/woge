@@ -1,6 +1,15 @@
 export const BEFORE_REPLACE_EVENT: "woge:before-replace";
 export const AFTER_REPLACE_EVENT: "woge:after-replace";
 export const WOGE_PATCH_PROTOCOL_VERSION: 1;
+export const ACTION_ERROR_EVENT: "woge:action-error";
+
+export interface WogeActionForms {
+  /** Removes the submit listener, cancels owned requests and restores busy state. Never replays a POST. */
+  dispose(): void;
+}
+
+/** Enhances explicitly marked same-origin URL-encoded POST forms; other forms remain native. */
+export function installWogeActionForms(root: Document, runtime: WogePatchRuntime): WogeActionForms;
 
 export interface ReplaceLifecycleDetail {
   readonly operation: "replace";
@@ -122,6 +131,7 @@ export function createWogePatchRuntime(root?: Document, options?: WogePatchRunti
 
 declare global {
   interface DocumentEventMap {
+    "woge:action-error": CustomEvent<{ readonly code: string }>;
     "woge:before-replace": CustomEvent<ReplaceLifecycleDetail>;
     "woge:after-replace": CustomEvent<ReplaceLifecycleDetail>;
   }

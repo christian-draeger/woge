@@ -1,5 +1,6 @@
 package dev.woge.host
 
+import dev.woge.html.Attributes
 import dev.woge.html.HtmlWriter
 import dev.woge.html.form
 import java.util.Collections
@@ -18,6 +19,10 @@ public class FormValues internal constructor(
     public fun all(name: String): List<String> = values[name].orEmpty()
 
     override fun toString(): String = "FormValues(values=<redacted>)"
+
+    public companion object {
+        public val EMPTY: FormValues = FormValues(emptyMap())
+    }
 }
 
 /** A bounded submission can be a valid command or field errors with text for a native validation page. */
@@ -66,7 +71,17 @@ public fun HtmlWriter.actionForm(
     action: ActionDescriptor<*>,
     content: HtmlWriter.() -> Unit,
 ) {
+    actionForm(action, attributes = {}, content = content)
+}
+
+/** Adds application-owned classes and opt-in attributes while retaining the descriptor's POST policy. */
+public fun HtmlWriter.actionForm(
+    action: ActionDescriptor<*>,
+    attributes: Attributes.() -> Unit,
+    content: HtmlWriter.() -> Unit,
+) {
     form(attributes = {
+        attributes()
         attribute("method", "post")
         attribute("enctype", "application/x-www-form-urlencoded")
         attribute("accept-charset", "UTF-8")

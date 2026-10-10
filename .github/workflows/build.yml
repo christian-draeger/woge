@@ -51,9 +51,11 @@ jobs:
           cache-dependency-path: |
             client/woge-fallback-client/package-lock.json
             scaffolds/spring-boot/package-lock.json
-      - name: Install browser-test dependencies
+      - name: Install and build the browser-test client
         working-directory: client/woge-fallback-client
-        run: npm ci
+        run: |
+          npm ci
+          npm run build
       - name: Install pinned browser engines
         working-directory: client/woge-fallback-client
         run: npx playwright install --with-deps chromium firefox webkit

@@ -24,8 +24,15 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
     private val failurePages: FailurePages,
 ) {
     /** Decodes, executes and maps the page without an application-owned transport controller. */
+    public suspend fun handle(call: ApplicationCall): Unit = handle(call, actionAccept = null)
+
+    internal suspend fun handleAction(call: ApplicationCall) = handle(call, call.request.headers["Accept"].orEmpty())
+
     @Suppress("TooGenericExceptionCaught")
-    public suspend fun handle(call: ApplicationCall) {
+    private suspend fun handle(
+        call: ApplicationCall,
+        actionAccept: String?,
+    ) {
         val context = contexts.create(call)
         val observationContext = WogeObservationContext(requestTrace = context.trace)
         val result =
@@ -48,6 +55,6 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 call.respondWogePreStreamFailure(failure)
                 return
             }
-        call.respondWogePage(result.withFailurePages(failurePages), observer, observationContext)
+        call.respondWogePage(result.withFailurePages(failurePages), observer, observationContext, actionAccept)
     }
 }

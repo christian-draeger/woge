@@ -7,6 +7,7 @@ import {
 } from "./protocol.js";
 import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
+import { installWogeActionForms, ACTION_ERROR_EVENT } from "./actions.js";
 
 /** Owns one active document's region registry and applies validated patch streams to it. */
 class WogePatchRuntime {
@@ -113,6 +114,8 @@ function patchOutcome(problem) {
 }
 
 export {
+  ACTION_ERROR_EVENT,
+  installWogeActionForms,
   AFTER_REPLACE_EVENT,
   BEFORE_REPLACE_EVENT,
   classifyWogeFailure,

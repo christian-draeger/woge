@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PatchStreamDecoder, WogePatchError } from "../src/protocol.js";
+import { isPatchStreamMediaType, PatchStreamDecoder, WogePatchError } from "../src/protocol.js";
 import {
   completeFrame,
   encodeStream,
@@ -9,6 +9,25 @@ import {
   rawFrame,
   readGoldenStream,
 } from "../test-support/protocol-fixture.mjs";
+
+test("patch HTTP media types accept parameter whitespace and quoting but require version 1", () => {
+  for (const value of [
+    "application/vnd.woge.patch-stream; version=1",
+    "application/vnd.woge.patch-stream;version=1",
+    'APPLICATION/VND.WOGE.PATCH-STREAM ; version = "1" ',
+  ]) {
+    assert.equal(isPatchStreamMediaType(value), true, value);
+  }
+  for (const value of [
+    null, "", "*/*", "text/html", "application/vnd.woge.patch-stream",
+    "application/vnd.woge.patch-stream; version=2",
+    "application/vnd.woge.patch-stream; version=01",
+    "application/vnd.woge.patch-stream; version=1; charset=utf-8",
+    "application/vnd.woge.patch-stream;\nversion=1",
+  ]) {
+    assert.equal(isPatchStreamMediaType(value), false, String(value));
+  }
+});
 
 test("the JVM golden stream decodes at every two-chunk boundary", async () => {
   const bytes = await readGoldenStream();

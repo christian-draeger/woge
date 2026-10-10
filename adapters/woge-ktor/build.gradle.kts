@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
+import java.io.File
 
 plugins {
     id("dev.woge.kotlin-jvm-library")
@@ -32,6 +33,16 @@ tasks.named("check") {
 tasks.test {
     inputs.property("nativeFormBrowserScript", providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").orElse(""))
     inputs.files(
-        providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").map { listOf(it) }.orElse(emptyList()),
+        providers
+            .environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT")
+            .map {
+                listOf(
+                    it,
+                    File(it)
+                        .parentFile.parentFile
+                        .resolve("dist/woge-fallback.js")
+                        .absolutePath,
+                )
+            }.orElse(emptyList()),
     )
 }

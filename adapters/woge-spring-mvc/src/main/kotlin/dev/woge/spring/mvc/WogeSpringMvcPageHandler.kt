@@ -62,7 +62,13 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                         page.open(PageRequest(decoded.getOrThrow(), context))
                     }
                 }
-            result.withFailurePages(failurePages).writeToServlet(request, response, observer, observationContext)
+            result.withFailurePages(failurePages).writeToServlet(
+                request,
+                response,
+                observer,
+                observationContext,
+                actionAccept = if (allowedMethods == setOf("POST")) request.getHeader("Accept").orEmpty() else null,
+            )
         }
     }
 }

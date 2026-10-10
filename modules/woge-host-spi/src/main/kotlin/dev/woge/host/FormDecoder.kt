@@ -6,6 +6,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -13,6 +14,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.util.Locale
+import kotlin.reflect.KProperty1
 
 /** Binds a flat native form to a command's generated Kotlin serializer, without reflection. */
 @OptIn(ExperimentalSerializationApi::class)
@@ -33,6 +35,18 @@ public class FormDecoder<Command : Any>(
     }
 
     public fun body(): FormBody = FormBody(limits)
+
+    /** Explicit [serializedName] is required when the command property uses a different @SerialName. */
+    public fun <Value> field(
+        property: KProperty1<Command, Value>,
+        id: FormElementId,
+        serializedName: String = property.name,
+    ): FormField<Command> {
+        require(descriptor.getElementIndex(serializedName) != CompositeDecoder.UNKNOWN_NAME) {
+            "Form field '$serializedName' is not present in the command serializer"
+        }
+        return FormField(serializedName, id)
+    }
 
     /** Consumes a reader exactly once. Input failures never invoke the command serializer. */
     public fun decode(body: FormBody): FormResult<Command> = submission(body).result

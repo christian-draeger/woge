@@ -12,7 +12,7 @@ public class WogeWebFluxActionHandler<Command : Any> internal constructor(
 ) {
     public suspend fun handle(request: ServerRequest): ServerResponse =
         if (request.method() == HttpMethod.POST) {
-            delegate.handle(request)
+            delegate.handleAction(request)
         } else {
             ServerResponse
                 .status(HttpStatus.METHOD_NOT_ALLOWED)

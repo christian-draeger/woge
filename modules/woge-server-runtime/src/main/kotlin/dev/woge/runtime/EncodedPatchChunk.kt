@@ -1,5 +1,6 @@
 package dev.woge.runtime
 
+import dev.woge.host.PageResult
 import dev.woge.host.RequestTrace
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
@@ -29,6 +30,23 @@ public class EncodedPatchChunk internal constructor(
 
     override fun toString(): String = "EncodedPatchChunk(bytes=${bytes.size}, terminal=$terminal)"
 }
+
+/** Encodes fully prepared action replacements in their declared order, without rerendering. */
+public fun PageResult.RegionUpdates.encodeActionPatchStream(): Flow<EncodedPatchChunk> =
+    flow {
+        val pending = ByteArrayOutputStream()
+        val encoder = PatchStreamV1.encoder(ByteSink(pending::write))
+        encoder.start()
+        emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
+        pending.reset()
+        patches.forEach { patch ->
+            encoder.write(patch)
+            emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
+            pending.reset()
+        }
+        encoder.complete()
+        emit(EncodedPatchChunk(pending.toByteArray(), terminal = true))
+    }
 
 /** Maps a page-load deferred update to its single contiguous target-revision step. */
 public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =

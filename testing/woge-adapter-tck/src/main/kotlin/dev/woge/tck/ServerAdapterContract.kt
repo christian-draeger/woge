@@ -10,6 +10,7 @@ import dev.woge.host.WogeOperationStarted
 import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
+import dev.woge.protocol.ReplacePatch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
@@ -156,6 +157,11 @@ private class AdapterTckVerification(
         verifyRejectedForms()
         verifyNativeValidation()
         verifyMutationRefresh()
+        verifyEnhancedNavigation()
+    }
+
+    private suspend fun verifyEnhancedNavigation() {
+        runContract("enhanced-action-navigation") { client.verifyEnhancedNavigation(::expect) }
     }
 
     private suspend fun verifyActionMethods() {
@@ -253,7 +259,10 @@ private class AdapterTckVerification(
                         "status changed",
                     )
                     expect(
-                        html.contains("""value="&lt;script&gt;"""") && html.contains("<p>value: REPEATED</p>"),
+                        html.contains("""value="&lt;script&gt;"""") &&
+                            html.contains("value: REPEATED</p>") &&
+                            html.contains("""aria-describedby="tck-command-value-error"""") &&
+                            html.contains("""href="#tck-command-value""""),
                         "native-form-validation",
                         "submitted text and structured errors were not safely rerendered",
                     )
@@ -674,6 +683,124 @@ private class AdapterTckVerification(
         detail: String,
         cause: Throwable? = null,
     ): AdapterTckViolation = AdapterTckViolation(AdapterTckFailureOwner.ADAPTER, adapterName, contract, detail, cause)
+}
+
+private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boolean, String, String) -> Unit) {
+    val contract = "enhanced-action-navigation"
+    val headers =
+        mapOf(
+            "Content-Type" to FORM_CONTENT_TYPE,
+            "X-Tck-Subject" to "tck-user",
+            "Accept" to PatchStreamV1.MEDIA_TYPE,
+        )
+    open(RequestMethod.POST, TckSubmitAction.path, headers, "value=accepted").let { response ->
+        response.body().use { body ->
+            expect(response.statusCode() == ResponseStatus.OK.code, contract, "status changed")
+            expect(
+                response.header("woge-navigate") == "/woge-tck/action-complete" && response.header("location") == null,
+                contract,
+                "enhanced response did not request a GET-only navigation",
+            )
+            expect(body.readAllBytes().isEmpty(), contract, "navigation exposed a body")
+            expect(
+                response.header("cache-control") == "no-store" && response.header("vary")?.contains("Accept") == true,
+                contract,
+                "navigation did not preserve negotiated no-store semantics",
+            )
+        }
+    }
+    listOf(
+        "value=denied" to ResponseStatus.FORBIDDEN,
+        "value=a&value=b" to ResponseStatus.BAD_REQUEST,
+    ).forEach { (body, status) ->
+        open(RequestMethod.POST, TckSubmitAction.path, headers, body).verifyEnhancedRejection(status, expect)
+    }
+    repeat(2) {
+        val refreshed = text(RequestMethod.GET, "/woge-tck/action-complete")
+        expect(
+            refreshed.body().contains("<p>Completed mutations: 2</p>"),
+            contract,
+            "enhancement or GET refresh replayed the mutation",
+        )
+    }
+    verifyActionRegionUpdates(expect)
+}
+
+private fun HttpResponse<InputStream>.verifyEnhancedRejection(
+    status: ResponseStatus,
+    expect: (Boolean, String, String) -> Unit,
+) {
+    val contract = "enhanced-action-rejection"
+    body().use { stream ->
+        if (status == ResponseStatus.BAD_REQUEST) {
+            val decoder = PatchStreamV1.decoder()
+            val events = decoder.feed(stream.readAllBytes())
+            decoder.finish()
+            val html =
+                events
+                    .filterIsInstance<PatchStreamEvent.PatchFrame>()
+                    .map { it.patch }
+                    .filterIsInstance<ReplacePatch>()
+                    .single()
+                    .html.value
+            expect(
+                header("woge-validation") == "tck-error-summary" &&
+                    html.contains("""href="#tck-command-value"""") &&
+                    events.last() == PatchStreamEvent.Complete(1),
+                contract,
+                "enhanced validation lost the typed error summary or completion",
+            )
+        }
+    }
+    expect(statusCode() == status.code, contract, "domain or validation changed")
+    expect(header("woge-navigate") == null, contract, "failure requested navigation")
+}
+
+private suspend fun AdapterTckHttpClient.verifyActionRegionUpdates(expect: (Boolean, String, String) -> Unit) {
+    val contract = "typed-action-region-updates"
+    val headers = mapOf("Content-Type" to FORM_CONTENT_TYPE, "X-Tck-Subject" to "tck-user")
+    open(RequestMethod.POST, TckSubmitAction.path, headers, "value=update").let { response ->
+        response.body().close()
+        expect(
+            response.statusCode() == ResponseStatus.SEE_OTHER.code &&
+                response.header("location") == "/woge-tck/action-complete",
+            contract,
+            "native region updates lost POST/Redirect/GET",
+        )
+    }
+    open(RequestMethod.POST, TckSubmitAction.path, headers + ("Accept" to PatchStreamV1.MEDIA_TYPE), "value=update")
+        .let { response ->
+            expect(response.statusCode() == ResponseStatus.OK.code, contract, "patch status changed")
+            expect(
+                response.header("content-type")?.replace(" ", "") == PatchStreamV1.MEDIA_TYPE.replace(" ", ""),
+                contract,
+                "patch media type changed",
+            )
+            expect(
+                response.header("cache-control") == "no-store" && response.header("vary")?.contains("Accept") == true,
+                contract,
+                "patch response lost negotiated no-store semantics",
+            )
+            val decoder = PatchStreamV1.decoder()
+            val events = response.body().use { decoder.feed(it.readAllBytes()) }
+            decoder.finish()
+            val patches = events.filterIsInstance<PatchStreamEvent.PatchFrame>().map { it.patch }
+            expect(
+                patches.filterIsInstance<ReplacePatch>().map { it.html.value } ==
+                    listOf("<p>Completed mutations: 4</p>", "Saved") &&
+                    patches.map { it.target.region }.distinct().size == 2 &&
+                    events.last() == PatchStreamEvent.Complete(2),
+                contract,
+                "typed regions lost their content, order, identity or terminal",
+            )
+        }
+    repeat(2) {
+        expect(
+            text(RequestMethod.GET, "/woge-tck/action-complete").body().contains("<p>Completed mutations: 4</p>"),
+            contract,
+            "region rendering or GET refresh replayed the mutation",
+        )
+    }
 }
 
 private class AdapterTckHttpClient(

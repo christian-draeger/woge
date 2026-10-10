@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { brotliCompressSync, gzipSync } from "node:zlib";
 
-const sourceFiles = ["index.js", "protocol.js", "dom.js", "version.js"];
+const sourceFiles = ["index.js", "protocol.js", "dom.js", "version.js", "recovery.js", "actions.js"];
 const sources = await Promise.all(
   sourceFiles.map((name) => readFile(new URL(`../src/${name}`, import.meta.url))),
 );
