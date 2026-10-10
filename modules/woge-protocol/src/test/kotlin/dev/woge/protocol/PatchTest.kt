@@ -1,5 +1,6 @@
 package dev.woge.protocol
 
+import dev.woge.html.HtmlByteLimitException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -7,6 +8,24 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class PatchTest {
+    @Test
+    fun `patch rendering admits the exact frame payload ceiling and stops before oversized materialization`() {
+        val maximum = PatchStreamV1.MAX_PAYLOAD_BYTES
+        val chunk = "x".repeat(8192)
+        val exact = patchHtml { repeat(maximum / chunk.length) { text(chunk) } }
+        assertEquals(maximum, exact.value.length)
+        var afterLimit = false
+        val rejected =
+            assertThrows(HtmlByteLimitException::class.java) {
+                patchHtml {
+                    repeat(maximum / chunk.length + 1) { text(chunk) }
+                    afterLimit = true
+                }
+            }
+        assertEquals(maximum.toLong(), rejected.threshold)
+        assertFalse(afterLimit)
+    }
+
     @Test
     fun `replace patch carries the complete semantic contract`() {
         val patch = examplePatch()

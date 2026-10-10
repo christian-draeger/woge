@@ -8,6 +8,11 @@ public final class dev/woge/spring/webflux/WebFluxFormInputKt {
 	public static final fun webFluxSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/webflux/WebFluxPageInput;
 }
 
+public final class dev/woge/spring/webflux/WebFluxMultipartInputKt {
+	public static final fun webFluxMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/spring/webflux/WebFluxPageInput;
+	public static synthetic fun webFluxMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/spring/webflux/WebFluxPageInput;
+}
+
 public abstract interface class dev/woge/spring/webflux/WebFluxPageInput {
 	public abstract fun decode (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -25,14 +30,14 @@ public final class dev/woge/spring/webflux/WogeWebFluxActionHandler {
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxDeferredHandler {
-	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;ILdev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;ILdev/woge/host/PatchStreamLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun handle (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxHandlers {
-	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;)Ldev/woge/spring/webflux/WogeWebFluxActionHandler;
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxDeferredHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;

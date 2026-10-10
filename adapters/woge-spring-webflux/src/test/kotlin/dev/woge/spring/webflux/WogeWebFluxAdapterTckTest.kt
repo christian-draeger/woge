@@ -12,8 +12,12 @@ import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
+import dev.woge.tck.tckUploadForm
+import dev.woge.tck.tckUploadLimits
+import dev.woge.tck.tckUploadPage
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
@@ -58,6 +62,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                     AdapterTckDeferredScenario.fromPath(request.pathVariable("scenario"))
                 },
                 observer = application.observer,
+                patchStreamLimits = application.deferredPatchStreamLimits,
             )
         val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
         val failures =
@@ -75,6 +80,8 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val complete = WogeWebFluxHandlers().page(application.actionCompletion, WebFluxPageInput { })
+        val upload = uploadAction(application)
+        val uploadPage = WogeWebFluxHandlers().page(tckUploadPage, WebFluxPageInput { })
         val routes =
             coRouter {
                 GET(AdapterTckRoutes.PAGE_PATTERN, page::handle)
@@ -86,6 +93,8 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 POST(TckSubmitAction.path, action::handle)
                 GET(TckSubmitAction.path, action::handle)
                 GET("/woge-tck/action-complete", complete::handle)
+                POST(TckUploadAction.path, upload::handle)
+                GET("/woge-tck/upload-complete", uploadPage::handle)
             }
         return WebFluxTckServer(
             HttpServer
@@ -96,6 +105,18 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 .bindNow(),
         )
     }
+
+    private fun uploadAction(application: AdapterTckApplication) =
+        WogeWebFluxHandlers().action(
+            TckUploadAction,
+            tckUploadForm.webFluxMultipart(tckUploadLimits, application.uploadDirectory),
+            WebFluxRequestContextFactory { request ->
+                tckActionContext(
+                    request.headers().firstHeader("X-Tck-Subject"),
+                    request.headers().firstHeader("X-Tck-Unverified") != "true",
+                )
+            },
+        )
 }
 
 private class WebFluxTckServer(

@@ -1,5 +1,9 @@
 package dev.woge.runtime
 
+import dev.woge.host.PatchStreamLimits
+import dev.woge.host.ResourceLimit
+import dev.woge.host.ResourceLimitExceeded
+import dev.woge.host.ResourceLimitException
 import dev.woge.host.WogeObservationEvent
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperationFinished
@@ -32,6 +36,83 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SemanticPatchStreamTest {
+    @Test
+    fun `cumulative stream byte allowance includes framing and terminal and resets on fresh collection`() =
+        runTest {
+            val patches = collectionPatches()
+            val baseline = patches.asFlow().encodePatchStream().toList()
+            val total = baseline.sumOf { it.bytes.size.toLong() }
+            val exact = patches.asFlow().encodePatchStream(limits = PatchStreamLimits(maxBytes = total))
+            repeat(2) {
+                assertEquals(total, exact.toList().sumOf { it.bytes.size.toLong() })
+            }
+            val events = mutableListOf<WogeObservationEvent>()
+            val chunks = mutableListOf<EncodedPatchChunk>()
+            val exceeded =
+                runCatching {
+                    patches
+                        .asFlow()
+                        .encodePatchStream(
+                            observer = WogeObserver(events::add),
+                            limits = PatchStreamLimits(maxBytes = total - 1),
+                        ).toList(chunks)
+                }.exceptionOrNull() as ResourceLimitException
+            assertEquals(ResourceLimitExceeded(ResourceLimit.PATCH_STREAM_BYTES, total - 1), exceeded.exceededLimit)
+            assertTrue(chunks.none { it.terminal })
+            assertTrue(chunks.sumOf { it.bytes.size.toLong() } <= total - 1)
+            val rejected = events.filterIsInstance<WogeOperationFinished>().single { it.context.exceededLimit != null }
+            assertEquals(exceeded.exceededLimit, rejected.context.exceededLimit)
+            assertEquals(WogeOutcome.REJECTED, rejected.outcome)
+        }
+
+    @Test
+    fun `incremental patch count exhaustion stops infinite upstream and emits no terminal`() =
+        runTest {
+            var prepared = 0
+            val events = mutableListOf<WogeObservationEvent>()
+            val chunks = mutableListOf<EncodedPatchChunk>()
+            val exceeded =
+                runCatching {
+                    flow {
+                        while (true) {
+                            prepared += 1
+                            emit(collectionPatches().first())
+                        }
+                    }.encodePatchStream(
+                        observer = WogeObserver(events::add),
+                        limits = PatchStreamLimits(maxPatches = 1),
+                    ).toList(chunks)
+                }.exceptionOrNull() as ResourceLimitException
+            assertEquals(2, prepared)
+            assertEquals(2, chunks.size)
+            assertTrue(chunks.none { it.terminal })
+            assertEquals(ResourceLimitExceeded(ResourceLimit.PATCH_COUNT, 1), exceeded.exceededLimit)
+            assertTrue(
+                events.filterIsInstance<WogeOperationFinished>().any {
+                    it.outcome == WogeOutcome.REJECTED && it.context.exceededLimit == exceeded.exceededLimit
+                },
+            )
+        }
+
+    @Test
+    fun `preamble exhaustion reports rejection without emitting any bytes`() =
+        runTest {
+            val events = mutableListOf<WogeObservationEvent>()
+            val chunks = mutableListOf<EncodedPatchChunk>()
+            val exceeded =
+                runCatching {
+                    collectionPatches()
+                        .asFlow()
+                        .encodePatchStream(
+                            observer = WogeObserver(events::add),
+                            limits = PatchStreamLimits(maxBytes = 1),
+                        ).toList(chunks)
+                }.exceptionOrNull() as ResourceLimitException
+            assertEquals(ResourceLimitExceeded(ResourceLimit.PATCH_STREAM_BYTES, 1), exceeded.exceededLimit)
+            assertTrue(chunks.isEmpty())
+            assertEquals(WogeOutcome.REJECTED, events.filterIsInstance<WogeOperationFinished>().single().outcome)
+        }
+
     @Test
     fun `every operation has one flush boundary and successful observation`() =
         runTest {

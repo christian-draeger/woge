@@ -5,6 +5,7 @@ import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
 import kotlin.time.Duration
@@ -19,6 +20,7 @@ public class WogeKtorHandlers(
     private val observer: WogeObserver = WogeObserver.NONE,
     private val failurePages: FailurePages = FailurePages.NONE,
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
+    private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
 ) {
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
@@ -68,5 +70,6 @@ public class WogeKtorHandlers(
             regionTimeout = regionTimeout,
             observer = observer,
             maxRegions = maxRegions,
+            patchStreamLimits = patchStreamLimits,
         )
 }

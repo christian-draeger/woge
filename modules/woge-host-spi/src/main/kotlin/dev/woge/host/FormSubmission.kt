@@ -88,3 +88,18 @@ public fun HtmlWriter.actionForm(
         url("action", action.url)
     }, content = content)
 }
+
+/** Native file submission. Enhancement/progress is a separate opt-in API; this form stays browser-native. */
+public fun <Command : Any> HtmlWriter.multipartActionForm(
+    action: ActionDescriptor<MultipartSubmission<Command>>,
+    attributes: Attributes.() -> Unit = {},
+    content: HtmlWriter.() -> Unit,
+) {
+    form(attributes = {
+        attributes()
+        attribute("method", "post")
+        attribute("enctype", "multipart/form-data")
+        attribute("accept-charset", "UTF-8")
+        url("action", action.url)
+    }, content = content)
+}

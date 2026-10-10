@@ -12,8 +12,12 @@ import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
+import dev.woge.tck.tckUploadForm
+import dev.woge.tck.tckUploadLimits
+import dev.woge.tck.tckUploadPage
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -55,7 +59,10 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val deferred =
-            WogeKtorHandlers(observer = application.observer).deferred(
+            WogeKtorHandlers(
+                observer = application.observer,
+                patchStreamLimits = application.deferredPatchStreamLimits,
+            ).deferred(
                 application.deferredRegions,
                 KtorPageInput { call ->
                     AdapterTckDeferredScenario.fromPath(requireNotNull(call.parameters["scenario"]))
@@ -77,6 +84,8 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val complete = WogeKtorHandlers().page(application.actionCompletion, KtorPageInput { })
+        val upload = uploadAction(application)
+        val uploadPage = WogeKtorHandlers().page(tckUploadPage, KtorPageInput { })
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 routing {
@@ -89,10 +98,24 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     post(TckSubmitAction.path) { action.handle(call) }
                     get(TckSubmitAction.path) { action.handle(call) }
                     get("/woge-tck/action-complete") { complete.handle(call) }
+                    post(TckUploadAction.path) { upload.handle(call) }
+                    get("/woge-tck/upload-complete") { uploadPage.handle(call) }
                 }
             }.start(wait = false)
         return KtorTckServer(server)
     }
+
+    private fun uploadAction(application: AdapterTckApplication) =
+        WogeKtorHandlers().action(
+            TckUploadAction,
+            tckUploadForm.ktorMultipart(tckUploadLimits, application.uploadDirectory),
+            KtorRequestContextFactory { call ->
+                tckActionContext(
+                    call.request.headers["X-Tck-Subject"],
+                    call.request.headers["X-Tck-Unverified"] != "true",
+                )
+            },
+        )
 }
 
 private class KtorTckServer(

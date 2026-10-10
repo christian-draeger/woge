@@ -12,13 +12,12 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
-import dev.woge.html.HtmlSink
-import dev.woge.html.StreamingHtmlSink
+import dev.woge.html.HtmlByteBudget
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
+import dev.woge.runtime.writeByteChunks
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import jakarta.servlet.http.HttpServletRequest
@@ -33,7 +32,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -117,7 +115,10 @@ internal suspend fun PageResult.writeToServlet(
                 response.applyMetadata(metadata)
                 response.addHeader("Vary", "Accept")
                 focusSummary?.let { response.addHeader(ACTION_VALIDATION_HEADER, it.value) }
-                encodeActionPatchStream().writeToServlet(response, metadata.status)
+                encodeActionPatchStream(
+                    observer,
+                    observationContext.requestTrace,
+                ).writeToServlet(response, metadata.status)
             } else {
                 nativeResult.writeToServlet(request, response, observer, observationContext, actionAccept)
             }
@@ -143,7 +144,9 @@ internal suspend fun PageResult.writeToServlet(
             }
         }
 
-        is PageResult.Failure -> response.applyMetadata(metadata)
+        is PageResult.NotModified,
+        is PageResult.Failure,
+        -> response.applyMetadata(metadata)
     }
 }
 
@@ -168,20 +171,9 @@ private suspend fun PageResult.Document.writeDocument(
     observationContext: WogeObservationContext,
 ) {
     val output = response.outputStream
-    val context = kotlinx.coroutines.currentCoroutineContext()
-    val chunks =
-        StreamingHtmlSink(
-            downstream =
-                HtmlSink { value ->
-                    context.ensureActive()
-                    output.write(value.toByteArray(StandardCharsets.UTF_8))
-                },
-            maxChunkChars = DEFAULT_HTML_CHUNK_CHARS,
-        )
+    val budget = HtmlByteBudget(maxBytes)
     frames.observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext).collect { frame ->
-        context.ensureActive()
-        frame.writeTo(chunks)
-        chunks.flush()
+        frame.writeByteChunks(budget, observer, observationContext, output::write)
         output.flush()
     }
 }
@@ -215,12 +207,14 @@ private fun HttpServletResponse.writeSafeServerFailure() {
     if (!isCommitted) {
         reset()
         status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+        setHeader("Cache-Control", "no-store")
     }
 }
 
 internal fun HttpServletResponse.writeMethodNotAllowed(allowedMethods: Iterable<String>) {
     status = HttpServletResponse.SC_METHOD_NOT_ALLOWED
     setHeader("Allow", allowedMethods.joinToString(", "))
+    setHeader("Cache-Control", "no-store")
 }
 
 private val logger: Logger = Logger.getLogger("dev.woge.spring.mvc")

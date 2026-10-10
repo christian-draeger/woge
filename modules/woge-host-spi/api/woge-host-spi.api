@@ -40,11 +40,12 @@ public final class dev/woge/host/ActionRegionUpdates {
 
 public final class dev/woge/host/ActionRegionUpdatesKt {
 	public static final field ACTION_VALIDATION_HEADER Ljava/lang/String;
-	public static final fun actionRegionUpdates-CtbFQ_Y (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static synthetic fun actionRegionUpdates-CtbFQ_Y$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static final fun actionValidationUpdates-WIkas4w (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static synthetic fun actionValidationUpdates-WIkas4w$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static final fun regionRefresh-VSjR1bo (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJ)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun actionRegionUpdates-THqN12c (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionRegionUpdates-THqN12c$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun actionValidationUpdates-oHLdDAw (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionValidationUpdates-oHLdDAw$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun regionRefresh-ZJeNXe4 (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun regionRefresh-ZJeNXe4$default (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 }
 
 public final class dev/woge/host/ActionRegistry {
@@ -592,6 +593,8 @@ public final class dev/woge/host/FormSubmission {
 public final class dev/woge/host/FormSubmissionKt {
 	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;)V
 	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static final fun multipartActionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun multipartActionForm$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun withFormValidation (Ldev/woge/host/ActionExecutor;Ldev/woge/host/PageUseCase;)Ldev/woge/host/ActionExecutor;
 }
 
@@ -646,6 +649,11 @@ public final class dev/woge/host/HeaderValue {
 
 public final class dev/woge/host/HeaderValue$Companion {
 	public final fun of-w_y-vJ0 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/HttpCachingKt {
+	public static final fun forHttpRequest-K4r7yug (Ldev/woge/host/PageResult;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Ldev/woge/host/PageResult;
+	public static synthetic fun forHttpRequest-K4r7yug$default (Ldev/woge/host/PageResult;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/woge/host/PageResult;
 }
 
 public final class dev/woge/host/HttpHeader {
@@ -761,6 +769,30 @@ public final class dev/woge/host/MediaType {
 public final class dev/woge/host/MediaType$Companion {
 	public final fun getHTML-HET_288 ()Ljava/lang/String;
 	public final fun of-NFEhphM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/MultipartBody : java/lang/AutoCloseable {
+	public final fun accept ([BII)V
+	public static synthetic fun accept$default (Ldev/woge/host/MultipartBody;[BIIILjava/lang/Object;)V
+	public fun close ()V
+	public final fun finish ()Ldev/woge/host/MultipartSubmission;
+}
+
+public final class dev/woge/host/MultipartBodyKt {
+	public static final fun multipartBody (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/host/MultipartBody;
+	public static synthetic fun multipartBody$default (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/host/MultipartBody;
+}
+
+public final class dev/woge/host/MultipartSubmission : java/lang/AutoCloseable {
+	public fun close ()V
+	public final fun files (Ljava/lang/String;)Ljava/util/List;
+	public final fun getFiles ()Ljava/util/List;
+	public final fun getForm ()Ldev/woge/host/FormSubmission;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/MultipartUploadsKt {
+	public static final fun withUploadCleanup (Ldev/woge/host/PageRequest;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/woge/host/MutationFingerprint {
@@ -886,13 +918,19 @@ public abstract interface class dev/woge/host/PageResult {
 }
 
 public final class dev/woge/host/PageResult$Document : dev/woge/host/PageResult {
-	public fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;)V
+	public fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;J)V
+	public synthetic fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFrames ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getMaxBytes ()J
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 }
 
 public final class dev/woge/host/PageResult$Failure : dev/woge/host/PageResult {
 	public final fun getFailure ()Ldev/woge/host/PublicFailure;
+	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
+}
+
+public final class dev/woge/host/PageResult$NotModified : dev/woge/host/PageResult {
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 }
 
@@ -902,9 +940,11 @@ public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult 
 }
 
 public final class dev/woge/host/PageResult$RegionUpdates : dev/woge/host/PageResult {
+	public synthetic fun <init> (Ljava/util/List;Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/ResponseMetadata;Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFocusSummary-NWzxd-g ()Ljava/lang/String;
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 	public final fun getNativeResult ()Ldev/woge/host/PageResult;
+	public final fun getPatchStreamLimits ()Ldev/woge/host/PatchStreamLimits;
 	public final fun getPatches ()Ljava/util/List;
 }
 
@@ -924,17 +964,47 @@ public abstract interface class dev/woge/host/PageUseCase {
 }
 
 public final class dev/woge/host/PageUseCaseKt {
+	public static final field DEFAULT_PAGE_BYTES J
 	public static final fun externalRedirect--zzhNnY (Ljava/lang/String;Ldev/woge/host/ExternalRedirectPolicy;ILdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;)Ldev/woge/host/PageResult$Redirect;
 	public static synthetic fun externalRedirect--zzhNnY$default (Ljava/lang/String;Ldev/woge/host/ExternalRedirectPolicy;ILdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;ILjava/lang/Object;)Ldev/woge/host/PageResult$Redirect;
 	public static final fun failure-nm--y0w (Ldev/woge/host/FailureCategory;Ljava/lang/String;)Ldev/woge/host/PageResult$Failure;
-	public static final fun htmlPage (Ldev/woge/host/ResponseMetadata;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$Document;
-	public static synthetic fun htmlPage$default (Ldev/woge/host/ResponseMetadata;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
+	public static final fun htmlPage (Ldev/woge/host/ResponseMetadata;JLkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$Document;
+	public static synthetic fun htmlPage$default (Ldev/woge/host/ResponseMetadata;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
 	public static final fun redirect-wEQTM1I (Ljava/lang/String;ILdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;)Ldev/woge/host/PageResult$Redirect;
 	public static synthetic fun redirect-wEQTM1I$default (Ljava/lang/String;ILdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;ILjava/lang/Object;)Ldev/woge/host/PageResult$Redirect;
-	public static final fun streamingHtmlPage (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/ResponseMetadata;)Ldev/woge/host/PageResult$Document;
-	public static synthetic fun streamingHtmlPage$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/ResponseMetadata;ILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
+	public static final fun streamingHtmlPage (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/ResponseMetadata;J)Ldev/woge/host/PageResult$Document;
+	public static synthetic fun streamingHtmlPage$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/ResponseMetadata;JILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
 	public static final fun writeTo (Ldev/woge/host/PageResult$Document;Ldev/woge/html/HtmlSink;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun writeTo$default (Ldev/woge/host/PageResult$Document;Ldev/woge/html/HtmlSink;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/PatchStreamBudget {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/host/PatchStreamLimits;)V
+	public synthetic fun <init> (Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun admitPatch ()V
+	public final fun consumeBytes (I)V
+}
+
+public final class dev/woge/host/PatchStreamLimits {
+	public static final field Companion Ldev/woge/host/PatchStreamLimits$Companion;
+	public static final field DEFAULT_MAX_BYTES J
+	public static final field DEFAULT_MAX_PATCHES I
+	public fun <init> ()V
+	public fun <init> (JI)V
+	public synthetic fun <init> (JIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun copy (JI)Ldev/woge/host/PatchStreamLimits;
+	public static synthetic fun copy$default (Ldev/woge/host/PatchStreamLimits;JIILjava/lang/Object;)Ldev/woge/host/PatchStreamLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxBytes ()J
+	public final fun getMaxPatches ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/PatchStreamLimits$Companion {
 }
 
 public final class dev/woge/host/PrincipalFacts {
@@ -1138,6 +1208,9 @@ public final class dev/woge/host/RequestTrace {
 
 public final class dev/woge/host/ResourceLimit : java/lang/Enum {
 	public static final field DEFERRED_TASK_COUNT Ldev/woge/host/ResourceLimit;
+	public static final field PAGE_BYTES Ldev/woge/host/ResourceLimit;
+	public static final field PATCH_COUNT Ldev/woge/host/ResourceLimit;
+	public static final field PATCH_STREAM_BYTES Ldev/woge/host/ResourceLimit;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/ResourceLimit;
 	public static fun values ()[Ldev/woge/host/ResourceLimit;
@@ -1154,6 +1227,11 @@ public final class dev/woge/host/ResourceLimitExceeded {
 	public final fun getThreshold ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/ResourceLimitException : java/lang/IllegalStateException {
+	public fun <init> (Ldev/woge/host/ResourceLimitExceeded;)V
+	public final fun getExceededLimit ()Ldev/woge/host/ResourceLimitExceeded;
 }
 
 public final class dev/woge/host/ResponseCookie {
@@ -1190,6 +1268,7 @@ public final class dev/woge/host/ResponseHeaders : java/lang/Iterable, kotlin/jv
 
 public final class dev/woge/host/ResponseHeaders$Companion {
 	public final fun getEMPTY ()Ldev/woge/host/ResponseHeaders;
+	public final fun of (Ljava/lang/Iterable;)Ldev/woge/host/ResponseHeaders;
 	public final fun of ([Ldev/woge/host/HttpHeader;)Ldev/woge/host/ResponseHeaders;
 }
 
@@ -1226,6 +1305,7 @@ public final class dev/woge/host/ResponseStatus$Companion {
 	public final fun getFORBIDDEN-Db9x0Hk ()I
 	public final fun getINTERNAL_SERVER_ERROR-Db9x0Hk ()I
 	public final fun getNOT_FOUND-Db9x0Hk ()I
+	public final fun getNOT_MODIFIED-Db9x0Hk ()I
 	public final fun getOK-Db9x0Hk ()I
 	public final fun getPAYLOAD_TOO_LARGE-Db9x0Hk ()I
 	public final fun getPERMANENT_REDIRECT-Db9x0Hk ()I
@@ -1282,6 +1362,55 @@ public final class dev/woge/host/UnknownFormFields : java/lang/Enum {
 }
 
 public final class dev/woge/host/UnverifiedActionSecurityException : java/lang/IllegalStateException {
+}
+
+public final class dev/woge/host/UploadDecodingException : java/lang/RuntimeException {
+	public fun <init> (Ldev/woge/host/FailureCategory;Ldev/woge/host/UploadLimit;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ldev/woge/host/FailureCategory;Ldev/woge/host/UploadLimit;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCategory ()Ldev/woge/host/FailureCategory;
+	public final fun getLimit ()Ldev/woge/host/UploadLimit;
+	public final fun getThreshold ()Ljava/lang/Long;
+}
+
+public final class dev/woge/host/UploadLimit : java/lang/Enum {
+	public static final field FILE_BYTES Ldev/woge/host/UploadLimit;
+	public static final field FILE_COUNT Ldev/woge/host/UploadLimit;
+	public static final field HEADER_BYTES Ldev/woge/host/UploadLimit;
+	public static final field REQUEST_BYTES Ldev/woge/host/UploadLimit;
+	public static final field TEMPORARY_BYTES Ldev/woge/host/UploadLimit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/UploadLimit;
+	public static fun values ()[Ldev/woge/host/UploadLimit;
+}
+
+public final class dev/woge/host/UploadLimits {
+	public fun <init> ()V
+	public fun <init> (JJJII)V
+	public synthetic fun <init> (JJJIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (JJJII)Ldev/woge/host/UploadLimits;
+	public static synthetic fun copy$default (Ldev/woge/host/UploadLimits;JJJIIILjava/lang/Object;)Ldev/woge/host/UploadLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFileBytes ()J
+	public final fun getFileCount ()I
+	public final fun getHeaderBytes ()I
+	public final fun getRequestBytes ()J
+	public final fun getTemporaryBytes ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/UploadedFile {
+	public final fun getField ()Ljava/lang/String;
+	public final fun getFilename ()Ljava/lang/String;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getSize ()J
+	public final fun read (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {

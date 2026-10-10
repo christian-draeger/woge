@@ -3,10 +3,13 @@ package dev.woge.host
 import dev.woge.html.HtmlWriter
 import dev.woge.html.applicationUrl
 import dev.woge.html.moduleScript
+import dev.woge.protocol.ByteSink
 import dev.woge.protocol.InteractionSequence
 import dev.woge.protocol.PageEpoch
+import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.TargetRevision
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
@@ -132,12 +135,14 @@ class ActionRegionUpdatesTest {
         assertThrows(IllegalStateException::class.java) {
             requireNotNull(retained).replace(TextRegion("extra").target(page), "Late")
         }
-        assertThrows(IllegalArgumentException::class.java) {
-            val other = page()
-            actionRegionUpdates(applicationUrl("/done")) {
-                repeat(129) { replace(TextRegion("region-$it").target(other), "Ready") }
+        val exceeded =
+            assertThrows(ResourceLimitException::class.java) {
+                val other = page()
+                actionRegionUpdates(applicationUrl("/done")) {
+                    repeat(129) { replace(TextRegion("region-$it").target(other), "Ready") }
+                }
             }
-        }
+        assertEquals(ResourceLimitExceeded(ResourceLimit.PATCH_COUNT, 128), exceeded.exceededLimit)
     }
 
     @Test
@@ -154,6 +159,54 @@ class ActionRegionUpdatesTest {
         assertThrows(dev.woge.protocol.PatchStreamException::class.java) {
             actionRegionUpdates(applicationUrl("/done")) { replace(unsafe, Unit) }
         }
+    }
+
+    @Test
+    fun `action preparation counts whole wire output including Unicode and completion`() {
+        val target = TextRegion("first").target(page())
+        val baseline = actionRegionUpdates(applicationUrl("/done")) { replace(target, "\u00e9") }
+        var wireBytes = 0L
+        val encoder = PatchStreamV1.encoder(ByteSink { wireBytes += it.size })
+        baseline.patches.forEach(encoder::write)
+        encoder.complete()
+        val exactLimits = PatchStreamLimits(maxBytes = wireBytes)
+        val exact =
+            actionRegionUpdates(applicationUrl("/done"), patchStreamLimits = exactLimits) {
+                replace(target, "\u00e9")
+            }
+        assertEquals(exactLimits, exact.patchStreamLimits)
+        val exceeded =
+            assertThrows(ResourceLimitException::class.java) {
+                actionRegionUpdates(
+                    applicationUrl("/done"),
+                    patchStreamLimits = exactLimits.copy(maxBytes = wireBytes - 1),
+                ) {
+                    replace(target, "\u00e9")
+                }
+            }
+        assertEquals(ResourceLimitExceeded(ResourceLimit.PATCH_STREAM_BYTES, wireBytes - 1), exceeded.exceededLimit)
+    }
+
+    @Test
+    fun `action count override stops before rendering a rejected replacement and cannot hide partial failure`() {
+        var rendered = false
+        val rejected =
+            object : PageRegion<Unit>("second") {
+                override fun render(
+                    writer: HtmlWriter,
+                    input: Unit,
+                ) {
+                    rendered = true
+                    writer.text("Never")
+                }
+            }.target(page())
+        assertThrows(IllegalStateException::class.java) {
+            actionRegionUpdates(applicationUrl("/done"), patchStreamLimits = PatchStreamLimits(maxPatches = 1)) {
+                replace(TextRegion("first").target(page()), "Ready")
+                assertThrows(ResourceLimitException::class.java) { replace(rejected, Unit) }
+            }
+        }
+        assertFalse(rendered)
     }
 
     private fun page(epoch: String = "page-1") = PageIdentity(PageEpoch.of(epoch), secret)

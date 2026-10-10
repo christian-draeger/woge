@@ -160,7 +160,9 @@ action URLs use the host's normal not-found behavior; no wildcard reflective dis
 
 The decoder reads only the form body, never query parameters. It accepts
 `application/x-www-form-urlencoded` with UTF-8 (the default for these forms). JSON, multipart and
-other charsets return 415. File uploads have a separate planned API.
+other charsets return 415. File uploads use the separate
+[native multipart API](native-multipart-uploads.md): `MultipartSubmission<Command>`, a generated
+upload descriptor, `multipartActionForm` and the decoder's host-specific multipart binding.
 
 ## Form values and errors
 

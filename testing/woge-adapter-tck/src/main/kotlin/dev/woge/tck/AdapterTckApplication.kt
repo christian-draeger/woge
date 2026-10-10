@@ -11,6 +11,7 @@ import dev.woge.host.HeaderName
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RequestContext
 import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseHeaders
@@ -45,6 +46,8 @@ public enum class AdapterTckPageScenario(
     REDIRECT("redirect"),
     CONTROLLED_FAILURE("controlled-failure"),
     PRE_STREAM_FAILURE("pre-stream-failure"),
+    PAGE_BYTE_BUDGET("page-byte-budget"),
+    CACHEABLE("cacheable"),
     ;
 
     public companion object {
@@ -63,6 +66,7 @@ public enum class AdapterTckDeferredScenario(
     CLIENT_ABORT("client-abort"),
     HEADERS_BEFORE_REGIONS("headers-before-regions"),
     TASK_BUDGET("task-budget"),
+    PATCH_BYTE_BUDGET("patch-byte-budget"),
     ;
 
     public companion object {
@@ -74,7 +78,7 @@ public enum class AdapterTckDeferredScenario(
 }
 
 /** Shared portable application fixture compiled once and bound unchanged by every adapter. */
-public class AdapterTckApplication internal constructor() {
+public class AdapterTckApplication internal constructor() : AutoCloseable {
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
     private val actionWorkflow = TckActionWorkflow()
 
@@ -82,23 +86,38 @@ public class AdapterTckApplication internal constructor() {
     public val actionCompletion: PageUseCase<Unit> = actionWorkflow.completion
 
     public val observer: WogeObserver = WogeObserver(state::observe)
+
+    /** Use this smaller fixture allowance on deferred handlers to test exhaustion without huge payloads. */
+    public val deferredPatchStreamLimits: PatchStreamLimits = PatchStreamLimits(maxBytes = TCK_PATCH_BYTE_BUDGET)
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
     public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
     public val failureRoutePages: PageUseCase<Int> = FAILURE_ROUTE_PAGE
     public val failurePages: FailurePages = FAILURE_PAGES
+    public val uploadDirectory: java.nio.file.Path
+        get() = state.uploadDirectory
+
+    override fun close() {
+        java.nio.file.Files
+            .delete(uploadDirectory)
+    }
 
     internal fun fixtureState(): AdapterTckFixtureState = state
 }
 
 internal class AdapterTckFixtureState {
+    val uploadDirectory: java.nio.file.Path =
+        java.nio.file.Files
+            .createTempDirectory("woge-upload-tck-")
     val documentTail: CompletableDeferred<Unit> = CompletableDeferred()
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()
     val gatedRegions: CompletableDeferred<Unit> = CompletableDeferred()
     val budgetContentCalls: AtomicInteger = AtomicInteger()
     val budgetDeclarations: AtomicInteger = AtomicInteger()
+    val afterPageBudget: AtomicInteger = AtomicInteger()
+    val cacheRenders: AtomicInteger = AtomicInteger()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 
@@ -112,10 +131,29 @@ internal class AdapterTckFixtureState {
         observedContexts += request.context
         return when (request.input) {
             AdapterTckPageScenario.DOCUMENT -> document()
+            AdapterTckPageScenario.CACHEABLE ->
+                if (request.context.headers
+                        .values(HeaderName.of("X-Tck-Deny"))
+                        .any { it.value == "true" }
+                ) {
+                    failure(FailureCategory.FORBIDDEN, request.context.correlationId)
+                } else {
+                    cacheablePage { cacheRenders.incrementAndGet() }
+                }
             AdapterTckPageScenario.REDIRECT -> redirect(applicationUrl("/woge-tck/redirect-target"))
             AdapterTckPageScenario.CONTROLLED_FAILURE ->
                 failure(FailureCategory.NOT_FOUND, request.context.correlationId)
             AdapterTckPageScenario.PRE_STREAM_FAILURE -> error(PRE_STREAM_PRIVATE_DETAIL)
+            AdapterTckPageScenario.PAGE_BYTE_BUDGET ->
+                streamingHtmlPage(
+                    flow {
+                        emit(htmlFrame { text("1234") })
+                        emit(htmlFrame { text("5") })
+                        afterPageBudget.incrementAndGet()
+                        emit(htmlFrame { text("Must not render") })
+                    },
+                    maxBytes = TCK_PAGE_BYTE_BUDGET,
+                )
         }
     }
 
@@ -131,6 +169,8 @@ internal class AdapterTckFixtureState {
                         patch("Must not render")
                     }
                 }.asIterable()
+            AdapterTckDeferredScenario.PATCH_BYTE_BUDGET ->
+                listOf(region("patch-budget") { patchHtml { text("x".repeat(TCK_PATCH_BYTE_BUDGET.toInt() + 1)) } })
             AdapterTckDeferredScenario.COMPLETION_ORDER ->
                 listOf(
                     region("slow") { slowRegion.await() },

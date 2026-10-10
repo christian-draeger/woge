@@ -8,15 +8,19 @@ import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.RequestMethod
 import dev.woge.host.RouteValueException
 import dev.woge.host.UnverifiedActionSecurityException
+import dev.woge.host.UploadDecodingException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.forHttpRequest
 import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
+import dev.woge.host.withUploadCleanup
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -58,6 +62,7 @@ public class WogeWebFluxPageHandler<Input : Any>(
                 when (it) {
                     is RouteValueException -> it.category
                     is FormDecodingException -> it.category
+                    is UploadDecodingException -> it.category
                     is MutationRequestIdentityException -> FailureCategory.BAD_REQUEST
                     is UnverifiedActionSecurityException -> FailureCategory.FORBIDDEN
                     else -> throw it
@@ -67,17 +72,26 @@ public class WogeWebFluxPageHandler<Input : Any>(
             if (invalid != null) {
                 failure(invalid, context.correlationId)
             } else {
-                observer.observeOperation(
-                    operation = WogeOperation.PAGE_REQUEST,
-                    context = observationContext,
-                    successfulOutcome = { it.observationOutcome() },
-                ) {
-                    page.open(decoded.getOrThrow())
+                val pageRequest = decoded.getOrThrow()
+                pageRequest.withUploadCleanup {
+                    observer.observeOperation(
+                        operation = WogeOperation.PAGE_REQUEST,
+                        context = observationContext,
+                        successfulOutcome = { it.observationOutcome() },
+                    ) {
+                        page.open(pageRequest)
+                    }
                 }
             }
         val accept =
             actionAccept
                 ?: if (result is PageResult.RegionUpdates) request.headers().firstHeader("Accept").orEmpty() else null
-        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext, accept)
+        return result
+            .withFailurePages(failurePages)
+            .forHttpRequest(
+                RequestMethod.of(request.method().name()),
+                request.headers().header("If-None-Match"),
+                request.headers().header("If-Modified-Since"),
+            ).toWebFluxResponse(observer, observationContext, accept)
     }
 }

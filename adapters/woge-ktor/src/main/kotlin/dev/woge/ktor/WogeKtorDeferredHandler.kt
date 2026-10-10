@@ -3,6 +3,7 @@ package dev.woge.ktor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailureCategory
 import dev.woge.host.PageRequest
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
@@ -26,6 +27,7 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
     regionTimeout: Duration,
     observer: WogeObserver,
     maxRegions: Int,
+    private val patchStreamLimits: PatchStreamLimits,
 ) {
     private val executor =
         DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions), observer)
@@ -74,6 +76,7 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
                     },
                     observer = observer,
                     requestTrace = context.trace,
+                    limits = patchStreamLimits,
                 )
         call.respondWogePatches(chunks)
     }

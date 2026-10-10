@@ -31,6 +31,48 @@ response. Collection through `execute` enforces the same bound again. Cancelling
 cancels its active and waiting children. Runtime backpressure bounds completed results to active
 workers plus the collector's current result; it does not claim to bound every host/socket buffer.
 
+## Server HTML responses
+
+An HTML document defaults to 16 MiB of rendered UTF-8 bytes, shared across every frame in that
+response. Set `htmlPage(maxBytes = 1024 * 1024) { ... }`, or pass `maxBytes` to
+`streamingHtmlPage(frames, maxBytes = ...)`. The value must be positive. The document carries this
+allowance, so MVC, WebFlux, Ktor and direct `document.writeTo(sink)` integrations use the same limit.
+Each fresh collection gets a fresh allowance; HEAD does not render or spend it.
+
+Woge checks bounded encoded chunks before retaining or writing them. Unicode and escaped HTML count
+as their actual output bytes, not Kotlin string length. A chunk that would cross the threshold is
+not written; rendering and later frames stop. An already committed response may contain an earlier
+prefix, but Woge never appends a replacement error document. Hosts retain their existing safe failure
+or connection-abort behavior. Observers report `PAGE_BYTES` and the threshold with `REJECTED`, without
+rendered HTML. Direct rendering throws `HtmlByteLimitException` with its safe threshold.
+
+`patchHtml { ... }` checks the fixed version-1 8 MiB payload ceiling while rendering, before
+accumulating an oversized fragment. That ceiling cannot be raised by an application override.
+Application-owned strings or eagerly prepared collections are still the application's responsibility.
+
+## Server patch responses
+
+`PatchStreamLimits` defaults to 16 MiB of total wire bytes and 128 patches per response. Wire bytes
+include the preamble, headers, metadata, UTF-8 HTML and completion frame; exactly-threshold output is
+allowed. Limits cannot raise the fixed per-frame protocol ceilings.
+
+For deferred responses, configure
+`WogeWebFluxHandlers(patchStreamLimits = PatchStreamLimits(maxBytes = 1024 * 1024, maxPatches = 64))`.
+MVC and Ktor expose the same argument. Direct encoders accept `limits`; each collection starts with
+fresh accounting. All encoders check bytes before growing the pending frame buffer. Count exhaustion
+stops further collection, and cancellation stops deferred children. An exceeded limit propagates
+`ResourceLimitException`, reports `PATCH_STREAM_BYTES` or `PATCH_COUNT` with the threshold and
+`REJECTED`, and never emits a successful completion frame. Earlier patches are not rolled back.
+
+Prepared action updates use the same accounting while each replacement is added and when the
+completion frame is validated, before a result can be returned. Pass `patchStreamLimits` to
+`actionRegionUpdates`, `actionValidationUpdates` or `regionRefresh`. The result carries those limits
+to every host's encoder. Count admission happens before rendering the next replacement. Catching a
+failed `replace` inside the builder cannot produce a partial successful result.
+
+If you raise server limits, configure the browser limits explicitly as well. A failed response does
+not prove an action failed to change application data; never automatically repeat the POST.
+
 ## Browser responses
 
 ```js
@@ -66,10 +108,16 @@ command execution. See [typed actions](typed-actions.md).
 The versioned patch codec enforces fixed frame ceilings on server and browser; see
 [patch streams](patch-stream-codec.md).
 
+Native multipart uses `UploadLimits`: 16 MiB request bytes, 8 MiB per file, 16 MiB total temporary
+file bytes, eight files and 8192 header bytes per part. Text uses the same `FormLimits`, with the
+body allowance counting multipart text bytes. The shared reader checks admission before writing
+the next byte. Overflow returns 413 and closes partial files; completed submissions close after
+the action, including rejection, failure and cancellation, before lazy rendering.
+See [native multipart uploads](native-multipart-uploads.md) for security and host configuration.
+
 ## Remaining boundaries
 
-[#122](https://github.com/christian-draeger/woge/issues/122) remains open for full page/patch
-aggregate byte accounting, multipart uploads, SSE subscription budgets and explicit application/
-session-wide ownership. Do not interpret per-request or per-runtime budgets as process-wide quotas.
-The current form decoder does not accept multipart uploads, and no new live-channel API is enabled
-by these limits.
+[#122](https://github.com/christian-draeger/woge/issues/122) remains open for
+SSE subscription budgets and explicit application/session-wide ownership. Do not interpret
+per-request or per-runtime budgets as process-wide quotas.
+No new live-channel API is enabled by these limits.

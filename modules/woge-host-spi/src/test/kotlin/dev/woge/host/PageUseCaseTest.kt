@@ -1,6 +1,7 @@
 package dev.woge.host
 
 import dev.woge.html.BufferedHtmlSink
+import dev.woge.html.HtmlByteLimitException
 import dev.woge.html.HtmlSink
 import dev.woge.html.applicationUrl
 import dev.woge.html.externalUrl
@@ -10,6 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -24,6 +26,63 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicReference
 
 class PageUseCaseTest {
+    @Test
+    fun `page allowance counts encoded Unicode and markup across frames per collection`() =
+        runBlocking {
+            val document =
+                streamingHtmlPage(
+                    flowOf(htmlFrame { text("\u00e9") }, htmlFrame { text("\ud83c\udf0a") }),
+                    maxBytes = 6,
+                )
+            repeat(2) {
+                val sink = BufferedHtmlSink()
+                document.writeTo(sink, maxChunkChars = 1)
+                assertEquals("\u00e9\ud83c\udf0a", sink.content())
+            }
+            val tooSmall = streamingHtmlPage(document.frames, maxBytes = 5)
+            val sink = BufferedHtmlSink()
+            val exceeded =
+                assertThrows(HtmlByteLimitException::class.java) {
+                    runBlocking { tooSmall.writeTo(sink, maxChunkChars = 1) }
+                }
+            assertEquals(5, exceeded.threshold)
+            assertEquals("\u00e9", sink.content())
+            assertThrows(IllegalArgumentException::class.java) { htmlPage(maxBytes = 0) { text("never") } }
+        }
+
+    @Test
+    fun `incremental page exhaustion cancels later frames without encoding a huge payload`() {
+        var laterRendered = false
+        val page =
+            streamingHtmlPage(
+                flow {
+                    emit(htmlFrame { repeat(4) { text("1234") } })
+                    emit(htmlFrame { laterRendered = true })
+                },
+                maxBytes = 8,
+            )
+        val sink = BufferedHtmlSink()
+        assertThrows(HtmlByteLimitException::class.java) {
+            runBlocking { page.writeTo(sink, maxChunkChars = 4) }
+        }
+        assertEquals("12341234", sink.content())
+        assertFalse(laterRendered)
+    }
+
+    @Test
+    fun `page allowance counts HTML escaping rather than the original input`() =
+        runBlocking {
+            val exact = htmlPage(maxBytes = 9) { text("<&") }
+            val sink = BufferedHtmlSink()
+            exact.writeTo(sink)
+            assertEquals("&lt;&amp;", sink.content())
+            val rejectedSink = BufferedHtmlSink()
+            assertThrows(HtmlByteLimitException::class.java) {
+                runBlocking { htmlPage(maxBytes = 8) { text("<&") }.writeTo(rejectedSink) }
+            }
+            assertEquals("", rejectedSink.content())
+        }
+
     @Test
     fun `in-memory host executes one portable typed page`() =
         runBlocking {

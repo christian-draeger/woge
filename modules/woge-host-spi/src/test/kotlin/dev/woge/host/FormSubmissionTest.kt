@@ -132,4 +132,23 @@ class FormSubmissionTest {
         val title: String,
         val count: Int,
     )
+
+    @Test
+    fun `multipart form uses a typed upload action and forbids policy overrides`() {
+        val descriptor =
+            object : ActionDescriptor<MultipartSubmission<Command>>(ActionId.of("upload")) {
+                override suspend fun execute(request: PageRequest<MultipartSubmission<Command>>): PageResult =
+                    redirect(applicationUrl("/complete"))
+            }
+        assertEquals(
+            """<form class="upload" method="post" enctype="multipart/form-data" """ +
+                """accept-charset="UTF-8" action="/woge-actions/upload"></form>""",
+            renderHtml { multipartActionForm(descriptor, attributes = { attribute("class", "upload") }) {} },
+        )
+        for ((name, value) in listOf("method" to "get", "enctype" to "text/plain", "action" to "/other")) {
+            assertThrows(IllegalArgumentException::class.java) {
+                renderHtml { multipartActionForm(descriptor, attributes = { attribute(name, value) }) {} }
+            }
+        }
+    }
 }

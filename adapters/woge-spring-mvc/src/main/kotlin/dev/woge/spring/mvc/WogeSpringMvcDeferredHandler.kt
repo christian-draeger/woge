@@ -3,6 +3,7 @@ package dev.woge.spring.mvc
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailureCategory
 import dev.woge.host.PageRequest
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObserver
 import dev.woge.host.failure
@@ -26,6 +27,7 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
     private val asyncTimeoutMillis: Long,
     policy: DeferredRegionPolicy,
     observer: WogeObserver,
+    private val patchStreamLimits: PatchStreamLimits,
 ) : HttpRequestHandler {
     private val executor = DeferredRegionExecutor(policy, observer)
     private val observer = observer
@@ -66,6 +68,7 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
                     },
                     observer = observer,
                     requestTrace = context.trace,
+                    limits = patchStreamLimits,
                 ).writeToServlet(response)
         }
     }

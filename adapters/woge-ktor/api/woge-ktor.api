@@ -8,6 +8,11 @@ public final class dev/woge/ktor/KtorFormInputKt {
 	public static final fun ktorSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/ktor/KtorPageInput;
 }
 
+public final class dev/woge/ktor/KtorMultipartInputKt {
+	public static final fun ktorMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/ktor/KtorPageInput;
+	public static synthetic fun ktorMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/ktor/KtorPageInput;
+}
+
 public abstract interface class dev/woge/ktor/KtorPageInput {
 	public abstract fun decode (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -29,8 +34,8 @@ public final class dev/woge/ktor/WogeKtorDeferredHandler {
 }
 
 public final class dev/woge/ktor/WogeKtorHandlers {
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/ktor/KtorPageInput;Ldev/woge/ktor/KtorRequestContextFactory;)Ldev/woge/ktor/WogeKtorActionHandler;
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorDeferredHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/ktor/WogeKtorPageHandler;

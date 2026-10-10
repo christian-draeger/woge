@@ -2,7 +2,6 @@ package dev.woge.tck
 
 import dev.woge.host.FailureCategory
 import dev.woge.host.RequestMethod
-import dev.woge.host.ResourceLimit
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeObservationEvent
 import dev.woge.host.WogeOperation
@@ -31,15 +30,16 @@ public class ServerAdapterContract(
 ) {
     /** Runs the core page/deferred suites followed by any additive capability suites. */
     public fun verify(extensions: Iterable<AdapterTckExtension> = emptyList()) {
-        val application = AdapterTckApplication()
-        val server = start(application)
-        server.use {
-            validateHarness(server)
-            kotlinx.coroutines.runBlocking {
-                val verification = AdapterTckVerification(factory.adapterName, server, application.fixtureState())
-                verification.verifyCore()
-                extensions.forEach { extension ->
-                    contract("extension:${extension.name}") { extension.verify(server) }
+        AdapterTckApplication().use { application ->
+            val server = start(application)
+            server.use {
+                validateHarness(server)
+                kotlinx.coroutines.runBlocking {
+                    val verification = AdapterTckVerification(factory.adapterName, server, application.fixtureState())
+                    verification.verifyCore()
+                    extensions.forEach { extension ->
+                        contract("extension:${extension.name}") { extension.verify(server) }
+                    }
                 }
             }
         }
@@ -95,45 +95,24 @@ private class AdapterTckVerification(
     suspend fun verifyCore() {
         verifyMutationStore()
         verifyDocumentGetAndHead()
+        runContract("http-caching") { client.verifyHttpCaching(fixture, ::expect) }
+        runContract("page-byte-budget") { client.verifyPageByteBudget(fixture, ::expect) }
         verifyRedirectAndFailures()
         verifyDeferredCompletionOrder()
         verifyDeferredHeadersBeforeRegions()
-        verifyDeferredTaskBudget()
+        runContract("deferred-task-budget") { client.verifyDeferredTaskBudget(fixture, ::expect) }
+        runContract("patch-byte-budget") { client.verifyPatchByteBudget(fixture, ::expect) }
         if (AdapterTckCapability.CLIENT_ABORT_CANCELLATION in server.capabilities) {
             verifyClientAbortCancellation()
         }
         verifyTypedRoute()
         verifyFailurePages()
         verifyActions()
+        runContract(
+            "native-multipart",
+        ) { client.verifyMultipartUploads(server.origin, fixture.uploadDirectory, ::expect) }
         client.verifyMutationReplay(::expect)
         verifySemanticObservations()
-    }
-
-    private suspend fun verifyDeferredTaskBudget() {
-        runContract("deferred-task-budget") {
-            val response = client.open(RequestMethod.GET, "/woge-tck/deferred/task-budget")
-            response.body().use { body ->
-                expect(
-                    response.statusCode() == ResponseStatus.SERVICE_UNAVAILABLE.code,
-                    "deferred-task-budget",
-                    "budget exhaustion did not reject before stream commitment",
-                )
-                expect(body.readAllBytes().isEmpty(), "deferred-task-budget", "rejected admission exposed a patch body")
-            }
-            expect(fixture.budgetContentCalls.get() == 0, "deferred-task-budget", "rejected regions executed")
-            val rejected =
-                fixture
-                    .observations()
-                    .filterIsInstance<WogeOperationFinished>()
-                    .singleOrNull { it.context.exceededLimit?.limit == ResourceLimit.DEFERRED_TASK_COUNT }
-            expect(rejected?.outcome == WogeOutcome.REJECTED, "deferred-task-budget", "missing safe limit diagnostic")
-            val threshold = rejected?.context?.exceededLimit?.threshold ?: 0
-            expect(
-                threshold > 0 && fixture.budgetDeclarations.get().toLong() == threshold + 1,
-                "deferred-task-budget",
-                "unbounded declarations were materialized beyond one lookahead",
-            )
-        }
     }
 
     private suspend fun verifyActions() {

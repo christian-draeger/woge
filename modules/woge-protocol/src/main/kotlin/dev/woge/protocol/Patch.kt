@@ -1,8 +1,12 @@
 package dev.woge.protocol
 
 import dev.woge.html.Attributes
+import dev.woge.html.BufferedHtmlSink
+import dev.woge.html.HtmlByteBudget
+import dev.woge.html.HtmlSink
 import dev.woge.html.HtmlWriter
-import dev.woge.html.renderHtml
+import dev.woge.html.streamHtml
+import java.nio.charset.StandardCharsets
 
 /** Version of the semantic Woge patch contract. */
 @JvmInline
@@ -124,7 +128,18 @@ public class PatchHtml internal constructor(
 }
 
 /** Renders one bounded patch payload through the safe HTML DSL. */
-public fun patchHtml(content: HtmlWriter.() -> Unit): PatchHtml = PatchHtml(renderHtml(content))
+public fun patchHtml(content: HtmlWriter.() -> Unit): PatchHtml {
+    val budget = HtmlByteBudget(PatchStreamV1.MAX_PAYLOAD_BYTES.toLong())
+    val output = BufferedHtmlSink()
+    streamHtml(
+        HtmlSink { chunk ->
+            budget.consume(chunk.toByteArray(StandardCharsets.UTF_8).size)
+            output.write(chunk)
+        },
+        block = content,
+    )
+    return PatchHtml(output.content())
+}
 
 /** Semantic patch operation. Only operations with implemented behavior are present. */
 public enum class PatchOperation {

@@ -14,9 +14,14 @@ in [ADR 0005](../adr/0005-server-host-use-case-ports.md),
 | --- | --- | --- | --- | --- |
 | `page-get-stream` | Standard GET returns UTF-8 HTML, status, safe headers and cookies | The same HTML is the initial enhancement document | A refresh repeats an ordinary GET | Adapter TCK |
 | `page-head` | HEAD exposes GET metadata without body bytes | Asset and route probes use normal HTTP semantics | Clients can probe without rendering | Adapter TCK |
+| `http-caching` | Explicit page validators give authorized bodyless 304 for GET/HEAD; dynamic responses default to no-store | Unsafe and patch responses remain no-store | Current authorization still wins over a matching validator | Adapter TCK |
 | `page-redirect` | Browser follows an ordinary policy-checked 303 Location | Enhanced code must preserve the same destination | Full navigation remains valid | Adapter TCK; browser actions follow later |
 | `page-controlled-failure` | Typed failure produces its stable bodyless status | Enhancement must not reinterpret it as success | Native error navigation remains available | Adapter TCK |
 | `page-pre-stream-failure` | Failure before commit becomes a safe 500 without private detail | Enhancement receives an ordinary failed request | Retry is not automatic | Adapter TCK |
+| `page-byte-budget` | Stops HTML at its cumulative UTF-8 allowance and cancels later frames | Same document bound | Native navigation; no replacement success body | Adapter TCK |
+| `deferred-task-budget` | Bodyless 503 before work or stream commitment | No missing updates disguised as success | No automatic retry | Adapter TCK |
+| `patch-byte-budget` | Complete-page fallback remains available | Stops wire bytes and omits successful completion on exhaustion | Fail closed; never replay an action | Adapter TCK |
+| `native-multipart` | File POST with typed text, bounded temporary files and 303 redirect | Same native POST; no upload enhancement | 400/403/413 or 500, with cleanup including mid-body disconnect | Adapter TCK plus native-form browser gate |
 | `deferred-completion-order` | The complete-page route is the useful fallback | Shell is visible before independently completed revisioned patches | The user can navigate to the complete page | Adapter TCK plus reference browser gate |
 | `deferred-client-abort` | Navigation away closes the old response | Abort cancels outstanding request children | New navigation owns new work | Adapter TCK where the harness exposes aborts |
 

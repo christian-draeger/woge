@@ -12,16 +12,12 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
-import dev.woge.html.HtmlSink
-import dev.woge.html.StreamingHtmlSink
-import dev.woge.protocol.HtmlFrame
+import dev.woge.html.HtmlByteBudget
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
+import dev.woge.runtime.renderByteChunks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asPublisher
@@ -35,7 +31,6 @@ import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import java.net.URI
-import java.nio.charset.StandardCharsets
 import java.time.Duration as JavaDuration
 import org.springframework.http.ResponseCookie as SpringResponseCookie
 
@@ -52,7 +47,7 @@ internal suspend fun PageResult.toWebFluxResponse(
                     .headers { it.set("Cache-Control", "no-store") }
                     .header("Vary", "Accept")
                     .headers { headers -> focusSummary?.let { headers.set(ACTION_VALIDATION_HEADER, it.value) } }
-                    .body(patchBody(encodeActionPatchStream()))
+                    .body(patchBody(encodeActionPatchStream(observer, observationContext.requestTrace)))
                     .awaitSingle()
             } else {
                 nativeResult.toWebFluxResponse(observer, observationContext, actionAccept)
@@ -75,7 +70,9 @@ internal suspend fun PageResult.toWebFluxResponse(
                 .build()
                 .awaitSingle()
 
-        is PageResult.Failure ->
+        is PageResult.NotModified,
+        is PageResult.Failure,
+        ->
             responseBuilder(metadata)
                 .build()
                 .awaitSingle()
@@ -139,30 +136,13 @@ private fun PageResult.Document.flushGroups(
     response: ServerHttpResponse,
     observer: WogeObserver,
     observationContext: WogeObservationContext,
-): Publisher<out Publisher<out DataBuffer>> =
-    frames
+): Publisher<out Publisher<out DataBuffer>> {
+    val budget = HtmlByteBudget(maxBytes)
+    return frames
         .observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext)
         .map { frame ->
             Flux
-                .fromIterable(frame.renderChunks())
+                .fromIterable(frame.renderByteChunks(budget, observer, observationContext))
                 .map { bytes -> response.bufferFactory().wrap(bytes) }
         }.asPublisher()
-
-private suspend fun HtmlFrame.renderChunks(): List<ByteArray> {
-    val context = currentCoroutineContext()
-    val chunks = mutableListOf<ByteArray>()
-    val sink =
-        StreamingHtmlSink(
-            downstream =
-                HtmlSink { value ->
-                    context.ensureActive()
-                    chunks += value.toByteArray(StandardCharsets.UTF_8)
-                },
-            maxChunkChars = DEFAULT_HTML_CHUNK_CHARS,
-        )
-    context.ensureActive()
-    writeTo(sink)
-    context.ensureActive()
-    sink.flush()
-    return chunks
 }

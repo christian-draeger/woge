@@ -9,6 +9,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.symbol.Variance
 import com.google.devtools.ksp.symbol.Visibility
 
 internal data class ActionModel(
@@ -103,6 +104,9 @@ internal class ActionReader(
         referenced: MutableList<KSDeclaration>,
         function: KSFunctionDeclaration,
     ): String {
+        if (type.declaration.qualifiedName?.asString() == MULTIPART_SUBMISSION) {
+            return readMultipartCommand(type, referenced, function)
+        }
         val declaration =
             type.declaration as? KSClassDeclaration ?: reject(Rule.ACTION_COMMAND, type.shortName(), function)
         if (type.isMarkedNullable ||
@@ -130,6 +134,26 @@ internal class ActionReader(
         }
         return type.render(referenced) ?: reject(Rule.ACTION_COMMAND, type.shortName(), function)
     }
+
+    private fun readMultipartCommand(
+        type: KSType,
+        referenced: MutableList<KSDeclaration>,
+        function: KSFunctionDeclaration,
+    ): String {
+        val command =
+            type.arguments
+                .singleOrNull()
+                ?.type
+                ?.resolve() ?: reject(Rule.ACTION_COMMAND, type.shortName(), function)
+        if (type.isMarkedNullable ||
+            type.arguments.singleOrNull()?.variance != Variance.INVARIANT ||
+            command.declaration.qualifiedName?.asString() == MULTIPART_SUBMISSION
+        ) {
+            reject(Rule.ACTION_COMMAND, type.shortName(), function)
+        }
+        readCommand(command, referenced, function)
+        return type.render(referenced) ?: reject(Rule.ACTION_COMMAND, type.shortName(), function)
+    }
 }
 
 private fun KSType.actionScalar(): Boolean {
@@ -151,3 +175,4 @@ private const val MAX_ACTION_ID_LENGTH = 128
 private val ACTION_ID = Regex("[a-z][a-z0-9-]*")
 internal const val WOGE_ACTION = "dev.woge.host.WogeAction"
 private val FORM_PRIMITIVES = setOf("kotlin.Byte", "kotlin.Short", "kotlin.Float", "kotlin.Double", "kotlin.Char")
+private const val MULTIPART_SUBMISSION = "dev.woge.host.MultipartSubmission"

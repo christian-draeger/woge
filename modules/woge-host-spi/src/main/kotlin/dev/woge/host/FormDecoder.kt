@@ -59,6 +59,10 @@ public class FormDecoder<Command : Any>(
         return FormSubmission(result, FormValues(if (fields.problem == null) fields.values else emptyMap()))
     }
 
+    /** Binds already bounded multipart text with the same serializer and field-validation rules. */
+    internal fun multipartSubmission(fields: Map<String, List<String>>): FormSubmission<Command> =
+        FormSubmission(decodeFields(fields), FormValues(fields))
+
     private fun decodeFields(fields: Map<String, List<String>>): FormResult<Command> {
         val errors = mutableListOf<FormFieldError>()
         val values = linkedMapOf<String, JsonElement>()

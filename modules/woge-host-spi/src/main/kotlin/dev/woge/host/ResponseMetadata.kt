@@ -19,6 +19,7 @@ public value class ResponseStatus private constructor(
 
     public companion object {
         public val OK: ResponseStatus = ResponseStatus(200)
+        public val NOT_MODIFIED: ResponseStatus = ResponseStatus(304)
         public val BAD_REQUEST: ResponseStatus = ResponseStatus(400)
         public val UNAUTHORIZED: ResponseStatus = ResponseStatus(401)
         public val FORBIDDEN: ResponseStatus = ResponseStatus(403)
