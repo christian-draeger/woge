@@ -36,10 +36,21 @@ stream. It must issue an authorized, side-effect-free GET for current domain dat
 The result must be one Replace for the declared target and exact requesting context. It goes through
 the normal protocol, HTML and browser-ownership validation, so recovery cannot overwrite newer intent.
 
+The server prepares that one Replace with `regionRefresh(fallback, target, input, revision, interaction)`.
+It reuses the typed replacement renderer and pre-stream validation, not a second patch API.
+All three page adapters negotiate this result through `Accept` on a normal GET; requests without
+patch-stream Accept redirect to the visible full-page fallback. Ordinary page redirects are unchanged.
+The application loads and authorizes current data before calling the helper. A client's base revision
+is its DOM position, not the authoritative domain version.
+
 Allow one recovery attempt per target revision, including failed or cancelled attempts after loading
 starts. Keep at most 128 target budget entries per runtime, replacing each entry on a later revision.
 Exhaustion fails closed with `WOGE_RESYNC_EXHAUSTED`. Unknown removed targets cannot be guessed back
 into the registry; applications can choose their bounded full-navigation fallback.
+
+Full-navigation recovery stores one tab-local attempt for the current full page URL, not a key for
+each epoch. A reload creates a fresh epoch, so an epoch-only budget would allow an endless reload
+loop. A different page URL replaces the stored attempt; unavailable storage disables auto-reload.
 
 ## Alternatives considered
 
@@ -58,8 +69,16 @@ as ignored stale work instead of rejecting the rest of an otherwise valid stream
 A patch stream is not atomic. A malformed later frame still cannot roll back an earlier applied
 replacement. Recovery never grants such a guarantee.
 
+## Evidence
+
+Client fixtures cover same-base search races, stale deferred work, duplicate collection frames,
+independent targets, bounded recovery, invalid scope and cancellation. The reference Task Board
+adds a generated, read-only region GET carrying epoch, target, base revision and interaction.
+It resolves only its explicitly supported task-list target and never mutates the board.
+Browser journeys run the same real GET search race and repeated-submit response gate on
+Spring WebFlux, Spring MVC and Ktor, without server sleeps or replaying a mutation.
+
 ## Follow-up
 
-The client fixtures prove the same-base search race, stale deferred work, duplicate collection
-frames, independent targets, bounded recovery, invalid scope and cancellation. Complete the
-typed server refresh endpoint and all-host repeated-submit integration for #37 before closing it.
+Request authenticity, domain authorization and mutation replay identities remain separate work in
+[#34](https://github.com/christian-draeger/woge/issues/34). The refresh helper is not a security policy.

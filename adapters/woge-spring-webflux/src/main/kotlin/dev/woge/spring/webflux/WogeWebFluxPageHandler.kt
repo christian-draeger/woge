@@ -3,6 +3,7 @@ package dev.woge.spring.webflux
 import dev.woge.host.FailurePages
 import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
+import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
@@ -56,6 +57,9 @@ public class WogeWebFluxPageHandler<Input : Any>(
                     page.open(PageRequest(decoded.getOrThrow(), context))
                 }
             }
-        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext, actionAccept)
+        val accept =
+            actionAccept
+                ?: if (result is PageResult.RegionUpdates) request.headers().firstHeader("Accept").orEmpty() else null
+        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext, accept)
     }
 }

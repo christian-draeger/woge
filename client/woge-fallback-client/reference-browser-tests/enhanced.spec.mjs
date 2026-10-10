@@ -1,5 +1,103 @@
 import { expect, test } from "@playwright/test";
 
+test("automatic reload recovery remains exhausted after the server allocates a fresh epoch", async ({ page }) => {
+  await page.goto("/projects/woge/tasks");
+  const firstEpoch = await page.locator('meta[name="woge-page-epoch"]').getAttribute("content");
+  expect(await page.evaluate(async () => {
+    const { createWogeRecoveryBudget } = await import("/assets/woge/index.js");
+    return createWogeRecoveryBudget().tryReload(document.querySelector('meta[name="woge-page-epoch"]').content);
+  })).toBe(true);
+  await page.reload();
+  expect(await page.locator('meta[name="woge-page-epoch"]').getAttribute("content")).not.toBe(firstEpoch);
+  expect(await page.evaluate(async () => {
+    const { createWogeRecoveryBudget } = await import("/assets/woge/index.js");
+    return createWogeRecoveryBudget().tryReload(document.querySelector('meta[name="woge-page-epoch"]').content);
+  })).toBe(false);
+});
+
+test("safe region GETs preserve latest search intent and bound recovery across hosts", async ({ page }) => {
+  await page.goto("/projects/woge/tasks");
+  const result = await page.evaluate(async () => {
+    const { createWogePatchRuntime, classifyWogeFailure } = await import("/assets/woge/index.js");
+    const observations = [];
+    const runtime = createWogePatchRuntime(document, { observer: (event) => observations.push(event) });
+    const region = document.querySelector("#board-tasks").closest("[data-woge-region]");
+    const target = region.dataset.wogeRegion;
+    const url = (context, query = "") => {
+      const parts = [context.pageEpoch, target, context.targets[0].baseRevision, context.interactionSequence];
+      return `/projects/woge/tasks/regions/${parts.map(encodeURIComponent).join("/")}?query=${encodeURIComponent(query)}`;
+    };
+    const load = async (context, signal, query) => {
+      const response = await fetch(url(context, query), {
+        headers: { Accept: "application/vnd.woge.patch-stream; version=1" }, signal,
+      });
+      if (!response.ok || !response.body) throw new Error(`Refresh failed: ${response.status}`);
+      return response.body;
+    };
+    const older = runtime.beginInteraction([target]);
+    const olderBody = await load(older, undefined, "no-matching-task");
+    const newer = runtime.beginInteraction([target]);
+    const newerBody = await load(newer, undefined, "Review");
+    await runtime.applyPatchStream(newerBody);
+    const stale = await runtime.applyPatchStream(olderBody);
+    const current = region.textContent;
+    const refreshed = await runtime.refetchRegion(target, (context, { signal }) => load(context, signal, ""));
+    let attempts = 0;
+    const failingLoader = async () => { attempts += 1; throw new Error("Safe loader unavailable"); };
+    try { await runtime.refetchRegion(target, failingLoader); } catch {}
+    let exhausted;
+    try { await runtime.refetchRegion(target, failingLoader); } catch (problem) {
+      exhausted = classifyWogeFailure(problem);
+    }
+    const response = await fetch(url(runtime.beginInteraction([target])), { redirect: "manual" });
+    return {
+      current, stale: stale.stalePatchCount, refreshed: refreshed.patchCount, attempts, exhausted,
+      staleDiagnostic: observations.some((event) => event.code === "WOGE_STALE_PATCH"),
+      nativeRedirect: response.type === "opaqueredirect",
+      revision: region.dataset.wogeRevision,
+    };
+  });
+  expect(result.current).toContain("Review the project");
+  expect(result.stale).toBe(1);
+  expect(result.staleDiagnostic).toBe(true);
+  expect(result.refreshed).toBe(1);
+  expect(result.revision).toBe("2");
+  expect(result.attempts).toBe(1);
+  expect(result.exhausted.code).toBe("WOGE_RESYNC_EXHAUSTED");
+  expect(result.nativeRedirect).toBe(true);
+});
+
+test("repeated submission while a response is held never replays the mutation", async ({ page }) => {
+  await page.goto("/projects/woge/tasks");
+  const title = `Single ${test.info().project.name}`;
+  await page.evaluate(() => {
+    const originalFetch = window.fetch.bind(window);
+    const gate = new Promise((resolve) => { window.releaseAction = resolve; });
+    window.actionRequests = 0;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (String(args[0]).endsWith("/woge-actions/add-board-task")) {
+        window.actionRequests += 1;
+        await gate;
+      }
+      return response;
+    };
+  });
+  const input = page.getByLabel("Task title");
+  await input.fill(title);
+  await input.press("Enter");
+  await expect(page.locator("#board-form")).toHaveAttribute("aria-busy", "true");
+  await expect.poll(() => page.evaluate(() => window.actionRequests)).toBe(1);
+  await input.press("Enter");
+  expect(await page.evaluate(() => window.actionRequests)).toBe(1);
+  await page.evaluate(() => window.releaseAction());
+  await expect(page.locator("#board-form")).not.toHaveAttribute("aria-busy");
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+  await expect(input).toBeFocused();
+  await page.reload();
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+});
+
 test("a new navigation rejects the previous document's deferred stream", async ({ page }) => {
   await page.goto("/projects/woge");
   await expect(page.locator('[data-woge-region][data-woge-revision="1"]')).toHaveCount(3);

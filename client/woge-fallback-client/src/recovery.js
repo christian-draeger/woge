@@ -69,17 +69,21 @@ export function classifyWogeFailure(problem, { safeRequest = false } = {}) {
 }
 
 /**
- * Bounds automatic recovery: at most one reload per page epoch and tab, and at most one retry per
- * request key. Recovery therefore cannot loop.
+ * Bounds automatic recovery across fresh document epochs: one reload for the current page URL and
+ * tab, and one retry per request key. A non-browser caller can supply its own stable pageUrl.
  */
-export function createWogeRecoveryBudget({ storage = globalThis.sessionStorage } = {}) {
+export function createWogeRecoveryBudget({
+  storage, pageUrl = globalThis.location?.href,
+} = {}) {
   const retried = new Set();
   return Object.freeze({
     tryReload(pageEpoch) {
-      const key = `woge:reloaded:${pageEpoch}`;
+      const key = "woge:reload-attempt";
+      const page = pageUrl ?? pageEpoch;
       try {
-        if (!storage || storage.getItem(key) !== null) return false;
-        storage.setItem(key, "1");
+        const session = storage === undefined ? globalThis.sessionStorage : storage;
+        if (!session || session.getItem(key) === page) return false;
+        session.setItem(key, page);
         return true;
       } catch {
         return false;

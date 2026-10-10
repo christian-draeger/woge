@@ -1,6 +1,7 @@
 package dev.woge.example.ktor
 
 import dev.woge.example.project.AddBoardTaskAction
+import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
@@ -30,6 +31,7 @@ public fun Application.wogeReferenceModule() {
     val patches = handlers.deferred(projectPage, ProjectPatchesRoute.ktorInput())
     val board = TaskBoard()
     val boardPage = handlers.page(board.page, TaskBoardRoute)
+    val boardRefresh = handlers.page(board.refresh, BoardRegionRoute)
     val boardAction =
         handlers.action(
             board.action,
@@ -42,6 +44,7 @@ public fun Application.wogeReferenceModule() {
         head(ProjectPageRoute.path) { page.handle(call) }
         get(ProjectPatchesRoute.path) { patches.handle(call) }
         get(TaskBoardRoute.path) { boardPage.handle(call) }
+        get(BoardRegionRoute.path) { boardRefresh.handle(call) }
         post(AddBoardTaskAction.path) {
             val connection = call.request.local
             val origin = "${connection.scheme}://${call.request.headers["Host"]}"

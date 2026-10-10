@@ -122,14 +122,17 @@ test("unknown problems fail closed without echoing their message", () => {
   assert.ok(Object.isFrozen(classification));
 });
 
-test("the recovery budget reloads once per epoch and retries once per request", () => {
+test("the recovery budget survives fresh epochs at the same URL and stores one bounded entry", () => {
   const values = new Map();
   const storage = { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
-  const budget = createWogeRecoveryBudget({ storage });
+  const pageUrl = "https://example.test/page";
+  const budget = createWogeRecoveryBudget({ storage, pageUrl });
   assert.equal(budget.tryReload("epoch-a"), true);
   assert.equal(budget.tryReload("epoch-a"), false);
-  assert.equal(createWogeRecoveryBudget({ storage }).tryReload("epoch-a"), false);
-  assert.equal(budget.tryReload("epoch-b"), true);
+  assert.equal(createWogeRecoveryBudget({ storage, pageUrl }).tryReload("epoch-b"), false);
+  assert.equal(budget.tryReload("epoch-b"), false);
+  assert.equal(createWogeRecoveryBudget({ storage, pageUrl: "https://example.test/other" }).tryReload("epoch-c"), true);
+  assert.equal(values.size, 1);
   assert.equal(budget.tryRetry("/patches"), true);
   assert.equal(budget.tryRetry("/patches"), false);
 });

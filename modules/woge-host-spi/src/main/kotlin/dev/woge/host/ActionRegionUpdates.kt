@@ -77,6 +77,18 @@ public fun actionRegionUpdates(
     )
 }
 
+/** One current region for an authorized, side-effect-free GET; ordinary navigation uses [fallback]. */
+public fun <Input> regionRefresh(
+    fallback: ApplicationUrl,
+    target: RegionTarget<Input>,
+    input: Input,
+    revision: TargetRevision,
+    interaction: InteractionSequence,
+): PageResult.RegionUpdates =
+    actionRegionUpdates(fallback, interaction) {
+        replace(target, input, revision)
+    }
+
 /** Native validation keeps its 400 HTML page; enhancement replaces typed regions and focuses a summary. */
 public fun actionValidationUpdates(
     nativePage: PageResult.Document,

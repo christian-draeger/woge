@@ -22,6 +22,8 @@ import dev.woge.host.actionRegionUpdates
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
 import dev.woge.host.redirect
+import dev.woge.host.regionRefresh
+import dev.woge.protocol.InteractionSequence
 import dev.woge.protocol.PageEpoch
 import dev.woge.protocol.TargetRevision
 import kotlinx.serialization.Serializable
@@ -30,12 +32,22 @@ import java.util.UUID
 @WogeRoute("/projects/woge/tasks")
 public class TaskBoardInput
 
+@WogeRoute("/projects/woge/tasks/regions/{epoch}/{target}/{revision}/{interaction}")
+public data class BoardRegionInput(
+    public val epoch: String,
+    public val target: String,
+    public val revision: Long,
+    public val interaction: Long,
+    public val query: String? = null,
+)
+
 @Serializable
 public data class AddBoardTask(
     public val title: String,
     public val epoch: String,
     public val version: Long,
     public val revision: Long,
+    public val interaction: Long = 0,
 )
 
 public val boardTaskForm: FormDecoder<AddBoardTask> = FormDecoder(AddBoardTask.serializer())
@@ -49,7 +61,7 @@ public suspend fun addBoardTask(
     if (context.csrf != CsrfVerification.VERIFIED) {
         failure(FailureCategory.FORBIDDEN, context.correlationId)
     } else if (!validBoardTitle(command.title) ||
-        command.revision < 0 ||
+        !validBoardOrdering(command.revision, command.interaction) ||
         !validBoardEpoch(command.epoch)
     ) {
         failure(FailureCategory.BAD_REQUEST, context.correlationId)
@@ -66,6 +78,11 @@ private fun validBoardEpoch(value: String): Boolean =
     }
 
 private fun validBoardTitle(value: String): Boolean = value.isNotBlank() && value.length <= MAX_TASK_TITLE_LENGTH
+
+private fun validBoardOrdering(
+    revision: Long,
+    interaction: Long,
+): Boolean = revision >= 0 && interaction >= 0
 
 private const val MAX_TASK_TITLE_LENGTH = 120
 
@@ -94,6 +111,34 @@ public class TaskBoard {
             if (validation !is PageResult.Redirect) validation else update(request)
         }
 
+    /** Read-only public board lookup. Ordering context is not an authorization credential. */
+    public val refresh: PageUseCase<BoardRegionInput> =
+        PageUseCase { request ->
+            val input = request.input
+            val validContext =
+                validBoardEpoch(input.epoch) &&
+                    validBoardOrdering(input.revision, input.interaction) &&
+                    input.revision != Long.MAX_VALUE
+            if (!validContext || (input.query?.length ?: 0) > MAX_TASK_TITLE_LENGTH) {
+                failure(FailureCategory.BAD_REQUEST, request.context.correlationId)
+            } else {
+                synchronized(this) {
+                    val target = BoardTasksRegion.target(PageIdentity(PageEpoch.of(input.epoch), secret))
+                    if (target.target.region.value != input.target) {
+                        failure(FailureCategory.NOT_FOUND, request.context.correlationId)
+                    } else {
+                        regionRefresh(
+                            TaskBoardRoute.url(TaskBoardInput()),
+                            target,
+                            titles.filter { it.contains(input.query.orEmpty(), ignoreCase = true) },
+                            TargetRevision.of(input.revision),
+                            InteractionSequence.of(input.interaction),
+                        )
+                    }
+                }
+            }
+        }
+
     private fun update(request: PageRequest<AddBoardTask>): PageResult =
         synchronized(this) {
             val command = request.input
@@ -110,7 +155,7 @@ public class TaskBoard {
                 )
             val revision = TargetRevision.of(command.revision)
             val result =
-                actionRegionUpdates(TaskBoardRoute.url(TaskBoardInput())) {
+                actionRegionUpdates(TaskBoardRoute.url(TaskBoardInput()), InteractionSequence.of(command.interaction)) {
                     replace(BoardSummaryRegion.target(next.page), next.titles.size, revision)
                     replace(BoardTasksRegion.target(next.page), next.titles, revision)
                     replace(BoardStateRegion.target(next.page), next, revision)

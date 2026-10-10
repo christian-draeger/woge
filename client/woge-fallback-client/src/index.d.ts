@@ -166,7 +166,7 @@ export function classifyWogeFailure(
 ): WogeFailureClassification;
 
 export interface WogeRecoveryBudget {
-  /** True at most once per page epoch in this browser tab. */
+  /** One reload for the current page URL and tab, even when navigation creates a fresh epoch. */
   tryReload(pageEpoch: string): boolean;
   /** True at most once per request key. */
   tryRetry(requestKey: string): boolean;
@@ -174,6 +174,8 @@ export interface WogeRecoveryBudget {
 
 export function createWogeRecoveryBudget(options?: {
   readonly storage?: Pick<Storage, "getItem" | "setItem">;
+  /** Defaults to the browser's full page URL; supply a stable key outside a browser. */
+  readonly pageUrl?: string;
 }): WogeRecoveryBudget;
 
 export function createWogePatchRuntime(root?: Document, options?: WogePatchRuntimeOptions): WogePatchRuntime;

@@ -67,6 +67,16 @@ data, not authorization. Each new document has a fresh epoch. All four replaceme
 before the in-memory state is committed, in declaration order. A rendering error returns no
 successful subset; a lost response never causes automatic POST replay.
 
+For explicit region recovery, the generated `BoardRegionRoute` exposes the read-only
+`GET /projects/woge/tasks/regions/{epoch}/{target}/{revision}/{interaction}?query=...`.
+Only the task-list target is supported. With patch-stream `Accept`, it returns one typed Replace
+of current matching tasks; ordinary navigation redirects to the full board. The base revision
+describes the browser's current DOM, not the board's domain version. `runtime.beginInteraction`
+supplies the requesting context and `runtime.refetchRegion` bounds recovery. Neither replays a POST.
+The browser fixtures deliberately apply an older search response after a newer one and hold an
+action response while submitting again, so ordering and duplicate suppression are deterministic
+on all three hosts.
+
 [`shared`](shared) contains the host-neutral `ProjectPage`, semantic HTML, region work and web assets.
 [`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and [`ktor`](ktor) contain only their
 host-specific startup, routes and real-server integration tests. The example consumes root projects

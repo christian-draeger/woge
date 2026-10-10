@@ -110,7 +110,7 @@ host action bindings already negotiate application-owned 303 redirects into GET-
 Every failure maps to exactly one reaction. `classifyWogeFailure` turns an error or a non-OK
 `Response` into `{ code, category, outcome }`. The outcome is one of `fail-closed`,
 `error-response`, `ignore-stale`, `refetch-region`, `reload-page` or `retry-safe`.
-`createWogeRecoveryBudget` makes sure recovery cannot loop: one reload per page epoch and tab,
+`createWogeRecoveryBudget` makes sure recovery cannot loop: one reload for the current page URL and tab, even across fresh epochs,
 one retry per request.
 
 ```js

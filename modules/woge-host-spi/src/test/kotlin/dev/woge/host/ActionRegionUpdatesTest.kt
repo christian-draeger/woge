@@ -14,6 +14,35 @@ class ActionRegionUpdatesTest {
     private val secret = RenderIdentitySecret.of(ByteArray(32))
 
     @Test
+    fun `region refresh prepares exactly one typed replacement with requesting ordering context`() {
+        val target = TextRegion("refresh").target(page())
+        val result =
+            regionRefresh(
+                applicationUrl("/page"),
+                target,
+                "<current>",
+                TargetRevision.of(12),
+                InteractionSequence.of(7),
+            )
+        val patch = result.patches.single()
+        assertEquals(target.target, patch.target)
+        assertEquals(12L, patch.revision.base.value)
+        assertEquals(13L, patch.revision.next.value)
+        assertEquals(7L, patch.interactionSequence.value)
+        assertEquals("&lt;current&gt;", patch.html.value)
+        assertEquals("/page", (result.nativeResult as PageResult.Redirect).location.value)
+        assertThrows(IllegalArgumentException::class.java) {
+            regionRefresh(
+                applicationUrl("/page"),
+                target,
+                "Current",
+                TargetRevision.of(Long.MAX_VALUE),
+                InteractionSequence.INITIAL,
+            )
+        }
+    }
+
+    @Test
     fun `typed updates preserve declaration order escape markup and advance explicit revisions`() {
         val page = page()
         val first = TextRegion("first").target(page)
