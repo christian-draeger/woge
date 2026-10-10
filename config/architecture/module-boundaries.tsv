@@ -20,3 +20,4 @@ woge-spring-webflux	adapter	public	adapters/woge-spring-webflux	woge-core,woge-p
 woge-ktor	adapter	public	adapters/woge-ktor	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-boot-autoconfigure	integration	public	integrations/woge-spring-boot-autoconfigure	woge-host-spi	woge-spring-mvc,woge-spring-webflux
 woge-spring-boot-starter	integration	public	integrations/woge-spring-boot-starter	woge-spring-boot-autoconfigure	-
+woge-vite	integration	public	integrations/woge-vite	woge-core	-

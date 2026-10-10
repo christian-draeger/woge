@@ -45,6 +45,12 @@ gradlePlugin {
             displayName = "Woge Tailwind adapter"
             description = "Builds an optional Tailwind stylesheet from the class names in Kotlin code."
         }
+        register("wogeVite") {
+            id = "dev.woge.vite"
+            implementationClass = "dev.woge.gradle.WogeVitePlugin"
+            displayName = "Woge Vite adapter"
+            description = "Builds an optional Vite frontend and runs the Vite dev server during wogeDev."
+        }
     }
 }
 

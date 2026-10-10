@@ -19,7 +19,8 @@ active raw-text boundaries and platform escape hatches to the generated Kotlin D
 
 The [CSS and asset guide](css-and-assets.md) shows external and colocated CSS, declaration lists,
 plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI boundaries. The
-[Tailwind guide](tailwind.md) adds the optional Gradle plugin, with or without Node.js.
+[Tailwind guide](tailwind.md) adds the optional Gradle plugin, with or without Node.js. The
+[Vite guide](vite.md) adds an optional Vite build and dev server for TypeScript and npm packages.
 
 The [UI primitives guide](ui-primitives.md) shows the accessible disclosure, dialog, popover and
 live-region building blocks, with plain-CSS and Tailwind recipes.

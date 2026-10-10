@@ -1,7 +1,9 @@
 package dev.woge.html
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.net.URLClassLoader
@@ -23,6 +25,8 @@ class AssetUrlsTest {
             renderHtml { stylesheet(production.url(logical)) },
         )
         assertThrows(IllegalArgumentException::class.java) { production.url(applicationUrl("/missing.css")) }
+        assertTrue(logical in production)
+        assertFalse(applicationUrl("/missing.css") in production)
         assertThrows(
             IllegalArgumentException::class.java,
         ) { read(development = true).url(applicationUrl("/missing.css")) }

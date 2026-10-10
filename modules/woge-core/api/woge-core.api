@@ -49,6 +49,7 @@ public final class dev/woge/html/AssetSecurityKt {
 
 public final class dev/woge/html/AssetUrls {
 	public static final field Companion Ldev/woge/html/AssetUrls$Companion;
+	public final fun contains-6y1GfjA (Ljava/lang/String;)Z
 	public final fun getBundleHash ()Ljava/lang/String;
 	public final fun url-pK5OWvo (Ljava/lang/String;)Ljava/lang/String;
 }
@@ -349,6 +350,7 @@ public final class dev/woge/html/GeneratedHtmlElementsKt {
 public final class dev/woge/html/HeadAssetsKt {
 	public static final fun assetLink (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ldev/woge/html/HtmlUrl;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun assetLink$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ldev/woge/html/HtmlUrl;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun cspNonceMetadata-qcfNtoU (Ldev/woge/html/HtmlWriter;Ljava/lang/String;)V
 	public static final fun metadata (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;)V
 	public static final fun moduleScript-0cTZK0c (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
 	public static synthetic fun moduleScript-0cTZK0c$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V

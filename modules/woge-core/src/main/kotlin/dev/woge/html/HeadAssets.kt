@@ -121,6 +121,18 @@ public fun HtmlWriter.propertyMetadata(
     }
 }
 
+/**
+ * Writes `<meta property="csp-nonce" nonce="...">`. Client tools that inject `<style>` elements, such as
+ * the Vite dev client, copy this response's nonce from it, so a strict `style-src` keeps working.
+ */
+public fun HtmlWriter.cspNonceMetadata(nonce: CspNonce) {
+    rememberNonce(nonce)
+    voidElement("meta") {
+        attribute("property", "csp-nonce")
+        attribute("nonce", nonce.value)
+    }
+}
+
 private fun requireAttributeTokenList(
     value: String,
     label: String,

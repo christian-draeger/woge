@@ -12,6 +12,9 @@ public class AssetUrls private constructor(
 ) {
     private val paths = Collections.unmodifiableMap(paths.toMap())
 
+    /** Whether the manifest lists [logical], for assets that only some builds produce. */
+    public operator fun contains(logical: ApplicationUrl): Boolean = logical.value in paths
+
     /** The logical URL must be registered; missing production assets never silently become plain URLs. */
     public fun url(logical: ApplicationUrl): ApplicationUrl {
         val hashed = requireNotNull(paths[logical.value]) { "Asset URL is absent from the Woge asset manifest" }

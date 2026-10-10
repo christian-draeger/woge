@@ -115,4 +115,14 @@ class DevelopmentClientTest {
             DevelopmentContentSecurityPolicy.allow("frame-ancestors 'none'", origin),
         )
     }
+
+    @Test
+    fun `a strict policy also accepts the Vite dev server and its hot-update socket`() {
+        val vite = "http://127.0.0.1:5173"
+        assertEquals(
+            "default-src 'self'; script-src 'self' 'nonce-abc' $vite; style-src 'self' $vite; " +
+                "connect-src 'self' $vite ws://127.0.0.1:5173",
+            DevelopmentContentSecurityPolicy.allowVite("default-src 'self'; script-src 'self' 'nonce-abc'", vite),
+        )
+    }
 }

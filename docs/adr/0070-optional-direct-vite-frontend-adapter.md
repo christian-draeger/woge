@@ -94,8 +94,14 @@ Kotlin/JS is out of scope for this adapter.
 
 ## Follow-up
 
-- Implement the optional adapter: a cacheable `vite build` task feeding `wogeAssets`, Vite as a
-  `wogeDev` child process, dev-only origin and CSP wiring, and an HTML helper that emits the dev
-  or production entry tags, in [#205](https://github.com/christian-draeger/woge/issues/205).
+- Implemented in [#205](https://github.com/christian-draeger/woge/issues/205): the `dev.woge.vite`
+  plugin (cacheable `wogeVite` task feeding `wogeAssets`, Vite dev server as a `wogeDev` child),
+  the `woge-vite` runtime helper (`ViteAssets`, `viteEntry`), Spring development CSP wiring and the
+  [Vite guide](../guides/vite.md). Details settled there:
+  - Woge runs the project's own Vite through its JavaScript API (`node --eval`), so no generated
+    config file lands in the project and the user's `vite.config.*` still applies.
+  - `wogeDev` inner builds skip `vite build`; the dev server serves the frontend instead.
+  - The Vite client tags injected styles with the nonce from `<meta property="csp-nonce">`, which
+    `viteEntry` writes when a nonce is passed. Ktor has no development CSP rewrite yet.
 - Keep Tailwind for Kotlin sources in the Gradle adapter ([#79](https://github.com/christian-draeger/woge/issues/79)).
 - Keep plain stylesheet hot updates in the Woge dev channel ([#152](https://github.com/christian-draeger/woge/issues/152)).

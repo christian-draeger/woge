@@ -235,6 +235,16 @@
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
     },
     {
+      "name": "woge-vite",
+      "role": "integration",
+      "exposure": "public",
+      "sourcePath": "integrations/woge-vite",
+      "artifact": "dev.woge:woge-vite",
+      "concepts": ["vite-entry", "vite-dev-server", "content-hashed-vite-output"],
+      "guide": "docs/guides/vite.md",
+      "example": "examples/vite-spring-boot/src/main/kotlin/example/vite/ChartPage.kt"
+    },
+    {
       "name": "woge-spring-boot-autoconfigure",
       "role": "integration",
       "exposure": "public",

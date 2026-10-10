@@ -10,6 +10,7 @@ import java.util.Properties;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -70,6 +71,20 @@ public abstract class WogeDevTask extends JavaExec {
     @Input
     public abstract Property<Boolean> getFastRestart();
 
+    /** How to start the Vite dev server; empty without the {@code dev.woge.vite} plugin. */
+    @Internal
+    public abstract ListProperty<String> getViteCommand();
+
+    @Internal
+    public abstract MapProperty<String, String> getViteEnvironment();
+
+    @Internal
+    public abstract DirectoryProperty getViteDirectory();
+
+    @Input
+    @Optional
+    public abstract Property<Integer> getVitePort();
+
     @Option(option = "full-restart", description = "Always restart the whole application process.")
     public void setFullRestart(boolean fullRestart) {
         getFastRestart().set(!fullRestart);
@@ -99,6 +114,13 @@ public abstract class WogeDevTask extends JavaExec {
         putList(properties, "child.classpath", getChildClasspath().get());
         putList(properties, "watch.root", getWatchRoots().get());
         putList(properties, "watch.buildFile", getBuildFiles().get());
+        if (!getViteCommand().getOrElse(List.of()).isEmpty()) {
+            putList(properties, "vite.command", getViteCommand().get());
+            properties.setProperty("vite.directory", getViteDirectory().get().getAsFile().getAbsolutePath());
+            properties.setProperty("vite.port", getVitePort().get().toString());
+            putList(properties, "vite.env", getViteEnvironment().get().entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue()).toList());
+        }
         try {
             Files.createDirectories(file.getParent());
             try (OutputStream output = Files.newOutputStream(file)) {

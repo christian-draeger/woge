@@ -22,6 +22,7 @@ val scaffoldPublicationModules =
         "woge-spring-boot-autoconfigure",
         "woge-spring-boot-starter",
         "woge-ktor",
+        "woge-vite",
         "woge-dev-model",
         "woge-dev-orchestrator",
         "woge-dev-client",
@@ -172,6 +173,16 @@ tasks.register<Exec>("testTailwindExample") {
     commandLine(
         "bash",
         layout.projectDirectory.file("scripts/test-tailwind-example.sh").asFile.absolutePath,
+        scaffoldMavenRepository.get().asFile.absolutePath,
+    )
+}
+tasks.register<Exec>("testViteExample") {
+    group = "verification"
+    description = "Builds the external Vite example with npm and runs it under wogeDev with the Vite dev server."
+    dependsOn(publishScaffoldArtifacts)
+    commandLine(
+        "bash",
+        layout.projectDirectory.file("scripts/test-vite-example.sh").asFile.absolutePath,
         scaffoldMavenRepository.get().asFile.absolutePath,
     )
 }
