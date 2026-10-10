@@ -2,7 +2,7 @@
 
 This living document turns Woge's web-native architecture into concrete security assumptions, defaults and test ownership. It covers the M1 core work and the planned server adapters, generated descriptors, streamed patches and browser runtime. The current implementation is not yet a deployable application stack.
 
-Last review: 2026-09-04.
+Last review: 2026-10-10.
 
 ## Scope and assumptions
 
@@ -75,9 +75,9 @@ The numbered trust boundaries are:
 - URL-bearing APIs distinguish application URLs from arbitrary strings and reject control characters and unsafe schemes. Redirects stay same-origin unless an application installs an explicit external policy.
 - Raw HTML is impossible to pass accidentally as a normal string. Its constructor/factory is visibly unsafe, reviewable and documented as bypassing Woge's encoding guarantee.
 - Patch operations address typed rendered instances. A DOM ID is not authorization, and a CSS selector is not accepted as a target.
-- Unknown protocol versions, page epochs, targets and lower revisions fail closed before DOM mutation. Client-provided epoch/revision data is never trusted to authorize server work.
+- Unknown protocol versions, page epochs and targets do not mutate the DOM; lower revisions are ignored as stale. Client-provided epoch/revision data is never trusted to authorize server work.
 - The standard patch sink does not execute scripts, inline event handlers or active URLs. Optional application-owned behavior loads through explicit external modules and CSP-compatible event registration.
-- Native and enhanced unsafe requests share CSRF, authorization, validation and idempotency behavior. Automatic retry is off for a non-idempotent request without a stable retry key.
+- Native and enhanced unsafe requests share CSRF, authorization, validation and explicitly configured reservation behavior. A stable request identity alone never permits automatic mutation retry.
 - Request, frame, metadata, field and queue sizes are bounded. Disconnect and timeout cancel structured child work.
 - Production client errors contain no stack trace or sensitive value. Logs redact credentials, cookies, CSRF material, raw form values and rendered payloads by default.
 - Core runtime operation requires neither `unsafe-inline` nor `unsafe-eval`. Development relaxations are named and cannot become production defaults silently.
@@ -85,6 +85,14 @@ The numbered trust boundaries are:
 ## Out of scope but documented responsibility
 
 Applications still own domain authorization, business replay semantics, safe database access, outbound-request/SSRF policy, file upload scanning, account abuse controls, secrets and privacy retention. Host/deployment documentation owns secure cookies, TLS, trusted proxies, security headers, clickjacking defense and dependency patching. Woge adapters must not disable framework protections to make integration easier.
+
+[ADR 0063](../adr/0063-mutation-request-identities.md) defines the implemented mutation identity and
+optional reservation port. Action bindings reject unverified authenticity before command decoding.
+Reservation scope and expiry come from trusted application state; fingerprints replace stored
+command text. Lease fencing and retained ambiguous outcomes prevent uncertain work from being
+released for replay. The all-host security matrix also checks expired sessions and domain
+authorization on duplicate identities. This is not an atomic transaction guarantee between a
+domain database and an independent replay store; the application must coordinate those commits.
 
 ## Review and update process
 

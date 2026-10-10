@@ -9,10 +9,12 @@ import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
+import dev.woge.host.UnverifiedActionSecurityException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.runtime.observationOutcome
@@ -44,6 +46,7 @@ public class WogeWebFluxPageHandler<Input : Any>(
             runCatching {
                 val actionContext =
                     if (actionAccept != null) {
+                        context.requireActionSecurity()
                         context.withMutationRequestIdentity(request.headers().header(MUTATION_REQUEST_IDENTITY_HEADER))
                     } else {
                         context
@@ -56,6 +59,7 @@ public class WogeWebFluxPageHandler<Input : Any>(
                     is RouteValueException -> it.category
                     is FormDecodingException -> it.category
                     is MutationRequestIdentityException -> FailureCategory.BAD_REQUEST
+                    is UnverifiedActionSecurityException -> FailureCategory.FORBIDDEN
                     else -> throw it
                 }
             }

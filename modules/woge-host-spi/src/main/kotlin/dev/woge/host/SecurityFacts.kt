@@ -87,6 +87,15 @@ public data class RequestSecurity(
     public val csrf: CsrfVerification = CsrfVerification.NOT_REQUIRED,
 )
 
+/** Unsafe action execution must not accept an unverified host CSRF context. */
+public class UnverifiedActionSecurityException internal constructor() :
+    IllegalStateException("Action requires verified request authenticity")
+
+/** Called after host security integration and before unsafe command decoding. */
+public fun RequestContext.requireActionSecurity() {
+    if (csrf != CsrfVerification.VERIFIED) throw UnverifiedActionSecurityException()
+}
+
 private fun isCapabilityCharacter(character: Char): Boolean =
     character in 'a'..'z' ||
         character in 'A'..'Z' ||

@@ -8,6 +8,7 @@ import dev.woge.tck.SecurityFormContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionValidation
+import dev.woge.tck.tckSecurityAction
 import dev.woge.tck.tckSecurityForm
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -33,6 +34,7 @@ import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import org.springframework.web.reactive.function.server.buildAndAwait
 import org.springframework.web.reactive.function.server.coRouter
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
@@ -90,7 +92,7 @@ private class WebFluxSecurityConfiguration {
     fun routes(): RouterFunction<ServerResponse> {
         val action =
             WogeWebFluxHandlers().action(
-                TckSubmitAction.withFormValidation(tckActionValidation),
+                tckSecurityAction().withFormValidation(tckActionValidation),
                 WebFluxPageInput { request ->
                     checkNotNull(
                         request.exchange().getAttribute<PreparedSecurityForm>(PREPARED_SECURITY_FORM_ATTRIBUTE),
@@ -105,6 +107,15 @@ private class WebFluxSecurityConfiguration {
             GET("/csrf") { request ->
                 val token = checkNotNull(request.exchange().getAttribute<Mono<CsrfToken>>(CsrfToken::class.java.name))
                 ServerResponse.ok().bodyValueAndAwait(token.awaitSingle().token)
+            }
+            GET("/expire-tck-session") { request ->
+                request
+                    .exchange()
+                    .session
+                    .awaitSingle()
+                    .invalidate()
+                    .awaitSingleOrNull()
+                ServerResponse.ok().buildAndAwait()
             }
         }
     }

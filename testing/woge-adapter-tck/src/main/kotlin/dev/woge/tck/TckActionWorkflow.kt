@@ -21,8 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger
 /** One mutation counter per harness, never shared between servers or contract runs. */
 internal class TckActionWorkflow {
     private val mutations = AtomicInteger()
+    private val replay = TckMutationWorkflow()
     private val action =
         ActionExecutor<TckActionCommand> { request ->
+            if (request.input.value.startsWith("replay-")) return@ActionExecutor replay.execute(request)
             val result = TckSubmitAction.execute(request)
             if (result is PageResult.Redirect) {
                 val count = mutations.incrementAndGet()

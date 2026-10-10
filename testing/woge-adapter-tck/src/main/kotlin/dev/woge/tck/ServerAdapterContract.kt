@@ -92,6 +92,7 @@ private class AdapterTckVerification(
     private val client: AdapterTckHttpClient = AdapterTckHttpClient(server.origin)
 
     suspend fun verifyCore() {
+        verifyMutationStore()
         verifyDocumentGetAndHead()
         verifyRedirectAndFailures()
         verifyDeferredCompletionOrder()
@@ -102,6 +103,7 @@ private class AdapterTckVerification(
         verifyTypedRoute()
         verifyFailurePages()
         verifyActions()
+        client.verifyMutationReplay(::expect)
         verifySemanticObservations()
     }
 
@@ -836,7 +838,7 @@ private suspend fun AdapterTckHttpClient.verifyActionRegionUpdates(expect: (Bool
     }
 }
 
-private class AdapterTckHttpClient(
+internal class AdapterTckHttpClient(
     origin: URI,
 ) {
     private val base: String = origin.toString().trimEnd('/')
@@ -891,7 +893,7 @@ private class AdapterTckHttpClient(
     }
 }
 
-private fun HttpResponse<*>.header(name: String): String? = headers().firstValue(name).orElse(null)
+internal fun HttpResponse<*>.header(name: String): String? = headers().firstValue(name).orElse(null)
 
 private fun InputStream.readThrough(marker: String): ByteArray {
     val markerBytes = marker.toByteArray(StandardCharsets.UTF_8)

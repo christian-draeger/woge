@@ -651,6 +651,24 @@ public final class dev/woge/host/MediaType$Companion {
 	public final fun of-NFEhphM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/host/MutationFingerprint {
+	public static final field Companion Ldev/woge/host/MutationFingerprint$Companion;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/MutationFingerprint$Companion {
+	public final fun ofSha256 (Ljava/lang/String;)Ldev/woge/host/MutationFingerprint;
+}
+
+public final class dev/woge/host/MutationLease {
+	public fun <init> (Ljava/util/UUID;)V
+	public final fun getToken ()Ljava/util/UUID;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/woge/host/MutationRequestIdentity {
 	public static final field Companion Ldev/woge/host/MutationRequestIdentity$Companion;
 	public fun equals (Ljava/lang/Object;)Z
@@ -669,6 +687,67 @@ public final class dev/woge/host/MutationRequestIdentityException : java/lang/Il
 public final class dev/woge/host/MutationRequestIdentityKt {
 	public static final field MUTATION_REQUEST_IDENTITY_HEADER Ljava/lang/String;
 	public static final fun withMutationRequestIdentity (Ldev/woge/host/RequestContext;Ljava/util/List;)Ldev/woge/host/RequestContext;
+}
+
+public abstract interface class dev/woge/host/MutationReservation {
+}
+
+public final class dev/woge/host/MutationReservation$Acquired : dev/woge/host/MutationReservation {
+	public fun <init> (Ldev/woge/host/MutationLease;)V
+	public final fun getLease ()Ldev/woge/host/MutationLease;
+}
+
+public final class dev/woge/host/MutationReservation$Existing : dev/woge/host/MutationReservation {
+	public fun <init> (Ldev/woge/host/MutationState;)V
+	public final fun getState ()Ldev/woge/host/MutationState;
+}
+
+public final class dev/woge/host/MutationReservationRequest {
+	public fun <init> (Ldev/woge/host/MutationScope;Ldev/woge/host/MutationRequestIdentity;Ldev/woge/host/MutationFingerprint;Ljava/time/Instant;Ljava/time/Instant;)V
+	public final fun getExpiresAt ()Ljava/time/Instant;
+	public final fun getFingerprint ()Ldev/woge/host/MutationFingerprint;
+	public final fun getIdentity ()Ldev/woge/host/MutationRequestIdentity;
+	public final fun getRetainUntil ()Ljava/time/Instant;
+	public final fun getScope ()Ldev/woge/host/MutationScope;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/MutationReservationStore {
+	public abstract fun reserve (Ldev/woge/host/MutationReservationRequest;Ljava/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun resolve (Ldev/woge/host/MutationReservationRequest;Ldev/woge/host/MutationLease;Ldev/woge/host/MutationResolution;Ljava/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/MutationResolution : java/lang/Enum {
+	public static final field AMBIGUOUS Ldev/woge/host/MutationResolution;
+	public static final field COMPLETED Ldev/woge/host/MutationResolution;
+	public static final field REJECTED Ldev/woge/host/MutationResolution;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/MutationResolution;
+	public static fun values ()[Ldev/woge/host/MutationResolution;
+}
+
+public final class dev/woge/host/MutationScope {
+	public static final field Companion Ldev/woge/host/MutationScope$Companion;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/MutationScope$Companion {
+	public final fun of (Ljava/lang/String;)Ldev/woge/host/MutationScope;
+}
+
+public final class dev/woge/host/MutationState : java/lang/Enum {
+	public static final field AMBIGUOUS Ldev/woge/host/MutationState;
+	public static final field COMPLETED Ldev/woge/host/MutationState;
+	public static final field CONFLICT Ldev/woge/host/MutationState;
+	public static final field EXPIRED Ldev/woge/host/MutationState;
+	public static final field IN_PROGRESS Ldev/woge/host/MutationState;
+	public static final field REJECTED Ldev/woge/host/MutationState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/MutationState;
+	public static fun values ()[Ldev/woge/host/MutationState;
 }
 
 public final class dev/woge/host/PageIdentity {
@@ -1051,6 +1130,10 @@ public final class dev/woge/host/SameSite : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/SameSite;
 }
 
+public final class dev/woge/host/SecurityFactsKt {
+	public static final fun requireActionSecurity (Ldev/woge/host/RequestContext;)V
+}
+
 public final class dev/woge/host/TypedRegionsKt {
 	public static final fun deferredRegion-IloEfL4 (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/DeferredRegion;
 	public static synthetic fun deferredRegion-IloEfL4$default (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/DeferredRegion;
@@ -1064,6 +1147,9 @@ public final class dev/woge/host/UnknownFormFields : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/UnknownFormFields;
 	public static fun values ()[Ldev/woge/host/UnknownFormFields;
+}
+
+public final class dev/woge/host/UnverifiedActionSecurityException : java/lang/IllegalStateException {
 }
 
 public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {

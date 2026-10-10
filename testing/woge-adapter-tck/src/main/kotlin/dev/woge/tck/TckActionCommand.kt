@@ -46,7 +46,10 @@ public suspend fun tckSubmit(
     command: TckActionCommand,
     context: RequestContext,
 ): PageResult =
-    if (authorized(context) && command.value in setOf("accepted", "update")) {
+    if (authorized(context) &&
+        command.value in
+        setOf("accepted", "update", "replay-completed", "replay-rejected", "replay-ambiguous", "replay-in-progress")
+    ) {
         redirect(
             applicationUrl("/woge-tck/action-complete"),
             headers =
@@ -96,7 +99,10 @@ private fun authorized(context: RequestContext): Boolean {
 }
 
 /** Test-only ingress mapping: the harness simulates facts established by a host security integration. */
-public fun tckActionContext(subject: String?): RequestContext =
+public fun tckActionContext(
+    subject: String?,
+    verified: Boolean = true,
+): RequestContext =
     RequestContext(
         method = RequestMethod.POST,
         trace = RequestTrace(RequestId.of("tck-action"), CorrelationId.of("tck-action")),
@@ -106,6 +112,6 @@ public fun tckActionContext(subject: String?): RequestContext =
                     subject?.let {
                         AuthenticationFacts.Authenticated(PrincipalFacts(PrincipalId.of(it)))
                     } ?: AuthenticationFacts.Anonymous,
-                csrf = CsrfVerification.VERIFIED,
+                csrf = if (verified) CsrfVerification.VERIFIED else CsrfVerification.NOT_REQUIRED,
             ),
     )

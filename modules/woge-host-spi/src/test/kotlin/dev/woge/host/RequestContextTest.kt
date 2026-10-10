@@ -7,6 +7,25 @@ import org.junit.jupiter.api.Test
 
 class RequestContextTest {
     @Test
+    fun `unsafe action requires verified authenticity independently from authentication`() {
+        val unverified =
+            RequestContext(
+                RequestMethod.POST,
+                RequestTrace(RequestId.of("request"), CorrelationId.of("trace")),
+                security =
+                    RequestSecurity(
+                        authentication = AuthenticationFacts.Authenticated(PrincipalFacts(PrincipalId.of("subject"))),
+                    ),
+            )
+        assertThrows(UnverifiedActionSecurityException::class.java) { unverified.requireActionSecurity() }
+        RequestContext(
+            RequestMethod.POST,
+            unverified.trace,
+            security = RequestSecurity(csrf = CsrfVerification.VERIFIED),
+        ).requireActionSecurity()
+    }
+
+    @Test
     fun `request diagnostics redact cookie and principal values`() {
         val context =
             RequestContext(

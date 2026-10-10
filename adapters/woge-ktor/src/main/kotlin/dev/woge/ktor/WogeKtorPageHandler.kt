@@ -9,10 +9,12 @@ import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
+import dev.woge.host.UnverifiedActionSecurityException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.runtime.observationOutcome
@@ -44,6 +46,7 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
             try {
                 val actionContext =
                     if (actionAccept != null) {
+                        context.requireActionSecurity()
                         context.withMutationRequestIdentity(
                             call.request.headers
                                 .getAll(MUTATION_REQUEST_IDENTITY_HEADER)
@@ -66,6 +69,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 failure(invalid.category, context.correlationId)
             } catch (_: MutationRequestIdentityException) {
                 failure(FailureCategory.BAD_REQUEST, context.correlationId)
+            } catch (_: UnverifiedActionSecurityException) {
+                failure(FailureCategory.FORBIDDEN, context.correlationId)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {

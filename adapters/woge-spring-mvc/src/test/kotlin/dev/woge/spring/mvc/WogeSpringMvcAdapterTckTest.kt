@@ -157,7 +157,10 @@ private class SpringMvcTckConfiguration {
                         application.actionSubmissions,
                         tckActionForm.springMvcSubmission(),
                         SpringMvcRequestContextFactory { request ->
-                            tckActionContext(request.getHeader("X-Tck-Subject"))
+                            tckActionContext(
+                                request.getHeader("X-Tck-Subject"),
+                                verified = request.getHeader("X-Tck-Unverified") != "true",
+                            )
                         },
                     ),
                 "/woge-tck/action-complete" to handlers.page(application.actionCompletion, SpringMvcPageInput { }),
