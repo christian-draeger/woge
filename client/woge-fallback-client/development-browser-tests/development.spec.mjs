@@ -295,12 +295,20 @@ test("stylesheet saves update every tab in place and keep page state", async ({ 
   const second = await context.newPage();
   await second.goto("http://127.0.0.1:4273/");
   await expect(second.getByRole("status")).toHaveText("Ready");
+  await page.bringToFront();
   await page.getByLabel("Name").fill("unsaved");
   await page.evaluate(() => {
     window.sameDocument = true;
-    document.getElementById("name").focus();
-    window.scrollTo(0, 600);
+    document.getElementById("name").focus({ preventScroll: true });
   });
+  // Firefox can still finish scrolling the filled field into view a moment later.
+  await expect(async () => {
+    const y = await page.evaluate(() => new Promise((resolve) => {
+      scrollTo(0, 600);
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(scrollY)));
+    }));
+    expect(y).toBe(600);
+  }).toPass();
   await request.get("/control?css=rgb(255,%200,%200)");
   await expect.poll(() => color(page, "h1")).toBe("rgb(255, 0, 0)");
   await expect.poll(() => color(page, "#build")).toBe("rgb(255, 0, 0)");
