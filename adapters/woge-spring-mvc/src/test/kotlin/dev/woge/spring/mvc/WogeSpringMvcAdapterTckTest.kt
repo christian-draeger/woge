@@ -1,7 +1,6 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.PageUseCase
-import dev.woge.host.withFormValidation
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
@@ -15,7 +14,6 @@ import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
-import dev.woge.tck.tckActionValidation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
@@ -145,12 +143,13 @@ private class SpringMvcTckConfiguration {
                         .page(application.failureRoutePages, AdapterTckFailureRoute),
                 TckSubmitAction.path to
                     handlers.action(
-                        TckSubmitAction.withFormValidation(tckActionValidation),
+                        application.actionSubmissions,
                         tckActionForm.springMvcSubmission(),
                         SpringMvcRequestContextFactory { request ->
                             tckActionContext(request.getHeader("X-Tck-Subject"))
                         },
                     ),
+                "/woge-tck/action-complete" to handlers.page(application.actionCompletion, SpringMvcPageInput { }),
             ),
             0,
         )

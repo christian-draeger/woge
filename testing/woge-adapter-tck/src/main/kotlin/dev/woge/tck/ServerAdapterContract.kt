@@ -155,6 +155,7 @@ private class AdapterTckVerification(
         verifyActionMethods()
         verifyRejectedForms()
         verifyNativeValidation()
+        verifyMutationRefresh()
     }
 
     private suspend fun verifyActionMethods() {
@@ -263,6 +264,20 @@ private class AdapterTckVerification(
                     response.statusCode() == ResponseStatus.FORBIDDEN.code,
                     "native-form-validation",
                     "field-error rendering bypassed domain authorization",
+                )
+            }
+        }
+    }
+
+    private suspend fun verifyMutationRefresh() {
+        runContract("mutation-post-redirect-get") {
+            repeat(2) {
+                val refreshed = client.text(RequestMethod.GET, "/woge-tck/action-complete")
+                expect(
+                    refreshed.statusCode() == ResponseStatus.OK.code &&
+                        refreshed.body() == "<p>Completed mutations: 1</p>",
+                    "mutation-post-redirect-get",
+                    "GET refresh repeated the mutation or a rejected form executed it",
                 )
             }
         }

@@ -68,6 +68,10 @@ because those statuses preserve POST.
 
 ## Follow-up
 
-#30 remains open until a real mutation is exercised with JavaScript disabled, successful 303/GET
-refresh does not repeat it, native/enhanced outcomes agree, and Spring Security ingress is tested
-end to end. Multipart remains #60.
+The shared real-HTTP TCK records successful mutations per server, follows the action's 303 target
+with GET and refreshes it again. It verifies exactly one mutation after successful, unauthorized
+and malformed submissions on all three hosts.
+
+#30 remains open until a real mutation is exercised in a browser with JavaScript disabled,
+native/enhanced outcomes agree, and Spring Security ingress is tested end to end. Multipart remains
+#60.
