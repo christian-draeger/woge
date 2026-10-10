@@ -13,16 +13,20 @@ import dev.woge.development.DevelopmentSourceLocation
 import dev.woge.development.DevelopmentSourcePath
 import dev.woge.development.DevelopmentUrl
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import dev.woge.development.ReloadLevel
 import dev.woge.development.ServerGeneration
 import dev.woge.development.orchestrator.DevelopmentAdapters
 import dev.woge.development.orchestrator.DevelopmentBuildAdapter
 import dev.woge.development.orchestrator.DevelopmentBuildResult
+import dev.woge.development.orchestrator.DevelopmentFrontendAdapter
 import dev.woge.development.orchestrator.DevelopmentHostAdapter
 import dev.woge.development.orchestrator.DevelopmentHostRestartRequest
 import dev.woge.development.orchestrator.DevelopmentHostRestartResult
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
 import dev.woge.html.HtmlWriter
+import dev.woge.html.applicationUrl
 import dev.woge.html.renderHtml
+import dev.woge.html.stylesheet
 import dev.woge.html.textarea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.net.InetSocketAddress
+import java.net.URLDecoder
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -46,9 +51,11 @@ internal object BrowserFixture {
         val resetName = AtomicBoolean(false)
         val servedBuild = AtomicReference<BuildId?>(null)
         val servedGeneration = AtomicReference<ServerGeneration?>(null)
+        val cssColor = AtomicReference("rgb(0, 0, 0)")
+        val cssBroken = AtomicBoolean(false)
         val adapters =
             DevelopmentAdapters(
-                DevelopmentBuildAdapter {
+                DevelopmentBuildAdapter { request ->
                     delay(100)
                     if (fail.get()) {
                         DevelopmentBuildResult.Failed(
@@ -63,6 +70,8 @@ internal object BrowserFixture {
                                 ),
                             ),
                         )
+                    } else if (request.changes.all { it.kind == DevelopmentChangeKind.CSS }) {
+                        DevelopmentBuildResult.Succeeded(ReloadLevel.HOT_ASSET)
                     } else {
                         DevelopmentBuildResult.Succeeded()
                     }
@@ -79,6 +88,11 @@ internal object BrowserFixture {
 
                     override suspend fun shutdown() = Unit
                 },
+                DevelopmentFrontendAdapter { buildId, level ->
+                    val supported = level == ReloadLevel.HOT_ASSET || level == ReloadLevel.DOCUMENT_REFRESH
+                    if (supported) servedBuild.set(buildId)
+                    supported
+                },
             )
         val orchestrator = DevelopmentOrchestrator.start(scope, adapters)
         val channel =
@@ -92,27 +106,35 @@ internal object BrowserFixture {
         val server = HttpServer.create(InetSocketAddress("127.0.0.1", 4273), 0)
         val executor = Executors.newCachedThreadPool()
         server.executor = executor
+        server.createContext("/styles") { exchange ->
+            val body =
+                if (exchange.requestURI.path == "/styles/imported.css") {
+                    "#build { color: ${cssColor.get()}; }"
+                } else {
+                    "@import url(\"imported.css\");\nh1 { color: ${cssColor.get()}; }"
+                }
+            val bytes = body.toByteArray()
+            exchange.responseHeaders.set("Content-Type", "text/css")
+            exchange.responseHeaders.set("Cache-Control", "no-store")
+            exchange.sendResponseHeaders(if (cssBroken.get()) 404 else 200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
         server.createContext("/") { exchange ->
             val isControl = exchange.requestURI.path == "/control"
             val command = exchange.requestURI.rawQuery
             val body =
                 if (isControl) {
-                    if (command == "fail") {
-                        fail.set(true)
-                    } else if (command == "save") {
-                        fail.set(false)
-                        resetName.set(false)
-                    } else if (command == "reset") {
-                        fail.set(false)
-                        resetName.set(true)
-                    }
-                    orchestrator.reportChange(DevelopmentChange(DevelopmentChangeKind.KOTLIN_SOURCE))
+                    val kind = control(command, fail, resetName, cssColor, cssBroken)
+                    orchestrator.reportChange(DevelopmentChange(kind))
                     "ok"
                 } else {
                     renderHtml {
                         doctype()
                         element("html") {
-                            element("head") { developmentClient(channel, servedBuild.get(), servedGeneration.get()) }
+                            element("head") {
+                                stylesheet(applicationUrl("/styles/main.css"))
+                                developmentClient(channel, servedBuild.get(), servedGeneration.get())
+                            }
                             element("body") {
                                 element("h1") { text("Development fixture") }
                                 element("p", { attribute("id", "build") }) {
@@ -152,6 +174,29 @@ internal object BrowserFixture {
         )
         server.start()
         CountDownLatch(1).await()
+    }
+
+    private fun control(
+        command: String?,
+        fail: AtomicBoolean,
+        resetName: AtomicBoolean,
+        cssColor: AtomicReference<String>,
+        cssBroken: AtomicBoolean,
+    ): DevelopmentChangeKind {
+        when {
+            command == "fail" -> fail.set(true)
+            command == "save" || command == "reset" -> {
+                fail.set(false)
+                resetName.set(command == "reset")
+            }
+            command == "css-broken" -> cssBroken.set(true)
+            command?.startsWith("css=") == true -> {
+                cssColor.set(URLDecoder.decode(command.removePrefix("css="), Charsets.UTF_8))
+                cssBroken.set(false)
+            }
+        }
+        val stylesheet = command == "css-broken" || command?.startsWith("css=") == true
+        return if (stylesheet) DevelopmentChangeKind.CSS else DevelopmentChangeKind.KOTLIN_SOURCE
     }
 
     private fun HtmlWriter.stateControls() {

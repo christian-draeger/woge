@@ -1,4 +1,5 @@
 import { saveRefreshState, takeRefreshState, restoreRefreshState } from "./refresh-state.js";
+import { swapStylesheets } from "./stylesheets.js";
 
 const phases = new Set([
   "IDLE", "BUILDING", "BUILD_FAILED", "RELOAD_PENDING", "SERVER_RESTARTING",
@@ -29,8 +30,9 @@ export function parseSnapshot(data) {
       !Array.isArray(value.diagnostics) || value.diagnostics.length > 20) {
     throw new TypeError("Invalid development snapshot");
   }
-  for (const name of ["sequence", "build", "generation", "renderedBuild"]) id(value[name]);
+  for (const name of ["sequence", "build", "generation", "renderedBuild", "documentBuild"]) id(value[name]);
   if (id(value.renderedBuild) > id(value.build)) throw new TypeError("Invalid ready build");
+  if (id(value.documentBuild) > id(value.renderedBuild)) throw new TypeError("Invalid document build");
   for (const item of value.diagnostics) {
     if (typeof item.code !== "string" || typeof item.summary !== "string" ||
         item.summary.length > 1000 || (item.path !== undefined &&
@@ -107,15 +109,23 @@ export function connectDevelopmentClient(config, { reload = () => location.reloa
     const ready = next.renderedBuild !== undefined && id(next.renderedBuild) > 0n &&
       id(next.generation) > 0n &&
       !["SERVER_RESTARTING", "RELOAD_PENDING", "STOPPED", "SERVER_FAILED"].includes(next.phase);
-    if (ready && navigator.onLine && !reloading &&
-        (id(next.renderedBuild) > build || id(next.generation) > generation)) {
-      reloading = true;
+    if (!ready || !navigator.onLine || reloading) return;
+    if (id(next.documentBuild) > build || id(next.generation) > generation) {
+      refresh(next);
+    } else if (id(next.renderedBuild) > build) {
+      // Only stylesheets changed since this page was rendered.
       build = id(next.renderedBuild);
-      generation = id(next.generation);
-      source.close();
-      saveRefreshState(next);
-      reload();
+      swapStylesheets(build, () => refresh(next));
     }
+  };
+  const refresh = (next) => {
+    if (reloading) return;
+    reloading = true;
+    build = id(next.renderedBuild);
+    generation = id(next.generation);
+    source.close();
+    saveRefreshState(next);
+    reload();
   };
   source.addEventListener("snapshot", (event) => {
     try {

@@ -12,6 +12,8 @@ internal data class BrowserSnapshot(
     val sequence: Long,
     val state: DevelopmentSessionState,
     val renderedBuild: BuildId?,
+    /** Last build whose HTML reached the browser; newer rendered builds only changed stylesheets. */
+    val documentBuild: BuildId? = renderedBuild,
 ) {
     fun json(session: String): String =
         buildJsonObject {
@@ -21,6 +23,7 @@ internal data class BrowserSnapshot(
             put("build", state.latestRequestedBuild?.value?.toString() ?: "0")
             put("generation", state.activeServerGeneration?.value?.toString() ?: "0")
             put("renderedBuild", renderedBuild?.value?.toString() ?: "0")
+            put("documentBuild", documentBuild?.value?.toString() ?: "0")
             put("phase", state.phase.name)
             put("diagnosticsTruncated", state.diagnostics.size > MAX_DIAGNOSTICS)
             putJsonArray("diagnostics") {

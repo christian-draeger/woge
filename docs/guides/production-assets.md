@@ -78,5 +78,5 @@ The generated output uses a dedicated `woge-assets/resources` directory.
 
 Woge does not transform frontend source or rewrite absolute CSS URLs. An absolute `/images/logo.svg`
 still requests the original path; use relative references or let your frontend tool own its URL
-rewriting. Development hot CSS and Tailwind updates remain a separate feature under
-[#152](https://github.com/christian-draeger/woge/issues/152).
+rewriting. During `wogeDev`, saving a `.css` file updates open pages in place without a restart;
+see [ADR 0071](../adr/0071-in-place-stylesheet-updates-in-development.md).

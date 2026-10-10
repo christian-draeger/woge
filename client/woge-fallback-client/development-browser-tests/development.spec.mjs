@@ -273,7 +273,7 @@ test("stale, duplicate and out-of-order identities cannot trigger a document rel
     const emit = (sequence, build, generation) => window.testSource.dispatchEvent(
       new MessageEvent("snapshot", { data: JSON.stringify({
         version: 1, session: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        sequence, build, renderedBuild: build, generation, phase: "READY", diagnostics: [],
+        sequence, build, renderedBuild: build, documentBuild: build, generation, phase: "READY", diagnostics: [],
       }) }),
     );
     emit("20", "10", "10");
@@ -285,4 +285,74 @@ test("stale, duplicate and out-of-order identities cannot trigger a document rel
     emit("22", "12", "12");
   });
   expect(await page.evaluate(() => window.reloads)).toBe(1);
+});
+
+const color = (page, selector) => page.locator(selector).evaluate((element) => getComputedStyle(element).color);
+
+test("stylesheet saves update every tab in place and keep page state", async ({ page, context, request }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("Ready");
+  const second = await context.newPage();
+  await second.goto("http://127.0.0.1:4273/");
+  await expect(second.getByRole("status")).toHaveText("Ready");
+  await page.getByLabel("Name").fill("unsaved");
+  await page.evaluate(() => {
+    window.sameDocument = true;
+    document.getElementById("name").focus();
+    window.scrollTo(0, 600);
+  });
+  await request.get("/control?css=rgb(255,%200,%200)");
+  await expect.poll(() => color(page, "h1")).toBe("rgb(255, 0, 0)");
+  await expect.poll(() => color(page, "#build")).toBe("rgb(255, 0, 0)");
+  await expect.poll(() => color(second, "h1")).toBe("rgb(255, 0, 0)");
+  expect(await page.evaluate(() => [window.sameDocument, document.activeElement.id, scrollY])).toEqual([true, "name", 600]);
+  await expect(page.getByLabel("Name")).toHaveValue("unsaved");
+  await expect(page.locator('link[rel="stylesheet"][href*="/styles/"]')).toHaveCount(1);
+
+  for (const blue of [10, 20, 30, 40, 255]) await request.get(`/control?css=rgb(0,%200,%20${blue})`);
+  await expect.poll(() => color(page, "h1")).toBe("rgb(0, 0, 255)");
+  await expect(page.locator('link[rel="stylesheet"][href*="/styles/"]')).toHaveCount(1);
+  expect(await page.evaluate(() => window.sameDocument)).toBe(true);
+  await second.close();
+});
+
+test("a stylesheet that fails to load falls back to one document refresh", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("Ready");
+  await page.evaluate(() => { window.sameDocument = true; });
+  await request.get("/control?css-broken");
+  await expect.poll(() => page.evaluate(() => window.sameDocument === undefined)).toBe(true);
+  await request.get("/control?css=rgb(0,%20128,%200)");
+  await expect.poll(() => color(page, "h1")).toBe("rgb(0, 128, 0)");
+});
+
+test("a stylesheet save after a Kotlin save keeps the document refresh", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("Ready");
+  const before = await page.locator("#build").textContent();
+  await page.evaluate(() => { window.sameDocument = true; });
+  await request.get("/control?save");
+  await request.get("/control?css=rgb(0,%200,%20128)");
+  await expect.poll(() => color(page, "h1")).toBe("rgb(0, 0, 128)");
+  await expect(page.locator("#build")).not.toHaveText(before);
+  expect(await page.evaluate(() => window.sameDocument)).toBeUndefined();
+});
+
+test("stylesheet updates are measured from save to applied style", async ({ page, request, browserName }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("Ready");
+  const samples = [];
+  for (let index = 1; index <= 20; index += 1) {
+    const value = `rgb(${index}, 1, 1)`;
+    const started = Date.now();
+    await request.get(`/control?css=${encodeURIComponent(value)}`);
+    await page.waitForFunction((expected) => getComputedStyle(document.querySelector("h1")).color === expected, value, { polling: 5 });
+    samples.push(Date.now() - started);
+  }
+  samples.sort((a, b) => a - b);
+  const p50 = samples[Math.floor(samples.length * 0.5)];
+  const p95 = samples[Math.ceil(samples.length * 0.95) - 1];
+  test.info().annotations.push({ type: "css-hot-update", description: `${browserName} p50=${p50}ms p95=${p95}ms` });
+  console.log(`css-hot-update ${browserName} p50=${p50}ms p95=${p95}ms`);
+  expect(p95).toBeLessThan(2000);
 });

@@ -6,6 +6,7 @@ import dev.woge.development.DevelopmentSessionPhase
 import dev.woge.development.DevelopmentUrl
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadApplied
+import dev.woge.development.ReloadLevel
 import dev.woge.development.ServerReady
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
 import kotlinx.coroutines.CoroutineScope
@@ -105,13 +106,21 @@ public class DevelopmentBrowserChannel(
             try {
                 orchestrator.events.collect { record ->
                     synchronized(monitor) {
+                        val event = record.event
                         val rendered =
-                            when (val event = record.event) {
+                            when (event) {
                                 is ServerReady -> event.buildId
                                 is ReloadApplied -> event.buildId
                                 else -> snapshot.renderedBuild
                             }
-                        snapshot = BrowserSnapshot(record.sequence, record.state, rendered)
+                        val document =
+                            when {
+                                event is ServerReady -> event.buildId
+                                event is ReloadApplied && event.level.satisfies(ReloadLevel.DOCUMENT_REFRESH) ->
+                                    event.buildId
+                                else -> snapshot.documentBuild
+                            }
+                        snapshot = BrowserSnapshot(record.sequence, record.state, rendered, document)
                         clients.forEach { it.offer(snapshot) }
                     }
                 }
@@ -178,6 +187,7 @@ public class DevelopmentBrowserChannel(
             "/client.js" -> asset(exchange, "client.js", "text/javascript; charset=utf-8")
             "/refresh-state.js" -> asset(exchange, "refresh-state.js", "text/javascript; charset=utf-8")
             "/state-controls.js" -> asset(exchange, "state-controls.js", "text/javascript; charset=utf-8")
+            "/stylesheets.js" -> asset(exchange, "stylesheets.js", "text/javascript; charset=utf-8")
             "/overlay.css" -> asset(exchange, "overlay.css", "text/css; charset=utf-8")
             "/events", "/details" -> {
                 val credential = exchange.requestURI.rawQuery.orEmpty()

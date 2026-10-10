@@ -64,7 +64,7 @@ internal class ClientFileFrontendAdapter(
         buildId: BuildId,
         level: ReloadLevel,
     ): Boolean {
-        if (level != ReloadLevel.DOCUMENT_REFRESH) return false
+        if (level != ReloadLevel.DOCUMENT_REFRESH && level != ReloadLevel.HOT_ASSET) return false
         clientFile().rendered(buildId)
         return true
     }

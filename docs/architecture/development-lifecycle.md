@@ -148,6 +148,13 @@ or failed, with concise source-located diagnostics. A reconnect gets the current
 the last ready build, rather than replaying every old edit. Stale IDs cannot trigger a refresh.
 Offline tabs keep their document and reload only after coming online.
 
+Saving only `.css` files does not restart the application or refresh the page. Gradle copies the
+new file, and each tab loads its same-origin `<link rel="stylesheet">` files again, then removes the
+old ones. Focus, scroll, form values and open UI stay as they are. If a stylesheet fails to load,
+the tab falls back to a normal refresh. Snapshots carry `documentBuild` (the newest build that
+changed HTML) next to `renderedBuild` for this. See
+[ADR 0071](../adr/0071-in-place-stylesheet-updates-in-development.md).
+
 A failed compile does not refresh or edit the document. After a successful restart, each tab
 refreshes once when its rendered build/generation is older than the ready app. A full refresh does
 **not** promise to preserve dirty controls, scroll or focus; that follow-up is #150. The optional
