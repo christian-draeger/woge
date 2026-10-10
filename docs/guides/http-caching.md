@@ -72,6 +72,6 @@ conditional flow over actual HTTP in all three hosts; dedicated proxy/CDN fixtur
 
 Static files stay with the host's resource handler. Only immutable, content-fingerprinted URLs should
 receive `public, max-age=31536000, immutable`; unversioned URLs need a shorter lifetime or revalidation.
-Woge's own production hashing and manifest integration is tracked in
-[#170](https://github.com/christian-draeger/woge/issues/170). CSS/Vite/Node pipelines are not required
-to choose ordinary HTTP cache headers. Component caching is a separate feature under #59.
+The [production-assets guide](production-assets.md) describes Woge's Node-free hashing, typed URL
+resolution and actual-JAR verification. CSS/Vite/Node pipelines are not required to choose ordinary
+HTTP cache headers. Component caching is a separate feature under #59.
