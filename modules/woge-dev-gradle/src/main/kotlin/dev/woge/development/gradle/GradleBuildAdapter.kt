@@ -1,6 +1,8 @@
 package dev.woge.development.gradle
 
+import dev.woge.development.DevelopmentChangeKind
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import dev.woge.development.ReloadLevel
 import dev.woge.development.browser.DevelopmentBuildDetails
 import dev.woge.development.orchestrator.DevelopmentBuildAdapter
 import dev.woge.development.orchestrator.DevelopmentBuildRequest
@@ -40,14 +42,24 @@ public class GradleBuildAdapter(
     override fun read(): String = lastOutput
 
     override suspend fun build(request: DevelopmentBuildRequest): DevelopmentBuildResult {
-        val result = run(command)
+        // A build that only copied stylesheets lets open pages swap them in place.
+        val success =
+            if (request.changes.isNotEmpty() && request.changes.all { it.kind == DevelopmentChangeKind.CSS }) {
+                DevelopmentBuildResult.Succeeded(ReloadLevel.HOT_ASSET)
+            } else {
+                DevelopmentBuildResult.Succeeded()
+            }
+        val result = run(command, success)
         val staleGeneratedCode =
             result is DevelopmentBuildResult.Failed &&
                 result.diagnostics.any { it.code == KotlinDiagnostics.generatedCode }
-        return if (staleGeneratedCode) run(command + REGENERATE_ALL) else result
+        return if (staleGeneratedCode) run(command + REGENERATE_ALL, success) else result
     }
 
-    private suspend fun run(command: List<String>): DevelopmentBuildResult {
+    private suspend fun run(
+        command: List<String>,
+        success: DevelopmentBuildResult.Succeeded,
+    ): DevelopmentBuildResult {
         val output = BoundedOutput(detailsLimit)
         val process =
             withContext(Dispatchers.IO) {
@@ -65,7 +77,7 @@ public class GradleBuildAdapter(
             withContext(Dispatchers.IO) { reader.join(READER_JOIN_MILLIS) }
             lastOutput = output.text()
             return if (exit == 0) {
-                DevelopmentBuildResult.Succeeded()
+                success
             } else {
                 DevelopmentBuildResult.Failed(KotlinDiagnostics.parse(output.lines(), projectDirectory))
             }

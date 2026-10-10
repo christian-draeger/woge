@@ -1,7 +1,10 @@
 package dev.woge.development.gradle
 
 import dev.woge.development.BuildId
+import dev.woge.development.DevelopmentChange
+import dev.woge.development.DevelopmentChangeKind
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import dev.woge.development.ReloadLevel
 import dev.woge.development.orchestrator.DevelopmentBuildRequest
 import dev.woge.development.orchestrator.DevelopmentBuildResult
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +36,31 @@ class GradleBuildAdapterTest {
 
             assertInstanceOf(DevelopmentBuildResult.Succeeded::class.java, adapter.build(request))
             assertEquals("compiled", adapter.read())
+        }
+
+    @Test
+    fun `a build of stylesheet changes only allows a hot asset update`() =
+        runBlocking {
+            val adapter = GradleBuildAdapter(project, shell("echo compiled"))
+            val css = DevelopmentChange(DevelopmentChangeKind.CSS)
+            val kotlin = DevelopmentChange(DevelopmentChangeKind.KOTLIN_SOURCE)
+
+            assertEquals(
+                ReloadLevel.HOT_ASSET,
+                (adapter.build(DevelopmentBuildRequest(BuildId.of(1), setOf(css))) as DevelopmentBuildResult.Succeeded)
+                    .requiredReload,
+            )
+            assertEquals(
+                ReloadLevel.DOCUMENT_REFRESH,
+                (
+                    adapter.build(DevelopmentBuildRequest(BuildId.of(2), setOf(css, kotlin)))
+                        as DevelopmentBuildResult.Succeeded
+                ).requiredReload,
+            )
+            assertEquals(
+                ReloadLevel.DOCUMENT_REFRESH,
+                (adapter.build(request) as DevelopmentBuildResult.Succeeded).requiredReload,
+            )
         }
 
     @Test

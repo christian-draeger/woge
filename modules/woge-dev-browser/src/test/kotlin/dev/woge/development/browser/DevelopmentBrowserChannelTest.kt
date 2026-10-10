@@ -5,9 +5,11 @@ import dev.woge.development.DevelopmentChangeKind
 import dev.woge.development.DevelopmentSessionPhase
 import dev.woge.development.DevelopmentUrl
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import dev.woge.development.ReloadLevel
 import dev.woge.development.orchestrator.DevelopmentAdapters
 import dev.woge.development.orchestrator.DevelopmentBuildAdapter
 import dev.woge.development.orchestrator.DevelopmentBuildResult
+import dev.woge.development.orchestrator.DevelopmentFrontendAdapter
 import dev.woge.development.orchestrator.DevelopmentHostAdapter
 import dev.woge.development.orchestrator.DevelopmentHostRestartRequest
 import dev.woge.development.orchestrator.DevelopmentHostRestartResult
@@ -43,12 +45,21 @@ class DevelopmentBrowserChannelTest {
             DevelopmentOrchestrator.start(
                 scope,
                 DevelopmentAdapters(
-                    DevelopmentBuildAdapter { DevelopmentBuildResult.Succeeded() },
+                    DevelopmentBuildAdapter { request ->
+                        if (request.changes.all { it.kind == DevelopmentChangeKind.CSS }) {
+                            DevelopmentBuildResult.Succeeded(ReloadLevel.HOT_ASSET)
+                        } else {
+                            DevelopmentBuildResult.Succeeded()
+                        }
+                    },
                     object : DevelopmentHostAdapter {
                         override suspend fun restart(request: DevelopmentHostRestartRequest) =
                             DevelopmentHostRestartResult.Ready(listOf(DevelopmentUrl.local("http://127.0.0.1:8080/")))
 
                         override suspend fun shutdown() = Unit
+                    },
+                    DevelopmentFrontendAdapter { _, level ->
+                        level == ReloadLevel.HOT_ASSET || level == ReloadLevel.DOCUMENT_REFRESH
                     },
                 ),
             )
@@ -76,7 +87,7 @@ class DevelopmentBrowserChannelTest {
     @Test
     fun `development handoff and shared control resources are served as plain modules`() {
         Fixture().use { fixture ->
-            for (asset in listOf("client.js", "refresh-state.js", "state-controls.js")) {
+            for (asset in listOf("client.js", "refresh-state.js", "state-controls.js", "stylesheets.js")) {
                 val response =
                     fixture.http.send(
                         fixture.request("${fixture.channel.baseUrl}/$asset", "http://127.0.0.1:8080"),
@@ -189,6 +200,32 @@ class DevelopmentBrowserChannelTest {
                             .getValue("phase")
                             .jsonPrimitive.content,
                     )
+                }
+            }
+        }
+
+    @Test
+    fun `a stylesheet-only build is rendered without a new document build`() =
+        runBlocking {
+            Fixture().use { fixture ->
+                val stream =
+                    fixture.http.send(
+                        fixture.request(fixture.channel.eventsUrl),
+                        HttpResponse.BodyHandlers.ofInputStream(),
+                    )
+                stream.body().bufferedReader().use { reader ->
+                    readSnapshot(reader)
+                    fixture.orchestrator.reportChange(DevelopmentChange(DevelopmentChangeKind.KOTLIN_SOURCE))
+                    val server = Json.parseToJsonElement(readReady(reader)).jsonObject
+                    assertEquals("1", server.getValue("renderedBuild").jsonPrimitive.content)
+                    assertEquals("1", server.getValue("documentBuild").jsonPrimitive.content)
+
+                    fixture.orchestrator.reportChange(DevelopmentChange(DevelopmentChangeKind.CSS))
+                    val css =
+                        generateSequence { Json.parseToJsonElement(readReady(reader)).jsonObject }
+                            .first { it.getValue("renderedBuild").jsonPrimitive.content == "2" }
+                    assertEquals("1", css.getValue("documentBuild").jsonPrimitive.content)
+                    assertEquals("1", css.getValue("generation").jsonPrimitive.content)
                 }
             }
         }

@@ -9,6 +9,7 @@ import dev.woge.development.DevelopmentEvent
 import dev.woge.development.DevelopmentSessionStopped
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.ReloadApplied
+import dev.woge.development.ReloadLevel
 import dev.woge.development.ServerExited
 import dev.woge.development.ServerReady
 import dev.woge.development.ServerRestartFailed
@@ -46,7 +47,12 @@ internal class TerminalReporter(
                     "The application did not start."
                 }
             is ServerExited -> "The application stopped unexpectedly. Save a change to start it again."
-            is ReloadApplied -> "Browsers refreshed with build #${event.buildId.value}"
+            is ReloadApplied ->
+                if (event.level == ReloadLevel.HOT_ASSET) {
+                    "Stylesheets updated with build #${event.buildId.value}"
+                } else {
+                    "Browsers refreshed with build #${event.buildId.value}"
+                }
             DevelopmentSessionStopped -> "Development session stopped."
             else -> null
         }

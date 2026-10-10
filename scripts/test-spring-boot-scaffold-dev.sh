@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Runs `./gradlew wogeDev` in a fresh Spring Boot scaffold and checks the edit loop:
-# start, edit, compile error (old version keeps serving), fix, a new typed region (KSP), a rejected
+# start, stylesheet edit without restart, edit, compile error (old version keeps serving), fix, a new typed region (KSP), a rejected
 # region declaration, incremental action registries, and clean shutdown.
 
 set -eu
@@ -154,6 +154,14 @@ policy=$(curl --silent --max-time 10 --dump-header - --output /dev/null "http://
   tr -d '\r' | grep -i '^content-security-policy:' || true)
 grep -Fq "connect-src 'self' $client_origin" <<<"$policy" ||
   fail "strict CSP does not allow the development client: $policy"
+
+# A stylesheet-only edit is served without restarting the application.
+ready_before=$(ready_count)
+printf '\n.woge-hot-css-smoke { color: rebeccapurple; }\n' >>"$fixture_root/src/main/resources/static/styles.css"
+wait_for_log '^\[woge\] Stylesheets updated with build #' 1 120
+curl --silent --max-time 10 "http://127.0.0.1:$port/styles.css" | grep -Fq 'woge-hot-css-smoke' ||
+  fail 'stylesheet edit is not served'
+(( $(ready_count) == ready_before )) || fail 'stylesheet edit restarted the application'
 
 sed -i.bak 's/Hello from Woge/Edited by wogeDev/g' "$page_file"
 wait_for_log '^\[woge\] Ready:' 2 120

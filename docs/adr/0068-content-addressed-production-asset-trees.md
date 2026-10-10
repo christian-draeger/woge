@@ -72,7 +72,7 @@ deleted assets, encoded names, unsafe inputs, URL resolution and packaged artifa
 
 ## Follow-up
 
-Development CSS/Tailwind hot updates remain #152; production hashing does not install a watcher.
+Development CSS hot updates are decided in [ADR 0071](0071-in-place-stylesheet-updates-in-development.md); production hashing does not install a watcher.
 Specialized frontend tools can own their own dependency-aware naming while feeding their final tree
 to this manifest. Ktor applications may use the same task and typed URLs but configure their own
 ordinary static resource handler. Dedicated proxy/CDN deployment evidence remains part of #117.

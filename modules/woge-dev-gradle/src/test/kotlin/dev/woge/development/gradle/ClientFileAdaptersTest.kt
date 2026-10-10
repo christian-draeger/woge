@@ -54,9 +54,11 @@ class ClientFileAdaptersTest {
             assertEquals(ServerGeneration.of(1), DevelopmentClientSettings.readFrom(file)?.generation)
 
             val frontend = ClientFileFrontendAdapter { clientFile }
-            assertFalse(frontend.apply(BuildId.of(2), ReloadLevel.HOT_ASSET))
-            assertEquals(true, frontend.apply(BuildId.of(2), ReloadLevel.DOCUMENT_REFRESH))
+            assertFalse(frontend.apply(BuildId.of(2), ReloadLevel.HOT_FRONTEND_MODULE))
+            assertEquals(true, frontend.apply(BuildId.of(2), ReloadLevel.HOT_ASSET))
             assertEquals(BuildId.of(2), DevelopmentClientSettings.readFrom(file)?.renderedBuild)
+            assertEquals(true, frontend.apply(BuildId.of(3), ReloadLevel.DOCUMENT_REFRESH))
+            assertEquals(BuildId.of(3), DevelopmentClientSettings.readFrom(file)?.renderedBuild)
             assertEquals(ServerGeneration.of(1), DevelopmentClientSettings.readFrom(file)?.generation)
         }
 
