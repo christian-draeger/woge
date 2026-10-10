@@ -3,6 +3,7 @@ package dev.woge.spring.webflux
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
+import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
@@ -45,12 +46,17 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 observer = application.observer,
             )
         val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val failures =
+            WogeWebFluxHandlers(failurePages = application.failurePages)
+                .page(application.failureRoutePages, AdapterTckFailureRoute)
         val routes =
             coRouter {
                 GET(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 HEAD(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 GET(AdapterTckRoutes.DEFERRED_PATTERN, deferred::handle)
                 GET(AdapterTckRoute.path, route::handle)
+                GET(AdapterTckFailureRoute.path, failures::handle)
+                HEAD(AdapterTckFailureRoute.path, failures::handle)
             }
         return WebFluxTckServer(
             HttpServer

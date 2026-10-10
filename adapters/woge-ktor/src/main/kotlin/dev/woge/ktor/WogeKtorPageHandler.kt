@@ -1,5 +1,6 @@
 package dev.woge.ktor
 
+import dev.woge.host.FailurePages
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
@@ -7,6 +8,7 @@ import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.withFailurePages
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import io.ktor.server.application.ApplicationCall
@@ -18,6 +20,7 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
     private val input: KtorPageInput<Input>,
     private val contexts: KtorRequestContextFactory,
     private val observer: WogeObserver,
+    private val failurePages: FailurePages,
 ) {
     /** Decodes, executes and maps the page without an application-owned transport controller. */
     @Suppress("TooGenericExceptionCaught")
@@ -42,6 +45,6 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 call.respondWogePreStreamFailure(failure)
                 return
             }
-        call.respondWogePage(result, observer, observationContext)
+        call.respondWogePage(result.withFailurePages(failurePages), observer, observationContext)
     }
 }

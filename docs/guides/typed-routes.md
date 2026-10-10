@@ -72,8 +72,49 @@ that do not fit a route.
 | A query value does not fit, e.g. `?view=unknown` | `400 Bad Request` |
 | No route matches the path | your host's normal 404 handling |
 
-The response is the same bodyless failure that `failure(...)` produces, and the received value is
-never echoed or logged.
+By default the response is the same bodyless failure that `failure(...)` produces. The received
+value is never echoed or logged.
+
+## Configure not-found and error pages
+
+Install `FailurePages` on your handlers to share error markup across pages without changing their
+components:
+
+```kotlin
+val failurePages = FailurePages { failure ->
+    when (failure.category) {
+        FailureCategory.NOT_FOUND -> htmlFrame {
+            h1 { text("Page not found") }
+            p { text("Check the link and try again.") }
+        }
+        FailureCategory.INTERNAL -> htmlFrame {
+            h1 { text("Something went wrong") }
+            p { text("Reference: ${failure.correlationId.value}") }
+        }
+        else -> null
+    }
+}
+
+val handlers = WogeWebFluxHandlers(failurePages = failurePages)
+// The same option works on WogeSpringMvcHandlers and WogeKtorHandlers.
+```
+
+With the Spring Boot starter, declare your `FailurePages` as a `@Bean`. Woge passes it to the
+auto-configured MVC or WebFlux handlers; you do not need to replace the handler factory.
+
+The hook receives only safe failure metadata. It returns a Woge HTML frame or `null` to keep the
+response bodyless. Woge keeps the original HTTP status (for example 404 or 500), sets the HTML content
+type, and sends no body for HEAD requests. No JavaScript is needed.
+
+This applies to invalid route values and controlled `failure(...)` page outcomes, including
+`FailureCategory.INTERNAL`. Unexpected exceptions still use the host's existing error handling;
+Woge does not expose their messages or turn them into successful pages. Renderer exceptions also
+propagate through that handling rather than silently falling back.
+
+An unmatched URL is still owned by your router. Configure its ordinary not-found handler separately:
+Spring Boot's error handling for MVC, a final not-found route in WebFlux, or Ktor's `StatusPages`.
+That handler can reuse the same `FailurePages` hook with a `PublicFailure`; it does not require
+changes to a page component.
 
 ## Mistakes the build reports
 

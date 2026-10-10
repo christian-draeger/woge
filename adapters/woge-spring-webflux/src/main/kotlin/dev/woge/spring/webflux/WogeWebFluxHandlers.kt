@@ -1,6 +1,7 @@
 package dev.woge.spring.webflux
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
@@ -14,6 +15,7 @@ public class WogeWebFluxHandlers(
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
+    private val failurePages: FailurePages = FailurePages.NONE,
 ) {
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout)
@@ -23,7 +25,7 @@ public class WogeWebFluxHandlers(
     public fun <Input : Any> page(
         useCase: PageUseCase<Input>,
         input: WebFluxPageInput<Input>,
-    ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts, observer)
+    ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts, observer, failurePages)
 
     /**
      * Creates a handler for a page with a generated route. Register it at the route's own path:

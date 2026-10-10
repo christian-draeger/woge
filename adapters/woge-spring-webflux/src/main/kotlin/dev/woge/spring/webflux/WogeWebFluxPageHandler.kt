@@ -1,5 +1,6 @@
 package dev.woge.spring.webflux
 
+import dev.woge.host.FailurePages
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
@@ -7,6 +8,7 @@ import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.withFailurePages
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -18,6 +20,7 @@ public class WogeWebFluxPageHandler<Input : Any>(
     private val input: WebFluxPageInput<Input>,
     private val contexts: WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory,
     private val observer: WogeObserver = WogeObserver.NONE,
+    private val failurePages: FailurePages = FailurePages.NONE,
 ) {
     /** Decodes, executes and maps the page without an application-owned controller. */
     public suspend fun handle(request: ServerRequest): ServerResponse {
@@ -27,7 +30,9 @@ public class WogeWebFluxPageHandler<Input : Any>(
             try {
                 input.decode(request)
             } catch (invalid: RouteValueException) {
-                return failure(invalid.category, context.correlationId).toWebFluxResponse(observer, observationContext)
+                return failure(invalid.category, context.correlationId)
+                    .withFailurePages(failurePages)
+                    .toWebFluxResponse(observer, observationContext)
             }
         val pageRequest = PageRequest(decoded, context)
         val result =
@@ -38,6 +43,6 @@ public class WogeWebFluxPageHandler<Input : Any>(
             ) {
                 page.open(pageRequest)
             }
-        return result.toWebFluxResponse(observer, observationContext)
+        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext)
     }
 }
