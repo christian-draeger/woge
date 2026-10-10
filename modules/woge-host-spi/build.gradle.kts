@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     id("dev.woge.kotlin-jvm-library")
+    alias(libs.plugins.kotlinSerialization)
 }
 
 description = "Framework-neutral page, action, and live-update host ports."
@@ -15,6 +16,7 @@ dependencies {
     api(project(":woge-core"))
     api(project(":woge-protocol"))
     api(libs.kotlinxCoroutinesCore)
+    api(libs.kotlinxSerializationJson)
 
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)

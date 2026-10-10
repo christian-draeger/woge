@@ -10,16 +10,18 @@ import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
+import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
-import dev.woge.tck.TckActionCommand
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
+import dev.woge.tck.tckActionForm
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -32,10 +34,19 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.Path
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class WogeSpringMvcAdapterTckTest {
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
+    fun `native forms pass the real browser contract`() {
+        ServerAdapterContract(SpringMvcTckHarnessFactory).verify(
+            listOf(NativeFormBrowserContract(Path.of(System.getenv("WOGE_NATIVE_BROWSER_SCRIPT")))),
+        )
+    }
+
     @Test
     fun `Spring MVC passes the shared server adapter contract`() {
         ServerAdapterContract(SpringMvcTckHarnessFactory).verify()
@@ -143,12 +154,13 @@ private class SpringMvcTckConfiguration {
                         .page(application.failureRoutePages, AdapterTckFailureRoute),
                 TckSubmitAction.path to
                     handlers.action(
-                        TckSubmitAction,
-                        SpringMvcPageInput { request -> TckActionCommand(request.getParameter("value").orEmpty()) },
+                        application.actionSubmissions,
+                        tckActionForm.springMvcSubmission(),
                         SpringMvcRequestContextFactory { request ->
                             tckActionContext(request.getHeader("X-Tck-Subject"))
                         },
                     ),
+                "/woge-tck/action-complete" to handlers.page(application.actionCompletion, SpringMvcPageInput { }),
             ),
             0,
         )

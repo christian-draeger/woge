@@ -25,9 +25,18 @@ dependencies {
     testImplementation(libs.junitJupiter)
     testImplementation(libs.reactorNettyHttp)
     testImplementation(libs.springContext)
+    testImplementation(libs.springSecurityConfig)
+    testImplementation(libs.springSecurityWeb)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
+}
+
+tasks.test {
+    inputs.property("nativeFormBrowserScript", providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").orElse(""))
+    inputs.files(
+        providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").map { listOf(it) }.orElse(emptyList()),
+    )
 }

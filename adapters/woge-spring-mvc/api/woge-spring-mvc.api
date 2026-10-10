@@ -3,6 +3,11 @@ public final class dev/woge/spring/mvc/DefaultSpringMvcRequestContextFactory : d
 	public fun create (Ljakarta/servlet/http/HttpServletRequest;)Ldev/woge/host/RequestContext;
 }
 
+public final class dev/woge/spring/mvc/SpringMvcFormInputKt {
+	public static final fun springMvcInput (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+	public static final fun springMvcSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+}
+
 public abstract interface class dev/woge/spring/mvc/SpringMvcPageInput {
 	public abstract fun decode (Ljakarta/servlet/http/HttpServletRequest;)Ljava/lang/Object;
 }

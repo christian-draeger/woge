@@ -1,6 +1,7 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.FailurePages
+import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
@@ -39,12 +40,19 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
         }
         val context = contexts.create(request)
         val decoded = runCatching { input.decode(request) }
-        val invalid = decoded.exceptionOrNull()?.let { it as? RouteValueException ?: throw it }
+        val invalid =
+            decoded.exceptionOrNull()?.let {
+                when (it) {
+                    is RouteValueException -> it.category
+                    is FormDecodingException -> it.category
+                    else -> throw it
+                }
+            }
         val observationContext = WogeObservationContext(requestTrace = context.trace)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
             val result =
                 if (invalid != null) {
-                    failure(invalid.category, context.correlationId)
+                    failure(invalid, context.correlationId)
                 } else {
                     observer.observeOperation(
                         operation = WogeOperation.PAGE_REQUEST,

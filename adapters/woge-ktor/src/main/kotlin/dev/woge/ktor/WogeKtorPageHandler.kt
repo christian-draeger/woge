@@ -1,6 +1,7 @@
 package dev.woge.ktor
 
 import dev.woge.host.FailurePages
+import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
@@ -38,6 +39,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                     page.open(pageRequest)
                 }
             } catch (invalid: RouteValueException) {
+                failure(invalid.category, context.correlationId)
+            } catch (invalid: FormDecodingException) {
                 failure(invalid.category, context.correlationId)
             } catch (cancelled: CancellationException) {
                 throw cancelled

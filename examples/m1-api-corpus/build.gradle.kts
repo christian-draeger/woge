@@ -1,6 +1,7 @@
 plugins {
     id("dev.woge.kotlin-jvm-library")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 description = "Compact compile-verified examples and negative compiler fixtures for the public M1 API."

@@ -9,10 +9,11 @@ import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
+import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
-import dev.woge.tck.TckActionCommand
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
+import dev.woge.tck.tckActionForm
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -23,9 +24,19 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import java.net.URI
+import java.nio.file.Path
 
 class WogeKtorAdapterTckTest {
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
+    fun `native forms pass the real browser contract`() {
+        ServerAdapterContract(KtorTckHarnessFactory).verify(
+            listOf(NativeFormBrowserContract(Path.of(System.getenv("WOGE_NATIVE_BROWSER_SCRIPT")))),
+        )
+    }
+
     @Test
     fun `Ktor passes the shared server adapter contract`() {
         ServerAdapterContract(KtorTckHarnessFactory).verify()
@@ -56,10 +67,11 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
         val action =
             WogeKtorHandlers().action(
-                TckSubmitAction,
-                KtorPageInput { call -> TckActionCommand(call.request.queryParameters["value"].orEmpty()) },
+                application.actionSubmissions,
+                tckActionForm.ktorSubmission(),
                 KtorRequestContextFactory { call -> tckActionContext(call.request.headers["X-Tck-Subject"]) },
             )
+        val complete = WogeKtorHandlers().page(application.actionCompletion, KtorPageInput { })
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 routing {
@@ -71,6 +83,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     head(AdapterTckFailureRoute.path) { failures.handle(call) }
                     post(TckSubmitAction.path) { action.handle(call) }
                     get(TckSubmitAction.path) { action.handle(call) }
+                    get("/woge-tck/action-complete") { complete.handle(call) }
                 }
             }.start(wait = false)
         return KtorTckServer(server)

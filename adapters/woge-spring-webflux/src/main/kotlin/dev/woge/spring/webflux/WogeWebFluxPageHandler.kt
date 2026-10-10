@@ -1,6 +1,7 @@
 package dev.woge.spring.webflux
 
 import dev.woge.host.FailurePages
+import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
@@ -26,22 +27,26 @@ public class WogeWebFluxPageHandler<Input : Any>(
     public suspend fun handle(request: ServerRequest): ServerResponse {
         val context = contexts.create(request)
         val observationContext = WogeObservationContext(requestTrace = context.trace)
-        val decoded =
-            try {
-                input.decode(request)
-            } catch (invalid: RouteValueException) {
-                return failure(invalid.category, context.correlationId)
-                    .withFailurePages(failurePages)
-                    .toWebFluxResponse(observer, observationContext)
+        val decoded = runCatching { input.decode(request) }
+        val invalid =
+            decoded.exceptionOrNull()?.let {
+                when (it) {
+                    is RouteValueException -> it.category
+                    is FormDecodingException -> it.category
+                    else -> throw it
+                }
             }
-        val pageRequest = PageRequest(decoded, context)
         val result =
-            observer.observeOperation(
-                operation = WogeOperation.PAGE_REQUEST,
-                context = observationContext,
-                successfulOutcome = { it.observationOutcome() },
-            ) {
-                page.open(pageRequest)
+            if (invalid != null) {
+                failure(invalid, context.correlationId)
+            } else {
+                observer.observeOperation(
+                    operation = WogeOperation.PAGE_REQUEST,
+                    context = observationContext,
+                    successfulOutcome = { it.observationOutcome() },
+                ) {
+                    page.open(PageRequest(decoded.getOrThrow(), context))
+                }
             }
         return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext)
     }

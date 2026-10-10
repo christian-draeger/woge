@@ -1,10 +1,12 @@
 package dev.woge.tck
 
+import dev.woge.host.ActionExecutor
 import dev.woge.host.CookieName
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailureCategory
 import dev.woge.host.FailurePages
+import dev.woge.host.FormSubmission
 import dev.woge.host.HeaderName
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
@@ -72,6 +74,10 @@ public enum class AdapterTckDeferredScenario(
 /** Shared portable application fixture compiled once and bound unchanged by every adapter. */
 public class AdapterTckApplication internal constructor() {
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
+    private val actionWorkflow = TckActionWorkflow()
+
+    public val actionSubmissions: ActionExecutor<FormSubmission<TckActionCommand>> = actionWorkflow.submissions
+    public val actionCompletion: PageUseCase<Unit> = actionWorkflow.completion
 
     public val observer: WogeObserver = WogeObserver(state::observe)
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)

@@ -51,7 +51,9 @@ processor. Register a route with `handlers.page(page, ProjectPageRoute)` at `Pro
 `@WogeAction("stable-id")` generates typed action descriptors and explicit package registries.
 Bind POST endpoints with `handlers.action(descriptor, input, securityContexts)` and register the
 descriptor's path in your host router. An explicit security-context factory is required before
-typed execution. Bounded form decoding is not implemented yet; keep input decoding application-owned.
+typed execution. Use `@Serializable` commands with `FormDecoder(Command.serializer())` and its
+`springMvcInput()`, `webFluxInput()` or `ktorInput()` binding for bounded URL-encoded forms.
+Do not merge query parameters into commands or bypass form limits with host parameter collectors.
 Do not invent `ActionRef` or selector-based action targets.
 
 ## Safety and generated ownership

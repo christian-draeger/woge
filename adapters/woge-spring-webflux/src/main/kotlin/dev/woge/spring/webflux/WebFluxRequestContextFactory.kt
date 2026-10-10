@@ -15,9 +15,9 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import java.util.Locale
 import java.util.UUID
 
-/** Maps adapter-owned WebFlux request state to an immutable Woge request snapshot. */
+/** Maps WebFlux request state, awaiting reactive identity without blocking an event-loop thread. */
 public fun interface WebFluxRequestContextFactory {
-    public fun create(request: ServerRequest): RequestContext
+    public suspend fun create(request: ServerRequest): RequestContext
 }
 
 /**
@@ -28,7 +28,7 @@ public fun interface WebFluxRequestContextFactory {
  * translates their Spring Security and CSRF decisions explicitly.
  */
 public object DefaultWebFluxRequestContextFactory : WebFluxRequestContextFactory {
-    override fun create(request: ServerRequest): RequestContext {
+    override suspend fun create(request: ServerRequest): RequestContext {
         val method = RequestMethod.of(request.method().name())
         require(method in SAFE_METHODS) {
             "The default WebFlux context supports safe page methods only; install an explicit security context factory"

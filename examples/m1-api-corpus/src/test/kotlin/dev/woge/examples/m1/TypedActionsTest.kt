@@ -6,6 +6,7 @@ import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
 import dev.woge.host.RequestTrace
 import dev.woge.host.ResponseStatus
+import dev.woge.host.getOrThrow
 import dev.woge.host.htmlPage
 import dev.woge.host.writeTo
 import dev.woge.html.BufferedHtmlSink
@@ -25,7 +26,10 @@ class TypedActionsTest {
                 )
             assertEquals(
                 ResponseStatus.SEE_OTHER,
-                executeProjectAction(OpenProject("woge"), context).metadata.status,
+                executeProjectAction(
+                    openProjectForm.decode("project=woge".toByteArray()).getOrThrow(),
+                    context,
+                ).metadata.status,
             )
             assertEquals(
                 ResponseStatus.BAD_REQUEST,
@@ -35,7 +39,8 @@ class TypedActionsTest {
             val sink = BufferedHtmlSink()
             htmlPage { projectForm() }.writeTo(sink)
             assertEquals(
-                """<form method="post" action="/woge-actions/open-project">""" +
+                """<form method="post" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8" """ +
+                    """action="/woge-actions/open-project">""" +
                     """<button name="project" value="woge">Open project</button></form>""",
                 sink.content(),
             )

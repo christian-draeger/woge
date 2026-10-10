@@ -81,6 +81,8 @@ public enum class FailureCategory(
     FORBIDDEN(ResponseStatus.FORBIDDEN),
     NOT_FOUND(ResponseStatus.NOT_FOUND),
     CONFLICT(ResponseStatus.CONFLICT),
+    PAYLOAD_TOO_LARGE(ResponseStatus.PAYLOAD_TOO_LARGE),
+    UNSUPPORTED_MEDIA_TYPE(ResponseStatus.UNSUPPORTED_MEDIA_TYPE),
     RATE_LIMITED(ResponseStatus.TOO_MANY_REQUESTS),
     INTERNAL(ResponseStatus.INTERNAL_SERVER_ERROR),
     UNAVAILABLE(ResponseStatus.SERVICE_UNAVAILABLE),

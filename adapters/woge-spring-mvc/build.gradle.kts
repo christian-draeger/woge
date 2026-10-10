@@ -23,9 +23,18 @@ dependencies {
     testImplementation(project(":woge-adapter-tck"))
     testImplementation(libs.junitJupiter)
     testImplementation(libs.springBootStarterWeb)
+    testImplementation(libs.springSecurityConfig)
+    testImplementation(libs.springSecurityWeb)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
+}
+
+tasks.test {
+    inputs.property("nativeFormBrowserScript", providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").orElse(""))
+    inputs.files(
+        providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").map { listOf(it) }.orElse(emptyList()),
+    )
 }
