@@ -2,7 +2,7 @@ plugins {
     id("dev.woge.kotlin-jvm-library")
 }
 
-description = "Internal Spring Boot development host: managed child process with trigger-file restart."
+description = "Internal development host: runs the Spring Boot or Ktor application as a managed child process."
 
 dependencies {
     api(project(":woge-dev-orchestrator"))
@@ -15,6 +15,7 @@ dependencies {
     testImplementation(libs.kotlinCompilerEmbeddable)
     testImplementation(libs.springBootStarterWeb)
     testImplementation(libs.springBootStarterWebflux)
+    testImplementation(libs.ktorServerNetty)
     testRuntimeOnly("org.springframework.boot:spring-boot-devtools")
     testRuntimeOnly(libs.junitPlatformLauncher)
 }

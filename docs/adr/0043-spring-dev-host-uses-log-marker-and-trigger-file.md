@@ -65,3 +65,6 @@ things a web developer already knows: a command line, a file, a port and the log
   [ADR 0045](0045-wogedev-gradle-launcher-and-development-head-hook.md) records the composition. The
   readiness listener now lives in `woge-dev-spring-child`, which the app receives as `developmentOnly`.
 - [#145](https://github.com/christian-draeger/woge/issues/145): SSE browser channel.
+- [ADR 0074](0074-ktor-development-restart-parity.md) renames the module to `woge-dev-process-host`
+  and adds a Ktor configuration with port readiness and full restarts. The Spring behavior above is
+  unchanged; its diagnostic codes keep the `SPRING-HOST-*` prefix.

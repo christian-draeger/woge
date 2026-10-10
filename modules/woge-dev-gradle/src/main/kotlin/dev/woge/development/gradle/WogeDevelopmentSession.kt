@@ -9,9 +9,9 @@ import dev.woge.development.client.FileDevelopmentHeadContribution
 import dev.woge.development.orchestrator.DevelopmentAdapters
 import dev.woge.development.orchestrator.DevelopmentHostAdapter
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
-import dev.woge.development.spring.ChildLaunchSpec
-import dev.woge.development.spring.SpringDevelopmentHost
-import dev.woge.development.spring.SpringDevelopmentHostConfig
+import dev.woge.development.process.ChildLaunchSpec
+import dev.woge.development.process.ChildProcessDevelopmentHost
+import dev.woge.development.process.ChildProcessHostConfig
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -22,15 +22,15 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.readText
 
 /**
- * One `wogeDev` session: watch sources, build with Gradle, run the Spring Boot child and keep
+ * One `wogeDev` session: watch sources, build with Gradle, run the Spring Boot or Ktor child and keep
  * browsers informed. Cancel the calling coroutine to stop everything, including the child.
  */
 @ExperimentalWogeDevelopmentApi
 public class WogeDevelopmentSession(
     private val settings: WogeDevelopmentSettings,
     private val print: (String) -> Unit = ::println,
-    private val hostFactory: (SpringDevelopmentHostConfig) -> DevelopmentHostAdapter = { config ->
-        SpringDevelopmentHost(config, ForwardingChildLauncher(print))
+    private val hostFactory: (ChildProcessHostConfig) -> DevelopmentHostAdapter = { config ->
+        ChildProcessDevelopmentHost(config, ForwardingChildLauncher(print))
     },
 ) {
     public suspend fun run(): Unit =
@@ -40,7 +40,9 @@ public class WogeDevelopmentSession(
             val clientFile = AtomicReference<ClientFile>()
             val build = GradleBuildAdapter(settings.projectDirectory, settings.buildCommand)
             val host =
-                ClientFileHostAdapter(LazyHostAdapter { mainClass()?.let { hostFactory(hostConfig(it)) } }) {
+                ClientFileHostAdapter(
+                    LazyHostAdapter(settings.host) { mainClass()?.let { hostFactory(hostConfig(it)) } },
+                ) {
                     clientFile.get()
                 }
             val orchestrator =
@@ -87,19 +89,20 @@ public class WogeDevelopmentSession(
     private fun mainClass(): String? =
         runCatching { settings.mainClassFile.readText().trim() }.getOrNull()?.takeIf { it.isNotEmpty() }
 
-    private fun hostConfig(mainClass: String): SpringDevelopmentHostConfig =
-        SpringDevelopmentHostConfig(
-            launch =
-                ChildLaunchSpec(
-                    command = settings.childCommand(mainClass),
-                    workingDirectory = settings.projectDirectory,
-                    environment =
-                        mapOf(
-                            FileDevelopmentHeadContribution.CLIENT_FILE_VARIABLE to settings.clientFile.toString(),
-                        ),
-                ),
-            port = settings.port,
-            triggerFile = settings.triggerFile,
-            fastRestart = settings.fastRestart,
-        )
+    private fun hostConfig(mainClass: String): ChildProcessHostConfig {
+        val launch =
+            ChildLaunchSpec(
+                command = settings.childCommand(mainClass),
+                workingDirectory = settings.projectDirectory,
+                environment =
+                    mapOf(
+                        FileDevelopmentHeadContribution.CLIENT_FILE_VARIABLE to settings.clientFile.toString(),
+                    ),
+            )
+        return when (settings.host) {
+            WogeDevelopmentHost.SPRING_BOOT ->
+                ChildProcessHostConfig.springBoot(launch, settings.port, settings.triggerFile, settings.fastRestart)
+            WogeDevelopmentHost.KTOR -> ChildProcessHostConfig.ktor(launch, settings.port)
+        }
+    }
 }

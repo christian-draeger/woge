@@ -1,4 +1,4 @@
-package dev.woge.development.spring
+package dev.woge.development.process
 
 import dev.woge.development.BuildId
 import dev.woge.development.ExperimentalWogeDevelopmentApi
@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,14 +26,15 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalWogeDevelopmentApi::class, ExperimentalCoroutinesApi::class)
-class SpringDevelopmentHostTest {
+class ChildProcessDevelopmentHostTest {
     @TempDir
     lateinit var directory: Path
 
     private class FakeChild(
         val onLine: (String) -> Unit,
         val onExit: (Int) -> Unit,
-        val triggerFile: Path,
+        val triggerFile: Path?,
+        val environment: Map<String, String>,
     ) : ManagedChild {
         override var isAlive: Boolean = true
         var stops = 0
@@ -44,7 +46,7 @@ class SpringDevelopmentHostTest {
 
         fun say(line: String) = onLine(line)
 
-        fun ready() = say("WOGE-DEV-READY ${Files.readString(triggerFile).trim()}")
+        fun ready() = say("WOGE-DEV-READY ${Files.readString(checkNotNull(triggerFile)).trim()}")
 
         fun die(code: Int) {
             isAlive = false
@@ -60,19 +62,26 @@ class SpringDevelopmentHostTest {
             onLine: (String) -> Unit,
             onExit: (Int) -> Unit,
         ): ManagedChild =
-            FakeChild(onLine, onExit, Path.of(spec.environment.getValue("WOGE_DEV_TRIGGER_FILE")))
+            FakeChild(onLine, onExit, spec.environment["WOGE_DEV_TRIGGER_FILE"]?.let(Path::of), spec.environment)
                 .also { children += it }
     }
+
+    private val triggerFile: Path get() = directory.resolve("trigger/restart.txt")
 
     private fun config(
         trigger: Boolean = true,
         crashLoopLimit: Int = 3,
         startupTimeout: Duration = 5.seconds,
-    ) = SpringDevelopmentHostConfig(
-        launch = ChildLaunchSpec(listOf("java", "-jar", "app.jar"), directory),
+    ) = ChildProcessHostConfig(
+        launch =
+            ChildLaunchSpec(
+                listOf("java", "-jar", "app.jar"),
+                directory,
+                mapOf("WOGE_DEV_TRIGGER_FILE" to triggerFile.toString()),
+            ),
         port = 8080,
-        triggerFile = directory.resolve("trigger/restart.txt"),
-        fastRestart = trigger,
+        readiness = ChildReadiness.ReadyMarker(triggerFile, trigger),
+        diagnosticPrefix = "SPRING-HOST",
         startupTimeout = startupTimeout,
         restartTimeout = 5.seconds,
         crashLoopLimit = crashLoopLimit,
@@ -91,7 +100,7 @@ class SpringDevelopmentHostTest {
     fun `the first restart starts the child and waits for the ready line`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
 
             val result = async { host.restart(request(1, 1)) }
             runCurrent()
@@ -106,7 +115,7 @@ class SpringDevelopmentHostTest {
     fun `a server restart touches the trigger file and waits for a new ready line`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
             launcher.children.single().ready()
@@ -127,7 +136,7 @@ class SpringDevelopmentHostTest {
     fun `without a trigger file a live child cannot do a server restart`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(trigger = false), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(trigger = false), launcher, portProbe = { true })
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
             launcher.children.single().ready()
@@ -140,7 +149,7 @@ class SpringDevelopmentHostTest {
     fun `a cold restart replaces the child`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
             launcher.children.single().ready()
@@ -159,7 +168,7 @@ class SpringDevelopmentHostTest {
     fun `an occupied port fails before any child is started`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { false }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { false })
 
             assertEquals(listOf("SPRING-HOST-PORT-IN-USE"), failedCodes(host.restart(request(1, 1))))
             assertTrue(launcher.children.isEmpty())
@@ -169,7 +178,7 @@ class SpringDevelopmentHostTest {
     fun `a child that exits during startup fails without leaking its output`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
 
             val result = async { host.restart(request(1, 1)) }
             runCurrent()
@@ -186,7 +195,7 @@ class SpringDevelopmentHostTest {
     fun `a child that never becomes ready times out and is stopped`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
 
             val codes = failedCodes(host.restart(request(1, 1)))
 
@@ -197,7 +206,7 @@ class SpringDevelopmentHostTest {
     @Test
     fun `repeated startup failures add a crash loop diagnostic`() =
         runTest {
-            val host = SpringDevelopmentHost(config(crashLoopLimit = 2), FakeLauncher()) { true }
+            val host = ChildProcessDevelopmentHost(config(crashLoopLimit = 2), FakeLauncher(), portProbe = { true })
 
             host.restart(request(1, 1))
             val codes = failedCodes(host.restart(request(2, 2, ReloadLevel.COLD_RESTART)))
@@ -209,7 +218,7 @@ class SpringDevelopmentHostTest {
     fun `shutdown stops the child`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
             launcher.children.single().ready()
@@ -225,10 +234,10 @@ class SpringDevelopmentHostTest {
     fun `ordinary startup logs and old ready tokens cannot acknowledge a new restart`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
             val first = async { host.restart(request(1, 1)) }
             runCurrent()
-            val oldToken = Files.readString(config().triggerFile).trim()
+            val oldToken = Files.readString(triggerFile).trim()
             launcher.children.single().ready()
             first.await()
 
@@ -247,7 +256,7 @@ class SpringDevelopmentHostTest {
     fun `cancelling readiness stops the child and unexpected ready child exits are observable`() =
         runTest {
             val launcher = FakeLauncher()
-            val host = SpringDevelopmentHost(config(), launcher) { true }
+            val host = ChildProcessDevelopmentHost(config(), launcher, portProbe = { true })
             val cancelled = async { host.restart(request(1, 1)) }
             runCurrent()
             cancelled.cancel()
@@ -268,25 +277,91 @@ class SpringDevelopmentHostTest {
     fun `a real process is started, detected as ready and stopped`() =
         runBlocking {
             val config =
-                SpringDevelopmentHostConfig(
-                    launch =
-                        ChildLaunchSpec(
-                            listOf(
-                                "sh",
-                                "-c",
-                                "echo \"WOGE-DEV-READY $(cat \"${'$'}WOGE_DEV_TRIGGER_FILE\")\"; sleep 30",
-                            ),
-                            directory,
+                ChildProcessHostConfig.springBoot(
+                    ChildLaunchSpec(
+                        listOf(
+                            "sh",
+                            "-c",
+                            "echo \"WOGE-DEV-READY $(cat \"${'$'}WOGE_DEV_TRIGGER_FILE\")\"; sleep 30",
                         ),
+                        directory,
+                    ),
                     port = 8080,
                     triggerFile = directory.resolve("restart.txt"),
-                    startupTimeout = 20.seconds,
                 )
-            val host = SpringDevelopmentHost(config, ProcessChildLauncher) { true }
+            val host = ChildProcessDevelopmentHost(config, ProcessChildLauncher, portProbe = { true })
 
             assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, host.restart(request(1, 1)))
             host.shutdown()
         }
+
+    private fun kotlinx.coroutines.test.TestScope.probes() = StandardTestDispatcher(testScheduler)
+
+    private fun ktorConfig(startupTimeout: Duration = 5.seconds) =
+        ChildProcessHostConfig(
+            ChildProcessHostConfig.ktor(ChildLaunchSpec(listOf("java", "-jar", "app.jar"), directory), 8080).launch,
+            port = 8080,
+            readiness = ChildReadiness.PortAccepting,
+            diagnosticPrefix = "KTOR-HOST",
+            startupTimeout = startupTimeout,
+        )
+
+    @Test
+    fun `port readiness waits until the child accepts connections`() =
+        runTest {
+            val launcher = FakeLauncher()
+            var listening = false
+            val host =
+                ChildProcessDevelopmentHost(ktorConfig(), launcher, portProbe = {
+                    true
+                }, listenProbe = { listening }, probeDispatcher = probes())
+            val first = async { host.restart(request(1, 1)) }
+            runCurrent()
+            assertEquals("8080", launcher.children.single().environment["PORT"])
+            assertFalse(first.isCompleted)
+            listening = true
+            assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, first.await())
+
+            assertEquals(DevelopmentHostRestartResult.Unsupported, host.restart(request(2, 2)))
+            val cold = host.restart(request(2, 3, ReloadLevel.COLD_RESTART))
+            assertInstanceOf(DevelopmentHostRestartResult.Ready::class.java, cold)
+            assertEquals(2, launcher.children.size)
+            assertFalse(launcher.children.first().isAlive)
+            host.shutdown()
+        }
+
+    @Test
+    fun `port readiness reports an early exit and a missing listener with host specific codes`() =
+        runTest {
+            val launcher = FakeLauncher()
+            val host =
+                ChildProcessDevelopmentHost(ktorConfig(), launcher, portProbe = {
+                    true
+                }, listenProbe = { false }, probeDispatcher = probes())
+            val exited = async { host.restart(request(1, 1)) }
+            runCurrent()
+            launcher.children.single().die(1)
+            assertEquals(listOf("KTOR-HOST-EXITED"), failedCodes(exited.await()))
+
+            val timeout = assertInstanceOf(DevelopmentHostRestartResult.Failed::class.java, host.restart(request(2, 2)))
+            assertEquals(listOf("KTOR-HOST-START-TIMEOUT"), timeout.diagnostics.map { it.code.value })
+            assertTrue(
+                timeout.diagnostics
+                    .single()
+                    .summary.value
+                    .contains("PORT"),
+            )
+            assertFalse(launcher.children.last().isAlive)
+        }
+
+    @Test
+    fun `listen probe sees a loopback listener`() {
+        ServerSocket(0).use { listener ->
+            assertTrue(ListenProbe.loopback.isListening(listener.localPort))
+        }
+        val closed = ServerSocket(0).use { it.localPort }
+        assertFalse(ListenProbe.loopback.isListening(closed))
+    }
 
     @Test
     fun `local port probe sees a wildcard listener`() {

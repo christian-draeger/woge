@@ -1,10 +1,10 @@
 package dev.woge.development.gradle
 
 import dev.woge.development.ExperimentalWogeDevelopmentApi
-import dev.woge.development.spring.ChildLaunchSpec
-import dev.woge.development.spring.ChildLauncher
-import dev.woge.development.spring.ManagedChild
-import dev.woge.development.spring.ProcessChildLauncher
+import dev.woge.development.process.ChildLaunchSpec
+import dev.woge.development.process.ChildLauncher
+import dev.woge.development.process.ManagedChild
+import dev.woge.development.process.ProcessChildLauncher
 
 /** Shows the application's own log in the `wogeDev` terminal, just like `bootRun` does. */
 @ExperimentalWogeDevelopmentApi

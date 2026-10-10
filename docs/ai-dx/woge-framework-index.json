@@ -115,12 +115,12 @@
       "example": null
     },
     {
-      "name": "woge-dev-spring-host",
+      "name": "woge-dev-process-host",
       "role": "tooling",
       "exposure": "internal",
-      "sourcePath": "modules/woge-dev-spring-host",
+      "sourcePath": "modules/woge-dev-process-host",
       "artifact": null,
-      "concepts": ["spring-dev-host", "development-restart", "reload-correctness"],
+      "concepts": ["spring-dev-host", "ktor-dev-host", "development-restart", "reload-correctness"],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },

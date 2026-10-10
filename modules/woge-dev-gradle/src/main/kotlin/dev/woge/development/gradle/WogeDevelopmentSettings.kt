@@ -21,6 +21,7 @@ public data class WogeDevelopmentSettings(
     public val watchRoots: List<Path>,
     public val buildFiles: List<Path>,
     public val port: Int,
+    public val host: WogeDevelopmentHost = WogeDevelopmentHost.SPRING_BOOT,
     public val fastRestart: Boolean = true,
     public val pollIntervalMillis: Long = DEFAULT_POLL_INTERVAL_MILLIS,
 ) {
@@ -36,23 +37,35 @@ public data class WogeDevelopmentSettings(
     public val clientFile: Path get() = stateDirectory.resolve("client.properties")
 
     /**
-     * The command for the application child. The main class comes from Spring Boot's
-     * `resolveMainClassName` task, which runs in every development build.
+     * The command for the application child. For Spring Boot the main class comes from
+     * `resolveMainClassName`; for Ktor it comes from the `application` plugin's `mainClass`.
      */
-    public fun childCommand(mainClass: String): List<String> =
-        listOf(
+    public fun childCommand(mainClass: String): List<String> {
+        // Path is Iterable<Path>; `+ path` would add its name segments instead of the directory.
+        val triggerDirectory = listOf(triggerFile.parent)
+        val classpath =
+            if (host ==
+                WogeDevelopmentHost.SPRING_BOOT
+            ) {
+                childClasspath + triggerDirectory
+            } else {
+                childClasspath
+            }
+        return listOf(
             childJava,
             "-Dwoge.development=true",
             "-cp",
-            (childClasspath + triggerFile.parent).joinToString(java.io.File.pathSeparator),
+            classpath.joinToString(java.io.File.pathSeparator),
             mainClass,
         )
+    }
 
     public fun writeTo(file: Path) {
         val properties = Properties()
         properties["project"] = projectDirectory.toString()
         properties["state"] = stateDirectory.toString()
         properties["port"] = port.toString()
+        properties["host"] = host.id
         properties["fastRestart"] = fastRestart.toString()
         properties["pollInterval"] = pollIntervalMillis.toString()
         properties.putList("build.command", buildCommand)
@@ -84,6 +97,7 @@ public data class WogeDevelopmentSettings(
                 watchRoots = properties.list("watch.root").map(Path::of),
                 buildFiles = properties.list("watch.buildFile").map(Path::of),
                 port = value("port").toInt(),
+                host = WogeDevelopmentHost.of(properties.getProperty("host") ?: WogeDevelopmentHost.SPRING_BOOT.id),
                 fastRestart = value("fastRestart").toBooleanStrict(),
                 pollIntervalMillis = value("pollInterval").toLong(),
             )
@@ -100,5 +114,32 @@ public data class WogeDevelopmentSettings(
             generateSequence(
                 0,
             ) { it + 1 }.map { getProperty("$key.$it") }.takeWhile { it != null }.map { it!! }.toList()
+    }
+}
+
+/** The server framework that `wogeDev` starts as a child process. */
+@ExperimentalWogeDevelopmentApi
+public enum class WogeDevelopmentHost(
+    public val id: String,
+    internal val displayName: String,
+    internal val mainClassHint: String,
+) {
+    SPRING_BOOT(
+        "spring-boot",
+        "Spring Boot",
+        "Add a class with @SpringBootApplication and a main function, or set springBoot.mainClass.",
+    ),
+    KTOR(
+        "ktor",
+        "Ktor",
+        "Set application.mainClass in your Gradle build.",
+    ),
+    ;
+
+    public companion object {
+        public fun of(id: String): WogeDevelopmentHost =
+            requireNotNull(entries.firstOrNull { it.id == id }) {
+                "Unknown development host '$id'. Use one of: ${entries.joinToString { it.id }}"
+            }
     }
 }

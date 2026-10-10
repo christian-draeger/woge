@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flow
  */
 @ExperimentalWogeDevelopmentApi
 internal class LazyHostAdapter(
+    private val host: WogeDevelopmentHost = WogeDevelopmentHost.SPRING_BOOT,
     private val create: () -> DevelopmentHostAdapter?,
 ) : DevelopmentHostAdapter {
     private val created = CompletableDeferred<DevelopmentHostAdapter>()
@@ -28,7 +29,7 @@ internal class LazyHostAdapter(
 
     override suspend fun restart(request: DevelopmentHostRestartRequest): DevelopmentHostRestartResult {
         if (!created.isCompleted) {
-            val host = create() ?: return mainClassMissing
+            val host = create() ?: return mainClassMissing()
             created.complete(host)
         }
         return created.await().restart(request)
@@ -38,20 +39,17 @@ internal class LazyHostAdapter(
         if (created.isCompleted) created.await().shutdown()
     }
 
-    private companion object {
-        val mainClassMissing =
-            DevelopmentHostRestartResult.Failed(
-                listOf(
-                    DevelopmentDiagnostic(
-                        DevelopmentDiagnosticCode.of("SPRING-MAIN-CLASS-NOT-FOUND"),
-                        DevelopmentDiagnosticSeverity.ERROR,
-                        DevelopmentDiagnosticSummary.of(
-                            "Woge could not find the Spring Boot main class. Add a class with " +
-                                "@SpringBootApplication and a main function, or set springBoot.mainClass.",
-                        ),
+    private fun mainClassMissing() =
+        DevelopmentHostRestartResult.Failed(
+            listOf(
+                DevelopmentDiagnostic(
+                    DevelopmentDiagnosticCode.of("MAIN-CLASS-NOT-FOUND"),
+                    DevelopmentDiagnosticSeverity.ERROR,
+                    DevelopmentDiagnosticSummary.of(
+                        "Woge could not find the ${host.displayName} main class. ${host.mainClassHint}",
                     ),
                 ),
-                previousApplicationRetained = false,
-            )
-    }
+            ),
+            previousApplicationRetained = false,
+        )
 }
