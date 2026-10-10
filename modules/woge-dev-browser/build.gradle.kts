@@ -1,8 +1,16 @@
+import org.gradle.language.jvm.tasks.ProcessResources
+
 plugins {
     id("dev.woge.kotlin-jvm-library")
 }
 
 description = "Development-only SSE browser channel and optional accessible status overlay."
+
+tasks.named<ProcessResources>("processResources") {
+    from(rootProject.layout.projectDirectory.file("client/woge-fallback-client/src/state-controls.js")) {
+        into("dev/woge/development/browser")
+    }
+}
 
 dependencies {
     api(project(":woge-dev-orchestrator"))

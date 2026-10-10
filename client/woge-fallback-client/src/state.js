@@ -1,13 +1,9 @@
 import { fail } from "./protocol.js";
+import { compatible, controlValue, writeControlValue, selection } from "./state-controls.js";
 
 const KEY = "data-woge-state-key";
 const KEYS = `[${KEY}]`;
 const SNAPSHOTS = new WeakMap();
-const TEXT_TYPES = new Set([
-  "text", "search", "url", "tel", "password", "email", "number", "date", "datetime-local",
-  "month", "week", "time", "range", "color",
-]);
-const SELECTABLE_TYPES = new Set(["text", "search", "url", "tel", "password"]);
 
 /** Captures browser-owned state in memory. Snapshots are opaque and must not be persisted or logged. */
 export function captureWogeBrowserState(root) {
@@ -70,7 +66,9 @@ export function prepareWogeBrowserState(snapshot, destination, { reset = false }
       if (control.kind === "file") {
         fail("WOGE_BROWSER_STATE_CONFLICT", "Selected files must retain their native input node");
       }
-      writeValue(replacement, control);
+      if (!writeControlValue(replacement, control)) {
+        fail("WOGE_BROWSER_STATE_CONFLICT", "A dirty selection is unavailable in the replacement");
+      }
     }
     for (const editable of state.root.querySelectorAll("[contenteditable]")) {
       if (editable.isContentEditable && !retained.some(([node]) => node.contains(editable))) {
@@ -122,44 +120,4 @@ function keyedElements(root) {
     keys.set(key, element);
   }
   return keys;
-}
-
-function compatible(first, second) {
-  return first.localName === second.localName && first.type === second.type &&
-    first.multiple === second.multiple;
-}
-
-function controlValue(element) {
-  if (element.localName === "textarea" || element.localName === "input" && TEXT_TYPES.has(element.type)) {
-    return { kind: "text", value: element.value, dirty: element.value !== element.defaultValue };
-  }
-  if (element.type === "checkbox" || element.type === "radio") {
-    return { kind: "checked", value: element.checked, dirty: element.checked !== element.defaultChecked };
-  }
-  if (element.type === "file") {
-    return { kind: "file", dirty: element.files.length > 0 };
-  }
-  if (element.localName === "select") {
-    const selected = [...element.options].filter((option) => option.selected).map((option) => option.value);
-    const defaults = [...element.options].filter((option) => option.defaultSelected).map((option) => option.value);
-    if (!element.multiple && defaults.length === 0 && element.options.length) defaults.push(element.options[0].value);
-    return { kind: "select", value: selected, dirty: JSON.stringify(selected) !== JSON.stringify(defaults) };
-  }
-  return null;
-}
-
-function writeValue(element, control) {
-  if (control.kind === "text") element.value = control.value;
-  if (control.kind === "checked") element.checked = control.value;
-  if (control.kind === "select") {
-    if (control.value.some((value) => ![...element.options].some((option) => option.value === value))) {
-      fail("WOGE_BROWSER_STATE_CONFLICT", "A dirty selection is unavailable in the replacement");
-    }
-    for (const option of element.options) option.selected = control.value.includes(option.value);
-  }
-}
-
-function selection(element) {
-  if (element.localName !== "textarea" && !SELECTABLE_TYPES.has(element.type)) return null;
-  return { start: element.selectionStart, end: element.selectionEnd, direction: element.selectionDirection };
 }

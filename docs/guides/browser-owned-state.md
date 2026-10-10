@@ -63,3 +63,33 @@ Tools can reuse `captureWogeBrowserState(root)` and
 and restores detached values. Call its `commit()` once immediately before replacing content,
 then `restoreFocus(stableRegion)` afterward. These are in-memory DOM primitives, not a persistence
 or full-refresh API. Never log or store snapshots: they can contain sensitive inputs.
+
+## Development full reloads
+
+The development client can preserve focus, supported text selection and document scroll around
+its own successful-build reload. To also preserve a **non-sensitive** dirty control, give it a
+stable state key (or native `id`) and explicit storage permission:
+
+```kotlin
+input(attributes = {
+    attribute("name", "draft")
+    data("woge-state-key", "demo-draft")
+    data("woge-development-preserve", "")
+})
+```
+
+Only opt in disposable development data. `sessionStorage` is readable by other scripts on the same
+origin; do not opt in real personal information, tokens or secrets. Password, file and hidden
+inputs are excluded even with this marker, as are sensitive autofill fields and `autocomplete="off"`.
+Dirty text, checked state and selected options share the production ownership rules; server
+defaults remain unchanged. An incoming control or ancestor with `data-woge-state="reset"` accepts
+the server state. A body reset also discards scroll.
+
+The handoff is tab-local, expires after one minute and is consumed once. It applies only to the
+same URL, build, generation and development session, not a navigation to another page. Storage or
+matching failures emit a generic console warning and keep the ordinary refreshed document; they
+never trigger another reload or resubmit a form.
+
+Full reloads cannot retain native file nodes, local islands, contenteditable, open dialogs/popovers
+or media playback. These keep ordinary native reload behavior. No file value is reconstructed.
+The production region-replacement API and its in-memory snapshots remain separate.

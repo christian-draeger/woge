@@ -74,6 +74,29 @@ class DevelopmentBrowserChannelTest {
     }
 
     @Test
+    fun `development handoff and shared control resources are served as plain modules`() {
+        Fixture().use { fixture ->
+            for (asset in listOf("client.js", "refresh-state.js", "state-controls.js")) {
+                val response =
+                    fixture.http.send(
+                        fixture.request("${fixture.channel.baseUrl}/$asset", "http://127.0.0.1:8080"),
+                        HttpResponse.BodyHandlers.ofString(),
+                    )
+                assertEquals(200, response.statusCode())
+                assertTrue(
+                    response
+                        .headers()
+                        .firstValue("Content-Type")
+                        .orElseThrow()
+                        .startsWith("text/javascript"),
+                )
+                assertTrue(response.body().contains("export"))
+                assertFalse(response.body().contains("token="))
+            }
+        }
+    }
+
+    @Test
     fun `only the session credential and explicitly allowed origins can read events`() {
         Fixture().use { fixture ->
             assertEquals(

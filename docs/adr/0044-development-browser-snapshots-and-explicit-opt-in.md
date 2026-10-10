@@ -37,8 +37,8 @@ Reconnecting tabs need the current result, not an unbounded history of every key
    at most once per document, only for a newer ready document, and waits until online before reloading.
 7. **The overlay is optional, ordinary accessible HTML.** It uses a polite status announcement, escaped
    text for diagnostics, a keyboard-operable hide button and normal CSS. It never steals form focus.
-   A failed compile leaves the document and its controls untouched. A successful full reload makes no
-   claim about preserving focus, scroll or dirty fields; that is #150.
+   A failed compile leaves the document and its controls untouched. Successful full reloads use the
+   bounded, explicitly opted-in state handoff from [ADR 0061](0061-development-full-refresh-state-handoff.md).
 8. **No privileged upstream SSE commands.** The event/detail endpoints require a random session
    credential, exact loopback Host and an explicitly allowed application Origin. Public generic assets
    carry no session data. CORS does not authorize arbitrary web origins. Credentials are omitted from
