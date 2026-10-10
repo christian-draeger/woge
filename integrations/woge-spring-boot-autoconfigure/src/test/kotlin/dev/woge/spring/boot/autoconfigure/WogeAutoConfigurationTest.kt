@@ -1,6 +1,7 @@
 package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
@@ -30,6 +31,7 @@ class WogeAutoConfigurationTest {
             .run { context ->
                 assertNull(context.startupFailure)
                 assertNotNull(context.getBean(WogeWebFluxHandlers::class.java))
+                assertSame(FailurePages.NONE, context.getBean(FailurePages::class.java))
 
                 val catalog = context.getBean(WogeApplicationCatalog::class.java)
                 assertEquals(listOf("homePage"), catalog.pageUseCases)
@@ -50,12 +52,32 @@ class WogeAutoConfigurationTest {
             .run { context ->
                 assertNull(context.startupFailure)
                 assertNotNull(context.getBean(WogeSpringMvcHandlers::class.java))
+                assertSame(FailurePages.NONE, context.getBean(FailurePages::class.java))
                 assertNotNull(context.getBean(SpringMvcRequestContextFactory::class.java))
 
                 val catalog = context.getBean(WogeApplicationCatalog::class.java)
                 assertEquals(listOf("homePage"), catalog.pageUseCases)
                 assertEquals(listOf("homeRegions"), catalog.deferredRegionUseCases)
                 assertEquals(WogeSpringAdapter.MVC, context.getBean(WogeRuntimeInfo::class.java).adapter)
+            }
+    }
+
+    @Test
+    fun `both Spring adapters accept an application failure page bean`() {
+        val pages = FailurePages { null }
+        webFluxRunner()
+            .withBean(FailurePages::class.java, { pages })
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertSame(pages, context.getBean(FailurePages::class.java))
+                assertNotNull(context.getBean(WogeWebFluxHandlers::class.java))
+            }
+        mvcRunner()
+            .withBean(FailurePages::class.java, { pages })
+            .run { context ->
+                assertNull(context.startupFailure)
+                assertSame(pages, context.getBean(FailurePages::class.java))
+                assertNotNull(context.getBean(WogeSpringMvcHandlers::class.java))
             }
     }
 

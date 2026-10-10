@@ -3,6 +3,7 @@ package dev.woge.ktor
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
+import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
@@ -46,6 +47,9 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val route = WogeKtorHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val failures =
+            WogeKtorHandlers(failurePages = application.failurePages)
+                .page(application.failureRoutePages, AdapterTckFailureRoute)
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 routing {
@@ -53,6 +57,8 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     head(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     get(AdapterTckRoutes.DEFERRED_PATTERN) { deferred.handle(call) }
                     get(AdapterTckRoute.path) { route.handle(call) }
+                    get(AdapterTckFailureRoute.path) { failures.handle(call) }
+                    head(AdapterTckFailureRoute.path) { failures.handle(call) }
                 }
             }.start(wait = false)
         return KtorTckServer(server)

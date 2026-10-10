@@ -1,6 +1,7 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
@@ -11,6 +12,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /** Creates route-local Woge handlers with one shared Spring MVC execution policy. */
+@Suppress("LongParameterList")
 public class WogeSpringMvcHandlers(
     private val contexts: SpringMvcRequestContextFactory = DefaultSpringMvcRequestContextFactory,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -18,6 +20,7 @@ public class WogeSpringMvcHandlers(
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
+    private val failurePages: FailurePages = FailurePages.NONE,
 ) {
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout)
     private val asyncTimeoutMillis: Long
@@ -35,7 +38,7 @@ public class WogeSpringMvcHandlers(
         useCase: PageUseCase<Input>,
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcPageHandler<Input> =
-        WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, observer)
+        WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, observer, failurePages)
 
     /**
      * Creates a handler for a page with a generated route. Map it at the route's own path:

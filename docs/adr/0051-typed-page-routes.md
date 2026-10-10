@@ -49,6 +49,17 @@ after removing parameter names; a literal segment such as `/projects/new` does n
 `/projects/{project}`. Route files are aggregating KSP outputs, so every build sees all routes of the
 module for the collision check. Region files stay isolating.
 
+**7. Failure markup is configured at the host edge.** `FailurePages` receives a `PublicFailure`
+and returns an optional Woge HTML frame. Every adapter's handlers accept the same hook, including
+for route-decoding failures. A shared host-SPI mapping keeps the error status, headers and cookies
+while adding an HTML body; `null` retains the existing bodyless behavior. HEAD stays bodyless.
+Page components and use cases do not need to know the application's error-page layout.
+
+This hook handles controlled failures, not arbitrary exceptions or URLs that never matched a Woge
+route. Unmatched URLs remain the host router's responsibility; its not-found handler can reuse the
+same hook. Unexpected exceptions continue through existing host error handling. A broken renderer
+propagates its error rather than hiding it with a fallback.
+
 ## Alternatives considered
 
 - **Annotate a page function or Spring controller:** rejected; it ties routes to one host style.
@@ -74,6 +85,4 @@ module for the collision check. Region files stay isolating.
 
 ## Follow-up
 
-- Configurable not-found and error pages without changing component code complete
-  [#27](https://github.com/christian-draeger/woge/issues/27).
 - Typed actions ([#28](https://github.com/christian-draeger/woge/issues/28)) reuse the value codecs.
