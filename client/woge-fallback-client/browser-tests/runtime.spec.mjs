@@ -12,6 +12,100 @@ test.beforeEach(async ({ page }) => {
   await page.waitForFunction(() => globalThis.Woge !== undefined);
 });
 
+test("stream exhaustion cancels Fetch and keeps the native page usable", async ({ page }) => {
+  await resetPage(page);
+  const bytes = encodeStream([patchFrame({ html: "<p>Must not apply</p>" }), completeFrame()]);
+  const result = await page.evaluate(async (values) => {
+    let cancelled = false;
+    const stream = new ReadableStream({
+      start(controller) { controller.enqueue(Uint8Array.from(values)); },
+      cancel() { cancelled = true; },
+    });
+    const runtime = Woge.createWogePatchRuntime(document, { limits: { maxStreamBytes: values.length - 1 } });
+    try {
+      await runtime.applyPatchStream(stream);
+      return { unexpectedSuccess: true };
+    } catch (problem) {
+      return {
+        code: problem.code, limit: problem.limit, threshold: problem.threshold, cancelled,
+        classification: Woge.classifyWogeFailure(problem),
+        html: document.querySelector('[data-woge-region="summary-1"]').innerHTML,
+      };
+    }
+  }, Array.from(bytes));
+  expect(result.code).toBe("WOGE_RESOURCE_LIMIT_EXCEEDED");
+  expect(result.limit).toBe("PATCH_STREAM_BYTES");
+  expect(result.threshold).toBe(bytes.length - 1);
+  expect(result.cancelled).toBe(true);
+  expect(result.classification).toEqual({
+    code: "WOGE_RESOURCE_LIMIT_EXCEEDED", category: "resource-exhaustion", outcome: "fail-closed",
+  });
+  expect(result.html).toBe("<p>Original</p>");
+});
+
+test("patch-count exhaustion preserves earlier valid updates and cancels without applying the next patch", async ({ page }) => {
+  await resetPage(page);
+  const bytes = encodeStream([
+    patchFrame({ html: "<p>Accepted</p>" }),
+    patchFrame({ patchId: "patch-2", baseRevision: 1, nextRevision: 2, html: "<p>Rejected</p>" }),
+    completeFrame(2),
+  ]);
+  const result = await page.evaluate(async (values) => {
+    const runtime = Woge.createWogePatchRuntime(document, { limits: { maxPatches: 1 } });
+    let code;
+    let limit;
+    try { await runtime.applyPatchStream(byteStream(Uint8Array.from(values), "one-byte")); }
+    catch (problem) { code = problem.code; limit = problem.limit; }
+    const target = document.querySelector('[data-woge-region="summary-1"]');
+    return { code, limit, revision: target.getAttribute("data-woge-revision"), html: target.innerHTML };
+  }, Array.from(bytes));
+  expect(result).toEqual({
+    code: "WOGE_RESOURCE_LIMIT_EXCEEDED", limit: "PATCH_COUNT", revision: "1", html: "<p>Accepted</p>",
+  });
+});
+
+test("large single transport chunks are applied correctly across fixed decode slices", async ({ page }) => {
+  await resetPage(page);
+  const bytes = encodeStream([
+    patchFrame({ html: `<p>${"x".repeat(70 * 1024)}</p>` }),
+    patchFrame({ patchId: "patch-2", baseRevision: 1, nextRevision: 2, html: "<p>Final</p>" }),
+    completeFrame(2),
+  ]);
+  const result = await apply(page, bytes, bytes.length);
+  expect(result.error).toBeNull();
+  expect(result.patchCount).toBe(2);
+  expect(result.revision).toBe("2");
+  expect(result.html).toBe("<p>Final</p>");
+});
+
+test("concurrent stream admission rejects without a queue and releases slots after cancellation", async ({ page }) => {
+  await resetPage(page);
+  const bytes = encodeStream([patchFrame(), completeFrame()]);
+  const result = await page.evaluate(async (values) => {
+    const runtime = Woge.createWogePatchRuntime(document, { limits: { maxConcurrentStreams: 1 } });
+    const abort = new AbortController();
+    const first = runtime.applyPatchStream(new ReadableStream(), { signal: abort.signal })
+      .catch((problem) => problem.code);
+    let cancelled = false;
+    let rejection;
+    try {
+      await runtime.applyPatchStream(new ReadableStream({ cancel() { cancelled = true; } }));
+    } catch (problem) {
+      rejection = { code: problem.code, limit: problem.limit, threshold: problem.threshold };
+    }
+    abort.abort();
+    const firstOutcome = await first;
+    const completion = await runtime.applyPatchStream(byteStream(Uint8Array.from(values)));
+    return { rejection, cancelled, firstOutcome, completion };
+  }, Array.from(bytes));
+  expect(result.rejection).toEqual({
+    code: "WOGE_RESOURCE_LIMIT_EXCEEDED", limit: "CONCURRENT_PATCH_STREAMS", threshold: 1,
+  });
+  expect(result.cancelled).toBe(true);
+  expect(result.firstOutcome).toBe("WOGE_CANCELLED");
+  expect(result.completion.patchCount).toBe(1);
+});
+
 test("applies the shared JVM golden patch from one-byte chunks", async ({ page }) => {
   await resetPage(page, {
     regionAttributes: 'class="project-summary app-owned" data-woge-revision="7" data-woge-interaction-sequence="41"',

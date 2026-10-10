@@ -35,6 +35,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.flow
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 
 /** Page scenarios understood by the canonical TCK route. */
 public enum class AdapterTckPageScenario(
@@ -61,6 +62,7 @@ public enum class AdapterTckDeferredScenario(
     COMPLETION_ORDER("completion-order"),
     CLIENT_ABORT("client-abort"),
     HEADERS_BEFORE_REGIONS("headers-before-regions"),
+    TASK_BUDGET("task-budget"),
     ;
 
     public companion object {
@@ -95,6 +97,8 @@ internal class AdapterTckFixtureState {
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()
     val gatedRegions: CompletableDeferred<Unit> = CompletableDeferred()
+    val budgetContentCalls: AtomicInteger = AtomicInteger()
+    val budgetDeclarations: AtomicInteger = AtomicInteger()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 
@@ -119,6 +123,14 @@ internal class AdapterTckFixtureState {
 
     fun deferredRegions(request: PageRequest<AdapterTckDeferredScenario>): Iterable<DeferredRegion> =
         when (request.input) {
+            AdapterTckDeferredScenario.TASK_BUDGET ->
+                generateSequence {
+                    val number = budgetDeclarations.incrementAndGet()
+                    region("budget-$number") {
+                        budgetContentCalls.incrementAndGet()
+                        patch("Must not render")
+                    }
+                }.asIterable()
             AdapterTckDeferredScenario.COMPLETION_ORDER ->
                 listOf(
                     region("slow") { slowRegion.await() },

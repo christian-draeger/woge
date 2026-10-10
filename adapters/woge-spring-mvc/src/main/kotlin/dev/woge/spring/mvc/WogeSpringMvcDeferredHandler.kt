@@ -1,12 +1,14 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailureCategory
 import dev.woge.host.PageRequest
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObserver
 import dev.woge.host.failure
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
+import dev.woge.runtime.DeferredRegionLimitException
 import dev.woge.runtime.DeferredRegionPolicy
 import dev.woge.runtime.encodeDeferredPatchStream
 import jakarta.servlet.http.HttpServletRequest
@@ -47,7 +49,13 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
             }
         val pageRequest = PageRequest(decoded, context)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
-            val declaredRegions = regions.regions(pageRequest).toList()
+            val declaredRegions =
+                try {
+                    executor.prepare(regions.regions(pageRequest), context.trace)
+                } catch (_: DeferredRegionLimitException) {
+                    response.status = failure(FailureCategory.UNAVAILABLE, context.correlationId).metadata.status.code
+                    return@launchWogeResponse
+                }
             var patchNumber = 0
             executor
                 .execute(declaredRegions, context.trace)

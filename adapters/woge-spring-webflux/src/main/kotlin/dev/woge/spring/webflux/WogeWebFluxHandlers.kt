@@ -11,15 +11,17 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /** Creates route-local Woge handlers with one shared WebFlux runtime policy. */
+@Suppress("LongParameterList")
 public class WogeWebFluxHandlers(
     private val contexts: WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
     private val failurePages: FailurePages = FailurePages.NONE,
+    private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
 ) {
     init {
-        DeferredRegionPolicy(maxConcurrency, regionTimeout)
+        DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     }
 
     /** Binds a POST action; the explicit context factory establishes authentication and CSRF before decoding. */
@@ -65,5 +67,6 @@ public class WogeWebFluxHandlers(
             maxConcurrency = maxConcurrency,
             regionTimeout = regionTimeout,
             observer = observer,
+            maxRegions = maxRegions,
         )
 }

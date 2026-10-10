@@ -1136,6 +1136,26 @@ public final class dev/woge/host/RequestTrace {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/woge/host/ResourceLimit : java/lang/Enum {
+	public static final field DEFERRED_TASK_COUNT Ldev/woge/host/ResourceLimit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/ResourceLimit;
+	public static fun values ()[Ldev/woge/host/ResourceLimit;
+}
+
+public final class dev/woge/host/ResourceLimitExceeded {
+	public fun <init> (Ldev/woge/host/ResourceLimit;J)V
+	public final fun component1 ()Ldev/woge/host/ResourceLimit;
+	public final fun component2 ()J
+	public final fun copy (Ldev/woge/host/ResourceLimit;J)Ldev/woge/host/ResourceLimitExceeded;
+	public static synthetic fun copy$default (Ldev/woge/host/ResourceLimitExceeded;Ldev/woge/host/ResourceLimit;JILjava/lang/Object;)Ldev/woge/host/ResourceLimitExceeded;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLimit ()Ldev/woge/host/ResourceLimit;
+	public final fun getThreshold ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/woge/host/ResponseCookie {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLdev/woge/host/SameSite;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLdev/woge/host/SameSite;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1275,14 +1295,16 @@ public abstract interface annotation class dev/woge/host/WogeKey : java/lang/ann
 }
 
 public final class dev/woge/host/WogeObservationContext {
-	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Ldev/woge/host/ResourceLimitExceeded;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Ldev/woge/host/ResourceLimitExceeded;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/woge/host/RequestTrace;
 	public final fun component2 ()Ldev/woge/protocol/PatchTarget;
 	public final fun component3-ZOx1KSU ()Ljava/lang/String;
-	public final fun copy-qCmI8D0 (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;)Ldev/woge/host/WogeObservationContext;
-	public static synthetic fun copy-qCmI8D0$default (Ldev/woge/host/WogeObservationContext;Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/WogeObservationContext;
+	public final fun component4 ()Ldev/woge/host/ResourceLimitExceeded;
+	public final fun copy-YVBtzhM (Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Ldev/woge/host/ResourceLimitExceeded;)Ldev/woge/host/WogeObservationContext;
+	public static synthetic fun copy-YVBtzhM$default (Ldev/woge/host/WogeObservationContext;Ldev/woge/host/RequestTrace;Ldev/woge/protocol/PatchTarget;Ljava/lang/String;Ldev/woge/host/ResourceLimitExceeded;ILjava/lang/Object;)Ldev/woge/host/WogeObservationContext;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExceededLimit ()Ldev/woge/host/ResourceLimitExceeded;
 	public final fun getPatchId-ZOx1KSU ()Ljava/lang/String;
 	public final fun getRequestTrace ()Ldev/woge/host/RequestTrace;
 	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;

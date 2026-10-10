@@ -2,6 +2,8 @@ package dev.woge.runtime
 
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionFailure
+import dev.woge.host.ResourceLimit
+import dev.woge.host.ResourceLimitExceeded
 import dev.woge.host.WogeObservationEvent
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperationFinished
@@ -18,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -34,6 +37,74 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeferredRegionExecutorTest {
+    @Test
+    fun `lazy unbounded declarations stop at the exact budget before work starts`() {
+        var consumed = 0
+        var started = false
+        val events = mutableListOf<WogeObservationEvent>()
+        val declarations =
+            generateSequence {
+                consumed += 1
+                region("region-$consumed") {
+                    started = true
+                    html("content")
+                }
+            }.asIterable()
+        val executor =
+            DeferredRegionExecutor(
+                DeferredRegionPolicy(maxRegions = 2),
+                WogeObserver(events::add),
+            )
+        val failure =
+            assertThrows(DeferredRegionLimitException::class.java) {
+                runBlocking { executor.execute(declarations).toList() }
+            }
+        assertEquals(2, failure.threshold)
+        // Sequence.hasNext computes one lookahead, but the executor never admits that element.
+        assertEquals(3, consumed)
+        assertFalse(started)
+        val rejected = events.filterIsInstance<WogeOperationFinished>().single()
+        assertEquals(WogeOutcome.REJECTED, rejected.outcome)
+        assertEquals(ResourceLimitExceeded(ResourceLimit.DEFERRED_TASK_COUNT, 2), rejected.context.exceededLimit)
+    }
+
+    @Test
+    fun `exact count is accepted and empty sets remain valid`() =
+        runTest {
+            val executor = DeferredRegionExecutor(DeferredRegionPolicy(maxRegions = 2))
+            assertEquals(
+                2,
+                executor.execute(listOf(region("one") { html("1") }, region("two") { html("2") })).toList().size,
+            )
+            assertTrue(executor.execute(emptyList()).toList().isEmpty())
+        }
+
+    @Test
+    fun `slow transport cannot queue completed output beyond active workers`() =
+        runTest {
+            var rendered = 0
+            val releaseCollector = CompletableDeferred<Unit>()
+            val declarations =
+                (1..8).map { index ->
+                    region("region-$index") {
+                        rendered += 1
+                        html("content")
+                    }
+                }
+            val collection =
+                launch {
+                    DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency = 2))
+                        .execute(declarations)
+                        .collect { releaseCollector.await() }
+                }
+            runCurrent()
+            // One item is in the collector; only the two active workers can retain another result.
+            assertEquals(3, rendered)
+            releaseCollector.complete(Unit)
+            collection.join()
+            assertEquals(8, rendered)
+        }
+
     @Test
     fun `completed regions are emitted in completion order`() =
         runTest {
@@ -219,6 +290,9 @@ class DeferredRegionExecutorTest {
 
     @Test
     fun `policy requires usable concurrency and timeout limits`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            DeferredRegionPolicy(maxRegions = 0)
+        }
         assertThrows(IllegalArgumentException::class.java) {
             DeferredRegionPolicy(maxConcurrency = 0)
         }

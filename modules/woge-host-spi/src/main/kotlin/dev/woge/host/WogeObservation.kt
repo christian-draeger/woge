@@ -54,6 +54,7 @@ public data class WogeObservationContext(
     public val requestTrace: RequestTrace? = null,
     public val target: PatchTarget? = null,
     public val patchId: PatchId? = null,
+    public val exceededLimit: ResourceLimitExceeded? = null,
 )
 
 /** One structured semantic lifecycle event emitted by a Woge runtime boundary. */

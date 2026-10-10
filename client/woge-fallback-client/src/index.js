@@ -7,6 +7,8 @@ import {
   WogePatchError,
   WogeRemotePatchError,
   fail,
+  patchStreamLimits,
+  exceedBudget,
 } from "./protocol.js";
 import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
@@ -19,13 +21,16 @@ class WogePatchRuntime {
   #observer;
   #nextObservationId = 1;
   #refetched = new Map();
+  #limits;
+  #activeStreams = 0;
 
-  constructor(root = document, { observer } = {}) {
+  constructor(root = document, { observer, limits } = {}) {
     if (observer !== undefined && typeof observer !== "function") {
       fail("WOGE_INVALID_OBSERVER", "Patch observer must be a function");
     }
     this.#registry = new PageRegionRegistry(root);
     this.#observer = observer;
+    this.#limits = patchStreamLimits(limits);
   }
 
   beginInteraction(targets) {
@@ -57,20 +62,26 @@ class WogePatchRuntime {
     }
     if (signal?.aborted) fail("WOGE_CANCELLED", "Patch stream application was cancelled");
 
-    const decoder = new PatchStreamDecoder();
+    const decoder = new PatchStreamDecoder(this.#limits);
     const reader = stream.getReader();
     const cancel = () => void reader.cancel(signal.reason).catch(() => {});
     signal?.addEventListener("abort", cancel, { once: true });
     let completion;
     let recoveryPatches = 0;
     let stalePatchCount = 0;
+    let admitted = false;
 
     try {
+      if (this.#activeStreams === this.#limits.maxConcurrentStreams) {
+        exceedBudget("CONCURRENT_PATCH_STREAMS", this.#limits.maxConcurrentStreams);
+      }
+      this.#activeStreams++;
+      admitted = true;
       while (true) {
         const { value, done } = await reader.read();
         if (signal?.aborted) fail("WOGE_CANCELLED", "Patch stream application was cancelled");
         if (done) break;
-        for (const event of decoder.push(value)) {
+        for (const event of decodeTransportChunk(decoder, value)) {
           if (event.type === "patch") {
             if (recovery) {
               const patch = event.patch;
@@ -99,6 +110,7 @@ class WogePatchRuntime {
       }
       throw problem;
     } finally {
+      if (admitted) this.#activeStreams--;
       signal?.removeEventListener("abort", cancel);
       reader.releaseLock();
     }
@@ -144,6 +156,15 @@ class WogePatchRuntime {
     } catch {
       // Observability is best effort and must never alter patch behavior.
     }
+  }
+}
+
+function* decodeTransportChunk(decoder, value) {
+  if (!(value instanceof Uint8Array)) fail("WOGE_INVALID_CHUNK", "Patch stream chunks must be Uint8Array values");
+  // One fixed byte slice limits each decode/apply batch even if Fetch supplies a very large chunk.
+  const sliceBytes = 64 * 1024;
+  for (let offset = 0; offset < value.byteLength; offset += sliceBytes) {
+    yield* decoder.push(value.subarray(offset, offset + sliceBytes));
   }
 }
 

@@ -93,6 +93,14 @@ export type WogeObservationEvent =
 
 export interface WogePatchRuntimeOptions {
   readonly observer?: (event: WogeObservationEvent) => void;
+  readonly limits?: {
+    /** Per response, including wire headers and the terminal frame. Default: 16 MiB. */
+    readonly maxStreamBytes?: number;
+    /** Per response. Default: 128 patches. Protocol frame-size limits still apply. */
+    readonly maxPatches?: number;
+    /** Per runtime/document. Default: 8 concurrent streams, with no waiting queue. */
+    readonly maxConcurrentStreams?: number;
+  };
 }
 
 export interface WogePatchRuntime {
@@ -113,6 +121,8 @@ export interface WogePatchRuntime {
 export class WogePatchError extends Error {
   constructor(code: string, message: string);
   readonly code: string;
+  readonly limit?: "PATCH_STREAM_BYTES" | "PATCH_COUNT" | "CONCURRENT_PATCH_STREAMS";
+  readonly threshold?: number;
 }
 
 export class WogeRemotePatchError extends WogePatchError {
