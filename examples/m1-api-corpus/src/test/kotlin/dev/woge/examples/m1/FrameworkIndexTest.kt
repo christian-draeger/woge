@@ -116,7 +116,7 @@ class FrameworkIndexTest {
             "Native Declarative Partial Updates",
             "@WogeRoute(\"/projects/{project}\")",
             """@WogeAction("stable-id")""",
-            "Automatic POST dispatch and bounded form decoding are not implemented yet",
+            "handlers.action(descriptor, input, securityContexts)",
         ).forEach { requiredGuidance ->
             assertTrue(guidance.contains(requiredGuidance), "Missing generated guidance: $requiredGuidance")
         }

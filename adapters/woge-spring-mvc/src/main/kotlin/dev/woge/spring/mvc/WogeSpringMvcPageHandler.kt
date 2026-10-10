@@ -26,14 +26,15 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
     private val asyncTimeoutMillis: Long,
     private val observer: WogeObserver,
     private val failurePages: FailurePages,
+    private val allowedMethods: Set<String> = setOf("GET", "HEAD"),
 ) : HttpRequestHandler {
     /** Snapshots the request, releases its Servlet thread and streams the page asynchronously. */
     override fun handleRequest(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        if (request.method !in PAGE_METHODS) {
-            response.writeMethodNotAllowed(PAGE_METHODS)
+        if (request.method !in allowedMethods) {
+            response.writeMethodNotAllowed(allowedMethods)
             return
         }
         val context = contexts.create(request)
@@ -55,9 +56,5 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                 }
             result.withFailurePages(failurePages).writeToServlet(request, response, observer, observationContext)
         }
-    }
-
-    private companion object {
-        val PAGE_METHODS: Set<String> = setOf("GET", "HEAD")
     }
 }

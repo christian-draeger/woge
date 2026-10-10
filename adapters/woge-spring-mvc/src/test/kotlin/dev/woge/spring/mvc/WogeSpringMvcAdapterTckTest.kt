@@ -11,6 +11,9 @@ import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
+import dev.woge.tck.TckActionCommand
+import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.tckActionContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
@@ -138,6 +141,14 @@ private class SpringMvcTckConfiguration {
                 AdapterTckFailureRoute.path to
                     WogeSpringMvcHandlers(failurePages = application.failurePages)
                         .page(application.failureRoutePages, AdapterTckFailureRoute),
+                TckSubmitAction.path to
+                    handlers.action(
+                        TckSubmitAction,
+                        SpringMvcPageInput { request -> TckActionCommand(request.getParameter("value").orEmpty()) },
+                        SpringMvcRequestContextFactory { request ->
+                            tckActionContext(request.getHeader("X-Tck-Subject"))
+                        },
+                    ),
             ),
             0,
         )
