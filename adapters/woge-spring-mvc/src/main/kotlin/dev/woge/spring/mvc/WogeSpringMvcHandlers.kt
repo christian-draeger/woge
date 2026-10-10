@@ -5,6 +5,7 @@ import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
 import kotlinx.coroutines.CoroutineDispatcher
@@ -23,6 +24,7 @@ public class WogeSpringMvcHandlers(
     private val observer: WogeObserver = WogeObserver.NONE,
     private val failurePages: FailurePages = FailurePages.NONE,
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
+    private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
 ) {
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     private val asyncTimeoutMillis: Long
@@ -74,5 +76,14 @@ public class WogeSpringMvcHandlers(
         useCase: DeferredRegionsUseCase<Input>,
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcDeferredHandler<Input> =
-        WogeSpringMvcDeferredHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, policy, observer)
+        WogeSpringMvcDeferredHandler(
+            useCase,
+            input,
+            contexts,
+            dispatcher,
+            asyncTimeoutMillis,
+            policy,
+            observer,
+            patchStreamLimits,
+        )
 }

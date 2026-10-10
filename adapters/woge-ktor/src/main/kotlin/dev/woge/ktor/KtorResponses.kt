@@ -43,7 +43,7 @@ internal suspend fun ApplicationCall.respondWogePage(
                 applyMetadata(result.metadata)
                 response.headers.append(HttpHeaders.Vary, "Accept")
                 result.focusSummary?.let { response.headers.append(ACTION_VALIDATION_HEADER, it.value) }
-                respondWogePatches(result.encodeActionPatchStream())
+                respondWogePatches(result.encodeActionPatchStream(observer, observationContext.requestTrace))
             } else {
                 respondWogePage(result.nativeResult, observer, observationContext, actionAccept)
             }

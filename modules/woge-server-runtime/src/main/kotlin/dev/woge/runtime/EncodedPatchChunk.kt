@@ -1,7 +1,11 @@
 package dev.woge.runtime
 
 import dev.woge.host.PageResult
+import dev.woge.host.PatchStreamBudget
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RequestTrace
+import dev.woge.host.ResourceLimit
+import dev.woge.host.ResourceLimitException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
@@ -35,8 +39,10 @@ public class EncodedPatchChunk internal constructor(
 }
 
 /** Encodes fully prepared action replacements in their declared order, without rerendering. */
-public fun PageResult.RegionUpdates.encodeActionPatchStream(): Flow<EncodedPatchChunk> =
-    patches.asFlow().encodePatchStream()
+public fun PageResult.RegionUpdates.encodeActionPatchStream(
+    observer: WogeObserver = WogeObserver.NONE,
+    requestTrace: RequestTrace? = null,
+): Flow<EncodedPatchChunk> = patches.asFlow().encodePatchStream(observer, requestTrace, patchStreamLimits)
 
 /** Maps a page-load deferred update to its single contiguous target-revision step. */
 public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
@@ -58,18 +64,32 @@ public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
 public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
     observer: WogeObserver = WogeObserver.NONE,
     requestTrace: RequestTrace? = null,
+    limits: PatchStreamLimits = PatchStreamLimits(),
     patchId: (DeferredRegionUpdate) -> PatchId,
-): Flow<EncodedPatchChunk> = map { it.toReplacePatch(patchId(it)) }.encodePatchStream(observer, requestTrace)
+): Flow<EncodedPatchChunk> = map { it.toReplacePatch(patchId(it)) }.encodePatchStream(observer, requestTrace, limits)
 
 /** Encodes the accepted semantic patch operations through every host's existing chunk transport. */
 @Suppress("TooGenericExceptionCaught")
 public fun Flow<Patch>.encodePatchStream(
     observer: WogeObserver = WogeObserver.NONE,
     requestTrace: RequestTrace? = null,
+    limits: PatchStreamLimits = PatchStreamLimits(),
 ): Flow<EncodedPatchChunk> =
     flow {
+        val budget = PatchStreamBudget(limits)
         val pending = ByteArrayOutputStream()
-        val encoder = PatchStreamV1.encoder(ByteSink(pending::write))
+        val encoder =
+            PatchStreamV1.encoder(
+                ByteSink { bytes ->
+                    try {
+                        budget.consumeBytes(bytes.size)
+                    } catch (exceeded: ResourceLimitException) {
+                        observer.rejectPatchStreamLimit(requestTrace, exceeded)
+                        throw exceeded
+                    }
+                    pending.write(bytes)
+                },
+            )
         encoder.start()
         emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
         pending.reset()
@@ -85,6 +105,7 @@ public fun Flow<Patch>.encodePatchStream(
                     ),
                 )
             try {
+                budget.admitPatch()
                 encoder.write(patch)
                 emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
                 pending.reset()
@@ -92,6 +113,12 @@ public fun Flow<Patch>.encodePatchStream(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 observation.finish(WogeOutcome.CANCELLED)
                 throw cancelled
+            } catch (exceeded: ResourceLimitException) {
+                observation.finish(WogeOutcome.REJECTED)
+                if (exceeded.exceededLimit.limit == ResourceLimit.PATCH_COUNT) {
+                    observer.rejectPatchStreamLimit(requestTrace, exceeded)
+                }
+                throw exceeded
             } catch (failure: Throwable) {
                 observation.finish(WogeOutcome.FAILED)
                 throw failure
@@ -101,3 +128,13 @@ public fun Flow<Patch>.encodePatchStream(
         encoder.complete()
         emit(EncodedPatchChunk(pending.toByteArray(), terminal = true))
     }
+
+private fun WogeObserver.rejectPatchStreamLimit(
+    requestTrace: RequestTrace?,
+    failure: ResourceLimitException,
+) {
+    startOperation(
+        WogeOperation.PATCH_ENCODE,
+        WogeObservationContext(requestTrace = requestTrace, exceededLimit = failure.exceededLimit),
+    ).finish(WogeOutcome.REJECTED)
+}

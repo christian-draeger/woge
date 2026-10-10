@@ -115,7 +115,10 @@ internal suspend fun PageResult.writeToServlet(
                 response.applyMetadata(metadata)
                 response.addHeader("Vary", "Accept")
                 focusSummary?.let { response.addHeader(ACTION_VALIDATION_HEADER, it.value) }
-                encodeActionPatchStream().writeToServlet(response, metadata.status)
+                encodeActionPatchStream(
+                    observer,
+                    observationContext.requestTrace,
+                ).writeToServlet(response, metadata.status)
             } else {
                 nativeResult.writeToServlet(request, response, observer, observationContext, actionAccept)
             }

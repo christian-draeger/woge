@@ -5,6 +5,9 @@ import dev.woge.host.ResourceLimit
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeOperationFinished
 import dev.woge.host.WogeOutcome
+import dev.woge.protocol.PatchStreamEvent
+import dev.woge.protocol.PatchStreamException
+import dev.woge.protocol.PatchStreamV1
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
@@ -13,6 +16,54 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal const val TCK_PAGE_BYTE_BUDGET: Long = 4
+internal const val TCK_PATCH_BYTE_BUDGET: Long = 4 * 1024
+
+internal suspend fun AdapterTckHttpClient.verifyPatchByteBudget(
+    fixture: AdapterTckFixtureState,
+    expect: (Boolean, String, String) -> Unit,
+) {
+    val contract = "patch-byte-budget"
+    val decoder = PatchStreamV1.decoder()
+    var wireBytes = 0L
+    try {
+        val response = open(RequestMethod.GET, AdapterTckRoutes.deferred(AdapterTckDeferredScenario.PATCH_BYTE_BUDGET))
+        response.body().use { body ->
+            val chunk = ByteArray(TCK_PATCH_BYTE_BUDGET.toInt() + 1)
+            var count = body.read(chunk)
+            while (count >= 0) {
+                wireBytes += count
+                expect(wireBytes <= TCK_PATCH_BYTE_BUDGET, contract, "host wrote bytes beyond the patch threshold")
+                val events = decoder.feed(chunk.copyOf(count))
+                expect(events.none { it is PatchStreamEvent.Complete }, contract, "overflow manufactured completion")
+                count = body.read(chunk)
+            }
+        }
+    } catch (_: IOException) {
+        // Committed transports may abort rather than finish the HTTP body.
+    }
+    withTimeout(5.seconds) {
+        while (fixture
+                .observations()
+                .filterIsInstance<WogeOperationFinished>()
+                .none { it.context.exceededLimit?.limit == ResourceLimit.PATCH_STREAM_BYTES }
+        ) {
+            delay(1.milliseconds)
+        }
+    }
+    val diagnostic =
+        fixture
+            .observations()
+            .filterIsInstance<WogeOperationFinished>()
+            .single { it.context.exceededLimit?.limit == ResourceLimit.PATCH_STREAM_BYTES }
+    expect(diagnostic.outcome == WogeOutcome.REJECTED, contract, "missing rejected patch-byte observation")
+    expect(
+        diagnostic.context.exceededLimit?.threshold == TCK_PATCH_BYTE_BUDGET,
+        contract,
+        "deferred harness must bind application.deferredPatchStreamLimits",
+    )
+    val completionFailure = runCatching(decoder::finish).exceptionOrNull()
+    expect(completionFailure is PatchStreamException, contract, "exhausted patch stream appeared complete")
+}
 
 internal suspend fun AdapterTckHttpClient.verifyPageByteBudget(
     fixture: AdapterTckFixtureState,

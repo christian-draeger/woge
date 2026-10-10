@@ -41,6 +41,7 @@ public sealed interface PageResult {
         public val nativeResult: PageResult,
         public val focusSummary: FormElementId?,
         override val metadata: ResponseMetadata,
+        public val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     ) : PageResult
 
     /** A cold ordered stream of lazily rendered HTML frames. */

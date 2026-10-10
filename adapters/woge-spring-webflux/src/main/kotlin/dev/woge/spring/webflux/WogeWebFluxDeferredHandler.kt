@@ -3,6 +3,7 @@ package dev.woge.spring.webflux
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailureCategory
 import dev.woge.host.PageRequest
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
@@ -27,6 +28,7 @@ public class WogeWebFluxDeferredHandler<Input : Any>(
     regionTimeout: Duration = 30.seconds,
     observer: WogeObserver = WogeObserver.NONE,
     maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
+    private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
 ) {
     private val executor =
         DeferredRegionExecutor(DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions), observer)
@@ -56,6 +58,7 @@ public class WogeWebFluxDeferredHandler<Input : Any>(
                         },
                         observer = observer,
                         requestTrace = context.trace,
+                        limits = patchStreamLimits,
                     )
             chunks.toWebFluxPatchResponse()
         } catch (_: DeferredRegionLimitException) {

@@ -47,7 +47,7 @@ internal suspend fun PageResult.toWebFluxResponse(
                     .headers { it.set("Cache-Control", "no-store") }
                     .header("Vary", "Accept")
                     .headers { headers -> focusSummary?.let { headers.set(ACTION_VALIDATION_HEADER, it.value) } }
-                    .body(patchBody(encodeActionPatchStream()))
+                    .body(patchBody(encodeActionPatchStream(observer, observationContext.requestTrace)))
                     .awaitSingle()
             } else {
                 nativeResult.toWebFluxResponse(observer, observationContext, actionAccept)

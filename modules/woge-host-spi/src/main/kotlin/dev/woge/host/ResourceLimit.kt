@@ -4,6 +4,8 @@ package dev.woge.host
 public enum class ResourceLimit {
     DEFERRED_TASK_COUNT,
     PAGE_BYTES,
+    PATCH_STREAM_BYTES,
+    PATCH_COUNT,
 }
 
 /** Identifies a rejected budget and its configured threshold, without recording submitted content. */

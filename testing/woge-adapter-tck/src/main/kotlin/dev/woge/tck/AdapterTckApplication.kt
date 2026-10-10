@@ -11,6 +11,7 @@ import dev.woge.host.HeaderName
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.PatchStreamLimits
 import dev.woge.host.RequestContext
 import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseHeaders
@@ -64,6 +65,7 @@ public enum class AdapterTckDeferredScenario(
     CLIENT_ABORT("client-abort"),
     HEADERS_BEFORE_REGIONS("headers-before-regions"),
     TASK_BUDGET("task-budget"),
+    PATCH_BYTE_BUDGET("patch-byte-budget"),
     ;
 
     public companion object {
@@ -83,6 +85,9 @@ public class AdapterTckApplication internal constructor() {
     public val actionCompletion: PageUseCase<Unit> = actionWorkflow.completion
 
     public val observer: WogeObserver = WogeObserver(state::observe)
+
+    /** Use this smaller fixture allowance on deferred handlers to test exhaustion without huge payloads. */
+    public val deferredPatchStreamLimits: PatchStreamLimits = PatchStreamLimits(maxBytes = TCK_PATCH_BYTE_BUDGET)
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
@@ -143,6 +148,8 @@ internal class AdapterTckFixtureState {
                         patch("Must not render")
                     }
                 }.asIterable()
+            AdapterTckDeferredScenario.PATCH_BYTE_BUDGET ->
+                listOf(region("patch-budget") { patchHtml { text("x".repeat(TCK_PATCH_BYTE_BUDGET.toInt() + 1)) } })
             AdapterTckDeferredScenario.COMPLETION_ORDER ->
                 listOf(
                     region("slow") { slowRegion.await() },

@@ -123,7 +123,10 @@ private class SpringMvcTimeoutConfiguration {
 private class SpringMvcTckConfiguration {
     @Bean
     fun wogeSpringMvcHandlers(application: AdapterTckApplication): WogeSpringMvcHandlers =
-        WogeSpringMvcHandlers(observer = application.observer)
+        WogeSpringMvcHandlers(
+            observer = application.observer,
+            patchStreamLimits = application.deferredPatchStreamLimits,
+        )
 
     @Bean
     fun adapterTckRoutes(

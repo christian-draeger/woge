@@ -17,6 +17,9 @@ in [ADR 0005](../adr/0005-server-host-use-case-ports.md),
 | `page-redirect` | Browser follows an ordinary policy-checked 303 Location | Enhanced code must preserve the same destination | Full navigation remains valid | Adapter TCK; browser actions follow later |
 | `page-controlled-failure` | Typed failure produces its stable bodyless status | Enhancement must not reinterpret it as success | Native error navigation remains available | Adapter TCK |
 | `page-pre-stream-failure` | Failure before commit becomes a safe 500 without private detail | Enhancement receives an ordinary failed request | Retry is not automatic | Adapter TCK |
+| `page-byte-budget` | Stops HTML at its cumulative UTF-8 allowance and cancels later frames | Same document bound | Native navigation; no replacement success body | Adapter TCK |
+| `deferred-task-budget` | Bodyless 503 before work or stream commitment | No missing updates disguised as success | No automatic retry | Adapter TCK |
+| `patch-byte-budget` | Complete-page fallback remains available | Stops wire bytes and omits successful completion on exhaustion | Fail closed; never replay an action | Adapter TCK |
 | `deferred-completion-order` | The complete-page route is the useful fallback | Shell is visible before independently completed revisioned patches | The user can navigate to the complete page | Adapter TCK plus reference browser gate |
 | `deferred-client-abort` | Navigation away closes the old response | Abort cancels outstanding request children | New navigation owns new work | Adapter TCK where the harness exposes aborts |
 

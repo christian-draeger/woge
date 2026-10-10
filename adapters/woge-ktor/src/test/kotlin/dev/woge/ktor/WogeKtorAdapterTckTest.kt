@@ -55,7 +55,10 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val deferred =
-            WogeKtorHandlers(observer = application.observer).deferred(
+            WogeKtorHandlers(
+                observer = application.observer,
+                patchStreamLimits = application.deferredPatchStreamLimits,
+            ).deferred(
                 application.deferredRegions,
                 KtorPageInput { call ->
                     AdapterTckDeferredScenario.fromPath(requireNotNull(call.parameters["scenario"]))

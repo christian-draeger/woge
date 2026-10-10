@@ -99,6 +99,7 @@ private class AdapterTckVerification(
         verifyDeferredCompletionOrder()
         verifyDeferredHeadersBeforeRegions()
         runContract("deferred-task-budget") { client.verifyDeferredTaskBudget(fixture, ::expect) }
+        runContract("patch-byte-budget") { client.verifyPatchByteBudget(fixture, ::expect) }
         if (AdapterTckCapability.CLIENT_ABORT_CANCELLATION in server.capabilities) {
             verifyClientAbortCancellation()
         }

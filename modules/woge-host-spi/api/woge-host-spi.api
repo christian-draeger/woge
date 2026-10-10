@@ -40,11 +40,12 @@ public final class dev/woge/host/ActionRegionUpdates {
 
 public final class dev/woge/host/ActionRegionUpdatesKt {
 	public static final field ACTION_VALIDATION_HEADER Ljava/lang/String;
-	public static final fun actionRegionUpdates-CtbFQ_Y (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static synthetic fun actionRegionUpdates-CtbFQ_Y$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static final fun actionValidationUpdates-WIkas4w (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static synthetic fun actionValidationUpdates-WIkas4w$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static final fun regionRefresh-VSjR1bo (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJ)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun actionRegionUpdates-THqN12c (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionRegionUpdates-THqN12c$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun actionValidationUpdates-oHLdDAw (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionValidationUpdates-oHLdDAw$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun regionRefresh-ZJeNXe4 (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun regionRefresh-ZJeNXe4$default (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 }
 
 public final class dev/woge/host/ActionRegistry {
@@ -904,9 +905,11 @@ public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult 
 }
 
 public final class dev/woge/host/PageResult$RegionUpdates : dev/woge/host/PageResult {
+	public synthetic fun <init> (Ljava/util/List;Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/ResponseMetadata;Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFocusSummary-NWzxd-g ()Ljava/lang/String;
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 	public final fun getNativeResult ()Ldev/woge/host/PageResult;
+	public final fun getPatchStreamLimits ()Ldev/woge/host/PatchStreamLimits;
 	public final fun getPatches ()Ljava/util/List;
 }
 
@@ -938,6 +941,35 @@ public final class dev/woge/host/PageUseCaseKt {
 	public static synthetic fun streamingHtmlPage$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/ResponseMetadata;JILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
 	public static final fun writeTo (Ldev/woge/host/PageResult$Document;Ldev/woge/html/HtmlSink;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun writeTo$default (Ldev/woge/host/PageResult$Document;Ldev/woge/html/HtmlSink;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/PatchStreamBudget {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/host/PatchStreamLimits;)V
+	public synthetic fun <init> (Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun admitPatch ()V
+	public final fun consumeBytes (I)V
+}
+
+public final class dev/woge/host/PatchStreamLimits {
+	public static final field Companion Ldev/woge/host/PatchStreamLimits$Companion;
+	public static final field DEFAULT_MAX_BYTES J
+	public static final field DEFAULT_MAX_PATCHES I
+	public fun <init> ()V
+	public fun <init> (JI)V
+	public synthetic fun <init> (JIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun copy (JI)Ldev/woge/host/PatchStreamLimits;
+	public static synthetic fun copy$default (Ldev/woge/host/PatchStreamLimits;JIILjava/lang/Object;)Ldev/woge/host/PatchStreamLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxBytes ()J
+	public final fun getMaxPatches ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/PatchStreamLimits$Companion {
 }
 
 public final class dev/woge/host/PrincipalFacts {
@@ -1142,6 +1174,8 @@ public final class dev/woge/host/RequestTrace {
 public final class dev/woge/host/ResourceLimit : java/lang/Enum {
 	public static final field DEFERRED_TASK_COUNT Ldev/woge/host/ResourceLimit;
 	public static final field PAGE_BYTES Ldev/woge/host/ResourceLimit;
+	public static final field PATCH_COUNT Ldev/woge/host/ResourceLimit;
+	public static final field PATCH_STREAM_BYTES Ldev/woge/host/ResourceLimit;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/ResourceLimit;
 	public static fun values ()[Ldev/woge/host/ResourceLimit;
@@ -1158,6 +1192,11 @@ public final class dev/woge/host/ResourceLimitExceeded {
 	public final fun getThreshold ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/ResourceLimitException : java/lang/IllegalStateException {
+	public fun <init> (Ldev/woge/host/ResourceLimitExceeded;)V
+	public final fun getExceededLimit ()Ldev/woge/host/ResourceLimitExceeded;
 }
 
 public final class dev/woge/host/ResponseCookie {

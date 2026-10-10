@@ -61,6 +61,20 @@ on each DSL writer call. `patchHtml` also enforces the fixed 8 MiB protocol payl
 bounded chunks before retaining an oversized fragment, rather than discovering it only at encoding.
 These guards cannot bound application-owned eager strings, lists, or custom blocking render code.
 
+Server patch responses use `PatchStreamLimits`: 16 MiB total wire bytes and 128 patches by default,
+including framing and completion. A shared incremental budget checks every encoder write before
+retaining it; count admission happens before the next patch is encoded. Each cold collection owns
+fresh accounting. Exhaustion propagates a typed `ResourceLimitException`, records
+`PATCH_STREAM_BYTES` or `PATCH_COUNT` / threshold with `REJECTED`, and never creates a successful
+terminal frame. Request cancellation still cancels structured deferred work.
+
+Deferred handlers expose the same `patchStreamLimits` override in all hosts. Prepared action updates
+apply it during construction, including the completion frame, rather than retaining an unlimited
+set of individually valid fragments. `actionRegionUpdates`, `actionValidationUpdates` and
+`regionRefresh` carry the chosen limits with their result to the transport encoder. A caught builder
+failure cannot turn incomplete preparation into success. Applications raising server limits must
+also explicitly align browser limits; exhaustion is not permission to repeat a mutation.
+
 ## Alternatives considered
 
 - **Only keep the semaphore:** limits active tasks, not declarations or waiting children.
@@ -82,9 +96,8 @@ are recorded for this pre-release version.
 
 ## Follow-up
 
-This implements deferred admission/pending results, HTML response bytes, patch fragment bytes and
-browser response/decoder parts of #122. Aggregate server patch stream accounting, multipart/upload
-policy, SSE subscription ownership and
+This implements deferred admission/pending results, HTML response bytes, patch fragment/stream bytes
+and browser response/decoder parts of #122. Multipart/upload policy, SSE subscription ownership and
 application/session-wide admission remain open. SSE does not yet have a production API; its future
 implementation must apply explicit subscription budgets rather than inherit an unlimited registry.
 Do not mark #122 complete until those remaining boundaries and exhaustion paths are implemented.

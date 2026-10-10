@@ -14,12 +14,15 @@ import java.util.Collections
 /** Ordered, typed replacements. All rendering and payload validation finish before a result exists. */
 public class ActionRegionUpdates internal constructor(
     private val interaction: InteractionSequence,
+    limits: PatchStreamLimits,
 ) {
     private val patches = mutableListOf<ReplacePatch>()
     private val targets = mutableSetOf<String>()
     private var epoch: PageEpoch? = null
     private var finished = false
     private var incomplete = false
+    private val budget = PatchStreamBudget(limits)
+    private val encoder = PatchStreamV1.encoder(ByteSink { budget.consumeBytes(it.size) })
 
     public fun <Input> replace(
         target: RegionTarget<Input>,
@@ -29,7 +32,7 @@ public class ActionRegionUpdates internal constructor(
         check(!finished) { "Action updates are already finished" }
         check(!incomplete) { "A previous action update failed" }
         incomplete = true
-        require(patches.size < MAX_ACTION_UPDATES) { "Action update count exceeds $MAX_ACTION_UPDATES" }
+        budget.admitPatch()
         require(epoch == null || epoch == target.target.pageEpoch) { "Action updates must belong to one page epoch" }
         require(targets.add(target.target.region.value)) { "An action may replace each region only once" }
         epoch = target.target.pageEpoch
@@ -41,7 +44,7 @@ public class ActionRegionUpdates internal constructor(
                 TargetRevisionStep.after(revision),
                 target.render(input),
             )
-        PatchStreamV1.encoder(ByteSink {}).write(patch)
+        encoder.write(patch)
         patches.add(patch)
         incomplete = false
     }
@@ -50,22 +53,27 @@ public class ActionRegionUpdates internal constructor(
         check(!finished) { "Action updates are already finished" }
         check(!incomplete) { "Action update preparation failed" }
         require(patches.isNotEmpty()) { "An action must update at least one region" }
+        incomplete = true
+        encoder.complete()
+        incomplete = false
         finished = true
         return Collections.unmodifiableList(patches.toList())
     }
 }
 
 /** Native submissions redirect to [fallback]; explicit enhanced action requests receive typed patches. */
+@Suppress("LongParameterList")
 public fun actionRegionUpdates(
     fallback: ApplicationUrl,
     interaction: InteractionSequence = InteractionSequence.INITIAL,
     headers: ResponseHeaders = ResponseHeaders.EMPTY,
     cookies: Iterable<ResponseCookie> = emptyList(),
+    patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     updates: ActionRegionUpdates.() -> Unit,
 ): PageResult.RegionUpdates {
     val native = redirect(fallback, headers = headers, cookies = cookies)
     return PageResult.RegionUpdates(
-        ActionRegionUpdates(interaction).apply(updates).finish(),
+        ActionRegionUpdates(interaction, patchStreamLimits).apply(updates).finish(),
         native,
         focusSummary = null,
         metadata =
@@ -74,18 +82,21 @@ public fun actionRegionUpdates(
                 headers = native.metadata.headers,
                 cookies = native.metadata.cookies,
             ),
+        patchStreamLimits = patchStreamLimits,
     )
 }
 
 /** One current region for an authorized, side-effect-free GET; ordinary navigation uses [fallback]. */
+@Suppress("LongParameterList")
 public fun <Input> regionRefresh(
     fallback: ApplicationUrl,
     target: RegionTarget<Input>,
     input: Input,
     revision: TargetRevision,
     interaction: InteractionSequence,
+    patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
 ): PageResult.RegionUpdates =
-    actionRegionUpdates(fallback, interaction) {
+    actionRegionUpdates(fallback, interaction, patchStreamLimits = patchStreamLimits) {
         replace(target, input, revision)
     }
 
@@ -94,11 +105,12 @@ public fun actionValidationUpdates(
     nativePage: PageResult.Document,
     summary: FormElementId,
     interaction: InteractionSequence = InteractionSequence.INITIAL,
+    patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     updates: ActionRegionUpdates.() -> Unit,
 ): PageResult.RegionUpdates {
     require(nativePage.metadata.status == ResponseStatus.BAD_REQUEST) { "A validation page must use status 400" }
     return PageResult.RegionUpdates(
-        ActionRegionUpdates(interaction).apply(updates).finish(),
+        ActionRegionUpdates(interaction, patchStreamLimits).apply(updates).finish(),
         nativePage,
         summary,
         ResponseMetadata(
@@ -107,9 +119,8 @@ public fun actionValidationUpdates(
             headers = nativePage.metadata.headers,
             cookies = nativePage.metadata.cookies,
         ),
+        patchStreamLimits,
     )
 }
 
 public const val ACTION_VALIDATION_HEADER: String = "Woge-Validation"
-
-private const val MAX_ACTION_UPDATES = 128

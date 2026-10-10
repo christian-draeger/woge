@@ -58,6 +58,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                     AdapterTckDeferredScenario.fromPath(request.pathVariable("scenario"))
                 },
                 observer = application.observer,
+                patchStreamLimits = application.deferredPatchStreamLimits,
             )
         val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
         val failures =
