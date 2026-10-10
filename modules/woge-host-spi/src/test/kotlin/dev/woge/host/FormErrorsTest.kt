@@ -36,6 +36,7 @@ class FormErrorsTest {
                 formErrorSummary(errors, FormElementId.of("errors"), "Check the form")
             }
         assertTrue(html.contains("""name="task-title""""))
+        assertTrue(html.contains("""data-woge-state-key="title""""))
         assertTrue(html.contains("""aria-describedby="title-help title-error""""))
         assertTrue(html.contains("""value="&lt;private&gt;""""))
         assertTrue(html.contains("""href="#title""""))

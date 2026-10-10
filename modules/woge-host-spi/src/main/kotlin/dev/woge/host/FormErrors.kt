@@ -69,6 +69,7 @@ public fun <Command : Any> Attributes.formField(
 ) {
     attribute("name", field.name)
     attribute("id", field.id.value)
+    data("woge-state-key", field.id.value)
     val invalid = errors.messages(field).isNotEmpty()
     if (invalid) attribute("aria-invalid", "true")
     val descriptions = describedBy + if (invalid) listOf(field.errorId) else emptyList()

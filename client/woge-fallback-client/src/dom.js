@@ -1,4 +1,5 @@
 import { fail } from "./protocol.js";
+import { captureWogeBrowserState, prepareWogeBrowserState } from "./state.js";
 
 const REGION_ATTRIBUTE = "data-woge-region";
 const REVISION_ATTRIBUTE = "data-woge-revision";
@@ -73,11 +74,16 @@ export class PageRegionRegistry {
 
     dispatchLifecycle(entry.element, BEFORE_REPLACE_EVENT, detail);
     this.#assertTargetStillActive(entry);
+    const state = prepareWogeBrowserState(captureWogeBrowserState(entry.element), template.content, {
+      reset: entry.element.getAttribute("data-woge-state") === "reset",
+    });
+    state.commit();
     closeRemovedOverlays(entry.element);
     entry.element.replaceChildren(template.content);
     entry.element.setAttribute(REVISION_ATTRIBUTE, patch.nextRevision.toString());
     entry.revision = patch.nextRevision;
     this.#commitRegistryChange(registryChange);
+    state.restoreFocus(entry.element);
     dispatchLifecycle(entry.element, AFTER_REPLACE_EVENT, detail);
   }
 

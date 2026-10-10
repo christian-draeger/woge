@@ -76,6 +76,7 @@ test("oversized frames are resource exhaustion", () => {
 test("browser apply failures fail closed", () => {
   for (const code of [
     "WOGE_ACTIVE_CONTENT", "WOGE_TARGET_CHANGED", "WOGE_INVALID_DOCUMENT", "WOGE_INVALID_ITEM", "WOGE_ITEM_CHANGED",
+    "WOGE_INVALID_BROWSER_STATE", "WOGE_BROWSER_STATE_CONFLICT",
   ]) {
     assert.deepEqual(classifyWogeFailure(new WogePatchError(code, "x")), {
       code,

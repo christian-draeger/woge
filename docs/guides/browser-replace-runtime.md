@@ -59,6 +59,11 @@ owned. Valid custom elements in the new content connect through the browser's no
 Nested Woge regions are allowed. Their opaque IDs and counters are validated before the parent DOM is
 changed, then added to the same page registry atomically.
 
+Replace now protects browser-owned dirty controls through explicit stable keys, with deliberate
+reset and native-node preservation for files and local islands. See
+[Preserve browser-owned state](browser-owned-state.md) for the ownership matrix and supported focus
+and selection rules. Append leaves existing children intact; Remove retains its explicit focus fallback.
+
 ## Delegate controller lifecycle
 
 The target emits standard bubbling events immediately before and after replacement:
