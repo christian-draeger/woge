@@ -1,6 +1,8 @@
 package dev.woge.example
 
 import dev.woge.example.project.AddBoardTaskAction
+import dev.woge.example.project.BoardActivityRoute
+import dev.woge.example.project.BoardLiveRoute
 import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
@@ -43,6 +45,8 @@ public class ProjectRoutes {
         val board = TaskBoard()
         val page = handlers.page(board.page, TaskBoardRoute)
         val refresh = handlers.page(board.refresh, BoardRegionRoute)
+        val activity = handlers.page(board.activity, BoardActivityRoute)
+        val live = handlers.live(board.live, BoardLiveRoute)
         val action =
             handlers.action(
                 board.action,
@@ -52,6 +56,8 @@ public class ProjectRoutes {
         return coRouter {
             GET(TaskBoardRoute.path, page::handle)
             GET(BoardRegionRoute.path, refresh::handle)
+            GET(BoardActivityRoute.path, activity::handle)
+            GET(BoardLiveRoute.path, live::handle)
             POST(AddBoardTaskAction.path) { request ->
                 val uri = request.uri()
                 val origin = "${uri.scheme}://${uri.rawAuthority}"

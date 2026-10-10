@@ -77,6 +77,13 @@ The browser fixtures deliberately apply an older search response after a newer o
 action response while submitting again, so ordering and duplicate suppression are deterministic
 on all three hosts.
 
+When another visitor adds a task, open boards show a live notice: "1 new task was added. Show the
+latest board". The page opens `GET /projects/woge/tasks/live/{epoch}` with `EventSource`. That stream
+names only the activity region; the browser then loads the notice with the safe
+`GET /projects/woge/tasks/activity/{epoch}/{target}/{revision}/{interaction}?since=<version>`.
+The notice sits in `role="status"`, never moves focus and links to the normal board instead of
+changing the list under the user's cursor. Without JavaScript or the stream, the board works as before.
+
 [`shared`](shared) contains the host-neutral `ProjectPage`, semantic HTML, region work and web assets.
 [`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and [`ktor`](ktor) contain only their
 host-specific startup, routes and real-server integration tests. The example consumes root projects

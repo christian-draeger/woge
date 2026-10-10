@@ -2,13 +2,17 @@ package dev.woge.example.project
 
 import dev.woge.host.CorrelationId
 import dev.woge.host.FailureCategory
+import dev.woge.host.LiveResult
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.RequestContext
 import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
 import dev.woge.host.RequestTrace
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
@@ -118,6 +122,47 @@ class TaskBoardTest {
                 )
             assertEquals(FailureCategory.CONFLICT, replay.failure.category)
             assertEquals(1, Regex("A new task").findAll(document(board)).count())
+        }
+
+    @Test
+    fun `live stream announces only the activity region and the notice counts newer tasks`() =
+        runTest {
+            val board = TaskBoard()
+            val html = document(board)
+            val epoch = Regex("""name="epoch" value="([^"]+)"""").find(html)!!.groupValues[1]
+            val target = Regex("""data-woge-region="([^"]+)"[^>]*id="board-activity"""").find(html)!!.groupValues[1]
+            val context =
+                RequestContext(RequestMethod.GET, RequestTrace(RequestId.of("live"), CorrelationId.of("live")))
+            assertInstanceOf(
+                LiveResult.Refused::class.java,
+                board.live.subscribe(PageRequest(BoardLiveInput(""), context)),
+            )
+            val subscription =
+                board.live.subscribe(PageRequest(BoardLiveInput(epoch), context)) as LiveResult.Subscription
+            assertEquals(setOf(target), subscription.targets.map { it.value }.toSet())
+
+            val invalidation =
+                backgroundScope.async(
+                    start = CoroutineStart.UNDISPATCHED,
+                ) { subscription.invalidations.first() }
+            board.action.execute(PageRequest(AddBoardTask("Live task", epoch, 0, 0), boardActionContext()))
+            assertEquals(target, invalidation.await().value)
+
+            suspend fun notice(since: Long?) =
+                (
+                    board.activity.open(
+                        PageRequest(BoardActivityInput(epoch, target, 0, 1, since), context),
+                    ) as PageResult.RegionUpdates
+                ).patches
+                    .single()
+                    .html.value
+            assertEquals(true, notice(0).contains("1 new task was added."))
+            assertEquals(false, notice(1).contains("new task"))
+            assertEquals(false, notice(null).contains("new task"))
+            val invalid = board.activity.open(PageRequest(BoardActivityInput(epoch, target, 0, 1, -1), context))
+            assertEquals(FailureCategory.BAD_REQUEST, (invalid as PageResult.Failure).failure.category)
+            val unknown = board.activity.open(PageRequest(BoardActivityInput(epoch, "unknown", 0, 1), context))
+            assertEquals(FailureCategory.NOT_FOUND, (unknown as PageResult.Failure).failure.category)
         }
 
     @Test

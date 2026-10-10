@@ -82,5 +82,6 @@ focus and the reference application's live notification.
 ## Follow-up
 
 The server port, shared encoder, admission limits and all three host handlers close #122. The
-fallback-client live connector and the reference task board follow under #38. Reverse-proxy fixtures
-belong to the deployment work in #45.
+fallback-client `connectWogeLive` connector, the budget-free `runtime.refreshRegion` and the
+reference task board's live notice complete #38. Reverse-proxy fixtures that measure buffering and
+compression belong to the deployment work in #45.

@@ -1,5 +1,7 @@
 import {
+  AFTER_REPLACE_EVENT,
   classifyWogeFailure,
+  connectWogeLive,
   createWogePatchRuntime,
   createWogeRecoveryBudget,
   installWogeActionForms,
@@ -15,6 +17,32 @@ if (page) {
 } else if (document.querySelector("[data-woge-action]")) {
   runtime = createWogePatchRuntime(document);
   installWogeActionForms(document, runtime);
+  connectBoardActivity(runtime);
+}
+
+// Live updates are optional: without EventSource or the stream, the board works as before.
+function connectBoardActivity(runtime) {
+  const url = document.querySelector('meta[name="woge-live-url"]')?.content;
+  const notice = document.getElementById("board-activity")?.closest("[data-woge-region]");
+  if (!url || !notice || typeof EventSource !== "function") return;
+  const shownVersion = () => document.querySelector('input[name="version"][form="board-form"]').value;
+  const live = connectWogeLive(runtime, url, {
+    load: async (context, { signal }) => {
+      const parts = [context.pageEpoch, notice.dataset.wogeRegion, context.targets[0].baseRevision,
+        context.interactionSequence];
+      const response = await fetch(
+        `/projects/woge/tasks/activity/${parts.map(encodeURIComponent).join("/")}?since=${shownVersion()}`,
+        { headers: { Accept: `application/vnd.woge.patch-stream; version=${WOGE_PATCH_PROTOCOL_VERSION}` }, signal },
+      );
+      if (!response.ok || !response.body) throw response;
+      return response.body;
+    },
+    onError: (problem) => console.warn("Live board notice was not refreshed.", problem),
+  });
+  // The page's own task makes the board current again, so a notice about it would be stale.
+  document.addEventListener(AFTER_REPLACE_EVENT, (event) => {
+    if (event.target.querySelector?.('input[name="version"]')) live.refresh(notice.dataset.wogeRegion);
+  });
 }
 
 async function loadDeferredRegions(url) {

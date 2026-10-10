@@ -4,6 +4,7 @@ import dev.woge.host.WogeRegion
 import dev.woge.host.actionForm
 import dev.woge.host.region
 import dev.woge.html.HtmlWriter
+import dev.woge.html.a
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
 import dev.woge.html.button
@@ -25,6 +26,7 @@ internal fun HtmlWriter.renderTaskBoard(snapshot: TaskBoardSnapshot) {
     html(attributes = { attribute("lang", "en") }) {
         head {
             metadata("woge-page-epoch", snapshot.page.epoch.value)
+            metadata("woge-live-url", BoardLiveRoute.url(BoardLiveInput(snapshot.page.epoch.value)).value)
             title("Task board · Woge")
             stylesheet(applicationUrl("/assets/application.css"))
             moduleScript(applicationUrl("/assets/application.js"))
@@ -37,6 +39,10 @@ internal fun HtmlWriter.renderTaskBoard(snapshot: TaskBoardSnapshot) {
             boardForm()
             region(BoardStatusRegion.target(snapshot.page), "", elementName = "p", attributes = {
                 attribute("id", "board-status")
+                attribute("role", "status")
+            })
+            region(BoardActivityRegion.target(snapshot.page), 0L, elementName = "div", attributes = {
+                attribute("id", "board-activity")
                 attribute("role", "status")
             })
             p(attributes = {
@@ -83,6 +89,17 @@ internal fun HtmlWriter.boardState(snapshot: TaskBoardSnapshot) {
     hidden("epoch", snapshot.page.epoch.value)
     hidden("version", snapshot.version.toString())
     hidden("revision", snapshot.revision.toString())
+}
+
+/** Live notice; empty until another visitor adds a task. A plain link keeps the update in the user's hands. */
+@WogeRegion
+internal fun HtmlWriter.boardActivity(newTasks: Long) {
+    if (newTasks > 0) {
+        p {
+            text(if (newTasks == 1L) "1 new task was added. " else "$newTasks new tasks were added. ")
+            a(attributes = { url("href", TaskBoardRoute.url(TaskBoardInput())) }) { text("Show the latest board") }
+        }
+    }
 }
 
 @WogeRegion

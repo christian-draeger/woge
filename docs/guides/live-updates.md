@@ -86,6 +86,34 @@ timeout just above `maxLifetime`, so you do not need to raise `asyncTimeout` for
 
 ## Browser
 
-The fallback client's live connector opens one `EventSource` and reloads every changed region with
-your region GET. Its API and the reference-application example are tracked in
-[#38](https://github.com/christian-draeger/woge/issues/38).
+```js
+import { connectWogeLive, createWogePatchRuntime } from "@woge/fallback-client";
+
+const runtime = createWogePatchRuntime(document);
+const live = connectWogeLive(runtime, "/board/live/" + epoch, {
+  load: async (context, { signal }) => {
+    const response = await fetch(regionUrl(context), {
+      headers: { Accept: "application/vnd.woge.patch-stream; version=1" },
+      signal,
+    });
+    if (!response.ok || !response.body) throw response;
+    return response.body;
+  },
+});
+```
+
+`regionUrl` builds your region route from `context.pageEpoch`, `context.targets[0]` and
+`context.interactionSequence`, exactly like any other region refresh. The connector refreshes each
+changed region once at a time, with at most one follow-up, and keeps working after a failed refresh.
+
+Background updates are silent and keep focus. Wrap a region in `role="status"` only when a short
+message helps, such as "3 new tasks". Prefer a link to the fresh page over changing content the user
+is reading. The [reference task board](../../examples/reference-application/README.md) shows exactly
+that on Spring MVC, Spring WebFlux and Ktor.
+
+## Deployment
+
+- Keep compression off for `text/event-stream`, or make sure the proxy flushes each event.
+- Proxy read timeouts must be longer than the heartbeat (15 seconds by default).
+- Each open tab holds one connection. Over HTTP/1.1, browsers allow about six per origin, so keep to
+  one live stream per page.

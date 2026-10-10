@@ -5,6 +5,7 @@ import dev.woge.host.CorrelationId
 import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
+import dev.woge.host.LiveUseCase
 import dev.woge.host.PageIdentity
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
@@ -21,11 +22,16 @@ import dev.woge.host.WogeRoute
 import dev.woge.host.actionRegionUpdates
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
+import dev.woge.host.liveRefused
+import dev.woge.host.liveSubscription
 import dev.woge.host.redirect
 import dev.woge.host.regionRefresh
 import dev.woge.protocol.InteractionSequence
 import dev.woge.protocol.PageEpoch
 import dev.woge.protocol.TargetRevision
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -39,6 +45,22 @@ public data class BoardRegionInput(
     public val revision: Long,
     public val interaction: Long,
     public val query: String? = null,
+)
+
+/** The board's live stream for one rendered page. */
+@WogeRoute("/projects/woge/tasks/live/{epoch}")
+public data class BoardLiveInput(
+    public val epoch: String,
+)
+
+/** Safe GET for the live activity notice; [since] is the board version the page already shows. */
+@WogeRoute("/projects/woge/tasks/activity/{epoch}/{target}/{revision}/{interaction}")
+public data class BoardActivityInput(
+    public val epoch: String,
+    public val target: String,
+    public val revision: Long,
+    public val interaction: Long,
+    public val since: Long? = null,
 )
 
 @Serializable
@@ -98,6 +120,8 @@ public class TaskBoard {
     private val secret = RenderIdentitySecret.random()
     private var titles = listOf("Review the project")
     private var version = 0L
+    private val changes =
+        MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     public val page: PageUseCase<TaskBoardInput> =
         PageUseCase {
@@ -139,6 +163,49 @@ public class TaskBoard {
             }
         }
 
+    /**
+     * Tells open pages that the board changed. The stream sends only the activity region id; the
+     * browser loads the notice through [activity], so normal pages never depend on it.
+     */
+    public val live: LiveUseCase<BoardLiveInput> =
+        LiveUseCase { request ->
+            if (!validBoardEpoch(request.input.epoch)) {
+                liveRefused(FailureCategory.BAD_REQUEST, request.context.correlationId)
+            } else {
+                val target = BoardActivityRegion.target(PageIdentity(PageEpoch.of(request.input.epoch), secret))
+                liveSubscription(listOf(target), changes.map { target })
+            }
+        }
+
+    /** Read-only notice of tasks added after the version the page shows. */
+    public val activity: PageUseCase<BoardActivityInput> =
+        PageUseCase { request ->
+            val input = request.input
+            val validContext =
+                validBoardEpoch(input.epoch) &&
+                    validBoardOrdering(input.revision, input.interaction) &&
+                    input.revision != Long.MAX_VALUE &&
+                    (input.since ?: 0) >= 0
+            if (!validContext) {
+                failure(FailureCategory.BAD_REQUEST, request.context.correlationId)
+            } else {
+                synchronized(this) {
+                    val target = BoardActivityRegion.target(PageIdentity(PageEpoch.of(input.epoch), secret))
+                    if (target.target.region.value != input.target) {
+                        failure(FailureCategory.NOT_FOUND, request.context.correlationId)
+                    } else {
+                        regionRefresh(
+                            TaskBoardRoute.url(TaskBoardInput()),
+                            target,
+                            (version - (input.since ?: version)).coerceAtLeast(0),
+                            TargetRevision.of(input.revision),
+                            InteractionSequence.of(input.interaction),
+                        )
+                    }
+                }
+            }
+        }
+
     private fun update(request: PageRequest<AddBoardTask>): PageResult =
         synchronized(this) {
             val command = request.input
@@ -163,6 +230,7 @@ public class TaskBoard {
                 }
             titles = newTitles
             version = next.version
+            changes.tryEmit(Unit)
             result
         }
 

@@ -120,6 +120,35 @@ test("region resynchronization uses one declared safe replacement and cannot ret
   await expect(page.locator("main")).toHaveAttribute("data-woge-revision", "1");
 });
 
+test("server-requested refreshes are unbudgeted but keep the replacement contract", async ({ page }) => {
+  const result = await page.evaluate(async ({ first, wrongTarget }) => {
+    const runtime = Woge.createWogePatchRuntime(document);
+    const stream = (bytes) => new ReadableStream({
+      start(controller) { controller.enqueue(Uint8Array.from(bytes)); controller.close(); },
+    });
+    const errors = [];
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await runtime.refreshRegion("summary-1", async () => { throw new Error("offline"); });
+      } catch (problem) { errors.push(problem.message); }
+    }
+    try {
+      await runtime.refreshRegion("summary-1", async () => stream(wrongTarget));
+    } catch (problem) { errors.push(problem.code); }
+    const completion = await runtime.refreshRegion("summary-1", async () => stream(first));
+    return { errors, completion };
+  }, {
+    first: Array.from(encodeStream([patchFrame({ interactionSequence: 4, html: "<p>Live</p>" }), completeFrame()])),
+    wrongTarget: Array.from(encodeStream([
+      patchFrame({ target: "other", interactionSequence: 3, baseRevision: 0, nextRevision: 1 }),
+      completeFrame(),
+    ])),
+  });
+  expect(result.errors).toEqual(["offline", "offline", "WOGE_INVALID_RESYNC"]);
+  expect(result.completion.patchCount).toBe(1);
+  await expect(page.locator("main")).toHaveText("Live");
+});
+
 test("a recovery completed after newer intent is ignored and cancellation never invokes its loader", async ({ page }) => {
   const result = await page.evaluate(async (bytes) => {
     const events = [];
