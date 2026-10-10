@@ -1,3 +1,38 @@
+public abstract class dev/woge/host/ActionDescriptor : dev/woge/host/ActionExecutor {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getId-x5qJNp8 ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getUrl-r4VgPSI ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/ActionExecutor {
+	public abstract fun execute (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/ActionId {
+	public static final field Companion Ldev/woge/host/ActionId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/ActionId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/ActionId$Companion {
+	public final fun of-O2CU4d4 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/ActionRegistry {
+	public fun <init> (Ljava/lang/Iterable;)V
+	public final fun find-Gh5qa1g (Ljava/lang/String;)Ldev/woge/host/ActionDescriptor;
+	public final fun getActions ()Ljava/util/List;
+}
+
 public final class dev/woge/host/ApplicationRedirectLocation : dev/woge/host/RedirectLocation {
 	public final fun getUrl-r4VgPSI ()Ljava/lang/String;
 	public fun getValue ()Ljava/lang/String;
@@ -747,6 +782,10 @@ public final class dev/woge/host/TypedRegionsKt {
 	public static synthetic fun deferredRegion-IloEfL4$default (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/DeferredRegion;
 	public static final fun region-yGY75_w (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)V
 	public static synthetic fun region-yGY75_w$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {
+	public abstract fun id ()Ljava/lang/String;
 }
 
 public abstract interface annotation class dev/woge/host/WogeComponent : java/lang/annotation/Annotation {

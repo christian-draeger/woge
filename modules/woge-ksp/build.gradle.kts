@@ -2,7 +2,7 @@ plugins {
     id("dev.woge.kotlin-jvm-library")
 }
 
-description = "KSP processor that generates typed Woge region descriptors."
+description = "KSP processor that generates typed Woge region, route and action descriptors."
 
 dependencies {
     implementation(libs.kspApi)

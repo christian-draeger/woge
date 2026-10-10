@@ -1,5 +1,6 @@
 plugins {
     id("dev.woge.kotlin-jvm-library")
+    alias(libs.plugins.ksp)
 }
 
 description = "Compact compile-verified examples and negative compiler fixtures for the public M1 API."
@@ -11,6 +12,7 @@ dependencies {
     implementation(project(":woge-spring-webflux"))
     implementation(project(":woge-spring-mvc"))
     implementation(project(":woge-ktor"))
+    ksp(project(":woge-ksp"))
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinCompilerEmbeddable)

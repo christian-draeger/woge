@@ -78,6 +78,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0049](0049-generated-region-descriptors.md) | Accepted | Generate one typed descriptor per `@WogeRegion` HTML function; no string targets and no registry |
 | [0050](0050-ksp-inside-wogedev.md) | Accepted | The application applies KSP, the Woge plugin adds the processor, and `wogeDev` regenerates through the normal Gradle build |
 | [0051](0051-typed-page-routes.md) | Accepted | `@WogeRoute` on the page input generates one host-neutral route for links and request decoding |
+| [0052](0052-typed-action-executors-and-registry.md) | Accepted | Generate explicit typed action executors and allowlisted registries with stable public IDs |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
