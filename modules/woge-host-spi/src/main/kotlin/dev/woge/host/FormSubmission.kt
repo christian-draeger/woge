@@ -1,5 +1,6 @@
 package dev.woge.host
 
+import dev.woge.html.Attributes
 import dev.woge.html.HtmlWriter
 import dev.woge.html.form
 import java.util.Collections
@@ -66,7 +67,17 @@ public fun HtmlWriter.actionForm(
     action: ActionDescriptor<*>,
     content: HtmlWriter.() -> Unit,
 ) {
+    actionForm(action, attributes = {}, content = content)
+}
+
+/** Adds application-owned classes and opt-in attributes while retaining the descriptor's POST policy. */
+public fun HtmlWriter.actionForm(
+    action: ActionDescriptor<*>,
+    attributes: Attributes.() -> Unit,
+    content: HtmlWriter.() -> Unit,
+) {
     form(attributes = {
+        attributes()
         attribute("method", "post")
         attribute("enctype", "application/x-www-form-urlencoded")
         attribute("accept-charset", "UTF-8")

@@ -12,7 +12,7 @@ public class WogeKtorActionHandler<Command : Any> internal constructor(
 ) {
     public suspend fun handle(call: ApplicationCall) {
         if (call.request.httpMethod == HttpMethod.Post) {
-            delegate.handle(call)
+            delegate.handleAction(call)
         } else {
             call.response.headers.append("Allow", "POST")
             call.respond(HttpStatusCode.MethodNotAllowed)

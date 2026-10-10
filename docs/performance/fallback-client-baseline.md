@@ -17,6 +17,11 @@ active-page registry validation, active-content checks, lifecycle events and DOM
 `npm run measure` regenerates `build/size-metrics.json`, prints the values and includes the bundle
 SHA-256. The production source and dependencies are deterministic through `package-lock.json`.
 
+After opt-in action forms and canonical recovery were included (2026-10-10), the same measurement
+reported 19,359 minified bytes, 6,988 gzip bytes and 6,117 Brotli bytes. The source-byte metric now
+includes both `actions.js` and `recovery.js`; the compressed metrics always measure the actual bundle.
+This remains evidence, not a new release budget.
+
 ## Browser timing smoke measurement
 
 The Playwright contract applies 20 small Replace frames to 20 registered regions and reports the

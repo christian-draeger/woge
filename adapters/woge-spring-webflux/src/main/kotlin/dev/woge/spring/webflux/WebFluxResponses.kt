@@ -1,12 +1,15 @@
 package dev.woge.spring.webflux
 
+import dev.woge.host.ACTION_NAVIGATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
+import dev.woge.host.ResponseStatus
 import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.enhancedActionNavigation
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -36,6 +39,7 @@ import org.springframework.http.ResponseCookie as SpringResponseCookie
 internal suspend fun PageResult.toWebFluxResponse(
     observer: WogeObserver,
     observationContext: WogeObservationContext,
+    actionAccept: String? = null,
 ): ServerResponse =
     when (this) {
         is PageResult.Document ->
@@ -44,7 +48,13 @@ internal suspend fun PageResult.toWebFluxResponse(
                 .awaitSingle()
 
         is PageResult.Redirect ->
-            responseBuilder(metadata)
+            enhancedActionNavigation(actionAccept)?.let { navigation ->
+                responseBuilder(metadata, ResponseStatus.OK, varyAccept = true)
+                    .header(ACTION_NAVIGATION_HEADER, navigation.value)
+                    .headers { it.set("Cache-Control", "no-store") }
+                    .build()
+                    .awaitSingle()
+            } ?: responseBuilder(metadata, varyAccept = actionAccept != null)
                 .location(URI.create(location.value))
                 .build()
                 .awaitSingle()
@@ -63,10 +73,15 @@ internal suspend fun Flow<EncodedPatchChunk>.toWebFluxPatchResponse(): ServerRes
         .body(patchBody(this))
         .awaitSingle()
 
-private fun responseBuilder(metadata: ResponseMetadata): ServerResponse.BodyBuilder {
-    val builder = ServerResponse.status(HttpStatusCode.valueOf(metadata.status.code))
+private fun responseBuilder(
+    metadata: ResponseMetadata,
+    status: ResponseStatus = metadata.status,
+    varyAccept: Boolean = false,
+): ServerResponse.BodyBuilder {
+    val builder = ServerResponse.status(HttpStatusCode.valueOf(status.code))
     metadata.contentType?.let { builder.contentType(MediaType.parseMediaType(it.value)) }
     metadata.headers.forEach { header -> builder.header(header.name.value, header.value.value) }
+    if (varyAccept) builder.header("Vary", "Accept")
     metadata.cookies.forEach { cookie -> builder.cookie(cookie.toSpringCookie()) }
     return builder
 }

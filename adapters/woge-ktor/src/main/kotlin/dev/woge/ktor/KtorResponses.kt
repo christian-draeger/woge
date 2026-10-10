@@ -1,5 +1,6 @@
 package dev.woge.ktor
 
+import dev.woge.host.ACTION_NAVIGATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
@@ -7,6 +8,7 @@ import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.enhancedActionNavigation
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -35,12 +37,21 @@ internal suspend fun ApplicationCall.respondWogePage(
     result: PageResult,
     observer: WogeObserver,
     observationContext: WogeObservationContext,
+    actionAccept: String? = null,
 ) {
     when (result) {
         is PageResult.Document -> respondDocument(result, observer, observationContext)
         is PageResult.Redirect -> {
             applyMetadata(result.metadata)
-            response.headers.append(HttpHeaders.Location, result.location.value)
+            if (actionAccept != null) response.headers.append(HttpHeaders.Vary, "Accept")
+            val navigation = result.enhancedActionNavigation(actionAccept)
+            if (navigation == null) {
+                response.headers.append(HttpHeaders.Location, result.location.value)
+            } else {
+                response.status(HttpStatusCode.OK)
+                response.headers.append(ACTION_NAVIGATION_HEADER, navigation.value)
+                response.headers.append(HttpHeaders.CacheControl, "no-store")
+            }
             respond(BodylessContent)
         }
 

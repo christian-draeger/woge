@@ -24,7 +24,15 @@ public class WogeWebFluxPageHandler<Input : Any>(
     private val failurePages: FailurePages = FailurePages.NONE,
 ) {
     /** Decodes, executes and maps the page without an application-owned controller. */
-    public suspend fun handle(request: ServerRequest): ServerResponse {
+    public suspend fun handle(request: ServerRequest): ServerResponse = handle(request, actionAccept = null)
+
+    internal suspend fun handleAction(request: ServerRequest): ServerResponse =
+        handle(request, request.headers().firstHeader("Accept").orEmpty())
+
+    private suspend fun handle(
+        request: ServerRequest,
+        actionAccept: String?,
+    ): ServerResponse {
         val context = contexts.create(request)
         val observationContext = WogeObservationContext(requestTrace = context.trace)
         val decoded = runCatching { input.decode(request) }
@@ -48,6 +56,6 @@ public class WogeWebFluxPageHandler<Input : Any>(
                     page.open(PageRequest(decoded.getOrThrow(), context))
                 }
             }
-        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext)
+        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext, actionAccept)
     }
 }

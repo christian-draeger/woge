@@ -7,8 +7,12 @@ import dev.woge.host.PageUseCase
 import dev.woge.host.actionForm
 import dev.woge.host.htmlPage
 import dev.woge.host.withFormValidation
+import dev.woge.html.body
 import dev.woge.html.button
+import dev.woge.html.head
+import dev.woge.html.html
 import dev.woge.html.input
+import dev.woge.html.meta
 import dev.woge.html.p
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -28,17 +32,40 @@ internal class TckActionWorkflow {
     val completion: PageUseCase<Unit> =
         PageUseCase {
             htmlPage {
-                p { text("Completed mutations: ${mutations.get()}") }
-                actionForm(TckSubmitAction) {
-                    input(attributes = {
-                        attribute("name", "value")
-                        attribute("aria-label", "Command value")
-                    })
-                    button { text("Submit command") }
-                    button(attributes = {
-                        attribute("name", "value")
-                        attribute("value", "again")
-                    }) { text("Submit ambiguous command") }
+                html {
+                    head {
+                        meta(attributes = {
+                            attribute("name", "woge-page-epoch")
+                            attribute("content", "tck-action-epoch")
+                        })
+                    }
+                    body {
+                        p { text("Completed mutations: ${mutations.get()}") }
+                        actionForm(TckSubmitAction, attributes = {
+                            data("woge-action", "")
+                            data("woge-status", "tck-action-status")
+                            data("woge-alert", "tck-action-alert")
+                            data("woge-failure-message", "Action failed; check the result before submitting again.")
+                        }) {
+                            input(attributes = {
+                                attribute("name", "value")
+                                attribute("aria-label", "Command value")
+                            })
+                            button { text("Submit command") }
+                            button(attributes = {
+                                attribute("name", "value")
+                                attribute("value", "again")
+                            }) { text("Submit ambiguous command") }
+                        }
+                        p(attributes = {
+                            attribute("id", "tck-action-status")
+                            attribute("role", "status")
+                        }) {}
+                        p(attributes = {
+                            attribute("id", "tck-action-alert")
+                            attribute("role", "alert")
+                        }) {}
+                    }
                 }
             }
         }

@@ -63,9 +63,25 @@ classpath resources below `/assets/woge/`. The
 [installation guide](../../docs/guides/fallback-client-installation.md) compares both paths and
 covers static deployment, caching, source maps, CSP and SRI.
 
-Fetch/form interception is intentionally not part of this module yet. Issue
-[#31](https://github.com/christian-draeger/woge/issues/31) will add that progressive-enhancement
-policy without changing the decoder or DOM sink.
+## Enhance explicitly opted-in forms
+
+`installWogeActionForms(document, runtime)` installs delegated submission handling for forms marked
+`data-woge-action`. A form also names its existing `role="status"` and `role="alert"` elements through
+`data-woge-status` and `data-woge-alert`, and supplies `data-woge-failure-message`.
+
+Only same-origin UTF-8 URL-encoded POSTs targeting the current window are eligible. Browser validation,
+successful controls, repeated fields and submitter overrides are preserved. Files, multipart and
+image submitters stay native. Busy state is request-owned, focus stays in place, and `dispose()`
+removes the listener and cancels owned requests.
+
+The endpoint must explicitly return a versioned patch stream or a successful `Woge-Navigate` response
+requesting a same-origin GET. The client never retries or natively replays an uncertain POST.
+The [installation guide](../../docs/guides/fallback-client-installation.md#opt-in-to-action-form-enhancement)
+shows the HTML DSL attributes and error event.
+
+This browser foundation does not close [#31](https://github.com/christian-draeger/woge/issues/31):
+typed action patch rendering and enhanced field-error presentation remain follow-up work. All three
+host action bindings already negotiate application-owned 303 redirects into GET-only navigation.
 
 ## Handle failures
 

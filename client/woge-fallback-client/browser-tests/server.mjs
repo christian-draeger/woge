@@ -1,8 +1,10 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
+import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
   ["/", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/action-forms", { path: new URL("./actions-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/deferred", { path: new URL("./deferred-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   [
     "/deferred-bootstrap.js",
@@ -25,6 +27,17 @@ const pendingDeferredResponses = new Map();
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
+  if (["/action", "/preview"].includes(url.pathname) && request.method === "POST") {
+    for await (const _ of request) {}
+    response.writeHead(200, { "content-type": "application/vnd.woge.patch-stream; version=1" });
+    const interactionSequence = url.searchParams.has("stale") ? 1 : 0;
+    response.end(Buffer.from(encodeStream([
+      patchFrame({ html: "<p>Updated</p>", interactionSequence }),
+      patchFrame({ patchId: "status-patch", target: "status-1", html: "Saved", interactionSequence }),
+      completeFrame(2),
+    ])));
+    return;
+  }
   if (url.pathname === "/deferred-patches") {
     startDeferredResponse(url.searchParams.get("run"), response);
     return;

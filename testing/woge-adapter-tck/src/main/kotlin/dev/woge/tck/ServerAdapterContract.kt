@@ -156,6 +156,11 @@ private class AdapterTckVerification(
         verifyRejectedForms()
         verifyNativeValidation()
         verifyMutationRefresh()
+        verifyEnhancedNavigation()
+    }
+
+    private suspend fun verifyEnhancedNavigation() {
+        runContract("enhanced-action-navigation") { client.verifyEnhancedNavigation(::expect) }
     }
 
     private suspend fun verifyActionMethods() {
@@ -674,6 +679,50 @@ private class AdapterTckVerification(
         detail: String,
         cause: Throwable? = null,
     ): AdapterTckViolation = AdapterTckViolation(AdapterTckFailureOwner.ADAPTER, adapterName, contract, detail, cause)
+}
+
+private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boolean, String, String) -> Unit) {
+    val contract = "enhanced-action-navigation"
+    val headers =
+        mapOf(
+            "Content-Type" to FORM_CONTENT_TYPE,
+            "X-Tck-Subject" to "tck-user",
+            "Accept" to PatchStreamV1.MEDIA_TYPE,
+        )
+    open(RequestMethod.POST, TckSubmitAction.path, headers, "value=accepted").let { response ->
+        response.body().use { body ->
+            expect(response.statusCode() == ResponseStatus.OK.code, contract, "status changed")
+            expect(
+                response.header("woge-navigate") == "/woge-tck/action-complete" && response.header("location") == null,
+                contract,
+                "enhanced response did not request a GET-only navigation",
+            )
+            expect(body.readAllBytes().isEmpty(), contract, "navigation exposed a body")
+            expect(
+                response.header("cache-control") == "no-store" && response.header("vary")?.contains("Accept") == true,
+                contract,
+                "navigation did not preserve negotiated no-store semantics",
+            )
+        }
+    }
+    listOf(
+        "value=denied" to ResponseStatus.FORBIDDEN,
+        "value=a&value=b" to ResponseStatus.BAD_REQUEST,
+    ).forEach { (body, status) ->
+        open(RequestMethod.POST, TckSubmitAction.path, headers, body).let { response ->
+            response.body().close()
+            expect(response.statusCode() == status.code, contract, "domain or validation changed")
+            expect(response.header("woge-navigate") == null, contract, "failure requested navigation")
+        }
+    }
+    repeat(2) {
+        val refreshed = text(RequestMethod.GET, "/woge-tck/action-complete")
+        expect(
+            refreshed.body().contains("<p>Completed mutations: 2</p>"),
+            contract,
+            "enhancement or GET refresh replayed the mutation",
+        )
+    }
 }
 
 private class AdapterTckHttpClient(

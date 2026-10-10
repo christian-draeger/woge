@@ -3,6 +3,7 @@ package dev.woge.host
 import dev.woge.html.BufferedHtmlSink
 import dev.woge.html.applicationUrl
 import dev.woge.html.input
+import dev.woge.html.renderHtml
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -107,6 +108,23 @@ class FormSubmissionTest {
         val body = decoder.body()
         body.accept(encoded.toByteArray())
         return decoder.submission(body)
+    }
+
+    @Test
+    fun `application action attributes cannot override the native POST policy`() {
+        val descriptor =
+            object : ActionDescriptor<Command>(ActionId.of("native")) {
+                override suspend fun execute(request: PageRequest<Command>): PageResult =
+                    redirect(applicationUrl("/complete"))
+            }
+        assertEquals(
+            """<form data-woge-action="" method="post" enctype="application/x-www-form-urlencoded" """ +
+                """accept-charset="UTF-8" action="/woge-actions/native"></form>""",
+            renderHtml { actionForm(descriptor, attributes = { data("woge-action", "") }) {} },
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            renderHtml { actionForm(descriptor, attributes = { attribute("method", "get") }) {} }
+        }
     }
 
     @Serializable

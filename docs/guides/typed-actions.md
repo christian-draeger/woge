@@ -192,6 +192,14 @@ header and hidden-field CSRF rejection and domain authorization on both Spring a
 reject repeated tokens, query-only tokens, malformed encoding and excessive input. This foundation
 does not complete #30: actual enhanced-submission parity is still pending.
 
+The action bindings recognize an explicit `Accept: application/vnd.woge.patch-stream; version=1`.
+For a successful application-owned 303, they return a bodyless 200 with `Woge-Navigate` instead.
+The opt-in browser client then loads that canonical URL with GET, without repeating the mutation.
+Native requests, external redirects and method-preserving 307/308 responses retain their behavior.
+The all-host TCK verifies both paths and exact mutation counts; enhanced field-error presentation
+and typed action patches remain follow-up work. See
+[action-form enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement).
+
 ## Request limits
 
 Defaults are 64 KiB encoded body bytes, 128 field occurrences (including repeated/ignored fields),

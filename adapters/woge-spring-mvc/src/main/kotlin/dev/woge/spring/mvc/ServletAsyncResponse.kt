@@ -1,5 +1,6 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.ACTION_NAVIGATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
@@ -7,6 +8,7 @@ import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.enhancedActionNavigation
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -103,6 +105,7 @@ internal suspend fun PageResult.writeToServlet(
     response: HttpServletResponse,
     observer: WogeObserver,
     observationContext: WogeObservationContext,
+    actionAccept: String? = null,
 ) {
     when (this) {
         is PageResult.Document -> {
@@ -114,7 +117,15 @@ internal suspend fun PageResult.writeToServlet(
 
         is PageResult.Redirect -> {
             response.applyMetadata(metadata)
-            response.setHeader("Location", location.value)
+            if (actionAccept != null) response.addHeader("Vary", "Accept")
+            val navigation = enhancedActionNavigation(actionAccept)
+            if (navigation == null) {
+                response.setHeader("Location", location.value)
+            } else {
+                response.status = HttpServletResponse.SC_OK
+                response.setHeader(ACTION_NAVIGATION_HEADER, navigation.value)
+                response.setHeader("Cache-Control", "no-store")
+            }
         }
 
         is PageResult.Failure -> response.applyMetadata(metadata)

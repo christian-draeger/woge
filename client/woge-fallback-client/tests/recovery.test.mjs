@@ -60,6 +60,13 @@ test("cancellation is ignored as superseded work", () => {
   assert.equal(classifyWogeFailure(new WogePatchError("WOGE_CANCELLED", "x")).outcome, "ignore-stale");
 });
 
+test("action response and navigation failures fail closed with stable categories", () => {
+  assert.equal(classifyWogeFailure(new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "x")).category, "protocol");
+  assert.deepEqual(classifyWogeFailure(new WogePatchError("WOGE_UNSAFE_ACTION_NAVIGATION", "x")), {
+    code: "WOGE_UNSAFE_ACTION_NAVIGATION", category: "security", outcome: "fail-closed",
+  });
+});
+
 test("oversized frames are resource exhaustion", () => {
   const problem = decodeFailure(encodeStream([rawFrame(1, "text/html; charset=utf-8", "x".repeat(64 * 1024 + 1), "")]));
   assert.equal(classifyWogeFailure(problem).category, "resource-exhaustion");

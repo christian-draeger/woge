@@ -27,6 +27,11 @@ public final class dev/woge/host/ActionId$Companion {
 	public final fun of-O2CU4d4 (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/host/ActionNavigationKt {
+	public static final field ACTION_NAVIGATION_HEADER Ljava/lang/String;
+	public static final fun enhancedActionNavigation (Ldev/woge/host/PageResult$Redirect;Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class dev/woge/host/ActionRegistry {
 	public fun <init> (Ljava/lang/Iterable;)V
 	public final fun find-Gh5qa1g (Ljava/lang/String;)Ldev/woge/host/ActionDescriptor;
@@ -424,6 +429,7 @@ public final class dev/woge/host/FormSubmission {
 
 public final class dev/woge/host/FormSubmissionKt {
 	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;)V
+	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public static final fun withFormValidation (Ldev/woge/host/ActionExecutor;Ldev/woge/host/PageUseCase;)Ldev/woge/host/ActionExecutor;
 }
 

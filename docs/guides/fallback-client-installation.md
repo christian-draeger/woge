@@ -100,3 +100,66 @@ continue through the application's normal asset pipeline.
 
 Next, read [Apply Replace patches in the browser](browser-replace-runtime.md) for the page/region
 contract and lifecycle events.
+
+## Opt in to action-form enhancement
+
+The client also exports `installWogeActionForms(document, runtime)`. It is not installed by importing
+the module. Use the same runtime that owns the document's regions:
+
+```js
+import { createWogePatchRuntime, installWogeActionForms } from "/assets/woge/index.js";
+
+const runtime = createWogePatchRuntime(document);
+const forms = installWogeActionForms(document, runtime);
+// Call forms.dispose() when your application stops owning this document.
+```
+
+Keep the form's normal method, action and encoding. Add explicit opt-in attributes using the HTML DSL:
+
+```kotlin
+actionForm(CreateTaskAction, attributes = {
+    data("woge-action", "")
+    data("woge-status", "task-status")
+    data("woge-alert", "task-alert")
+    data("woge-failure-message", "The result is unknown. Check before submitting again.")
+}) {
+    input(attributes = { attribute("name", "title") })
+    button { text("Create task") }
+}
+p(attributes = {
+    attribute("id", "task-status")
+    attribute("role", "status")
+}) {}
+p(attributes = {
+    attribute("id", "task-alert")
+    attribute("role", "alert")
+}) {}
+```
+
+Render a verified CSRF field as part of the application's host security integration. The opt-in
+does not grant authorization or verify CSRF. Mark the success status as an ordinary registered
+patch region if the server updates it; keep live-region elements in the document shell. The
+application chooses one success message, not one message per patch.
+
+Only same-origin UTF-8 URL-encoded POSTs targeting the current window are enhanced. Submitter
+overrides, repeated values, browser validation and `formdata` events remain meaningful. Files,
+multipart, image submitters, other methods and external destinations stay native.
+
+An enhanced endpoint must explicitly negotiate the advertised
+`application/vnd.woge.patch-stream; version=1` and return a compatible stream. Alternatively, a
+successful response with `Woge-Navigate: /tasks` requests a normal same-origin GET navigation.
+Ordinary HTML or redirect responses are not silently treated as patches. Woge action bindings on
+MVC, WebFlux and Ktor translate an application-owned 303 redirect into this navigation response for
+the explicit current-version patch request. Native requests still receive their original 303.
+External and POST-preserving 307/308 redirects are never translated. Patch rendering and enhanced
+field-error presentation remain follow-up work; do not opt in a workflow before its response policy
+meets your needs.
+
+The form is busy only while its request runs. Its submitter uses `aria-disabled`, not the HTML
+`disabled` attribute, and focus stays in place. Failure restores those attributes, retains input,
+writes the form's safe failure message into its existing alert, and emits `woge:action-error`
+with a diagnostic `detail.code`. The client never retries a POST, including after an uncertain
+network result. Application recovery must first establish whether the mutation happened.
+`forms.dispose()` cancels owned requests and restores busy state without submitting again.
+
+The policy is recorded in [ADR 0056](../adr/0056-explicit-action-form-enhancement.md).
