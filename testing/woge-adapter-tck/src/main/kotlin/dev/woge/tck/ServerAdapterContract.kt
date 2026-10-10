@@ -100,7 +100,65 @@ private class AdapterTckVerification(
         }
         verifyTypedRoute()
         verifyFailurePages()
+        verifyActions()
         verifySemanticObservations()
+    }
+
+    private suspend fun verifyActions() {
+        runContract("typed-action-dispatch") {
+            val accepted =
+                client.open(
+                    RequestMethod.POST,
+                    TckSubmitAction.path + "?value=accepted",
+                    mapOf("X-Tck-Subject" to "tck-user"),
+                )
+            accepted.body().use { body ->
+                expect(
+                    accepted.statusCode() == ResponseStatus.SEE_OTHER.code,
+                    "typed-action-dispatch",
+                    "action did not redirect",
+                )
+                expect(
+                    accepted.header("location") == "/woge-tck/action-complete",
+                    "typed-action-dispatch",
+                    "action redirect changed",
+                )
+                expect(body.readAllBytes().isEmpty(), "typed-action-dispatch", "redirect exposed a body")
+            }
+            val anonymous = client.text(RequestMethod.POST, TckSubmitAction.path + "?value=accepted")
+            expect(
+                anonymous.statusCode() == ResponseStatus.FORBIDDEN.code,
+                "typed-action-dispatch",
+                "action did not receive anonymous authentication facts",
+            )
+            val denied =
+                client.open(
+                    RequestMethod.POST,
+                    TckSubmitAction.path + "?value=denied",
+                    mapOf("X-Tck-Subject" to "tck-user"),
+                )
+            denied.body().use { body ->
+                expect(
+                    denied.statusCode() == ResponseStatus.FORBIDDEN.code,
+                    "typed-action-dispatch",
+                    "authorization bypassed",
+                )
+                expect(body.readAllBytes().isEmpty(), "typed-action-dispatch", "failure exposed a body")
+            }
+            val wrongMethod = client.text(RequestMethod.GET, TckSubmitAction.path)
+            expect(
+                wrongMethod.statusCode() == METHOD_NOT_ALLOWED_STATUS,
+                "typed-action-dispatch",
+                "action accepted a safe method",
+            )
+            expect(wrongMethod.header("allow") == "POST", "typed-action-dispatch", "POST method policy missing")
+            val unknown = client.text(RequestMethod.POST, "/woge-actions/unregistered")
+            expect(
+                unknown.statusCode() == ResponseStatus.NOT_FOUND.code,
+                "typed-action-dispatch",
+                "an unregistered action URL was callable",
+            )
+        }
     }
 
     private suspend fun verifyFailurePages() {
@@ -564,6 +622,7 @@ private fun patch(text: String): dev.woge.protocol.PatchHtml =
     dev.woge.protocol.patchHtml { element("p") { text(text) } }
 
 private const val MAX_STREAM_PREFIX_BYTES: Int = 64 * 1024
+private const val METHOD_NOT_ALLOWED_STATUS: Int = 405
 private const val EXPECTED_PATCH_COUNT: Int = 2
 private const val PREAMBLE_PROBE_BYTES: Int = 1
 private const val CONNECT_TIMEOUT_SECONDS: Long = 5

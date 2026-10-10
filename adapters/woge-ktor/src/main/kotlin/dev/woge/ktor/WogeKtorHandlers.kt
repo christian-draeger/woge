@@ -1,5 +1,6 @@
 package dev.woge.ktor
 
+import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
@@ -20,6 +21,22 @@ public class WogeKtorHandlers(
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout)
     }
+
+    /** Binds a POST action; the explicit context factory establishes authentication and CSRF before decoding. */
+    public fun <Command : Any> action(
+        executor: ActionExecutor<Command>,
+        input: KtorPageInput<Command>,
+        securityContexts: KtorRequestContextFactory,
+    ): WogeKtorActionHandler<Command> =
+        WogeKtorActionHandler(
+            WogeKtorPageHandler(
+                PageUseCase { request -> executor.execute(request) },
+                input,
+                securityContexts,
+                observer,
+                failurePages,
+            ),
+        )
 
     /** Creates a handler for one typed page and its route-local input decoder. */
     public fun <Input : Any> page(

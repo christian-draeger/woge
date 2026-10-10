@@ -2,7 +2,7 @@
 
 # Runs `./gradlew wogeDev` in a fresh Spring Boot scaffold and checks the edit loop:
 # start, edit, compile error (old version keeps serving), fix, a new typed region (KSP), a rejected
-# region declaration, and clean shutdown.
+# region declaration, incremental action registries, and clean shutdown.
 
 set -eu
 
@@ -195,6 +195,45 @@ ready_before=$(ready_count)
 sed -i.bak 's/status(message: String, extra: Int)/status(message: String)/' "$region_file"
 wait_for_log '^\[woge\] Ready:' $((ready_before + 1)) 120
 grep -Fq '<p class="status">Typed region ready</p>' <<<"$(page)" || fail 'repaired region is not served'
+
+# Action registries must follow incremental additions, ID edits, duplicate failures and removals.
+action_file="$fixture_root/src/main/kotlin/example/woge/SmokeAction.kt"
+generated_actions="$fixture_root/build/generated/ksp/main/kotlin/example/woge"
+ready_before=$(ready_count)
+cat >"$action_file" <<'KOTLIN'
+package example.woge
+
+import dev.woge.host.*
+import dev.woge.html.applicationUrl
+
+internal data class SmokeCommand(val title: String)
+
+@WogeAction("smoke-submit")
+internal suspend fun smokeSubmit(command: SmokeCommand, context: RequestContext): PageResult =
+    if (command.title.isBlank()) failure(FailureCategory.BAD_REQUEST, context.correlationId)
+    else redirect(applicationUrl("/"))
+KOTLIN
+wait_for_log '^\[woge\] Ready:' $((ready_before + 1)) 120
+grep -Fq 'smoke-submit' "$generated_actions/SmokeSubmitAction.kt" || fail 'action descriptor was not generated'
+grep -Fq 'listOf(SmokeSubmitAction)' "$generated_actions/WogeActions.kt" || fail 'action registry is incomplete'
+
+ready_before=$(ready_count)
+sed -i.bak 's/smoke-submit/smoke-save/' "$action_file"
+wait_for_log '^\[woge\] Ready:' $((ready_before + 1)) 120
+grep -Fq 'smoke-save' "$generated_actions/SmokeSubmitAction.kt" || fail 'incremental action ID stayed stale'
+if grep -Fq 'smoke-submit' "$generated_actions/SmokeSubmitAction.kt"; then
+  fail 'previous action ID survived regeneration'
+fi
+
+printf '\n@WogeAction("smoke-save")\ninternal suspend fun duplicateSmoke(command: SmokeCommand, context: RequestContext): PageResult = smokeSubmit(command, context)\n' >>"$action_file"
+wait_for_log '^\[woge\]   src/main/kotlin/example/woge/SmokeAction.kt:[0-9]*:[0-9]* WOGE-ACTION-007' 1 120
+grep -Fq 'Typed region ready' <<<"$(page)" || fail 'duplicate action stopped the last working application'
+
+ready_before=$(ready_count)
+rm "$action_file"
+wait_for_log '^\[woge\] Ready:' $((ready_before + 1)) 120
+[[ ! -f "$generated_actions/SmokeSubmitAction.kt" && ! -f "$generated_actions/WogeActions.kt" ]] ||
+  fail 'removed actions survived in incremental generated output'
 
 stop_session
 if curl --silent --max-time 2 "http://127.0.0.1:$port/" >/dev/null; then

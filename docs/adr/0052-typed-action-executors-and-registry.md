@@ -41,6 +41,17 @@ Build-time signature validation is separate from parsing submitted fields.
 Authentication and CSRF remain host ingress responsibilities. Domain authorization belongs inside
 the action. A generated descriptor is not permission to call it and does not bypass security.
 
+All three adapters bind the same `ActionExecutor` through `handlers.action(executor, input,
+securityContexts)`. The security-context factory is mandatory rather than inheriting the safe-page
+default. Each binding checks POST before context creation, then reuses the existing page execution
+and response mapping. Host router registration remains explicit, not annotation-driven runtime
+discovery. The shared real-HTTP TCK executes one generated action with authenticated and anonymous
+facts and verifies authorization outcomes and method rejection.
+
+The external Spring `scaffoldDevSmoke` tests prove additions, ID changes, duplicate failures,
+recovery and removal with actual incremental Gradle/KSP runs. No second incremental build harness
+is introduced.
+
 ## Alternatives considered
 
 - **Reflective dispatch using a class/function name:** rejected; it makes the callable surface
@@ -67,7 +78,5 @@ the action. A generated descriptor is not permission to call it and does not byp
 
 ## Follow-up
 
-- Finish the shared POST dispatch and security-context adapter contract in
-  [#28](https://github.com/christian-draeger/woge/issues/28).
 - Add bounded, authoritative URL-encoded command decoding in
   [#29](https://github.com/christian-draeger/woge/issues/29).

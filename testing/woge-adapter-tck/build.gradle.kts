@@ -1,5 +1,6 @@
 plugins {
     id("dev.woge.kotlin-jvm-library")
+    alias(libs.plugins.ksp)
 }
 
 description = "Reusable framework-neutral contract fixtures for Woge server adapters."
@@ -10,4 +11,5 @@ dependencies {
     api(project(":woge-host-spi"))
     implementation(project(":woge-server-runtime"))
     implementation(libs.kotlinxCoroutinesCore)
+    ksp(project(":woge-ksp"))
 }
