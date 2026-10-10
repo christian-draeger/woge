@@ -7,11 +7,11 @@ import dev.woge.host.PageResult
 import dev.woge.host.RequestContext
 import dev.woge.host.WogeAction
 import dev.woge.host.WogeRoute
+import dev.woge.host.actionForm
 import dev.woge.host.failure
 import dev.woge.host.redirect
 import dev.woge.html.HtmlWriter
 import dev.woge.html.button
-import dev.woge.html.form
 import kotlinx.serialization.Serializable
 
 /** The same typed value serves as the action command and redirect parameters. */
@@ -37,12 +37,7 @@ public suspend fun openProject(
 
 /** Generated references remain ordinary native HTML form actions. */
 public fun HtmlWriter.projectForm() {
-    form(attributes = {
-        attribute("method", "post")
-        attribute("enctype", "application/x-www-form-urlencoded")
-        attribute("accept-charset", "UTF-8")
-        url("action", OpenProjectAction.url)
-    }) {
+    actionForm(OpenProjectAction) {
         button(attributes = {
             attribute("name", "project")
             attribute("value", "woge")

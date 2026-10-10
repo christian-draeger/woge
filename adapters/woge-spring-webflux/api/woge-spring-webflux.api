@@ -5,6 +5,7 @@ public final class dev/woge/spring/webflux/DefaultWebFluxRequestContextFactory :
 
 public final class dev/woge/spring/webflux/WebFluxFormInputKt {
 	public static final fun webFluxInput (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/webflux/WebFluxPageInput;
+	public static final fun webFluxSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/webflux/WebFluxPageInput;
 }
 
 public abstract interface class dev/woge/spring/webflux/WebFluxPageInput {

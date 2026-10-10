@@ -80,6 +80,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0051](0051-typed-page-routes.md) | Accepted | `@WogeRoute` on the page input generates one host-neutral route for links and request decoding |
 | [0052](0052-typed-action-executors-and-registry.md) | Accepted | Generate explicit typed action executors and allowlisted registries with stable public IDs |
 | [0053](0053-bounded-native-form-decoding.md) | Accepted | Decode bounded native UTF-8 forms with generated Kotlin serializers and one cross-host policy |
+| [0054](0054-native-form-validation-boundary.md) | Accepted | Retain bounded submitted text and render native field errors through the existing page/action boundary |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

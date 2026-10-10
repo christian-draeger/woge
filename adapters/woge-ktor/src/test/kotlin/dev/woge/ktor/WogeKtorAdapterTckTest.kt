@@ -1,5 +1,6 @@
 package dev.woge.ktor
 
+import dev.woge.host.withFormValidation
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
@@ -13,6 +14,7 @@ import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
+import dev.woge.tck.tckActionValidation
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -56,8 +58,8 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
         val action =
             WogeKtorHandlers().action(
-                TckSubmitAction,
-                tckActionForm.ktorInput(),
+                TckSubmitAction.withFormValidation(tckActionValidation),
+                tckActionForm.ktorSubmission(),
                 KtorRequestContextFactory { call -> tckActionContext(call.request.headers["X-Tck-Subject"]) },
             )
         val server =

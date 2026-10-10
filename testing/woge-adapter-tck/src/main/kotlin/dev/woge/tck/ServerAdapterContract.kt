@@ -154,6 +154,7 @@ private class AdapterTckVerification(
         }
         verifyActionMethods()
         verifyRejectedForms()
+        verifyNativeValidation()
     }
 
     private suspend fun verifyActionMethods() {
@@ -193,6 +194,7 @@ private class AdapterTckVerification(
                     "invalid form executed the action",
                 )
             }
+
             val limits = tckActionForm.limits
             val firstField = "value=" + "%61".repeat(limits.valueBytes)
             val oversized =
@@ -228,6 +230,40 @@ private class AdapterTckVerification(
                         "unsupported body type reached the action",
                     )
                 }
+            }
+        }
+    }
+
+    private suspend fun verifyNativeValidation() {
+        runContract("native-form-validation") {
+            val formHeaders = mapOf("Content-Type" to FORM_CONTENT_TYPE)
+            val submitted = "value=%3Cscript%3E&value=again"
+            client
+                .open(
+                    RequestMethod.POST,
+                    TckSubmitAction.path,
+                    formHeaders + ("X-Tck-Subject" to "tck-user"),
+                    submitted,
+                ).let { response ->
+                    val html = response.body().use { it.readAllBytes().toString(StandardCharsets.UTF_8) }
+                    expect(
+                        response.statusCode() == ResponseStatus.BAD_REQUEST.code,
+                        "native-form-validation",
+                        "status changed",
+                    )
+                    expect(
+                        html == """<input name="value" value="&lt;script&gt;"><p>value: REPEATED</p>""",
+                        "native-form-validation",
+                        "submitted text and structured errors were not safely rerendered",
+                    )
+                }
+            client.open(RequestMethod.POST, TckSubmitAction.path, formHeaders, submitted).let { response ->
+                response.body().close()
+                expect(
+                    response.statusCode() == ResponseStatus.FORBIDDEN.code,
+                    "native-form-validation",
+                    "field-error rendering bypassed domain authorization",
+                )
             }
         }
     }

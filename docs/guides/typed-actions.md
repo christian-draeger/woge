@@ -121,8 +121,45 @@ Ignored fields still count toward limits. This option does **not** verify the to
 Malformed fields or invalid URL encoding return 400 through the automatic bindings; the action is
 not invoked. `FormDecoder.decode(bytes)` returns `FormResult.Decoded(command)` or
 `FormResult.Rejected(problem)` for application-owned handlers. `FormProblem.Fields.errors` contains
-all field errors, without submitted values. Use the request-owned form values when rendering a
-validation response; the full native validation flow is covered by #30.
+all field errors, without submitted values.
+
+### Render native field errors
+
+Use `withFormValidation` when a native POST should return an HTML validation page instead of a
+bodyless parsing failure:
+
+```kotlin
+val validation = PageUseCase<FormValidation> { request ->
+    // Authorize this page too; parsing failure is not permission to view it.
+    htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
+        actionForm(CreateTaskAction) {
+            input(attributes = {
+                attribute("name", "title")
+                attribute("value", request.input.values.first("title").orEmpty())
+            })
+            request.input.errors.forEach { error -> p { text("${error.field}: ${error.code}") } }
+            button { text("Create task") }
+        }
+    }
+}
+val nativeAction = CreateTaskAction.withFormValidation(validation)
+val handler = handlers.action(nativeAction, createTaskForm.webFluxSubmission(), securityContexts)
+coRouter { POST(CreateTaskAction.path, handler::handle) }
+```
+
+MVC uses `springMvcSubmission()` and Ktor uses `ktorSubmission()` in the same binding. The submitted
+text remains request-owned and bounded. Select fields explicitly; never echo passwords or CSRF
+tokens. Normal DSL text and attribute escaping still apply. Invalid encoding and oversized input
+expose no partial text and do not invoke the validation renderer.
+
+A valid command runs the original action with the original security context. Business-rule errors
+remain action-owned and can return the same page renderer. On success, use `redirect(canonicalUrl)`
+for a 303 followed by GET, not a POST-preserving 307/308. Rendering a validation page directly leaves
+the browser on a POST response; a workflow that needs redirect-after-validation must explicitly
+manage short-lived state.
+
+This foundation does not complete #30: real no-JavaScript mutation/refresh tests, enhanced parity and
+end-to-end Spring Security ingress are still pending.
 
 ## Request limits
 
@@ -169,3 +206,5 @@ uses a typed page route for its redirect and a generated action for its native f
 The design is recorded in [ADR 0052](../adr/0052-typed-action-executors-and-registry.md).
 Form policies and request budgets are recorded in
 [ADR 0053](../adr/0053-bounded-native-form-decoding.md).
+Native validation rendering is recorded in
+[ADR 0054](../adr/0054-native-form-validation-boundary.md).

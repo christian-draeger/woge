@@ -1,5 +1,6 @@
 package dev.woge.spring.webflux
 
+import dev.woge.host.withFormValidation
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
@@ -13,6 +14,7 @@ import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
+import dev.woge.tck.tckActionValidation
 import org.junit.jupiter.api.Test
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
@@ -54,8 +56,8 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
         val action =
             WogeWebFluxHandlers().action(
-                TckSubmitAction,
-                tckActionForm.webFluxInput(),
+                TckSubmitAction.withFormValidation(tckActionValidation),
+                tckActionForm.webFluxSubmission(),
                 WebFluxRequestContextFactory { request ->
                     tckActionContext(request.headers().firstHeader("X-Tck-Subject"))
                 },

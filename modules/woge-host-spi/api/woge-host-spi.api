@@ -285,6 +285,7 @@ public final class dev/woge/host/FormDecoder {
 	public final fun decode ([B)Ldev/woge/host/FormResult;
 	public final fun getLimits ()Ldev/woge/host/FormLimits;
 	public final fun requireContentType (Ljava/lang/String;)V
+	public final fun submission (Ldev/woge/host/FormBody;)Ldev/woge/host/FormSubmission;
 }
 
 public final class dev/woge/host/FormDecodingException : java/lang/RuntimeException {
@@ -413,6 +414,29 @@ public final class dev/woge/host/FormResult$Rejected : dev/woge/host/FormResult 
 
 public final class dev/woge/host/FormResultKt {
 	public static final fun getOrThrow (Ldev/woge/host/FormResult;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/FormSubmission {
+	public final fun getResult ()Ldev/woge/host/FormResult;
+	public final fun getValues ()Ldev/woge/host/FormValues;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormSubmissionKt {
+	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;)V
+	public static final fun withFormValidation (Ldev/woge/host/ActionExecutor;Ldev/woge/host/PageUseCase;)Ldev/woge/host/ActionExecutor;
+}
+
+public final class dev/woge/host/FormValidation {
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getValues ()Ldev/woge/host/FormValues;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormValues {
+	public final fun all (Ljava/lang/String;)Ljava/util/List;
+	public final fun first (Ljava/lang/String;)Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/woge/host/HeaderName {

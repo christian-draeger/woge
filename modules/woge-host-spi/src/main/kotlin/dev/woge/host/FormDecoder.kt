@@ -35,15 +35,22 @@ public class FormDecoder<Command : Any>(
     public fun body(): FormBody = FormBody(limits)
 
     /** Consumes a reader exactly once. Input failures never invoke the command serializer. */
-    public fun decode(body: FormBody): FormResult<Command> {
+    public fun decode(body: FormBody): FormResult<Command> = submission(body).result
+
+    /** Retains bounded text for explicit native field-error rendering; transport errors retain none. */
+    public fun submission(body: FormBody): FormSubmission<Command> {
         require(body.limits == limits) { "Form body must use the decoder's limits" }
         val fields = body.finish()
-        fields.problem?.let { return FormResult.Rejected(it) }
+        val result = fields.problem?.let { FormResult.Rejected(it) } ?: decodeFields(fields.values)
+        return FormSubmission(result, FormValues(if (fields.problem == null) fields.values else emptyMap()))
+    }
+
+    private fun decodeFields(fields: Map<String, List<String>>): FormResult<Command> {
         val errors = mutableListOf<FormFieldError>()
         val values = linkedMapOf<String, JsonElement>()
         val known = (0 until descriptor.elementsCount).map(descriptor::getElementName).toSet()
         if (unknownFields == UnknownFormFields.REJECT) {
-            fields.values.keys.filterNot { it in known }.forEach {
+            fields.keys.filterNot { it in known }.forEach {
                 errors.add(
                     FormFieldError(it, FormErrorCode.UNKNOWN),
                 )
@@ -52,7 +59,7 @@ public class FormDecoder<Command : Any>(
         repeat(descriptor.elementsCount) { index ->
             val name = descriptor.getElementName(index)
             val field = descriptor.getElementDescriptor(index)
-            val raw = fields.values[name]
+            val raw = fields[name]
             if (raw != null) {
                 fieldValue(field, raw, name, errors)?.let { values[name] = it }
             } else if (!descriptor.isElementOptional(index)) {

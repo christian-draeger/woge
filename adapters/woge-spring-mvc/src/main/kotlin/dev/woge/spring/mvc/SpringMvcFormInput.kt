@@ -1,10 +1,21 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.FormBody
 import dev.woge.host.FormDecoder
+import dev.woge.host.FormSubmission
 import dev.woge.host.getOrThrow
 
 /** Reads only the bounded URL-encoded body, never merged Servlet query/form parameters. */
 public fun <Command : Any> FormDecoder<Command>.springMvcInput(): SpringMvcPageInput<Command> =
+    springMvcFormInput { decode(it).getOrThrow() }
+
+/** Keeps bounded submitted text available to a native validation renderer. */
+public fun <Command : Any> FormDecoder<Command>.springMvcSubmission(): SpringMvcPageInput<FormSubmission<Command>> =
+    springMvcFormInput(::submission)
+
+private fun <Command : Any, Input : Any> FormDecoder<Command>.springMvcFormInput(
+    read: (FormBody) -> Input,
+): SpringMvcPageInput<Input> =
     SpringMvcPageInput { request ->
         requireContentType(request.contentType)
         val body = body()
@@ -15,7 +26,7 @@ public fun <Command : Any> FormDecoder<Command>.springMvcInput(): SpringMvcPageI
             if (!body.accept(buffer, length = count)) break
             count = stream.read(buffer)
         }
-        decode(body).getOrThrow()
+        read(body)
     }
 
 private const val FORM_READ_BYTES = 4096

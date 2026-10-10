@@ -5,6 +5,7 @@ public final class dev/woge/spring/mvc/DefaultSpringMvcRequestContextFactory : d
 
 public final class dev/woge/spring/mvc/SpringMvcFormInputKt {
 	public static final fun springMvcInput (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+	public static final fun springMvcSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/mvc/SpringMvcPageInput;
 }
 
 public abstract interface class dev/woge/spring/mvc/SpringMvcPageInput {
