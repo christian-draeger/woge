@@ -10,9 +10,9 @@ import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
-import dev.woge.tck.TckActionCommand
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
+import dev.woge.tck.tckActionForm
 import org.junit.jupiter.api.Test
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
@@ -55,7 +55,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
         val action =
             WogeWebFluxHandlers().action(
                 TckSubmitAction,
-                WebFluxPageInput { request -> TckActionCommand(request.queryParam("value").orElse("")) },
+                tckActionForm.webFluxInput(),
                 WebFluxRequestContextFactory { request ->
                     tckActionContext(request.headers().firstHeader("X-Tck-Subject"))
                 },

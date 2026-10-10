@@ -106,11 +106,14 @@ private class AdapterTckVerification(
 
     private suspend fun verifyActions() {
         runContract("typed-action-dispatch") {
+            val formHeaders = mapOf("Content-Type" to FORM_CONTENT_TYPE)
+            val authenticated = formHeaders + ("X-Tck-Subject" to "tck-user")
             val accepted =
                 client.open(
                     RequestMethod.POST,
-                    TckSubmitAction.path + "?value=accepted",
-                    mapOf("X-Tck-Subject" to "tck-user"),
+                    TckSubmitAction.path + "?value=denied",
+                    authenticated,
+                    "value=accepted",
                 )
             accepted.body().use { body ->
                 expect(
@@ -125,17 +128,20 @@ private class AdapterTckVerification(
                 )
                 expect(body.readAllBytes().isEmpty(), "typed-action-dispatch", "redirect exposed a body")
             }
-            val anonymous = client.text(RequestMethod.POST, TckSubmitAction.path + "?value=accepted")
-            expect(
-                anonymous.statusCode() == ResponseStatus.FORBIDDEN.code,
-                "typed-action-dispatch",
-                "action did not receive anonymous authentication facts",
-            )
+            client.open(RequestMethod.POST, TckSubmitAction.path, formHeaders, "value=accepted").let { anonymous ->
+                anonymous.body().close()
+                expect(
+                    anonymous.statusCode() == ResponseStatus.FORBIDDEN.code,
+                    "typed-action-dispatch",
+                    "action did not receive anonymous authentication facts",
+                )
+            }
             val denied =
                 client.open(
                     RequestMethod.POST,
-                    TckSubmitAction.path + "?value=denied",
-                    mapOf("X-Tck-Subject" to "tck-user"),
+                    TckSubmitAction.path,
+                    authenticated,
+                    "value=denied",
                 )
             denied.body().use { body ->
                 expect(
@@ -145,6 +151,13 @@ private class AdapterTckVerification(
                 )
                 expect(body.readAllBytes().isEmpty(), "typed-action-dispatch", "failure exposed a body")
             }
+        }
+        verifyActionMethods()
+        verifyRejectedForms()
+    }
+
+    private suspend fun verifyActionMethods() {
+        runContract("typed-action-dispatch") {
             val wrongMethod = client.text(RequestMethod.GET, TckSubmitAction.path)
             expect(
                 wrongMethod.statusCode() == METHOD_NOT_ALLOWED_STATUS,
@@ -158,6 +171,64 @@ private class AdapterTckVerification(
                 "typed-action-dispatch",
                 "an unregistered action URL was callable",
             )
+        }
+    }
+
+    private suspend fun verifyRejectedForms() {
+        runContract("bounded-action-forms") {
+            val headers = mapOf("Content-Type" to FORM_CONTENT_TYPE, "X-Tck-Subject" to "tck-user")
+            val badInputs = listOf("", "value=a&value=b", "value=%GG", "value=%C0%AF", "value=accepted&extra=x")
+            badInputs.forEach { encoded ->
+                val response =
+                    client.open(
+                        RequestMethod.POST,
+                        TckSubmitAction.path + "?value=accepted",
+                        headers,
+                        encoded,
+                    )
+                response.body().close()
+                expect(
+                    response.statusCode() == ResponseStatus.BAD_REQUEST.code,
+                    "bounded-action-forms",
+                    "invalid form executed the action",
+                )
+            }
+            val limits = tckActionForm.limits
+            val firstField = "value=" + "%61".repeat(limits.valueBytes)
+            val oversized =
+                listOf(
+                    "value=" + "a".repeat(limits.valueBytes + 1),
+                    "x".repeat(limits.nameBytes + 1) + "=a",
+                    "value=a&x=b&y=c&z=d",
+                    firstField + "&x=" + "a".repeat(limits.bodyBytes - firstField.length - 2),
+                )
+            oversized.forEach { encoded ->
+                client.open(RequestMethod.POST, TckSubmitAction.path, headers, encoded).let { response ->
+                    response.body().close()
+                    expect(
+                        response.statusCode() == ResponseStatus.PAYLOAD_TOO_LARGE.code,
+                        "bounded-action-forms",
+                        "form limit was silently weakened",
+                    )
+                }
+            }
+            val wrongTypes =
+                listOf(
+                    "application/json",
+                    "$FORM_CONTENT_TYPE; charset=ISO-8859-1",
+                    "$FORM_CONTENT_TYPE; charset=\"UTF-8",
+                )
+            wrongTypes.forEach { type ->
+                val wrongType = headers + ("Content-Type" to type)
+                client.open(RequestMethod.POST, TckSubmitAction.path, wrongType, "value=accepted").let { response ->
+                    response.body().close()
+                    expect(
+                        response.statusCode() == ResponseStatus.UNSUPPORTED_MEDIA_TYPE.code,
+                        "bounded-action-forms",
+                        "unsupported body type reached the action",
+                    )
+                }
+            }
         }
     }
 
@@ -570,7 +641,16 @@ private class AdapterTckHttpClient(
         method: RequestMethod,
         path: String,
         headers: Map<String, String> = emptyMap(),
-    ): HttpResponse<InputStream> = send(method, path, headers, HttpResponse.BodyHandlers.ofInputStream())
+        body: String? = null,
+    ): HttpResponse<InputStream> =
+        send(
+            method,
+            path,
+            headers,
+            HttpResponse.BodyHandlers.ofInputStream(),
+            body?.let { HttpRequest.BodyPublishers.ofInputStream { it.byteInputStream() } }
+                ?: HttpRequest.BodyPublishers.noBody(),
+        )
 
     fun text(
         method: RequestMethod,
@@ -587,12 +667,13 @@ private class AdapterTckHttpClient(
         path: String,
         headers: Map<String, String>,
         handler: HttpResponse.BodyHandler<Body>,
+        body: HttpRequest.BodyPublisher = HttpRequest.BodyPublishers.noBody(),
     ): HttpResponse<Body> {
         val request =
             HttpRequest
                 .newBuilder(URI.create(base + path))
                 .timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
-                .method(method.value, HttpRequest.BodyPublishers.noBody())
+                .method(method.value, body)
                 .apply { headers.forEach(::header) }
                 .build()
         return client.send(request, handler)
@@ -622,6 +703,7 @@ private fun patch(text: String): dev.woge.protocol.PatchHtml =
     dev.woge.protocol.patchHtml { element("p") { text(text) } }
 
 private const val MAX_STREAM_PREFIX_BYTES: Int = 64 * 1024
+private const val FORM_CONTENT_TYPE: String = "application/x-www-form-urlencoded"
 private const val METHOD_NOT_ALLOWED_STATUS: Int = 405
 private const val EXPECTED_PATCH_COUNT: Int = 2
 private const val PREAMBLE_PROBE_BYTES: Int = 1

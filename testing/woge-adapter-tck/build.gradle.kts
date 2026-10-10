@@ -1,6 +1,7 @@
 plugins {
     id("dev.woge.kotlin-jvm-library")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 description = "Reusable framework-neutral contract fixtures for Woge server adapters."

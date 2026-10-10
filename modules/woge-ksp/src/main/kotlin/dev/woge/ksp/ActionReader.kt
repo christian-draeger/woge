@@ -1,5 +1,7 @@
 package dev.woge.ksp
 
+import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
@@ -121,7 +123,8 @@ internal class ActionReader(
                 } else {
                     field
                 }
-            if (!parameter.isVal || scalar?.makeNotNullable()?.routeValueCodec() == null) {
+            val supported = scalar?.makeNotNullable()?.actionScalar() == true
+            if (!parameter.isVal || !supported) {
                 reject(Rule.ACTION_COMMAND, field.shortName(), parameter)
             }
         }
@@ -129,6 +132,22 @@ internal class ActionReader(
     }
 }
 
+private fun KSType.actionScalar(): Boolean {
+    if (routeValueCodec() != null || declaration.qualifiedName?.asString() in FORM_PRIMITIVES) return true
+    val valueClass = declaration as? KSClassDeclaration
+    val parameter =
+        valueClass
+            ?.primaryConstructor
+            ?.parameters
+            ?.singleOrNull()
+            ?.takeIf { Modifier.VALUE in valueClass.modifiers || Modifier.INLINE in valueClass.modifiers }
+    val property = valueClass?.getDeclaredProperties()?.firstOrNull { it.simpleName == parameter?.name }
+    val wrapped = parameter?.type?.resolve()
+    val accessible = property?.getVisibility()?.let { it != Visibility.PRIVATE } == true
+    return accessible && wrapped?.takeUnless { it.isMarkedNullable }?.actionScalar() == true
+}
+
 private const val MAX_ACTION_ID_LENGTH = 128
 private val ACTION_ID = Regex("[a-z][a-z0-9-]*")
 internal const val WOGE_ACTION = "dev.woge.host.WogeAction"
+private val FORM_PRIMITIVES = setOf("kotlin.Byte", "kotlin.Short", "kotlin.Float", "kotlin.Double", "kotlin.Char")

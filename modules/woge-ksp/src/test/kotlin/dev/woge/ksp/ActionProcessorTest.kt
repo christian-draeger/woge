@@ -104,6 +104,30 @@ class ActionProcessorTest {
         assertEquals(2, duplicate.errors.count { it.contains("WOGE-ACTION-007") })
     }
 
+    @Test
+    fun `form primitives and their value classes are accepted without route codecs`() {
+        val command =
+            """
+            @JvmInline value class Amount(val value: Double)
+            data class CreateTask(
+                val title: String, val ratio: Float, val amount: Amount,
+                val tiny: Byte, val small: Short, val letter: Char, val amounts: List<Double>,
+            )
+            """.trimIndent()
+        val result =
+            runKsp(
+                mapOf(
+                    "Actions.kt" to
+                        source(VALID).replace(
+                            "data class CreateTask(val title: String, val labels: List<String> = emptyList())",
+                            command,
+                        ),
+                ),
+            )
+        assertEquals(emptyList<String>(), result.errors)
+        assertTrue(result.generated.containsKey("CreateTaskAction.kt"))
+    }
+
     private fun source(action: String): String =
         """
         package shop

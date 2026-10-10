@@ -3,6 +3,10 @@ public final class dev/woge/spring/webflux/DefaultWebFluxRequestContextFactory :
 	public fun create (Lorg/springframework/web/reactive/function/server/ServerRequest;)Ldev/woge/host/RequestContext;
 }
 
+public final class dev/woge/spring/webflux/WebFluxFormInputKt {
+	public static final fun webFluxInput (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/webflux/WebFluxPageInput;
+}
+
 public abstract interface class dev/woge/spring/webflux/WebFluxPageInput {
 	public abstract fun decode (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

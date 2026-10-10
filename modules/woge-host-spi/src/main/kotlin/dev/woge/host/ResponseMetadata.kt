@@ -24,6 +24,8 @@ public value class ResponseStatus private constructor(
         public val FORBIDDEN: ResponseStatus = ResponseStatus(403)
         public val NOT_FOUND: ResponseStatus = ResponseStatus(404)
         public val CONFLICT: ResponseStatus = ResponseStatus(409)
+        public val PAYLOAD_TOO_LARGE: ResponseStatus = ResponseStatus(413)
+        public val UNSUPPORTED_MEDIA_TYPE: ResponseStatus = ResponseStatus(415)
         public val TOO_MANY_REQUESTS: ResponseStatus = ResponseStatus(429)
         public val INTERNAL_SERVER_ERROR: ResponseStatus = ResponseStatus(500)
         public val SERVICE_UNAVAILABLE: ResponseStatus = ResponseStatus(503)

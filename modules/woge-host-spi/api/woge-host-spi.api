@@ -248,9 +248,11 @@ public final class dev/woge/host/FailureCategory : java/lang/Enum {
 	public static final field FORBIDDEN Ldev/woge/host/FailureCategory;
 	public static final field INTERNAL Ldev/woge/host/FailureCategory;
 	public static final field NOT_FOUND Ldev/woge/host/FailureCategory;
+	public static final field PAYLOAD_TOO_LARGE Ldev/woge/host/FailureCategory;
 	public static final field RATE_LIMITED Ldev/woge/host/FailureCategory;
 	public static final field UNAUTHENTICATED Ldev/woge/host/FailureCategory;
 	public static final field UNAVAILABLE Ldev/woge/host/FailureCategory;
+	public static final field UNSUPPORTED_MEDIA_TYPE Ldev/woge/host/FailureCategory;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getStatus-Db9x0Hk ()I
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/FailureCategory;
@@ -268,6 +270,149 @@ public final class dev/woge/host/FailurePages$Companion {
 
 public final class dev/woge/host/FailurePagesKt {
 	public static final fun withFailurePages (Ldev/woge/host/PageResult;Ldev/woge/host/FailurePages;)Ldev/woge/host/PageResult;
+}
+
+public final class dev/woge/host/FormBody {
+	public final fun accept ([BII)Z
+	public static synthetic fun accept$default (Ldev/woge/host/FormBody;[BIIILjava/lang/Object;)Z
+}
+
+public final class dev/woge/host/FormDecoder {
+	public fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;)V
+	public synthetic fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun body ()Ldev/woge/host/FormBody;
+	public final fun decode (Ldev/woge/host/FormBody;)Ldev/woge/host/FormResult;
+	public final fun decode ([B)Ldev/woge/host/FormResult;
+	public final fun getLimits ()Ldev/woge/host/FormLimits;
+	public final fun requireContentType (Ljava/lang/String;)V
+}
+
+public final class dev/woge/host/FormDecodingException : java/lang/RuntimeException {
+	public fun <init> (Ldev/woge/host/FormProblem;)V
+	public final fun getCategory ()Ldev/woge/host/FailureCategory;
+	public final fun getProblem ()Ldev/woge/host/FormProblem;
+}
+
+public final class dev/woge/host/FormErrorCode : java/lang/Enum {
+	public static final field MALFORMED Ldev/woge/host/FormErrorCode;
+	public static final field MISSING Ldev/woge/host/FormErrorCode;
+	public static final field REPEATED Ldev/woge/host/FormErrorCode;
+	public static final field UNKNOWN Ldev/woge/host/FormErrorCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/FormErrorCode;
+	public static fun values ()[Ldev/woge/host/FormErrorCode;
+}
+
+public final class dev/woge/host/FormFieldError {
+	public fun <init> (Ljava/lang/String;Ldev/woge/host/FormErrorCode;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ldev/woge/host/FormErrorCode;
+	public final fun copy (Ljava/lang/String;Ldev/woge/host/FormErrorCode;)Ldev/woge/host/FormFieldError;
+	public static synthetic fun copy$default (Ldev/woge/host/FormFieldError;Ljava/lang/String;Ldev/woge/host/FormErrorCode;ILjava/lang/Object;)Ldev/woge/host/FormFieldError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Ldev/woge/host/FormErrorCode;
+	public final fun getField ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormLimit : java/lang/Enum {
+	public static final field BODY_BYTES Ldev/woge/host/FormLimit;
+	public static final field FIELD_COUNT Ldev/woge/host/FormLimit;
+	public static final field NAME_BYTES Ldev/woge/host/FormLimit;
+	public static final field VALUE_BYTES Ldev/woge/host/FormLimit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/FormLimit;
+	public static fun values ()[Ldev/woge/host/FormLimit;
+}
+
+public final class dev/woge/host/FormLimits {
+	public fun <init> ()V
+	public fun <init> (IIII)V
+	public synthetic fun <init> (IIIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Ldev/woge/host/FormLimits;
+	public static synthetic fun copy$default (Ldev/woge/host/FormLimits;IIIIILjava/lang/Object;)Ldev/woge/host/FormLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBodyBytes ()I
+	public final fun getFieldCount ()I
+	public final fun getNameBytes ()I
+	public final fun getValueBytes ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/FormProblem {
+}
+
+public final class dev/woge/host/FormProblem$Fields : dev/woge/host/FormProblem {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/woge/host/FormProblem$Fields;
+	public static synthetic fun copy$default (Ldev/woge/host/FormProblem$Fields;Ljava/util/List;ILjava/lang/Object;)Ldev/woge/host/FormProblem$Fields;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrors ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormProblem$LimitExceeded : dev/woge/host/FormProblem {
+	public fun <init> (Ldev/woge/host/FormLimit;I)V
+	public final fun component1 ()Ldev/woge/host/FormLimit;
+	public final fun component2 ()I
+	public final fun copy (Ldev/woge/host/FormLimit;I)Ldev/woge/host/FormProblem$LimitExceeded;
+	public static synthetic fun copy$default (Ldev/woge/host/FormProblem$LimitExceeded;Ldev/woge/host/FormLimit;IILjava/lang/Object;)Ldev/woge/host/FormProblem$LimitExceeded;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLimit ()Ldev/woge/host/FormLimit;
+	public final fun getThreshold ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormProblem$MalformedEncoding : dev/woge/host/FormProblem {
+	public static final field INSTANCE Ldev/woge/host/FormProblem$MalformedEncoding;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormProblem$UnsupportedContentType : dev/woge/host/FormProblem {
+	public static final field INSTANCE Ldev/woge/host/FormProblem$UnsupportedContentType;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/FormResult {
+}
+
+public final class dev/woge/host/FormResult$Decoded : dev/woge/host/FormResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Ldev/woge/host/FormResult$Decoded;
+	public static synthetic fun copy$default (Ldev/woge/host/FormResult$Decoded;Ljava/lang/Object;ILjava/lang/Object;)Ldev/woge/host/FormResult$Decoded;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCommand ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormResult$Rejected : dev/woge/host/FormResult {
+	public fun <init> (Ldev/woge/host/FormProblem;)V
+	public final fun component1 ()Ldev/woge/host/FormProblem;
+	public final fun copy (Ldev/woge/host/FormProblem;)Ldev/woge/host/FormResult$Rejected;
+	public static synthetic fun copy$default (Ldev/woge/host/FormResult$Rejected;Ldev/woge/host/FormProblem;ILjava/lang/Object;)Ldev/woge/host/FormResult$Rejected;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getProblem ()Ldev/woge/host/FormProblem;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormResultKt {
+	public static final fun getOrThrow (Ldev/woge/host/FormResult;)Ljava/lang/Object;
 }
 
 public final class dev/woge/host/HeaderName {
@@ -744,12 +889,14 @@ public final class dev/woge/host/ResponseStatus$Companion {
 	public final fun getINTERNAL_SERVER_ERROR-Db9x0Hk ()I
 	public final fun getNOT_FOUND-Db9x0Hk ()I
 	public final fun getOK-Db9x0Hk ()I
+	public final fun getPAYLOAD_TOO_LARGE-Db9x0Hk ()I
 	public final fun getPERMANENT_REDIRECT-Db9x0Hk ()I
 	public final fun getSEE_OTHER-Db9x0Hk ()I
 	public final fun getSERVICE_UNAVAILABLE-Db9x0Hk ()I
 	public final fun getTEMPORARY_REDIRECT-Db9x0Hk ()I
 	public final fun getTOO_MANY_REQUESTS-Db9x0Hk ()I
 	public final fun getUNAUTHORIZED-Db9x0Hk ()I
+	public final fun getUNSUPPORTED_MEDIA_TYPE-Db9x0Hk ()I
 	public final fun of-TJVu4T0 (I)I
 }
 
@@ -782,6 +929,14 @@ public final class dev/woge/host/TypedRegionsKt {
 	public static synthetic fun deferredRegion-IloEfL4$default (Ldev/woge/host/RegionTarget;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/DeferredRegion;
 	public static final fun region-yGY75_w (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)V
 	public static synthetic fun region-yGY75_w$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RegionTarget;Ljava/lang/Object;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class dev/woge/host/UnknownFormFields : java/lang/Enum {
+	public static final field IGNORE Ldev/woge/host/UnknownFormFields;
+	public static final field REJECT Ldev/woge/host/UnknownFormFields;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/UnknownFormFields;
+	public static fun values ()[Ldev/woge/host/UnknownFormFields;
 }
 
 public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {

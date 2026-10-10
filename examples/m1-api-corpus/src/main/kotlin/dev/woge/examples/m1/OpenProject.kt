@@ -1,6 +1,7 @@
 package dev.woge.examples.m1
 
 import dev.woge.host.FailureCategory
+import dev.woge.host.FormDecoder
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.RequestContext
@@ -11,12 +12,16 @@ import dev.woge.host.redirect
 import dev.woge.html.HtmlWriter
 import dev.woge.html.button
 import dev.woge.html.form
+import kotlinx.serialization.Serializable
 
-/** A typed command; URL-encoded field decoding belongs to the host's form boundary. */
+/** The same typed value serves as the action command and redirect parameters. */
 @WogeRoute("/projects/{project}")
+@Serializable
 public data class OpenProject(
     val project: String,
 )
+
+public val openProjectForm: FormDecoder<OpenProject> = FormDecoder(OpenProject.serializer())
 
 /** Uses a normal redirect outcome, not a transport-specific response. */
 @WogeAction("open-project")
@@ -34,6 +39,8 @@ public suspend fun openProject(
 public fun HtmlWriter.projectForm() {
     form(attributes = {
         attribute("method", "post")
+        attribute("enctype", "application/x-www-form-urlencoded")
+        attribute("accept-charset", "UTF-8")
         url("action", OpenProjectAction.url)
     }) {
         button(attributes = {

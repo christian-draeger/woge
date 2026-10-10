@@ -10,9 +10,9 @@ import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.ServerAdapterContract
-import dev.woge.tck.TckActionCommand
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
+import dev.woge.tck.tckActionForm
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -57,7 +57,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
         val action =
             WogeKtorHandlers().action(
                 TckSubmitAction,
-                KtorPageInput { call -> TckActionCommand(call.request.queryParameters["value"].orEmpty()) },
+                tckActionForm.ktorInput(),
                 KtorRequestContextFactory { call -> tckActionContext(call.request.headers["X-Tck-Subject"]) },
             )
         val server =

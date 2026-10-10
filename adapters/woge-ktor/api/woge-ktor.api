@@ -3,6 +3,10 @@ public final class dev/woge/ktor/DefaultKtorRequestContextFactory : dev/woge/kto
 	public fun create (Lio/ktor/server/application/ApplicationCall;)Ldev/woge/host/RequestContext;
 }
 
+public final class dev/woge/ktor/KtorFormInputKt {
+	public static final fun ktorInput (Ldev/woge/host/FormDecoder;)Ldev/woge/ktor/KtorPageInput;
+}
+
 public abstract interface class dev/woge/ktor/KtorPageInput {
 	public abstract fun decode (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

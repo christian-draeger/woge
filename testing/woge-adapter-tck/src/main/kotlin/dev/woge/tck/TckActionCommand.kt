@@ -4,6 +4,8 @@ import dev.woge.host.AuthenticationFacts
 import dev.woge.host.CorrelationId
 import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
+import dev.woge.host.FormDecoder
+import dev.woge.host.FormLimits
 import dev.woge.host.PageResult
 import dev.woge.host.PrincipalFacts
 import dev.woge.host.PrincipalId
@@ -16,11 +18,20 @@ import dev.woge.host.WogeAction
 import dev.woge.host.failure
 import dev.woge.host.redirect
 import dev.woge.html.applicationUrl
+import kotlinx.serialization.Serializable
 
 /** Command bound unchanged by every adapter in the action contract. */
+@Serializable
 public data class TckActionCommand(
     val value: String,
 )
+
+/** Small request-owned budgets make all adapter exhaustion paths observable over real HTTP. */
+public val tckActionForm: FormDecoder<TckActionCommand> =
+    FormDecoder(
+        TckActionCommand.serializer(),
+        FormLimits(bodyBytes = 128, fieldCount = 3, nameBytes = 16, valueBytes = 32),
+    )
 
 /** Generated executor receives host-translated identity and CSRF facts before domain authorization. */
 @WogeAction("tck-submit")
