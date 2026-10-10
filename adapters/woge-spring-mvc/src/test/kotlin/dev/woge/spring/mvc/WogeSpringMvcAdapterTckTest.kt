@@ -13,8 +13,12 @@ import dev.woge.tck.AdapterTckServer
 import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
+import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
+import dev.woge.tck.tckUploadForm
+import dev.woge.tck.tckUploadLimits
+import dev.woge.tck.tckUploadPage
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
@@ -129,6 +133,9 @@ private class SpringMvcTckConfiguration {
         )
 
     @Bean
+    fun multipartResolver(): WogeMultipartResolver = WogeMultipartResolver(setOf(TckUploadAction.path))
+
+    @Bean
     fun adapterTckRoutes(
         application: AdapterTckApplication,
         handlers: WogeSpringMvcHandlers,
@@ -167,6 +174,18 @@ private class SpringMvcTckConfiguration {
                         },
                     ),
                 "/woge-tck/action-complete" to handlers.page(application.actionCompletion, SpringMvcPageInput { }),
+                TckUploadAction.path to
+                    handlers.action(
+                        TckUploadAction,
+                        tckUploadForm.springMvcMultipart(tckUploadLimits, application.uploadDirectory),
+                        SpringMvcRequestContextFactory { request ->
+                            tckActionContext(
+                                request.getHeader("X-Tck-Subject"),
+                                request.getHeader("X-Tck-Unverified") != "true",
+                            )
+                        },
+                    ),
+                "/woge-tck/upload-complete" to handlers.page(tckUploadPage, SpringMvcPageInput { }),
             ),
             0,
         )

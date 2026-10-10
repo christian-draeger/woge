@@ -52,6 +52,24 @@ try {
       await page.goto(complete);
       assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
 
+      await context.setExtraHTTPHeaders({ "X-Tck-Subject": "tck-user" });
+      await page.goto(`${origin}/woge-tck/upload-complete`);
+      assert.equal(await page.locator("form").getAttribute("enctype"), "multipart/form-data");
+      await page.getByLabel("Attachment").setInputFiles({
+        name: "native.bin",
+        mimeType: "application/octet-stream",
+        buffer: Buffer.from([1, 2, 3]),
+      });
+      const [uploaded] = await Promise.all([
+        page.waitForNavigation(),
+        page.getByRole("button", { name: "Upload file" }).click(),
+      ]);
+      assert.equal(uploaded.status(), 200);
+      assert.equal(uploaded.request().method(), "GET");
+      assert.equal((await uploaded.request().redirectedFrom().response()).status(), 303);
+      assert.equal(page.url(), `${origin}/woge-tck/upload-complete`);
+      await page.goto(complete);
+
       await page.getByRole("textbox", { name: "Command value" }).fill("denied");
       const [denied] = await Promise.all([
         page.waitForNavigation(),

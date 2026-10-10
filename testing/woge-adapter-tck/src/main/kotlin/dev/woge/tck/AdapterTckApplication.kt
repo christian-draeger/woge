@@ -77,7 +77,7 @@ public enum class AdapterTckDeferredScenario(
 }
 
 /** Shared portable application fixture compiled once and bound unchanged by every adapter. */
-public class AdapterTckApplication internal constructor() {
+public class AdapterTckApplication internal constructor() : AutoCloseable {
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
     private val actionWorkflow = TckActionWorkflow()
 
@@ -94,11 +94,21 @@ public class AdapterTckApplication internal constructor() {
     public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
     public val failureRoutePages: PageUseCase<Int> = FAILURE_ROUTE_PAGE
     public val failurePages: FailurePages = FAILURE_PAGES
+    public val uploadDirectory: java.nio.file.Path
+        get() = state.uploadDirectory
+
+    override fun close() {
+        java.nio.file.Files
+            .delete(uploadDirectory)
+    }
 
     internal fun fixtureState(): AdapterTckFixtureState = state
 }
 
 internal class AdapterTckFixtureState {
+    val uploadDirectory: java.nio.file.Path =
+        java.nio.file.Files
+            .createTempDirectory("woge-upload-tck-")
     val documentTail: CompletableDeferred<Unit> = CompletableDeferred()
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()

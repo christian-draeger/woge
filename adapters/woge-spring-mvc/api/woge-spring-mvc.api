@@ -8,6 +8,11 @@ public final class dev/woge/spring/mvc/SpringMvcFormInputKt {
 	public static final fun springMvcSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/mvc/SpringMvcPageInput;
 }
 
+public final class dev/woge/spring/mvc/SpringMvcMultipartInputKt {
+	public static final fun springMvcMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+	public static synthetic fun springMvcMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+}
+
 public abstract interface class dev/woge/spring/mvc/SpringMvcPageInput {
 	public abstract fun decode (Ljakarta/servlet/http/HttpServletRequest;)Ljava/lang/Object;
 }
@@ -22,6 +27,14 @@ public abstract interface class dev/woge/spring/mvc/SpringMvcRequestContextFacto
 
 public final class dev/woge/spring/mvc/SpringMvcRoutesKt {
 	public static final fun pathVariable (Ljakarta/servlet/http/HttpServletRequest;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/spring/mvc/WogeMultipartResolver : org/springframework/web/multipart/MultipartResolver {
+	public fun <init> (Ljava/util/Set;Lorg/springframework/web/multipart/MultipartResolver;)V
+	public synthetic fun <init> (Ljava/util/Set;Lorg/springframework/web/multipart/MultipartResolver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cleanupMultipart (Lorg/springframework/web/multipart/MultipartHttpServletRequest;)V
+	public fun isMultipart (Ljakarta/servlet/http/HttpServletRequest;)Z
+	public fun resolveMultipart (Ljakarta/servlet/http/HttpServletRequest;)Lorg/springframework/web/multipart/MultipartHttpServletRequest;
 }
 
 public final class dev/woge/spring/mvc/WogeSpringMvcDeferredHandler : org/springframework/web/HttpRequestHandler {

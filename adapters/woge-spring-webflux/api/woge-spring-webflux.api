@@ -8,6 +8,11 @@ public final class dev/woge/spring/webflux/WebFluxFormInputKt {
 	public static final fun webFluxSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/spring/webflux/WebFluxPageInput;
 }
 
+public final class dev/woge/spring/webflux/WebFluxMultipartInputKt {
+	public static final fun webFluxMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/spring/webflux/WebFluxPageInput;
+	public static synthetic fun webFluxMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/spring/webflux/WebFluxPageInput;
+}
+
 public abstract interface class dev/woge/spring/webflux/WebFluxPageInput {
 	public abstract fun decode (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

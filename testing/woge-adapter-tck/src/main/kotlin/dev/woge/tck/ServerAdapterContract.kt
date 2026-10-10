@@ -30,15 +30,16 @@ public class ServerAdapterContract(
 ) {
     /** Runs the core page/deferred suites followed by any additive capability suites. */
     public fun verify(extensions: Iterable<AdapterTckExtension> = emptyList()) {
-        val application = AdapterTckApplication()
-        val server = start(application)
-        server.use {
-            validateHarness(server)
-            kotlinx.coroutines.runBlocking {
-                val verification = AdapterTckVerification(factory.adapterName, server, application.fixtureState())
-                verification.verifyCore()
-                extensions.forEach { extension ->
-                    contract("extension:${extension.name}") { extension.verify(server) }
+        AdapterTckApplication().use { application ->
+            val server = start(application)
+            server.use {
+                validateHarness(server)
+                kotlinx.coroutines.runBlocking {
+                    val verification = AdapterTckVerification(factory.adapterName, server, application.fixtureState())
+                    verification.verifyCore()
+                    extensions.forEach { extension ->
+                        contract("extension:${extension.name}") { extension.verify(server) }
+                    }
                 }
             }
         }
@@ -106,6 +107,9 @@ private class AdapterTckVerification(
         verifyTypedRoute()
         verifyFailurePages()
         verifyActions()
+        runContract(
+            "native-multipart",
+        ) { client.verifyMultipartUploads(server.origin, fixture.uploadDirectory, ::expect) }
         client.verifyMutationReplay(::expect)
         verifySemanticObservations()
     }

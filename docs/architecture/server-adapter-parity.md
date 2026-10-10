@@ -20,6 +20,7 @@ in [ADR 0005](../adr/0005-server-host-use-case-ports.md),
 | `page-byte-budget` | Stops HTML at its cumulative UTF-8 allowance and cancels later frames | Same document bound | Native navigation; no replacement success body | Adapter TCK |
 | `deferred-task-budget` | Bodyless 503 before work or stream commitment | No missing updates disguised as success | No automatic retry | Adapter TCK |
 | `patch-byte-budget` | Complete-page fallback remains available | Stops wire bytes and omits successful completion on exhaustion | Fail closed; never replay an action | Adapter TCK |
+| `native-multipart` | File POST with typed text, bounded temporary files and 303 redirect | Same native POST; no upload enhancement | 400/403/413 or 500, with cleanup including mid-body disconnect | Adapter TCK plus native-form browser gate |
 | `deferred-completion-order` | The complete-page route is the useful fallback | Shell is visible before independently completed revisioned patches | The user can navigate to the complete page | Adapter TCK plus reference browser gate |
 | `deferred-client-abort` | Navigation away closes the old response | Abort cancels outstanding request children | New navigation owns new work | Adapter TCK where the harness exposes aborts |
 

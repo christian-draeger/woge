@@ -106,7 +106,8 @@ internal enum class Rule(
     ),
     ACTION_COMMAND(
         "WOGE-ACTION-003",
-        "The command is a non-null, non-generic data class with val fields using supported form value types.",
+        "The command is a non-null, non-generic data class with val fields using supported form value types. " +
+            "Native uploads may wrap that command in MultipartSubmission<Command>.",
         "data class CreateTask(val title: String); use scalar values, enums, value classes or List of scalar values",
     ),
     ACTION_CONTEXT(

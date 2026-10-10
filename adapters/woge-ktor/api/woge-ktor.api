@@ -8,6 +8,11 @@ public final class dev/woge/ktor/KtorFormInputKt {
 	public static final fun ktorSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/ktor/KtorPageInput;
 }
 
+public final class dev/woge/ktor/KtorMultipartInputKt {
+	public static final fun ktorMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/ktor/KtorPageInput;
+	public static synthetic fun ktorMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/ktor/KtorPageInput;
+}
+
 public abstract interface class dev/woge/ktor/KtorPageInput {
 	public abstract fun decode (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

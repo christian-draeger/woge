@@ -6,6 +6,47 @@ import org.junit.jupiter.api.Test
 
 class ActionProcessorTest {
     @Test
+    fun `native upload descriptors preserve their multipart type and validate underlying form fields`() {
+        val wrapped = VALID.replace("command: CreateTask", "command: MultipartSubmission<CreateTask>")
+        val result = runKsp(mapOf("Upload.kt" to source(wrapped)))
+        assertEquals(emptyList<String>(), result.errors)
+        assertTrue(
+            result.generated
+                .getValue("CreateTaskAction.kt")
+                .contains("ActionDescriptor<dev.woge.host.MultipartSubmission<shop.CreateTask>>"),
+        )
+        assertTrue(
+            result.generated
+                .getValue("WogeDescriptors.kt")
+                .contains("dev.woge.host.MultipartSubmission<shop.CreateTask>"),
+        )
+        val unsupported = runKsp(mapOf("Upload.kt" to source(wrapped).replace("val title: String", "val title: Any")))
+        assertTrue(unsupported.errors.any { it.contains("WOGE-ACTION-003") })
+        val hidden =
+            runKsp(
+                mapOf(
+                    "Upload.kt" to source(wrapped).replace("data class CreateTask", "internal data class CreateTask"),
+                ),
+            )
+        assertTrue(hidden.generated.getValue("CreateTaskAction.kt").contains("internal object CreateTaskAction"))
+    }
+
+    @Test
+    fun `nullable star and nested multipart command shapes are rejected`() {
+        for (type in listOf(
+            "MultipartSubmission<CreateTask>?",
+            "MultipartSubmission<CreateTask?>",
+            "MultipartSubmission<*>",
+            "MultipartSubmission<out CreateTask>",
+            "MultipartSubmission<in CreateTask>",
+            "MultipartSubmission<MultipartSubmission<CreateTask>>",
+        )) {
+            val result = runKsp(mapOf("Upload.kt" to source(VALID.replace("command: CreateTask", "command: $type"))))
+            assertTrue(result.errors.any { it.contains("WOGE-ACTION-003") }, result.errors.toString())
+        }
+    }
+
+    @Test
     fun `generates typed action and deterministic explicit registry`() {
         val result = runKsp(mapOf("Actions.kt" to source(VALID)))
         assertEquals(emptyList<String>(), result.errors)

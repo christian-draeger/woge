@@ -97,7 +97,8 @@ are recorded for this pre-release version.
 ## Follow-up
 
 This implements deferred admission/pending results, HTML response bytes, patch fragment/stream bytes
-and browser response/decoder parts of #122. Multipart/upload policy, SSE subscription ownership and
+and browser response/decoder parts of #122. [ADR 0066](0066-request-owned-native-multipart-uploads.md)
+adds bounded request-owned multipart uploads. SSE subscription ownership and
 application/session-wide admission remain open. SSE does not yet have a production API; its future
 implementation must apply explicit subscription budgets rather than inherit an unlimited registry.
 Do not mark #122 complete until those remaining boundaries and exhaustion paths are implemented.

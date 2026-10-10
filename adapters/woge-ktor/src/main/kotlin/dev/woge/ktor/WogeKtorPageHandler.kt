@@ -10,6 +10,7 @@ import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
 import dev.woge.host.UnverifiedActionSecurityException
+import dev.woge.host.UploadDecodingException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
@@ -17,6 +18,7 @@ import dev.woge.host.failure
 import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
+import dev.woge.host.withUploadCleanup
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import io.ktor.server.application.ApplicationCall
@@ -56,16 +58,20 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                         context
                     }
                 val pageRequest = PageRequest(input.decode(call), actionContext)
-                observer.observeOperation(
-                    operation = WogeOperation.PAGE_REQUEST,
-                    context = observationContext,
-                    successfulOutcome = { it.observationOutcome() },
-                ) {
-                    page.open(pageRequest)
+                pageRequest.withUploadCleanup {
+                    observer.observeOperation(
+                        operation = WogeOperation.PAGE_REQUEST,
+                        context = observationContext,
+                        successfulOutcome = { it.observationOutcome() },
+                    ) {
+                        page.open(pageRequest)
+                    }
                 }
             } catch (invalid: RouteValueException) {
                 failure(invalid.category, context.correlationId)
             } catch (invalid: FormDecodingException) {
+                failure(invalid.category, context.correlationId)
+            } catch (invalid: UploadDecodingException) {
                 failure(invalid.category, context.correlationId)
             } catch (_: MutationRequestIdentityException) {
                 failure(FailureCategory.BAD_REQUEST, context.correlationId)

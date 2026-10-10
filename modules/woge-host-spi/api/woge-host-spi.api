@@ -593,6 +593,8 @@ public final class dev/woge/host/FormSubmission {
 public final class dev/woge/host/FormSubmissionKt {
 	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;)V
 	public static final fun actionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static final fun multipartActionForm (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun multipartActionForm$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/ActionDescriptor;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun withFormValidation (Ldev/woge/host/ActionExecutor;Ldev/woge/host/PageUseCase;)Ldev/woge/host/ActionExecutor;
 }
 
@@ -762,6 +764,30 @@ public final class dev/woge/host/MediaType {
 public final class dev/woge/host/MediaType$Companion {
 	public final fun getHTML-HET_288 ()Ljava/lang/String;
 	public final fun of-NFEhphM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/MultipartBody : java/lang/AutoCloseable {
+	public final fun accept ([BII)V
+	public static synthetic fun accept$default (Ldev/woge/host/MultipartBody;[BIIILjava/lang/Object;)V
+	public fun close ()V
+	public final fun finish ()Ldev/woge/host/MultipartSubmission;
+}
+
+public final class dev/woge/host/MultipartBodyKt {
+	public static final fun multipartBody (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/host/MultipartBody;
+	public static synthetic fun multipartBody$default (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/host/MultipartBody;
+}
+
+public final class dev/woge/host/MultipartSubmission : java/lang/AutoCloseable {
+	public fun close ()V
+	public final fun files (Ljava/lang/String;)Ljava/util/List;
+	public final fun getFiles ()Ljava/util/List;
+	public final fun getForm ()Ldev/woge/host/FormSubmission;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/MultipartUploadsKt {
+	public static final fun withUploadCleanup (Ldev/woge/host/PageRequest;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/woge/host/MutationFingerprint {
@@ -1325,6 +1351,55 @@ public final class dev/woge/host/UnknownFormFields : java/lang/Enum {
 }
 
 public final class dev/woge/host/UnverifiedActionSecurityException : java/lang/IllegalStateException {
+}
+
+public final class dev/woge/host/UploadDecodingException : java/lang/RuntimeException {
+	public fun <init> (Ldev/woge/host/FailureCategory;Ldev/woge/host/UploadLimit;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ldev/woge/host/FailureCategory;Ldev/woge/host/UploadLimit;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCategory ()Ldev/woge/host/FailureCategory;
+	public final fun getLimit ()Ldev/woge/host/UploadLimit;
+	public final fun getThreshold ()Ljava/lang/Long;
+}
+
+public final class dev/woge/host/UploadLimit : java/lang/Enum {
+	public static final field FILE_BYTES Ldev/woge/host/UploadLimit;
+	public static final field FILE_COUNT Ldev/woge/host/UploadLimit;
+	public static final field HEADER_BYTES Ldev/woge/host/UploadLimit;
+	public static final field REQUEST_BYTES Ldev/woge/host/UploadLimit;
+	public static final field TEMPORARY_BYTES Ldev/woge/host/UploadLimit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/UploadLimit;
+	public static fun values ()[Ldev/woge/host/UploadLimit;
+}
+
+public final class dev/woge/host/UploadLimits {
+	public fun <init> ()V
+	public fun <init> (JJJII)V
+	public synthetic fun <init> (JJJIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (JJJII)Ldev/woge/host/UploadLimits;
+	public static synthetic fun copy$default (Ldev/woge/host/UploadLimits;JJJIIILjava/lang/Object;)Ldev/woge/host/UploadLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFileBytes ()J
+	public final fun getFileCount ()I
+	public final fun getHeaderBytes ()I
+	public final fun getRequestBytes ()J
+	public final fun getTemporaryBytes ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/UploadedFile {
+	public final fun getField ()Ljava/lang/String;
+	public final fun getFilename ()Ljava/lang/String;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getSize ()J
+	public final fun read (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {

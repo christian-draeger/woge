@@ -92,6 +92,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0063](0063-mutation-request-identities.md) | Accepted | Separate mutation UUIDs, verified authenticity and optional scoped lease-fenced replay reservations |
 | [0064](0064-compiler-owned-application-manifest.md) | Accepted | Compose a non-secret application manifest from deterministic compiler metadata and explicit build settings |
 | [0065](0065-request-owned-resource-admission.md) | Accepted | Bound deferred admission and pending results, and reject exhausted browser stream budgets without retries |
+| [0066](0066-request-owned-native-multipart-uploads.md) | Accepted | Parse bounded native uploads consistently and own temporary file resources for one request |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

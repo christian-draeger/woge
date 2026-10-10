@@ -80,7 +80,7 @@
       "exposure": "public",
       "sourcePath": "modules/woge-host-spi",
       "artifact": "dev.woge:woge-host-spi",
-      "concepts": ["page-use-case", "deferred-regions", "request-context", "semantic-observability", "bounded-form-decoding", "application-manifest"],
+      "concepts": ["page-use-case", "deferred-regions", "request-context", "semantic-observability", "bounded-form-decoding", "native-multipart-uploads", "application-manifest"],
       "guide": "docs/guides/server-host-spi.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt"
     },

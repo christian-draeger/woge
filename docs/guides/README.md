@@ -31,6 +31,9 @@ from it and lets every host read the same path and query values.
 The [typed action descriptor guide](typed-actions.md) introduces stable form URLs, typed executors
 and explicit registries, with the remaining adapter-dispatch scope called out.
 
+The [native multipart upload guide](native-multipart-uploads.md) adds ordinary file inputs, bounded
+text and file decoding, request-owned cleanup and the explicit Spring MVC resolver configuration.
+
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
 

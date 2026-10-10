@@ -27,6 +27,7 @@ dependencies {
     testImplementation(libs.springBootStarterWeb)
     testImplementation(libs.springSecurityConfig)
     testImplementation(libs.springSecurityWeb)
+    testImplementation("org.springframework:spring-test")
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 

@@ -10,6 +10,14 @@ and pre-stream failures, document flush boundaries, deferred completion order an
 cancellation. Additive `AdapterTckExtension` suites are the hook for actions, CSRF, caching,
 multipart and SSE when those capabilities become executable.
 
+Native multipart is now part of the shared real-HTTP contract. Bind the generated `TckUploadAction`
+with `application.uploadForm`, `application.uploadLimits` and `application.uploadDirectory`, and
+register `tckUploadPage` at `/woge-tck/upload-complete`. MVC also registers `WogeMultipartResolver`
+for the upload action. The contract checks typed text and binary file content, native redirect, authorization
+and authenticity rejection, malformed/oversized input, application failure and mid-body disconnect.
+The application owns a dedicated temporary parent and verifies that every journey leaves it empty.
+The optional native-form browser gate submits a real file with JavaScript disabled and enabled.
+
 Resource exhaustion is part of the core contract: deferred admission must reject before work,
 HTML byte overflow must stop later frames, and patch byte overflow must not emit a successful
 completion frame. Bind `application.observer` on page/deferred handlers and

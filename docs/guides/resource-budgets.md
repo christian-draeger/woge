@@ -108,10 +108,16 @@ command execution. See [typed actions](typed-actions.md).
 The versioned patch codec enforces fixed frame ceilings on server and browser; see
 [patch streams](patch-stream-codec.md).
 
+Native multipart uses `UploadLimits`: 16 MiB request bytes, 8 MiB per file, 16 MiB total temporary
+file bytes, eight files and 8192 header bytes per part. Text uses the same `FormLimits`, with the
+body allowance counting multipart text bytes. The shared reader checks admission before writing
+the next byte. Overflow returns 413 and closes partial files; completed submissions close after
+the action, including rejection, failure and cancellation, before lazy rendering.
+See [native multipart uploads](native-multipart-uploads.md) for security and host configuration.
+
 ## Remaining boundaries
 
-[#122](https://github.com/christian-draeger/woge/issues/122) remains open for multipart uploads,
+[#122](https://github.com/christian-draeger/woge/issues/122) remains open for
 SSE subscription budgets and explicit application/session-wide ownership. Do not interpret
 per-request or per-runtime budgets as process-wide quotas.
-The current form decoder does not accept multipart uploads, and no new live-channel API is enabled
-by these limits.
+No new live-channel API is enabled by these limits.
