@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 test("multiple tabs refresh only on success and failed builds leave dirty controls usable", async ({ page, context, request }) => {
-  await request.get("/control?save");
   await page.goto("/");
+  await expect(page.locator("#woge-development-status")).toBeVisible();
+  const beforeSave = await page.locator("#build").textContent();
+  await request.get("/control?save");
+  await expect(page.locator("#build")).not.toHaveText(beforeSave);
+  await expect(page.locator("#woge-development-status")).toHaveAttribute("data-phase", "READY");
   const second = await context.newPage();
   await second.goto("http://127.0.0.1:4273/");
   await expect(page.locator("#woge-development-status")).toHaveAttribute("data-phase", "READY");
