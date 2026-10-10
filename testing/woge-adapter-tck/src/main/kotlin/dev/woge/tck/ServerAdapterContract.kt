@@ -253,7 +253,7 @@ private class AdapterTckVerification(
                         "status changed",
                     )
                     expect(
-                        html == """<input name="value" value="&lt;script&gt;"><p>value: REPEATED</p>""",
+                        html.contains("""value="&lt;script&gt;"""") && html.contains("<p>value: REPEATED</p>"),
                         "native-form-validation",
                         "submitted text and structured errors were not safely rerendered",
                     )
@@ -275,7 +275,7 @@ private class AdapterTckVerification(
                 val refreshed = client.text(RequestMethod.GET, "/woge-tck/action-complete")
                 expect(
                     refreshed.statusCode() == ResponseStatus.OK.code &&
-                        refreshed.body() == "<p>Completed mutations: 1</p>",
+                        refreshed.body().contains("<p>Completed mutations: 1</p>"),
                     "mutation-post-redirect-get",
                     "GET refresh repeated the mutation or a rejected form executed it",
                 )

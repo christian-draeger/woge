@@ -19,10 +19,12 @@ import dev.woge.host.RequestTrace
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeAction
+import dev.woge.host.actionForm
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
 import dev.woge.host.redirect
 import dev.woge.html.applicationUrl
+import dev.woge.html.button
 import dev.woge.html.input
 import dev.woge.html.p
 import kotlinx.serialization.Serializable
@@ -59,17 +61,21 @@ public val tckActionValidation: PageUseCase<FormValidation> =
             failure(FailureCategory.FORBIDDEN, request.context.correlationId)
         } else {
             htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
-                input(attributes = {
-                    attribute("name", "value")
-                    attribute(
-                        "value",
-                        request.input.values
-                            .first("value")
-                            .orEmpty(),
-                    )
-                })
-                request.input.errors.forEach { error ->
-                    p { text("${error.field}: ${error.code}") }
+                actionForm(TckSubmitAction) {
+                    input(attributes = {
+                        attribute("name", "value")
+                        attribute("aria-label", "Command value")
+                        attribute(
+                            "value",
+                            request.input.values
+                                .first("value")
+                                .orEmpty(),
+                        )
+                    })
+                    request.input.errors.forEach { error ->
+                        p { text("${error.field}: ${error.code}") }
+                    }
+                    button { text("Submit command") }
                 }
             }
         }

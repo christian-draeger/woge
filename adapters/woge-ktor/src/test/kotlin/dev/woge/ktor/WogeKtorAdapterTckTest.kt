@@ -9,6 +9,7 @@ import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
+import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
@@ -23,9 +24,19 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import java.net.URI
+import java.nio.file.Path
 
 class WogeKtorAdapterTckTest {
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
+    fun `native forms pass the real browser contract`() {
+        ServerAdapterContract(KtorTckHarnessFactory).verify(
+            listOf(NativeFormBrowserContract(Path.of(System.getenv("WOGE_NATIVE_BROWSER_SCRIPT")))),
+        )
+    }
+
     @Test
     fun `Ktor passes the shared server adapter contract`() {
         ServerAdapterContract(KtorTckHarnessFactory).verify()

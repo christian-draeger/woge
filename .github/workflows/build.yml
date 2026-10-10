@@ -59,6 +59,11 @@ jobs:
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run the reference application browser gate
         run: ./gradlew referenceBrowserSmoke --stacktrace
+      - name: Run native form browser contracts on all hosts
+        run: |
+          WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
+            ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
+            --tests '*AdapterTckTest' --stacktrace
       - name: Run the external Spring Boot scaffold browser gate
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
       - name: Run the development SSE and overlay browser gate

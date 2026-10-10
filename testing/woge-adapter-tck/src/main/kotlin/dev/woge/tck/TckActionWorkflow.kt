@@ -4,8 +4,11 @@ import dev.woge.host.ActionExecutor
 import dev.woge.host.FormSubmission
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.actionForm
 import dev.woge.host.htmlPage
 import dev.woge.host.withFormValidation
+import dev.woge.html.button
+import dev.woge.html.input
 import dev.woge.html.p
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -24,6 +27,19 @@ internal class TckActionWorkflow {
 
     val completion: PageUseCase<Unit> =
         PageUseCase {
-            htmlPage { p { text("Completed mutations: ${mutations.get()}") } }
+            htmlPage {
+                p { text("Completed mutations: ${mutations.get()}") }
+                actionForm(TckSubmitAction) {
+                    input(attributes = {
+                        attribute("name", "value")
+                        attribute("aria-label", "Command value")
+                    })
+                    button { text("Submit command") }
+                    button(attributes = {
+                        attribute("name", "value")
+                        attribute("value", "again")
+                    }) { text("Submit ambiguous command") }
+                }
+            }
         }
 }

@@ -158,9 +158,11 @@ for a 303 followed by GET, not a POST-preserving 307/308. Rendering a validation
 the browser on a POST response; a workflow that needs redirect-after-validation must explicitly
 manage short-lived state.
 
-The shared real-HTTP tests verify one successful mutation followed by a canonical GET and repeated
-GET refresh, without repeating the mutation. This foundation does not complete #30: browser tests
-with JavaScript disabled, enhanced parity and end-to-end Spring Security ingress are still pending.
+The shared real-HTTP and Chromium tests verify a successful mutation followed by a canonical GET
+and refresh, without repeating the mutation. Browser tests run with JavaScript disabled and enabled
+on MVC, WebFlux and Ktor, including validation and domain rejection. Their security facts are
+explicit test fixtures. This foundation does not complete #30: actual enhanced-submission parity
+and end-to-end Spring Security ingress are still pending.
 
 ## Request limits
 

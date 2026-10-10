@@ -29,3 +29,10 @@ dependencies {
 tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
 }
+
+tasks.test {
+    inputs.property("nativeFormBrowserScript", providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").orElse(""))
+    inputs.files(
+        providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").map { listOf(it) }.orElse(emptyList()),
+    )
+}

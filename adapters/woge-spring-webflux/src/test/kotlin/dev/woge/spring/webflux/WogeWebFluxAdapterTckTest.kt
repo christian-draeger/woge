@@ -9,19 +9,30 @@ import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
 import dev.woge.tck.AdapterTckServer
+import dev.woge.tck.NativeFormBrowserContract
 import dev.woge.tck.ServerAdapterContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.coRouter
 import reactor.netty.DisposableServer
 import reactor.netty.http.server.HttpServer
 import java.net.URI
+import java.nio.file.Path
 
 class WogeWebFluxAdapterTckTest {
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
+    fun `native forms pass the real browser contract`() {
+        ServerAdapterContract(WebFluxTckHarnessFactory).verify(
+            listOf(NativeFormBrowserContract(Path.of(System.getenv("WOGE_NATIVE_BROWSER_SCRIPT")))),
+        )
+    }
+
     @Test
     fun `WebFlux passes the shared server adapter contract`() {
         ServerAdapterContract(WebFluxTckHarnessFactory).verify()

@@ -72,6 +72,12 @@ The shared real-HTTP TCK records successful mutations per server, follows the ac
 with GET and refreshes it again. It verifies exactly one mutation after successful, unauthorized
 and malformed submissions on all three hosts.
 
-#30 remains open until a real mutation is exercised in a browser with JavaScript disabled,
-native/enhanced outcomes agree, and Spring Security ingress is tested end to end. Multipart remains
-#60.
+An optional Playwright extension runs those same servers in Chromium with JavaScript disabled and
+enabled. It verifies native form attributes, 303/GET navigation, refresh without replay, escaped
+validation values and domain rejection. It uses only the TCK's explicitly simulated ingress facts,
+not a production authentication mechanism. The browser CI job runs it for all three adapters;
+ordinary JVM checks do not require Node.
+
+#30 remains open until Spring Security ingress is tested end to end and the actual enhanced
+submission path has equivalent outcomes. JavaScript-enabled native navigation alone is not an
+enhanced dispatcher. Multipart remains #60.
