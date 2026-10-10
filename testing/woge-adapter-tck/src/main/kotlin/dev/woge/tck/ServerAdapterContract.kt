@@ -97,6 +97,7 @@ private class AdapterTckVerification(
         if (AdapterTckCapability.CLIENT_ABORT_CANCELLATION in server.capabilities) {
             verifyClientAbortCancellation()
         }
+        verifyTypedRoute()
         verifySemanticObservations()
     }
 
@@ -291,6 +292,33 @@ private class AdapterTckVerification(
                 )
             response.body().use { body -> body.readThrough("Ready region") }
             withTimeout(CLIENT_ABORT_TIMEOUT) { fixture.cancelledRegion.await() }
+        }
+    }
+
+    private suspend fun verifyTypedRoute() {
+        runContract("typed-route") {
+            val url = AdapterTckRoute.url(AdapterTckRouteInput(item = 7, note = "a & b", count = 3)).value
+            val response = client.text(RequestMethod.GET, url)
+            expect(response.statusCode() == ResponseStatus.OK.code, "typed-route", "expected HTTP 200 for $url")
+            expect(
+                response.body() == "<p>item=7 note=a &amp; b count=3</p>",
+                "typed-route",
+                "route values were not decoded",
+            )
+        }
+        runContract("typed-route-invalid-path") {
+            val response = client.text(RequestMethod.GET, "/woge-tck/routes/seven")
+            expect(response.statusCode() == ResponseStatus.NOT_FOUND.code, "typed-route-invalid-path", "expected 404")
+            expect(response.body().isEmpty(), "typed-route-invalid-path", "failure was not bodyless")
+        }
+        runContract("typed-route-invalid-query") {
+            val response = client.text(RequestMethod.GET, "/woge-tck/routes/7?count=many")
+            expect(
+                response.statusCode() == ResponseStatus.BAD_REQUEST.code,
+                "typed-route-invalid-query",
+                "expected 400",
+            )
+            expect(response.body().isEmpty(), "typed-route-invalid-query", "failure was not bodyless")
         }
     }
 

@@ -76,6 +76,7 @@ public class AdapterTckApplication internal constructor() {
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
+    public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
 
     internal fun fixtureState(): AdapterTckFixtureState = state
 }

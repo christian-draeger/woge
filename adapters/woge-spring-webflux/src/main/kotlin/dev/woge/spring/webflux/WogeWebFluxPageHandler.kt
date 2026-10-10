@@ -2,9 +2,11 @@ package dev.woge.spring.webflux
 
 import dev.woge.host.PageRequest
 import dev.woge.host.PageUseCase
+import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.failure
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -21,7 +23,13 @@ public class WogeWebFluxPageHandler<Input : Any>(
     public suspend fun handle(request: ServerRequest): ServerResponse {
         val context = contexts.create(request)
         val observationContext = WogeObservationContext(requestTrace = context.trace)
-        val pageRequest = PageRequest(input.decode(request), context)
+        val decoded =
+            try {
+                input.decode(request)
+            } catch (invalid: RouteValueException) {
+                return failure(invalid.category, context.correlationId).toWebFluxResponse(observer, observationContext)
+            }
+        val pageRequest = PageRequest(decoded, context)
         val result =
             observer.observeOperation(
                 operation = WogeOperation.PAGE_REQUEST,

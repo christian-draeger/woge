@@ -1,6 +1,7 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
@@ -35,6 +36,15 @@ public class WogeSpringMvcHandlers(
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcPageHandler<Input> =
         WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, observer)
+
+    /**
+     * Creates a handler for a page with a generated route. Map it at the route's own path:
+     * `ProjectPageRoute.path to handlers.page(projectPage, ProjectPageRoute)`.
+     */
+    public fun <Input : Any> page(
+        useCase: PageUseCase<Input>,
+        route: PageRoute<Input>,
+    ): WogeSpringMvcPageHandler<Input> = page(useCase, route.springMvcInput())
 
     /** Creates a Servlet handler for one typed deferred-region stream and input decoder. */
     public fun <Input : Any> deferred(

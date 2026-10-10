@@ -1,6 +1,7 @@
 package dev.woge.spring.webflux
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
@@ -23,6 +24,15 @@ public class WogeWebFluxHandlers(
         useCase: PageUseCase<Input>,
         input: WebFluxPageInput<Input>,
     ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts, observer)
+
+    /**
+     * Creates a handler for a page with a generated route. Register it at the route's own path:
+     * `GET(ProjectPageRoute.path, handlers.page(projectPage, ProjectPageRoute)::handle)`.
+     */
+    public fun <Input : Any> page(
+        useCase: PageUseCase<Input>,
+        route: PageRoute<Input>,
+    ): WogeWebFluxPageHandler<Input> = page(useCase, route.webFluxInput())
 
     /** Creates a handler for one typed deferred-region stream and its route-local input decoder. */
     public fun <Input : Any> deferred(

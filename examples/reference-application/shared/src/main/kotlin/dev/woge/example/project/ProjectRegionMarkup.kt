@@ -4,7 +4,6 @@ import dev.woge.host.DeferredRegionFailure
 import dev.woge.host.WogeRegion
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
-import dev.woge.html.applicationUrl
 import dev.woge.html.caption
 import dev.woge.html.dd
 import dev.woge.html.div
@@ -108,7 +107,7 @@ internal fun HtmlWriter.renderRegionFailure(
 ) {
     h2(attributes = { attribute("id", "$region-heading") }) { text(title) }
     p { text("This region ${failureLabel(failure)}. ") }
-    a(attributes = { url("href", applicationUrl("/projects/${project.slug}?view=complete")) }) {
+    a(attributes = { url("href", ProjectPageRoute.url(ProjectPageInput(project.slug, ProjectPageView.COMPLETE))) }) {
         text("Load the complete page")
     }
 }

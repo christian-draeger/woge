@@ -1,5 +1,6 @@
 package dev.woge.example.project
 
+import dev.woge.host.RouteValues
 import dev.woge.host.regionPlaceholder
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
@@ -72,7 +73,7 @@ private fun HtmlWriter.renderBody(
         }
         header(attributes = { classes("site-header") }) {
             nav(attributes = { aria("label", "Primary") }) {
-                a(attributes = { url("href", applicationUrl("/projects/${project.slug}")) }) {
+                a(attributes = { url("href", ProjectPageRoute.url(ProjectPageInput(project.slug))) }) {
                     text("Projects")
                 }
             }
@@ -100,7 +101,7 @@ private fun HtmlWriter.renderBody(
 }
 
 private fun HtmlWriter.renderFullNavigationFallback(project: ProjectSnapshot) {
-    val completeUrl = applicationUrl("/projects/${project.slug}?view=complete")
+    val completeUrl = ProjectPageRoute.url(ProjectPageInput(project.slug, ProjectPageView.COMPLETE))
     noscript {
         p(attributes = { classes("notice") }) {
             text("JavaScript is off. ")
@@ -110,14 +111,14 @@ private fun HtmlWriter.renderFullNavigationFallback(project: ProjectSnapshot) {
         }
     }
     form(attributes = {
-        url("action", applicationUrl("/projects/${project.slug}"))
+        url("action", ProjectPageRoute.url(ProjectPageInput(project.slug)))
         attribute("method", "get")
     }) {
         button(
             attributes = {
                 attribute("type", "submit")
                 attribute("name", "view")
-                attribute("value", "complete")
+                attribute("value", RouteValues.format(ProjectPageView.COMPLETE))
             },
         ) {
             text("Load the complete page instead")

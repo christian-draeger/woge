@@ -48,6 +48,10 @@ class KotlinJvmLibraryConventionTest {
                 id("dev.woge.kotlin-jvm-library")
             }
 
+            kotlin.sourceSets.named("main") {
+                kotlin.srcDir("build/generated/kotlin")
+            }
+
             repositories {
                 mavenCentral()
             }
@@ -59,6 +63,10 @@ class KotlinJvmLibraryConventionTest {
             """.trimIndent(),
         )
         write("config/detekt/detekt.yml", "build:\n  maxIssues: 0\n")
+        write(
+            "build/generated/kotlin/sample/Generated.kt",
+            "package sample\npublic object Generated{public fun text():String=\"generated\"}",
+        )
         write(
             "src/main/kotlin/sample/Greeting.kt",
             """

@@ -42,18 +42,18 @@ internal data class KeyModel(
  *
  * Each check rejects with [reject]; [readOrReport] turns that rejection into one KSP error.
  */
-internal class DeclarationReader(
+internal class RegionReader(
     private val logger: KSPLogger,
 ) {
     private val components: MutableMap<String, ComponentModel?> = mutableMapOf()
 
     fun component(declaration: KSClassDeclaration): ComponentModel? {
         val name = declaration.qualifiedName?.asString() ?: return null
-        if (name !in components) components[name] = readOrReport { readComponent(declaration, name) }
+        if (name !in components) components[name] = logger.readOrReport { readComponent(declaration, name) }
         return components[name]
     }
 
-    fun region(function: KSFunctionDeclaration): RegionModel? = readOrReport { readRegion(function) }
+    fun region(function: KSFunctionDeclaration): RegionModel? = logger.readOrReport { readRegion(function) }
 
     fun reportDuplicateName(region: RegionModel) {
         val received = "${region.symbol.signature()} generates ${region.descriptorName}"
@@ -141,32 +141,7 @@ internal class DeclarationReader(
         val declaration = argument?.declaration as? KSClassDeclaration
         return declaration?.takeUnless { it.qualifiedName?.asString() == "kotlin.Unit" }
     }
-
-    private inline fun <T : Any> readOrReport(read: () -> T): T? =
-        try {
-            read()
-        } catch (rejection: Rejection) {
-            rejection.rule?.let { logger.error(it.message(rejection.received), rejection.symbol) }
-            null
-        }
 }
-
-/** Stops reading one declaration. A `null` [rule] means the problem was already reported. */
-private class Rejection(
-    val rule: Rule?,
-    val received: String,
-    val symbol: KSAnnotated?,
-) : RuntimeException(rule?.id, null, false, false) {
-    companion object {
-        val ALREADY_REPORTED = Rejection(null, "", null)
-    }
-}
-
-private fun reject(
-    rule: Rule,
-    received: String,
-    symbol: KSAnnotated,
-): Nothing = throw Rejection(rule, received, symbol)
 
 private fun KSFunctionDeclaration.requireRegionShape() {
     val receiver =
@@ -211,14 +186,6 @@ private fun KSFunctionDeclaration.signature(): String {
     val owner = parentDeclaration?.let { " inside ${it.simpleName.asString()}" }.orEmpty()
     return "${suspend}fun $typeParameters$receiver${simpleName.asString()}($parameters)$owner"
 }
-
-private fun KSAnnotated.hasAnnotation(name: String): Boolean =
-    annotations.any {
-        it.annotationType
-            .resolve()
-            .declaration.qualifiedName
-            ?.asString() == name
-    }
 
 private val IDENTITY_NAME = Regex("[A-Za-z][A-Za-z0-9_.]*")
 private const val MAX_IDENTITY_NAME = 128

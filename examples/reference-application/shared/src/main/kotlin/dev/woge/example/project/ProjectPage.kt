@@ -10,6 +10,7 @@ import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RegionTarget
 import dev.woge.host.RenderIdentitySecret
+import dev.woge.host.WogeRoute
 import dev.woge.host.deferredRegion
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
@@ -24,10 +25,16 @@ public enum class ProjectPageView {
     COMPLETE,
 }
 
-/** Route input decoded by a host adapter before portable page code runs. */
+/**
+ * The typed URL `/projects/{project}?view=complete` of the project page.
+ *
+ * KSP generates `ProjectPageRoute` from this class. Links use `ProjectPageRoute.url(...)` and every
+ * host decodes requests with the same route. A missing `view` means the enhanced shell.
+ */
+@WogeRoute("/projects/{project}")
 public data class ProjectPageInput(
     public val project: String,
-    public val view: ProjectPageView = ProjectPageView.SHELL,
+    public val view: ProjectPageView? = null,
 )
 
 /**
@@ -43,7 +50,7 @@ public class ProjectPage(
         val project =
             findProject(request.input.project)
                 ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
-        val view = request.input.view
+        val view = request.input.view ?: ProjectPageView.SHELL
         val regions = if (view == ProjectPageView.SHELL) projectRegions(project, identitySecret) else emptyList()
         return htmlPage { renderProjectDocument(project, view, regions) }
     }

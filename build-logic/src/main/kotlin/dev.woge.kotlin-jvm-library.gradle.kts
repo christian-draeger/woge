@@ -30,6 +30,12 @@ kotlin {
     }
 }
 
+ktlint {
+    filter {
+        exclude { it.file.invariantSeparatorsPath.contains("/build/generated/") }
+    }
+}
+
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(rootProject.layout.projectDirectory.file("config/detekt/detekt.yml"))
