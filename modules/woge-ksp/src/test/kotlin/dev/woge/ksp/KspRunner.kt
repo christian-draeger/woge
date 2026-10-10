@@ -19,6 +19,7 @@ internal class KspResult(
     val errors: List<String>,
     val generated: Map<String, String>,
     val dependencies: Map<String, RecordedDependencies>,
+    val resources: Map<String, String>,
 )
 
 /** The `Dependencies` of one generated file, captured while KSP's symbols are still valid. */
@@ -28,7 +29,10 @@ internal data class RecordedDependencies(
 )
 
 /** Runs the Woge processor with KSP2 in this JVM, so tests see real KSP symbols and locations. */
-internal fun runKsp(sources: Map<String, String>): KspResult {
+internal fun runKsp(
+    sources: Map<String, String>,
+    additionalProviders: List<SymbolProcessorProvider> = emptyList(),
+): KspResult {
     val root = Files.createTempDirectory("woge-ksp").toFile()
     try {
         val sourceRoot = File(root, "src").apply { mkdirs() }
@@ -61,14 +65,21 @@ internal fun runKsp(sources: Map<String, String>): KspResult {
                     javaOutputDir = File(output, "java")
                     resourceOutputDir = File(output, "resources")
                 }.build()
-        KotlinSymbolProcessing(config, listOf(provider), logger).execute()
+        KotlinSymbolProcessing(config, listOf(provider) + additionalProviders, logger).execute()
         val generated =
             File(output, "kotlin")
                 .walkTopDown()
                 .filter(File::isFile)
                 .associate { it.name to it.readText() }
                 .toSortedMap()
-        return KspResult(logger.errors, generated, dependencies)
+        val resourceRoot = File(output, "resources")
+        val resources =
+            resourceRoot
+                .walkTopDown()
+                .filter(File::isFile)
+                .associate { it.relativeTo(resourceRoot).invariantSeparatorsPath to it.readText() }
+                .toSortedMap()
+        return KspResult(logger.errors, generated, dependencies, resources)
     } finally {
         root.deleteRecursively()
     }

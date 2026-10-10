@@ -30,6 +30,8 @@ internal class WogeProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
 ) : SymbolProcessor {
+    private val metadata = DescriptorMetadataWriter(codeGenerator, logger)
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val annotated =
             listOf(
@@ -49,6 +51,10 @@ internal class WogeProcessor(
         return deferred
     }
 
+    override fun finish() {
+        metadata.write()
+    }
+
     private fun processActions(functions: List<KSFunctionDeclaration>) {
         val reader = ActionReader(logger)
         val actions = functions.mapNotNull(reader::action)
@@ -64,6 +70,17 @@ internal class WogeProcessor(
             }
         valid.forEach { action ->
             write(action.packageName, action.descriptorName, action.sources, aggregating = true, action.source())
+            metadata.add(
+                action.packageName,
+                action.sources,
+                DescriptorEntry(
+                    "ACTION",
+                    action.id,
+                    action.descriptorName.inPackage(action.packageName),
+                    action.commandType,
+                    path = "/woge-actions/${action.id}",
+                ),
+            )
         }
         valid.groupBy { it.packageName }.forEach { (packageName, packageActions) ->
             write(
@@ -81,7 +98,20 @@ internal class WogeProcessor(
         functions: List<KSFunctionDeclaration>,
     ) {
         val reader = RegionReader(logger)
-        classes.filter { it.hasAnnotation(WOGE_COMPONENT) }.forEach(reader::component)
+        classes.filter { it.hasAnnotation(WOGE_COMPONENT) }.forEach { declaration ->
+            reader.component(declaration)?.let { component ->
+                metadata.add(
+                    declaration.packageName.asString(),
+                    component.declarations.mapNotNull { it.containingFile },
+                    DescriptorEntry(
+                        "COMPONENT",
+                        component.identityName,
+                        component.identityName,
+                        keyType = component.key?.type,
+                    ),
+                )
+            }
+        }
         functions
             .mapNotNull(reader::region)
             .groupBy { it.packageName to it.descriptorName }
@@ -95,6 +125,18 @@ internal class WogeProcessor(
                         region.sources,
                         aggregating = false,
                         region.source(),
+                    )
+                    metadata.add(
+                        region.packageName,
+                        region.sources,
+                        DescriptorEntry(
+                            "REGION",
+                            region.identityName,
+                            region.descriptorName.inPackage(region.packageName),
+                            region.inputType,
+                            component = region.component?.identityName,
+                            keyType = region.component?.key?.type,
+                        ),
                     )
                 } else {
                     sameName.forEach(reader::reportDuplicateName)
@@ -113,7 +155,7 @@ internal class WogeProcessor(
             when {
                 sameName.size > 1 -> reader.reportDuplicateName(route)
                 samePattern.size > 1 -> reader.reportCollision(route, samePattern - route)
-                else ->
+                else -> {
                     write(
                         route.packageName,
                         route.descriptorName,
@@ -121,9 +163,24 @@ internal class WogeProcessor(
                         aggregating = true,
                         route.source(),
                     )
+                    metadata.add(
+                        route.packageName,
+                        route.sources,
+                        DescriptorEntry(
+                            "PAGE",
+                            route.path,
+                            route.descriptorName.inPackage(route.packageName),
+                            route.inputType,
+                            path = route.path,
+                        ),
+                    )
+                }
             }
         }
     }
+
+    private fun String.inPackage(packageName: String): String =
+        if (packageName.isEmpty()) this else "$packageName.$this"
 
     @Suppress("SpreadOperator") // KSP only offers a vararg constructor; the array holds a few files.
     private fun write(

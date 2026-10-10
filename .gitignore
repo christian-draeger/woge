@@ -1,6 +1,7 @@
 .gradle/
 .kotlin/
 **/build/
+.woge/manifest.json
 
 node_modules/
 playwright-report/

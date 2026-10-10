@@ -101,7 +101,7 @@ class RouteProcessorTest {
             )
 
         assertEquals(emptyList<String>(), result.errors)
-        assertEquals(setOf("NewProjectRoute.kt", "ProjectRoute.kt"), result.generated.keys)
+        assertEquals(setOf("NewProjectRoute.kt", "ProjectRoute.kt", "WogeDescriptors.kt"), result.generated.keys)
     }
 
     private companion object {

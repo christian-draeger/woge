@@ -1,5 +1,7 @@
 package example.woge
 
+import dev.woge.host.ApplicationManifest
+import dev.woge.host.ManifestHostAdapter
 import dev.woge.spring.boot.autoconfigure.WogeRuntimeInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -11,8 +13,20 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.Files
+import java.nio.file.Path
 
 public class ApplicationTest {
+    @Test
+    public fun `manifest matches the generated in-process descriptors and selected host`() {
+        val manifest = ApplicationManifest.decode(Files.readString(Path.of(".woge/manifest.json")))
+        assertEquals(wogeDescriptors, manifest.descriptors)
+        val host = requireNotNull(System.getProperty("woge.expected-adapter"))
+        assertEquals(ManifestHostAdapter.valueOf("SPRING_${host.uppercase()}"), manifest.hostAdapter)
+        assertEquals(listOf("pages"), manifest.capabilities)
+        assertEquals("server-html", manifest.frontendMode)
+    }
+
     @Test
     public fun `serves semantic HTML and ordinary CSS without JavaScript`() {
         SpringApplication(Application::class.java)

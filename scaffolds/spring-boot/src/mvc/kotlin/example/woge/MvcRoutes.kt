@@ -1,6 +1,5 @@
 package example.woge
 
-import dev.woge.spring.mvc.SpringMvcPageInput
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,7 +13,7 @@ public class MvcRoutes {
         handlers: WogeSpringMvcHandlers,
     ): SimpleUrlHandlerMapping =
         SimpleUrlHandlerMapping(
-            mapOf("/" to handlers.page(homePage, SpringMvcPageInput { Unit })),
+            mapOf(HomeRoute.path to handlers.page(homePage, HomeRoute)),
             0,
         )
 }

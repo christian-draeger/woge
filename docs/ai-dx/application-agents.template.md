@@ -23,6 +23,10 @@ the supported tasks and options as JSON. Change
 adapters in application code. Regenerate this file after changing the persisted host or a pinned
 framework version; the normal test task rejects stale guidance.
 
+`./gradlew wogeManifest` writes `.woge/manifest.json` from compiler metadata. Use the typed
+`ApplicationManifest` model or generated `wogeDescriptors` lists; do not scan source or running
+application objects. The manifest is generated, non-secret build output, not an endpoint registry.
+
 ## Keep the web platform visible
 
 - Render semantic HTML on the server. Keep links, forms, methods, status codes and URLs recognizable.
@@ -66,6 +70,8 @@ Do not invent `ActionRef` or selector-based action targets.
   declaration lists.
 - Woge generators alone own `{{GENERATED_SOURCES}}`.
   Never edit or commit that directory; change source declarations and regenerate.
+- Do not commit or serve `.woge/manifest.json`, copy it into production resources by default, or
+  put secrets in its build settings. `clean` and main compilation invalidate the previous file.
 - Native Declarative Partial Updates remain experimental browser syntax and are not an application
   dependency. Use the supported Woge fallback behavior.
 
@@ -79,6 +85,7 @@ Do not invent `ActionRef` or selector-based action targets.
 - CSS and assets: {{CSS_GUIDE_URL}}
 - Page and regions: {{PAGE_GUIDE_URL}}
 - Patch targets: {{PATCH_GUIDE_URL}}
+- Application manifest: {{MANIFEST_GUIDE_URL}}
 - Compile-verified examples: {{COMPILER_EXAMPLES_URL}}
 
 If prose, generated guidance and the compiler disagree, do not cast or suppress around the mismatch.

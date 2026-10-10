@@ -35,6 +35,8 @@ final class WogeWorkflow {
             new Step("check", "verification",
                     "Runs tests and all checks, including " + WogeSpringBootPlugin.VERIFY_TASK + ".", List.of()),
             VERIFY_ARTIFACT,
+            new Step("wogeManifest", "documentation",
+                    "Writes non-secret compiler metadata to .woge/manifest.json.", List.of()),
             new Step("bootJar", "production", "Builds the runnable production jar without development tooling.",
                     List.of()),
             new Step("bootRun", "production",
