@@ -18,7 +18,8 @@ The [HTML element guide](html-elements.md) maps familiar tags, attributes, text-
 active raw-text boundaries and platform escape hatches to the generated Kotlin DSL.
 
 The [CSS and asset guide](css-and-assets.md) shows external and colocated CSS, declaration lists,
-plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI boundaries.
+plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI boundaries. The
+[Tailwind guide](tailwind.md) adds the optional Gradle plugin, with or without Node.js.
 
 The [HTML sink guide](stream-html.md) explains when to buffer or stream the same component functions.
 

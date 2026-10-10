@@ -1,0 +1,54 @@
+/*
+ * Woge adds `@import "tailwindcss"` and an `@source` line for your Kotlin code.
+ * This file holds your design tokens and custom styles.
+ *
+ * Tokens are normal CSS custom properties. Light, dark and high-contrast values come from
+ * media queries, so the browser picks them without JavaScript.
+ */
+:root {
+  --woge-surface: #ffffff;
+  --woge-ink: #1f2933;
+  --woge-muted: #52606d;
+  --woge-line: #d9e2ec;
+  --woge-ok: #1b7f3b;
+  --woge-ok-soft: #e3f9e5;
+  --woge-warning: #8d5c00;
+  --woge-warning-soft: #fff3c4;
+  --woge-danger: #b42318;
+  --woge-danger-soft: #ffe3e3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --woge-surface: #111827;
+    --woge-ink: #f5f7fa;
+    --woge-muted: #9aa5b1;
+    --woge-line: #364152;
+    --woge-ok: #8eedc7;
+    --woge-ok-soft: #0e3b23;
+    --woge-warning: #f7d070;
+    --woge-warning-soft: #3d2c00;
+    --woge-danger: #ffb3b3;
+    --woge-danger-soft: #4a1210;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --woge-muted: var(--woge-ink);
+    --woge-line: var(--woge-ink);
+  }
+}
+
+@theme inline {
+  --color-surface: var(--woge-surface);
+  --color-ink: var(--woge-ink);
+  --color-muted: var(--woge-muted);
+  --color-line: var(--woge-line);
+  --color-ok: var(--woge-ok);
+  --color-ok-soft: var(--woge-ok-soft);
+  --color-warning: var(--woge-warning);
+  --color-warning-soft: var(--woge-warning-soft);
+  --color-danger: var(--woge-danger);
+  --color-danger-soft: var(--woge-danger-soft);
+}

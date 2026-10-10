@@ -1,0 +1,20 @@
+/*
+ * Ordinary CSS, served unchanged next to the Tailwind stylesheet.
+ * It sits in Tailwind's `components` layer, so a utility class on the same element still wins.
+ */
+@layer components {
+  .service-list {
+    container-type: inline-size;
+
+    & > li {
+      align-items: center;
+    }
+
+    @container (width < 24rem) {
+      & > li {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+    }
+  }
+}

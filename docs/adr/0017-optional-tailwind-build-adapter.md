@@ -65,6 +65,6 @@ Woge records one exact supported Tailwind/CLI version per release. Patch updates
 ## Follow-up
 
 - Define source-distributed candidate/style manifests with component packaging in [#76](https://github.com/christian-draeger/woge/issues/76).
-- Materialize the optional Gradle adapter and content-hashed asset pipeline after the M1 scaffold in [#13](https://github.com/christian-draeger/woge/issues/13).
+- Materialize the optional Gradle adapter and content-hashed asset pipeline after the M1 scaffold in [#13](https://github.com/christian-draeger/woge/issues/13). Done in [ADR 0072](0072-optional-tailwind-gradle-plugin.md) ([#79](https://github.com/christian-draeger/woge/issues/79)); stylesheet-only development updates now come from [ADR 0071](0071-in-place-stylesheet-updates-in-development.md).
 - Add Windows and Linux standalone parity to release infrastructure before promising those distributions.
 - Keep dependency auditing and exact-version update tests in normal maintenance.

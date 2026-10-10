@@ -80,8 +80,8 @@ rule for declaration-list assistance and prevents a complete `CssStylesheet` fro
 `style` attribute accidentally.
 
 Tailwind remains an optional build tool. There is no Tailwind type or runtime dependency in
-`woge-core`; candidate discovery and production integration belong to the optional adapter tracked
-in issue #77.
+`woge-core`. To build utilities from your Kotlin code, add the optional plugin described in the
+[Tailwind guide](tailwind.md).
 
 ## Load other head assets
 

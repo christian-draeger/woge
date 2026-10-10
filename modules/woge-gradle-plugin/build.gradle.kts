@@ -39,6 +39,12 @@ gradlePlugin {
             displayName = "Woge for Spring Boot"
             description = "Adds ./gradlew wogeDev and keeps development tooling out of production jars."
         }
+        register("wogeTailwind") {
+            id = "dev.woge.tailwind"
+            implementationClass = "dev.woge.gradle.WogeTailwindPlugin"
+            displayName = "Woge Tailwind adapter"
+            description = "Builds an optional Tailwind stylesheet from the class names in Kotlin code."
+        }
     }
 }
 
