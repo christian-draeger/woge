@@ -9,13 +9,16 @@ import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
+import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.HtmlFrame
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -42,6 +45,17 @@ internal suspend fun PageResult.toWebFluxResponse(
     actionAccept: String? = null,
 ): ServerResponse =
     when (this) {
+        is PageResult.RegionUpdates ->
+            if (acceptsActionPatches(actionAccept)) {
+                responseBuilder(metadata)
+                    .contentType(MediaType.parseMediaType(PatchStreamV1.MEDIA_TYPE))
+                    .headers { it.set("Cache-Control", "no-store") }
+                    .header("Vary", "Accept")
+                    .body(patchBody(encodeActionPatchStream()))
+                    .awaitSingle()
+            } else {
+                nativeRedirect().toWebFluxResponse(observer, observationContext, actionAccept)
+            }
         is PageResult.Document ->
             responseBuilder(metadata)
                 .body(documentBody(this, observer, observationContext))

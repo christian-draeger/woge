@@ -11,7 +11,11 @@ class ActionNavigationTest {
     @Test
     fun `only explicit current patch requests translate canonical application redirects`() {
         val result = redirect(applicationUrl("/tasks"))
-        assertEquals("/tasks", result.enhancedActionNavigation(PatchStreamV1.MEDIA_TYPE)?.value)
+        listOf(
+            PatchStreamV1.MEDIA_TYPE,
+            "application/vnd.woge.patch-stream;version=1",
+            """APPLICATION/VND.WOGE.PATCH-STREAM ; version = "1" """,
+        ).forEach { assertEquals("/tasks", result.enhancedActionNavigation(it)?.value) }
         listOf(
             null,
             "",

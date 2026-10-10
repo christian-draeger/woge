@@ -80,6 +80,7 @@ public fun PageResult.observationOutcome(): WogeOutcome =
     when (this) {
         is PageResult.Document,
         is PageResult.Redirect,
+        is PageResult.RegionUpdates,
         -> WogeOutcome.SUCCEEDED
 
         is PageResult.Failure ->

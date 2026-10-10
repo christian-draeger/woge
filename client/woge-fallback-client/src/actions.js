@@ -1,4 +1,4 @@
-import { PATCH_STREAM_MEDIA_TYPE, WogePatchError } from "./protocol.js";
+import { isPatchStreamMediaType, PATCH_STREAM_MEDIA_TYPE, WogePatchError } from "./protocol.js";
 import { classifyWogeFailure } from "./recovery.js";
 
 export const ACTION_ERROR_EVENT = "woge:action-error";
@@ -102,7 +102,7 @@ async function submit(root, runtime, submission, signal) {
     if (!signal.aborted) root.defaultView.location.assign(url.href);
     return;
   }
-  if (!response.ok || response.headers.get("Content-Type")?.trim().toLowerCase() !== PATCH_STREAM_MEDIA_TYPE) {
+  if (!response.ok || !isPatchStreamMediaType(response.headers.get("Content-Type"))) {
     await response.body?.cancel();
     throw new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "Action did not return a compatible patch stream");
   }

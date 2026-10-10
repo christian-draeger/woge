@@ -18,7 +18,8 @@ active-page registry validation, active-content checks, lifecycle events and DOM
 SHA-256. The production source and dependencies are deterministic through `package-lock.json`.
 
 After opt-in action forms and canonical recovery were included (2026-10-10), the same measurement
-reported 19,359 minified bytes, 6,988 gzip bytes and 6,117 Brotli bytes. The source-byte metric now
+reported 19,480 minified bytes, 7,043 gzip bytes and 6,175 Brotli bytes, including standard HTTP
+media-type parameter handling. The source-byte metric now
 includes both `actions.js` and `recovery.js`; the compressed metrics always measure the actual bundle.
 This remains evidence, not a new release budget.
 

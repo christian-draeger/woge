@@ -7,6 +7,7 @@ import dev.woge.html.HtmlSink
 import dev.woge.html.HtmlWriter
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.HtmlFrame
+import dev.woge.protocol.ReplacePatch
 import dev.woge.protocol.htmlFrame
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -31,6 +32,13 @@ public fun interface PageUseCase<Input : Any> {
 /** A page outcome whose metadata is final before any document frame is collected. */
 public sealed interface PageResult {
     public val metadata: ResponseMetadata
+
+    /** Fully prepared typed replacements with a canonical native POST/Redirect/GET fallback. */
+    public class RegionUpdates internal constructor(
+        public val patches: List<ReplacePatch>,
+        public val fallback: ApplicationUrl,
+        override val metadata: ResponseMetadata,
+    ) : PageResult
 
     /** A cold ordered stream of lazily rendered HTML frames. */
     public class Document(

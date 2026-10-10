@@ -196,9 +196,50 @@ The action bindings recognize an explicit `Accept: application/vnd.woge.patch-st
 For a successful application-owned 303, they return a bodyless 200 with `Woge-Navigate` instead.
 The opt-in browser client then loads that canonical URL with GET, without repeating the mutation.
 Native requests, external redirects and method-preserving 307/308 responses retain their behavior.
-The all-host TCK verifies both paths and exact mutation counts; enhanced field-error presentation
-and typed action patches remain follow-up work. See
+The all-host TCK verifies both paths and exact mutation counts. Enhanced field-error presentation
+remains follow-up work. See
 [action-form enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement).
+
+## Update typed regions after an action
+
+Return `actionRegionUpdates` when an enhanced form should update part of the current page instead
+of navigating. Use the generated region descriptors that also render the original HTML:
+
+```kotlin
+val page = PageIdentity(activePageEpoch, applicationIdentitySecret)
+val summary = TaskSummaryRegion.target(page)
+val status = TaskStatusRegion.target(page)
+
+return actionRegionUpdates(
+    fallback = applicationUrl("/tasks"),
+    interaction = activeInteractionSequence,
+) {
+    replace(summary, updatedTasks, revision = summaryRevision)
+    replace(status, "Task saved", revision = statusRevision)
+}
+```
+
+`TaskSummaryRegion` and `TaskStatusRegion` are generated from your `@WogeRegion` functions;
+their input types must match. Use the same page identity and region keys as the current document.
+Submit or otherwise track the active revisions and interaction sequence explicitly. Their initial
+defaults only describe a region that has not yet been updated; they do not automatically synchronize
+with the browser. These fields never replace authorization.
+
+An ordinary POST gets a 303 to the canonical fallback URL. An opted-in enhanced POST gets the existing
+patch stream, with replacements in declaration order and `Cache-Control: no-store`. Render the
+success text into the document-owned status region referenced by your form. Woge does not invent
+an extra announcement or move focus.
+
+Every region renders through the safe DSL before the HTTP response starts. Duplicate targets,
+mixed page epochs, more than 128 replacements, invalid protocol payloads or a rendering error reject
+the whole prepared result. This prevents sending a successfully rendered subset, but does not
+undo a mutation that your application already committed. Network delivery can still fail partway;
+never automatically repeat the POST.
+
+The shared JVM HTTP tests and optional Chromium flows exercise native and enhanced two-region
+updates on all three hosts, including refresh without mutation replay. This is a Replace-only
+foundation for #33, not its complete collection-update API. See
+[ADR 0057](../adr/0057-prepared-typed-action-region-updates.md).
 
 ## Request limits
 
@@ -233,7 +274,8 @@ Nullable fields are supported. Parsing policies and size limits belong to the fo
 the descriptor.
 
 The function must be top-level, suspend, non-generic, and take exactly `(command, RequestContext)`.
-Its declared return type is `PageResult`: normal HTML, a redirect or a controlled failure.
+Its declared return type is `PageResult`: normal HTML, a redirect, prepared typed region updates
+or a controlled failure.
 Woge reports unsupported declarations with `WOGE-ACTION-001` through `WOGE-ACTION-007`, including
 duplicate IDs and generated names.
 

@@ -83,6 +83,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0054](0054-native-form-validation-boundary.md) | Accepted | Retain bounded submitted text and render native field errors through the existing page/action boundary |
 | [0055](0055-suspending-webflux-security-context.md) | Accepted | Await reactive security facts in a suspending WebFlux request-context factory |
 | [0056](0056-explicit-action-form-enhancement.md) | Accepted | Enhance explicitly opted-in native forms with existing patch streams and never replay uncertain mutations |
+| [0057](0057-prepared-typed-action-region-updates.md) | Accepted | Prepare typed action replacements before responding and retain a native canonical redirect |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

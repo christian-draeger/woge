@@ -8,13 +8,16 @@ import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
+import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.HtmlFrame
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -40,6 +43,15 @@ internal suspend fun ApplicationCall.respondWogePage(
     actionAccept: String? = null,
 ) {
     when (result) {
+        is PageResult.RegionUpdates -> {
+            if (acceptsActionPatches(actionAccept)) {
+                applyMetadata(result.metadata)
+                response.headers.append(HttpHeaders.Vary, "Accept")
+                respondWogePatches(result.encodeActionPatchStream())
+            } else {
+                respondWogePage(result.nativeRedirect(), observer, observationContext, actionAccept)
+            }
+        }
         is PageResult.Document -> respondDocument(result, observer, observationContext)
         is PageResult.Redirect -> {
             applyMetadata(result.metadata)

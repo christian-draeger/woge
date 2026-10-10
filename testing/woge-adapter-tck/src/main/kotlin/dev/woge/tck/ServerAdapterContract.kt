@@ -10,6 +10,7 @@ import dev.woge.host.WogeOperationStarted
 import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
+import dev.woge.protocol.ReplacePatch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
@@ -721,6 +722,54 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
             refreshed.body().contains("<p>Completed mutations: 2</p>"),
             contract,
             "enhancement or GET refresh replayed the mutation",
+        )
+    }
+    verifyActionRegionUpdates(expect)
+}
+
+private suspend fun AdapterTckHttpClient.verifyActionRegionUpdates(expect: (Boolean, String, String) -> Unit) {
+    val contract = "typed-action-region-updates"
+    val headers = mapOf("Content-Type" to FORM_CONTENT_TYPE, "X-Tck-Subject" to "tck-user")
+    open(RequestMethod.POST, TckSubmitAction.path, headers, "value=update").let { response ->
+        response.body().close()
+        expect(
+            response.statusCode() == ResponseStatus.SEE_OTHER.code &&
+                response.header("location") == "/woge-tck/action-complete",
+            contract,
+            "native region updates lost POST/Redirect/GET",
+        )
+    }
+    open(RequestMethod.POST, TckSubmitAction.path, headers + ("Accept" to PatchStreamV1.MEDIA_TYPE), "value=update")
+        .let { response ->
+            expect(response.statusCode() == ResponseStatus.OK.code, contract, "patch status changed")
+            expect(
+                response.header("content-type")?.replace(" ", "") == PatchStreamV1.MEDIA_TYPE.replace(" ", ""),
+                contract,
+                "patch media type changed",
+            )
+            expect(
+                response.header("cache-control") == "no-store" && response.header("vary")?.contains("Accept") == true,
+                contract,
+                "patch response lost negotiated no-store semantics",
+            )
+            val decoder = PatchStreamV1.decoder()
+            val events = response.body().use { decoder.feed(it.readAllBytes()) }
+            decoder.finish()
+            val patches = events.filterIsInstance<PatchStreamEvent.PatchFrame>().map { it.patch }
+            expect(
+                patches.filterIsInstance<ReplacePatch>().map { it.html.value } ==
+                    listOf("<p>Completed mutations: 4</p>", "Saved") &&
+                    patches.map { it.target.region }.distinct().size == 2 &&
+                    events.last() == PatchStreamEvent.Complete(2),
+                contract,
+                "typed regions lost their content, order, identity or terminal",
+            )
+        }
+    repeat(2) {
+        expect(
+            text(RequestMethod.GET, "/woge-tck/action-complete").body().contains("<p>Completed mutations: 4</p>"),
+            contract,
+            "region rendering or GET refresh replayed the mutation",
         )
     }
 }

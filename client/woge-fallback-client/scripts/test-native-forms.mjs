@@ -7,7 +7,7 @@ assert.ok(origin, "The adapter TCK must provide its server origin");
 
 const browser = await chromium.launch();
 try {
-  let expectedMutations = 2; // The base HTTP contract performed one native and one enhanced mutation.
+  let expectedMutations = 4; // The HTTP contract performed native/enhanced navigation and region updates.
   for (const javaScriptEnabled of [false, true]) {
     const context = await browser.newContext({
       javaScriptEnabled,
@@ -23,7 +23,7 @@ try {
       assert.equal(await form.getAttribute("accept-charset"), "UTF-8");
       assert.equal(await form.getAttribute("action"), "/woge-actions/tck-submit");
 
-      await page.getByRole("textbox", { name: "Command value" }).fill("accepted");
+      await page.getByRole("textbox", { name: "Command value" }).fill("update");
       const [response] = await Promise.all([
         page.waitForNavigation(),
         page.getByRole("button", { name: "Submit command" }).click(),
@@ -112,6 +112,28 @@ async function verifyEnhanced(browser, expectedMutations) {
     await page.waitForFunction(() => globalThis.tckActions !== undefined);
     expectedMutations++;
     assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
+    await page.reload();
+    assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
+    await page.waitForFunction(() => globalThis.tckActions !== undefined);
+
+    await page.getByRole("textbox", { name: "Command value" }).fill("update");
+    const updated = page.waitForResponse((response) => response.request().method() === "POST");
+    await page.getByRole("button", { name: "Submit command", exact: true }).focus();
+    await page.getByRole("button", { name: "Submit command", exact: true }).press("Enter");
+    const patchResponse = await updated;
+    assert.equal(patchResponse.status(), 200);
+    assert.equal(patchResponse.headers()["content-type"].replaceAll(" ", ""),
+      "application/vnd.woge.patch-stream;version=1");
+    expectedMutations++;
+    await page.waitForFunction((count) =>
+      document.querySelector("section")?.textContent === `Completed mutations: ${count}` &&
+      document.getElementById("tck-action-status")?.textContent === "Saved",
+    expectedMutations);
+    assert.equal(await page.locator("form").getAttribute("aria-busy"), null);
+    assert.equal(await page.getByRole("button", { name: "Submit command", exact: true }).evaluate(
+      (button) => document.activeElement === button,
+    ), true);
+    assert.equal(page.url(), complete);
     await page.reload();
     assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
     await page.waitForFunction(() => globalThis.tckActions !== undefined);

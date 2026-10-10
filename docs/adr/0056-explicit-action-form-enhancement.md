@@ -72,6 +72,6 @@ stale interactions and cancellation remain silent. Focus is never moved by this 
 The browser fixtures verify real HTTP patch responses, native no-JavaScript submission, form
 semantics, focus, recovery and explicit navigation. The shared real-HTTP TCK and optional Chromium
 flows verify native and enhanced navigation, authorization, validation status and exact mutation
-counts on all hosts. Typed patch rendering and enhanced field-error presentation still need their
-all-host evidence before #30/#31 can close. Multi-region action updates belong to #33; this
-transport does not invent a competing server API.
+counts on all hosts. [ADR 0057](0057-prepared-typed-action-region-updates.md) adds typed replacement
+results and their all-host evidence. Enhanced field-error presentation still needs its parity
+evidence before #30/#31 can close. Full collection updates and the reference application belong to #33.

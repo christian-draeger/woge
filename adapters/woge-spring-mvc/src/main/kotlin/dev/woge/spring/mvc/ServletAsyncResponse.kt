@@ -8,12 +8,15 @@ import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
+import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
+import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -108,6 +111,15 @@ internal suspend fun PageResult.writeToServlet(
     actionAccept: String? = null,
 ) {
     when (this) {
+        is PageResult.RegionUpdates -> {
+            if (acceptsActionPatches(actionAccept)) {
+                response.applyMetadata(metadata)
+                response.addHeader("Vary", "Accept")
+                encodeActionPatchStream().writeToServlet(response)
+            } else {
+                nativeRedirect().writeToServlet(request, response, observer, observationContext, actionAccept)
+            }
+        }
         is PageResult.Document -> {
             response.applyMetadata(metadata)
             if (!request.method.equals("HEAD", ignoreCase = true)) {

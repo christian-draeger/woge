@@ -48,7 +48,7 @@ public suspend fun tckSubmit(
     command: TckActionCommand,
     context: RequestContext,
 ): PageResult =
-    if (authorized(context) && command.value == "accepted") {
+    if (authorized(context) && command.value in setOf("accepted", "update")) {
         redirect(applicationUrl("/woge-tck/action-complete"))
     } else {
         failure(FailureCategory.FORBIDDEN, context.correlationId)

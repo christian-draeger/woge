@@ -29,7 +29,19 @@ public final class dev/woge/host/ActionId$Companion {
 
 public final class dev/woge/host/ActionNavigationKt {
 	public static final field ACTION_NAVIGATION_HEADER Ljava/lang/String;
+	public static final fun acceptsActionPatches (Ljava/lang/String;)Z
 	public static final fun enhancedActionNavigation (Ldev/woge/host/PageResult$Redirect;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/ActionRegionUpdates {
+	public final fun replace-YUgOiEU (Ldev/woge/host/RegionTarget;Ljava/lang/Object;J)V
+	public static synthetic fun replace-YUgOiEU$default (Ldev/woge/host/ActionRegionUpdates;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JILjava/lang/Object;)V
+}
+
+public final class dev/woge/host/ActionRegionUpdatesKt {
+	public static final fun actionRegionUpdates-CtbFQ_Y (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionRegionUpdates-CtbFQ_Y$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun nativeRedirect (Ldev/woge/host/PageResult$RegionUpdates;)Ldev/woge/host/PageResult$Redirect;
 }
 
 public final class dev/woge/host/ActionRegistry {
@@ -619,6 +631,12 @@ public final class dev/woge/host/PageResult$Failure : dev/woge/host/PageResult {
 public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult {
 	public final fun getLocation ()Ldev/woge/host/RedirectLocation;
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
+}
+
+public final class dev/woge/host/PageResult$RegionUpdates : dev/woge/host/PageResult {
+	public final fun getFallback-r4VgPSI ()Ljava/lang/String;
+	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
+	public final fun getPatches ()Ljava/util/List;
 }
 
 public abstract class dev/woge/host/PageRoute {

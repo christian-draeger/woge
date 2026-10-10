@@ -341,3 +341,8 @@ export function fail(code, message) {
 }
 
 export const PATCH_STREAM_MEDIA_TYPE = "application/vnd.woge.patch-stream; version=1";
+
+export function isPatchStreamMediaType(value) {
+  return typeof value === "string" &&
+    /^application\/vnd\.woge\.patch-stream[ \t]*;[ \t]*version[ \t]*=[ \t]*(?:1|"1")$/i.test(value.trim());
+}

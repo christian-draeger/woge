@@ -5,8 +5,11 @@ import dev.woge.host.FormSubmission
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.actionForm
+import dev.woge.host.actionRegionUpdates
 import dev.woge.host.htmlPage
+import dev.woge.host.region
 import dev.woge.host.withFormValidation
+import dev.woge.html.applicationUrl
 import dev.woge.html.body
 import dev.woge.html.button
 import dev.woge.html.head
@@ -21,8 +24,20 @@ internal class TckActionWorkflow {
     private val mutations = AtomicInteger()
     private val action =
         ActionExecutor<TckActionCommand> { request ->
-            TckSubmitAction.execute(request).also { result ->
-                if (result is PageResult.Redirect) mutations.incrementAndGet()
+            val result = TckSubmitAction.execute(request)
+            if (result is PageResult.Redirect) {
+                val count = mutations.incrementAndGet()
+                if (request.input.value == "update") {
+                    val page = actionPageIdentity()
+                    actionRegionUpdates(applicationUrl("/woge-tck/action-complete")) {
+                        replace(ActionCountRegion.target(page), count)
+                        replace(ActionStatusRegion.target(page), "Saved")
+                    }
+                } else {
+                    result
+                }
+            } else {
+                result
             }
         }
 
@@ -31,6 +46,7 @@ internal class TckActionWorkflow {
 
     val completion: PageUseCase<Unit> =
         PageUseCase {
+            val page = actionPageIdentity()
             htmlPage {
                 html {
                     head {
@@ -40,7 +56,7 @@ internal class TckActionWorkflow {
                         })
                     }
                     body {
-                        p { text("Completed mutations: ${mutations.get()}") }
+                        region(ActionCountRegion.target(page), mutations.get(), elementName = "section")
                         actionForm(TckSubmitAction, attributes = {
                             data("woge-action", "")
                             data("woge-status", "tck-action-status")
@@ -57,10 +73,10 @@ internal class TckActionWorkflow {
                                 attribute("value", "again")
                             }) { text("Submit ambiguous command") }
                         }
-                        p(attributes = {
+                        region(ActionStatusRegion.target(page), "", elementName = "p", attributes = {
                             attribute("id", "tck-action-status")
                             attribute("role", "status")
-                        }) {}
+                        })
                         p(attributes = {
                             attribute("id", "tck-action-alert")
                             attribute("role", "alert")
