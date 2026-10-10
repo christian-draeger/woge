@@ -8,6 +8,7 @@ description = "Host-neutral project page used by the executable Woge reference a
 
 dependencies {
     api(project(":woge-host-spi"))
+    implementation(project(":woge-ui-headless"))
     implementation(libs.kotlinxSerializationJson)
     runtimeOnly(project(":woge-fallback-client-assets"))
     ksp(project(":woge-ksp"))

@@ -42,7 +42,8 @@ gradle bootJar
 
 stylesheet="$fixture_root/build/resources/main/static/tailwind.css"
 [[ -s "$stylesheet" ]] || { printf 'Missing generated stylesheet: %s\n' "$stylesheet" >&2; exit 1; }
-for class in '.bg-ok-soft' '.text-danger' '.rounded-lg' '.max-w-xl' '.motion-safe\:transition' 'var(--woge-surface)'; do
+for class in '.bg-ok-soft' '.text-danger' '.rounded-lg' '.max-w-xl' '.motion-safe\:transition' 'var(--woge-surface)' \
+  '.cursor-pointer' '.backdrop\:bg-black\/50'; do
   grep -Fq -- "$class" "$stylesheet" || { printf 'Generated stylesheet lacks %s\n' "$class" >&2; exit 1; }
 done
 if grep -Fq '.bg-sky-500' "$stylesheet"; then

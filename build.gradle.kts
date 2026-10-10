@@ -13,6 +13,7 @@ version = providers.gradleProperty("wogeVersion").get()
 val scaffoldPublicationModules =
     setOf(
         "woge-core",
+        "woge-ui-headless",
         "woge-protocol",
         "woge-host-spi",
         "woge-server-runtime",

@@ -59,5 +59,6 @@ Registry source/catalog and installer/update tooling are build concerns, not ser
 
 - Add `woge-ui-headless` and component-manifest/build-tool boundaries to the M1 module graph in [#14](https://github.com/christian-draeger/woge/issues/14).
 - Define the first accessibility-focused primitive set and shared TCK in [#80](https://github.com/christian-draeger/woge/issues/80).
+  Done in [ADR 0073](0073-native-first-headless-ui-primitives.md).
 - Turn the spike manifest and update planner into supported tooling only after schema, signing/release provenance and Windows path tests are designed.
 - Apply the frontend performance budgets from [#46](https://github.com/christian-draeger/woge/issues/46) to each catalog component and optional asset.

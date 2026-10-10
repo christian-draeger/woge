@@ -7,6 +7,9 @@ import {
   installWogeActionForms,
   WOGE_PATCH_PROTOCOL_VERSION,
 } from "./woge/index.js";
+import { installWogeDialogs } from "./woge-ui/dialog.js";
+
+installWogeDialogs(document);
 
 const page = document.querySelector("[data-woge-patch-url]");
 const budget = createWogeRecoveryBudget();

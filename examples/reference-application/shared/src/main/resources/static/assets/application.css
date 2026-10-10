@@ -115,6 +115,46 @@
   th, td { text-align: start; border-block-end: 1px solid var(--line); padding: 0.75rem 0.5rem; }
 
   .activity-list { padding-inline-start: 1.25rem; }
+
+  /* Headless UI primitives: the markup is native, so these rules are only looks. */
+  .board-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .board-tools {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .board-faq,
+  .board-help {
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    background: var(--panel);
+    padding: 0.75rem 1rem;
+    margin-block: 1rem;
+
+    & > summary { cursor: pointer; font-weight: 600; }
+  }
+
+  .board-popover,
+  .board-dialog {
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    background: var(--panel);
+    color: var(--text);
+    padding: 1rem 1.25rem;
+    max-inline-size: min(32rem, calc(100% - 2rem));
+  }
+
+  .board-dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+
+  .board-dialog > h2 { margin-block-start: 0; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
