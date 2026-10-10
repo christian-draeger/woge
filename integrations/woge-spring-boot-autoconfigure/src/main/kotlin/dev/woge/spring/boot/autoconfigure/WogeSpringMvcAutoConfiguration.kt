@@ -1,5 +1,6 @@
 package dev.woge.spring.boot.autoconfigure
 
+import dev.woge.host.FailurePages
 import dev.woge.host.WogeObserver
 import dev.woge.spring.mvc.DefaultSpringMvcRequestContextFactory
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
@@ -30,6 +31,7 @@ internal class WogeSpringMvcAutoConfiguration {
         contexts: SpringMvcRequestContextFactory,
         runtimeInfo: WogeRuntimeInfo,
         observer: WogeObserver,
+        failurePages: FailurePages,
     ): WogeSpringMvcHandlers {
         check(runtimeInfo.adapter == WogeSpringAdapter.MVC) {
             "Servlet Woge configuration requires 'woge.adapter=mvc'."
@@ -40,6 +42,7 @@ internal class WogeSpringMvcAutoConfiguration {
             maxConcurrency = properties.deferred.maxConcurrency,
             regionTimeout = properties.deferred.regionTimeout.toKotlinDuration(),
             observer = observer,
+            failurePages = failurePages,
         )
     }
 }

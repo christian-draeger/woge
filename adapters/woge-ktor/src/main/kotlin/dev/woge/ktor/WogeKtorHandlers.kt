@@ -1,6 +1,7 @@
 package dev.woge.ktor
 
 import dev.woge.host.DeferredRegionsUseCase
+import dev.woge.host.FailurePages
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
@@ -14,6 +15,7 @@ public class WogeKtorHandlers(
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
+    private val failurePages: FailurePages = FailurePages.NONE,
 ) {
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout)
@@ -23,7 +25,7 @@ public class WogeKtorHandlers(
     public fun <Input : Any> page(
         useCase: PageUseCase<Input>,
         input: KtorPageInput<Input>,
-    ): WogeKtorPageHandler<Input> = WogeKtorPageHandler(useCase, input, contexts, observer)
+    ): WogeKtorPageHandler<Input> = WogeKtorPageHandler(useCase, input, contexts, observer, failurePages)
 
     /**
      * Creates a handler for a page with a generated route. Register it at the route's own path:

@@ -4,6 +4,7 @@ import dev.woge.host.CookieName
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailureCategory
+import dev.woge.host.FailurePages
 import dev.woge.host.HeaderName
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
@@ -77,6 +78,8 @@ public class AdapterTckApplication internal constructor() {
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
     public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
+    public val failureRoutePages: PageUseCase<Int> = FAILURE_ROUTE_PAGE
+    public val failurePages: FailurePages = FAILURE_PAGES
 
     internal fun fixtureState(): AdapterTckFixtureState = state
 }

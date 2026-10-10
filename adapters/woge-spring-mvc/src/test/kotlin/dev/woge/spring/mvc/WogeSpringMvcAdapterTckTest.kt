@@ -4,6 +4,7 @@ import dev.woge.host.PageUseCase
 import dev.woge.tck.AdapterTckApplication
 import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
+import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
@@ -134,6 +135,9 @@ private class SpringMvcTckConfiguration {
                 AdapterTckRoutes.PAGE_PATTERN to page,
                 AdapterTckRoutes.DEFERRED_PATTERN to deferred,
                 AdapterTckRoute.path to handlers.page(application.routePages, AdapterTckRoute),
+                AdapterTckFailureRoute.path to
+                    WogeSpringMvcHandlers(failurePages = application.failurePages)
+                        .page(application.failureRoutePages, AdapterTckFailureRoute),
             ),
             0,
         )
