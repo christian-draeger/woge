@@ -46,6 +46,30 @@ function refreshImports(sheet, build) {
   }
 }
 
+const userScrollEvents = ["wheel", "touchmove", "keydown", "pointerdown"];
+
+// Firefox can move the scroll position while it applies the new sheets, for example to show the
+// focused field. Keep the reader where they were for a short moment, unless they scroll themselves.
+function keepScrollPosition(done) {
+  const x = scrollX;
+  const y = scrollY;
+  let moved = false;
+  const stop = () => {
+    moved = true;
+  };
+  for (const type of userScrollEvents) addEventListener(type, stop, { capture: true, passive: true });
+  let frames = 0;
+  const restore = () => {
+    if (!moved && (scrollX !== x || scrollY !== y)) scrollTo(x, y);
+    if (!moved && (frames++ < 30 || !done())) return requestAnimationFrame(restore);
+    for (const type of userScrollEvents) removeEventListener(type, stop, { capture: true });
+  };
+  requestAnimationFrame(restore);
+  return () => {
+    if (!moved && (scrollX !== x || scrollY !== y)) scrollTo(x, y);
+  };
+}
+
 /**
  * Loads every same-origin stylesheet again for [build]. Calls [failed] once if any of them does not
  * load, so the caller can fall back to a document refresh. A newer call cancels an unfinished one.
@@ -54,6 +78,8 @@ export function swapStylesheets(build, failed) {
   for (const link of pending) link.remove();
   pending = [];
   let reported = false;
+  let settled = false;
+  const restore = keepScrollPosition(() => settled);
   const swaps = ownStylesheets().map((current) => {
     const next = current.cloneNode();
     const url = new URL(current.href);
@@ -67,6 +93,7 @@ export function swapStylesheets(build, failed) {
         next.removeAttribute(`${marker}-pending`);
         if (next.sheet) refreshImports(next.sheet, build);
         current.remove();
+        restore();
         pending = pending.filter((link) => link !== next);
         resolve();
       }, { once: true });
@@ -80,5 +107,7 @@ export function swapStylesheets(build, failed) {
       current.after(next);
     });
   });
-  return Promise.all(swaps);
+  return Promise.all(swaps).finally(() => {
+    settled = true;
+  });
 }
