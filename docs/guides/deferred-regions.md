@@ -168,8 +168,12 @@ which situation.
 ## Execute inside the request lifetime
 
 The shared server runtime collects declarations with `DeferredRegionExecutor`. Up to eight region
-tasks run at once by default. Each active task has a thirty-second timeout, and applications or host
+tasks run at once by default, with at most 128 declarations per deferred request. Each active task has a thirty-second timeout, and applications or host
 configuration can choose tighter values.
+
+Exceeding the declaration budget returns bodyless 503 before any region runs or patch stream begins.
+Slow downstream writes hold active-worker permits instead of queuing unlimited completed results.
+See [resource budgets](resource-budgets.md) for overrides, ownership and safe limit diagnostics.
 
 Results arrive in completion order. A fast region declared after a slow region can therefore update
 the page first. A timeout or normal application exception becomes the region's controlled failure

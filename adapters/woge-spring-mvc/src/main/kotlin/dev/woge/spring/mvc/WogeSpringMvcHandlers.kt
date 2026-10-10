@@ -22,8 +22,9 @@ public class WogeSpringMvcHandlers(
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
     private val failurePages: FailurePages = FailurePages.NONE,
+    private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
 ) {
-    private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout)
+    private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     private val asyncTimeoutMillis: Long
 
     init {

@@ -25,14 +25,14 @@ public final class dev/woge/spring/webflux/WogeWebFluxActionHandler {
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxDeferredHandler {
+	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun handle (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxHandlers {
+	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;)Ldev/woge/spring/webflux/WogeWebFluxActionHandler;
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxDeferredHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;

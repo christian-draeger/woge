@@ -3,6 +3,8 @@ package dev.woge.runtime
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionFailure
 import dev.woge.host.RequestTrace
+import dev.woge.host.ResourceLimit
+import dev.woge.host.ResourceLimitExceeded
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
@@ -10,6 +12,7 @@ import dev.woge.host.WogeOutcome
 import dev.woge.protocol.PatchHtml
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -18,13 +21,15 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-/** Request-scoped concurrency and per-region timeout policy. */
+/** Request-scoped admission, concurrency and per-region timeout policy. */
 public data class DeferredRegionPolicy(
     public val maxConcurrency: Int = DEFAULT_MAX_CONCURRENCY,
     public val regionTimeout: Duration = DEFAULT_REGION_TIMEOUT,
+    public val maxRegions: Int = DEFAULT_MAX_REGIONS,
 ) {
     init {
         require(maxConcurrency > 0) { "Deferred region concurrency must be positive" }
+        require(maxRegions > 0) { "Deferred region count must be positive" }
         require(regionTimeout.isFinite() && regionTimeout > Duration.ZERO) {
             "Deferred region timeout must be positive and finite"
         }
@@ -32,7 +37,17 @@ public data class DeferredRegionPolicy(
 
     public companion object {
         public const val DEFAULT_MAX_CONCURRENCY: Int = 8
+        public const val DEFAULT_MAX_REGIONS: Int = 128
         public val DEFAULT_REGION_TIMEOUT: Duration = 30.seconds
+    }
+}
+
+/** Admission failed before any region content, fallback or transport bytes were produced. */
+public class DeferredRegionLimitException(
+    public val threshold: Int,
+) : IllegalStateException("WOGE_RESOURCE_LIMIT_EXCEEDED: DEFERRED_TASK_COUNT threshold=$threshold") {
+    init {
+        require(threshold > 0) { "Deferred region count threshold must be positive" }
     }
 }
 
@@ -62,6 +77,38 @@ public class DeferredRegionExecutor(
     private val observer: WogeObserver = WogeObserver.NONE,
 ) {
     /**
+     * Admits at most [DeferredRegionPolicy.maxRegions] declarations before transport commitment.
+     * Even a lazy or unbounded iterable cannot create an unbounded list or child coroutine set.
+     */
+    public fun prepare(
+        regions: Iterable<DeferredRegion>,
+        requestTrace: RequestTrace? = null,
+    ): List<DeferredRegion> {
+        val declared = ArrayList<DeferredRegion>()
+        val iterator = regions.iterator()
+        while (iterator.hasNext()) {
+            if (declared.size == policy.maxRegions) {
+                observer
+                    .startOperation(
+                        WogeOperation.DEFERRED_REGION,
+                        WogeObservationContext(
+                            requestTrace = requestTrace,
+                            exceededLimit =
+                                ResourceLimitExceeded(
+                                    ResourceLimit.DEFERRED_TASK_COUNT,
+                                    policy.maxRegions.toLong(),
+                                ),
+                        ),
+                    ).finish(WogeOutcome.REJECTED)
+                throw DeferredRegionLimitException(policy.maxRegions)
+            }
+            declared.add(iterator.next())
+        }
+        validateRegionSet(declared)
+        return declared
+    }
+
+    /**
      * Returns a cold flow that emits updates in completion order.
      *
      * Cancelling collection cancels active and waiting region children. A content failure is
@@ -72,8 +119,7 @@ public class DeferredRegionExecutor(
         requestTrace: RequestTrace? = null,
     ): Flow<DeferredRegionUpdate> =
         channelFlow {
-            val declaredRegions = regions.toList()
-            validateRegionSet(declaredRegions)
+            val declaredRegions = prepare(regions, requestTrace)
             val concurrency = Semaphore(policy.maxConcurrency)
 
             declaredRegions.forEach { region ->
@@ -83,7 +129,7 @@ public class DeferredRegionExecutor(
                     }
                 }
             }
-        }
+        }.buffer(0)
 
     @Suppress("TooGenericExceptionCaught")
     private suspend fun resolve(

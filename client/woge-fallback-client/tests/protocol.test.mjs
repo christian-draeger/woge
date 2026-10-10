@@ -50,6 +50,44 @@ test("the JVM golden stream decodes one byte at a time", async () => {
   assertGoldenEvents(events);
 });
 
+test("stream byte budgets accept the exact threshold and reject incrementally without payload diagnostics", () => {
+  const bytes = encodeStream([patchFrame(), completeFrame()]);
+  const exact = new PatchStreamDecoder({ maxStreamBytes: bytes.byteLength });
+  assert.equal(exact.push(bytes).length, 2);
+  exact.finish();
+  const decoder = new PatchStreamDecoder({ maxStreamBytes: bytes.byteLength - 1 });
+  decoder.push(bytes.subarray(0, bytes.byteLength - 1));
+  let rejection;
+  assert.throws(() => decoder.push(bytes.subarray(bytes.byteLength - 1)), (problem) => {
+    rejection = problem;
+    return problem.code === "WOGE_RESOURCE_LIMIT_EXCEEDED" &&
+      problem.limit === "PATCH_STREAM_BYTES" && problem.threshold === bytes.byteLength - 1;
+  });
+  assert.throws(() => decoder.finish(), (problem) => problem === rejection);
+  assert.equal(rejection.message.includes("Updated"), false);
+});
+
+test("patch-count budgets reject the next header before its payload is buffered", () => {
+  const decoder = new PatchStreamDecoder({ maxPatches: 1 });
+  decoder.push(encodeStream([patchFrame()]));
+  const second = patchFrame({ patchId: "patch-2", html: "not decoded" });
+  assert.throws(() => decoder.push(second.subarray(0, 10)),
+    (problem) => problem.code === "WOGE_RESOURCE_LIMIT_EXCEEDED" &&
+      problem.limit === "PATCH_COUNT" && problem.threshold === 1);
+  const exact = new PatchStreamDecoder({ maxPatches: 1 });
+  assert.equal(exact.push(encodeStream([patchFrame(), completeFrame()])).length, 2);
+  exact.finish();
+});
+
+test("resource limits reject unusable configuration", () => {
+  for (const limits of [
+    null, [], { maxPatches: 0 }, { maxPatches: 2_147_483_648 }, { maxStreamBytes: Infinity },
+    { maxConcurrentStreams: -1 }, { maxStreamBytes: 1.5 }, { maxPatches: Number.MAX_SAFE_INTEGER + 1 },
+  ]) {
+    assert.throws(() => new PatchStreamDecoder(limits), (problem) => problem.code === "WOGE_INVALID_RESOURCE_LIMIT");
+  }
+});
+
 test("the collection golden stream decodes every operation at every two-chunk boundary", async () => {
   const bytes = await readGoldenStream("collection-patch-stream-v1");
   for (let split = 0; split <= bytes.byteLength; split++) {

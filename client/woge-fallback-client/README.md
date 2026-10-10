@@ -47,7 +47,7 @@ at most 128 budget entries. Exhaustion fails closed; unknown removed targets nee
 bounded full-navigation fallback rather than a guessed selector.
 
 This primitive does not invent an HTTP endpoint or automatically change native action forms.
-The typed server refresh integration remains part of #37.
+The [typed actions guide](../../docs/guides/typed-actions.md) describes the server refresh integration.
 
 ## Apply a response body
 
@@ -78,6 +78,17 @@ The package ships TypeScript declarations for the runtime, completion value, err
 lifecycle-event details, so JavaScript and TypeScript IDEs can autocomplete the small public API.
 It also ships a manifest containing package/protocol versions, output hashes, sizes and SRI integrity.
 There are no runtime dependencies and no CSS files.
+
+Each response defaults to 16 MiB wire bytes and 128 patch frames; one runtime admits eight concurrent
+streams without a waiting queue. Configure explicit positive values in `createWogePatchRuntime`'s
+`limits: { maxStreamBytes, maxPatches, maxConcurrentStreams }`. Frame ceilings remain fixed by the
+protocol. Large transport chunks are decoded in 64 KiB slices, with each bounded batch applied
+before another is decoded.
+
+Exhaustion cancels/unlocks the response and throws `WOGE_RESOURCE_LIMIT_EXCEEDED` with a safe
+`limit` name and `threshold`; recovery is `resource-exhaustion` / `fail-closed`, never automatic
+retry or mutation replay. Keep ordinary navigation usable. See
+[resource budgets](../../docs/guides/resource-budgets.md) for ownership and remaining server boundaries.
 
 Spring Boot and Ktor projects that do not otherwise need Node can consume the
 `dev.woge:woge-fallback-client-assets` JVM artifact. It exposes the same canonical modules as

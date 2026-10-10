@@ -55,6 +55,12 @@ export class PatchStreamDecoder {
   #terminalRead = false;
   #patchCount = 0;
   #failure;
+  #limits;
+  #receivedBytes = 0;
+
+  constructor(limits = {}) {
+    this.#limits = patchStreamLimits(limits);
+  }
 
   push(chunk) {
     return this.#guard(() => {
@@ -64,6 +70,10 @@ export class PatchStreamDecoder {
       if (this.#terminalRead && chunk.byteLength > 0) {
         fail("WOGE_BYTES_AFTER_TERMINAL", "Patch stream contains bytes after its terminal frame");
       }
+      if (chunk.byteLength > this.#limits.maxStreamBytes - this.#receivedBytes) {
+        exceedBudget("PATCH_STREAM_BYTES", this.#limits.maxStreamBytes);
+      }
+      this.#receivedBytes += chunk.byteLength;
 
       const events = [];
       let offset = 0;
@@ -111,6 +121,9 @@ export class PatchStreamDecoder {
       const payloadLength = view.getUint32(6, false);
       validateKind(kind);
       validateLengths(contentTypeLength, metadataLength, payloadLength);
+      if (kind === PATCH && this.#patchCount === this.#limits.maxPatches) {
+        exceedBudget("PATCH_COUNT", this.#limits.maxPatches);
+      }
       if ((kind === COMPLETE || kind === ERROR) && payloadLength !== 0) {
         fail("WOGE_INVALID_LENGTH", "Terminal frame payload must be empty");
       }
@@ -349,6 +362,33 @@ function decodeUtf8(bytes) {
 
 export function fail(code, message) {
   throw new WogePatchError(code, message);
+}
+
+export function patchStreamLimits(options = {}) {
+  if (!options || typeof options !== "object" || Array.isArray(options)) {
+    fail("WOGE_INVALID_RESOURCE_LIMIT", "Patch limits must be an object");
+  }
+  const limits = {
+    maxStreamBytes: options.maxStreamBytes ?? 16 * 1024 * 1024,
+    maxPatches: options.maxPatches ?? 128,
+    maxConcurrentStreams: options.maxConcurrentStreams ?? 8,
+  };
+  for (const [name, value] of Object.entries(limits)) {
+    if (!Number.isSafeInteger(value) || value <= 0) {
+      fail("WOGE_INVALID_RESOURCE_LIMIT", `${name} must be a positive safe integer`);
+    }
+  }
+  if (limits.maxPatches > MAX_PATCH_COUNT) {
+    fail("WOGE_INVALID_RESOURCE_LIMIT", "maxPatches cannot exceed the protocol count limit");
+  }
+  return Object.freeze(limits);
+}
+
+export function exceedBudget(limit, threshold) {
+  const problem = new WogePatchError("WOGE_RESOURCE_LIMIT_EXCEEDED", `${limit} threshold=${threshold}`);
+  problem.limit = limit;
+  problem.threshold = threshold;
+  throw problem;
 }
 
 export const PATCH_STREAM_MEDIA_TYPE = "application/vnd.woge.patch-stream; version=1";
