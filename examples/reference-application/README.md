@@ -35,7 +35,8 @@ depend on Spring.
 1. `GET /projects/woge` returns the heading, navigation, native complete-page link and three useful
    loading regions immediately.
 2. `/assets/application.js` reads the page's declared patch URL and fetches
-   `GET /projects/woge/woge-patches`.
+   `GET /projects/woge/woge-patches/{epoch}`. Each rendered page has a fresh random epoch; the typed
+   URL returns it to the server so deferred patches target that document, not a later navigation.
 3. Each completed region arrives as a versioned replace patch and becomes visible without waiting for
    slower siblings.
 4. With JavaScript disabled, the **Load all project data as one complete page** link performs a normal

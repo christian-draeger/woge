@@ -1,5 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+test("a new navigation rejects the previous document's deferred stream", async ({ page }) => {
+  await page.goto("/projects/woge");
+  await expect(page.locator('[data-woge-region][data-woge-revision="1"]')).toHaveCount(3);
+  const firstEpoch = await page.locator('meta[name="woge-page-epoch"]').getAttribute("content");
+  const patchUrl = await page.locator("body").getAttribute("data-woge-patch-url");
+  const response = await page.request.get(patchUrl);
+  const previousStream = Array.from(await response.body());
+  await page.reload();
+  await expect(page.locator('[data-woge-region][data-woge-revision="1"]')).toHaveCount(3);
+  expect(await page.locator('meta[name="woge-page-epoch"]').getAttribute("content")).not.toBe(firstEpoch);
+  const error = await page.evaluate(async (bytes) => {
+    const { createWogePatchRuntime, classifyWogeFailure } = await import("/assets/woge/index.js");
+    const stream = new ReadableStream({
+      start(controller) { controller.enqueue(Uint8Array.from(bytes)); controller.close(); },
+    });
+    try {
+      await createWogePatchRuntime(document).applyPatchStream(stream);
+      return null;
+    } catch (problem) {
+      return classifyWogeFailure(problem);
+    }
+  }, previousStream);
+  expect(error).toEqual({ code: "WOGE_STALE_PAGE_EPOCH", category: "stale", outcome: "reload-page" });
+  await expect(page.locator('[data-woge-region][data-woge-revision="1"]')).toHaveCount(3);
+});
+
 test("renders the useful shell before applying every deferred region", async ({ page }) => {
   const browserProblems = [];
   page.on("console", (message) => {
@@ -12,7 +38,7 @@ test("renders the useful shell before applying every deferred region", async ({ 
   const patchRequestGate = new Promise((resolve) => {
     releasePatchRequest = resolve;
   });
-  await page.route("**/projects/woge/woge-patches", async (route) => {
+  await page.route("**/projects/woge/woge-patches/*", async (route) => {
     await patchRequestGate;
     await route.continue();
   });

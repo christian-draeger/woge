@@ -3,6 +3,7 @@ package dev.woge.example.mvc
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
+import dev.woge.example.project.ProjectPatchesRoute
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
 import dev.woge.example.project.boardActionContext
@@ -28,8 +29,8 @@ public class ProjectMvcRoutes {
         SimpleUrlHandlerMapping(
             mapOf(
                 ProjectPageRoute.path to handlers.page(projectPage, ProjectPageRoute),
-                "${ProjectPageRoute.path}/woge-patches" to
-                    handlers.deferred(projectPage, ProjectPageRoute.springMvcInput()),
+                ProjectPatchesRoute.path to
+                    handlers.deferred(projectPage, ProjectPatchesRoute.springMvcInput()),
             ),
             0,
         )

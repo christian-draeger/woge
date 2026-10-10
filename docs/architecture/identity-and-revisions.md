@@ -21,6 +21,19 @@ locates a rendered instance; it never grants permission to read or mutate it.
 
 Generated descriptor collisions fail the build. Descriptor IDs are protocol names, not durable database IDs; a declaration/schema change can create a new ID and build-manifest version.
 
+Create the epoch once when opening a new document, not from a project slug or database key:
+
+```kotlin
+val epoch = UUID.randomUUID()
+val page = PageIdentity(PageEpoch.of(epoch.toString()), deploymentSecret)
+```
+
+Use that same epoch for the page metadata, region targets and its deferred patch URL. The
+[reference application](../../examples/reference-application/README.md) uses the generated
+`ProjectPatchesRoute` with a UUID path parameter. A deferred GET reads the requesting document's
+epoch; it does not generate another one. Opening the same page again creates a different epoch.
+An epoch is ordering context, not authorization or a signed page-context token.
+
 A page-context token carries the epoch, route/descriptor manifest version, issue/expiry time and integrity protection. It contains no authorization decision or sensitive component input. The server can validate it without retaining one object per open page. Authentication and domain authorization run again for each request/subscription.
 
 Rendered IDs use canonical key encoding and an application/deployment integrity key so raw business keys do not leak into DOM IDs. The intended derivation is equivalent to:

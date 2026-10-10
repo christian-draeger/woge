@@ -32,8 +32,9 @@ The browser-visible flow uses ordinary requests and responses:
    `script type="module"` elements.
 3. The HTML already contains navigation, the project heading, three semantic loading sections and a
    GET form for the complete page.
-4. The ES module fetches `GET /projects/woge/woge-patches` and passes its byte stream to Woge's small
-   browser adapter.
+4. The ES module reads the document's declared URL, fetches
+   `GET /projects/woge/woge-patches/{epoch}` and passes its byte stream to Woge's small browser adapter.
+   Each new page has a fresh random epoch; a deferred GET returns that same epoch.
 5. Summary, activity and task markup replace their matching section contents as server work finishes.
 
 Open the browser Network panel to inspect all of this. Region IDs are opaque registry keys rather than
@@ -57,23 +58,26 @@ contains its imports and surrounding functions.
 internal fun HtmlWriter.renderProjectDocument(
     project: ProjectSnapshot,
     view: ProjectPageView,
+    regions: List<ProjectRegion>,
+    epoch: UUID,
 ) {
     doctype()
     html(attributes = { attribute("lang", "en") }) {
-        renderHead(project, view)
-        renderBody(project, view)
+        renderHead(project, view, epoch)
+        renderBody(project, view, regions, epoch)
     }
 }
 
 private fun HtmlWriter.renderHead(
     project: ProjectSnapshot,
     view: ProjectPageView,
+    epoch: UUID,
 ) {
     head {
         meta { attribute("charset", "utf-8") }
         metadata("viewport", "width=device-width, initial-scale=1")
         metadata("description", "A web-native Woge project page")
-        metadata("woge-page-epoch", projectEpoch(project).value)
+        metadata("woge-page-epoch", epoch.toString())
         title("${project.name} project · Woge quickstart")
         stylesheet(applicationUrl("/assets/application.css"))
         if (view == ProjectPageView.SHELL) {

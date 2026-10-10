@@ -3,6 +3,7 @@ package dev.woge.example.ktor
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
+import dev.woge.example.project.ProjectPatchesRoute
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
 import dev.woge.example.project.boardActionContext
@@ -26,7 +27,7 @@ public fun Application.wogeReferenceModule() {
     val projectPage = ProjectPage()
     val handlers = WogeKtorHandlers()
     val page = handlers.page(projectPage, ProjectPageRoute)
-    val patches = handlers.deferred(projectPage, ProjectPageRoute.ktorInput())
+    val patches = handlers.deferred(projectPage, ProjectPatchesRoute.ktorInput())
     val board = TaskBoard()
     val boardPage = handlers.page(board.page, TaskBoardRoute)
     val boardAction =
@@ -39,7 +40,7 @@ public fun Application.wogeReferenceModule() {
     routing {
         get(ProjectPageRoute.path) { page.handle(call) }
         head(ProjectPageRoute.path) { page.handle(call) }
-        get("${ProjectPageRoute.path}/woge-patches") { patches.handle(call) }
+        get(ProjectPatchesRoute.path) { patches.handle(call) }
         get(TaskBoardRoute.path) { boardPage.handle(call) }
         post(AddBoardTaskAction.path) {
             val connection = call.request.local

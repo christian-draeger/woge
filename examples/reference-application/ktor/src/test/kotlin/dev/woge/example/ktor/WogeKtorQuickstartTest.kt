@@ -9,6 +9,7 @@ import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.net.URI
@@ -46,12 +47,17 @@ class WogeKtorQuickstartTest {
         assertTrue(shell.body().contains("action=\"/projects/woge\" method=\"get\""))
         assertFalse(shell.body().contains("Publish the first web-first guide"))
 
-        val patchResponse = getBytes(origin, "/projects/woge/woge-patches")
+        val epoch = PAGE_EPOCH.find(shell.body())!!.groupValues[1]
+        val secondEpoch = PAGE_EPOCH.find(get(origin, "/projects/woge").body())!!.groupValues[1]
+        assertNotEquals(epoch, secondEpoch)
+        val patchUrl = PATCH_URL.find(shell.body())!!.groupValues[1]
+        val patchResponse = getBytes(origin, patchUrl)
         assertEquals(200, patchResponse.statusCode())
         assertTrue(patchResponse.header("content-type").startsWith("application/vnd.woge.patch-stream"))
         val events = decode(patchResponse.body())
         val frames = events.filterIsInstance<PatchStreamEvent.PatchFrame>()
         assertEquals(shellRegions, frames.map { it.patch.target.region.value }.toSet())
+        assertEquals(setOf(epoch), frames.map { it.patch.target.pageEpoch.value }.toSet())
         assertEquals(PatchStreamEvent.Complete(3), events.last())
         assertTrue(frames.any { (it.patch as ReplacePatch).html.value.contains("Publish the first web-first guide") })
 
@@ -99,3 +105,5 @@ class WogeKtorQuickstartTest {
 }
 
 private val REGION_ID = Regex("""data-woge-region="([^"]+)"""")
+private val PAGE_EPOCH = Regex("""name="woge-page-epoch" content="([^"]+)"""")
+private val PATCH_URL = Regex("""data-woge-patch-url="([^"]+)"""")

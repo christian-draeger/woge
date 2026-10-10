@@ -3,6 +3,7 @@ package dev.woge.example
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
+import dev.woge.example.project.ProjectPatchesRoute
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
 import dev.woge.example.project.boardActionContext
@@ -28,11 +29,11 @@ public class ProjectRoutes {
         handlers: WogeWebFluxHandlers,
     ): RouterFunction<ServerResponse> {
         val page = handlers.page(projectPage, ProjectPageRoute)
-        val patches = handlers.deferred(projectPage, ProjectPageRoute.webFluxInput())
+        val patches = handlers.deferred(projectPage, ProjectPatchesRoute.webFluxInput())
 
         return coRouter {
             GET(ProjectPageRoute.path, page::handle)
-            GET("${ProjectPageRoute.path}/woge-patches", patches::handle)
+            GET(ProjectPatchesRoute.path, patches::handle)
         }
     }
 

@@ -13,6 +13,11 @@ Identity also must not become authorization. A browser can modify every hidden f
 
 ## Decision
 
+The maintained reference application and M1 corpus allocate a random UUID once per opened
+document. Metadata, region targets and typed deferred URLs share it. Deferred requests return
+that UUID to the server, while a later navigation receives a new one. No epoch is derived from
+the project slug; this prevents an old stream from matching a new document of the same project.
+
 Woge separates component type, rendered instance, region target, page epoch, browser interaction sequence, target revision and append item/event identity. Their exact scope and algorithms are defined in the [identity and revision contract](../architecture/identity-and-revisions.md).
 
 Each complete document has a fresh cryptographically random page epoch carried in an integrity-protected, expiring context token. The token identifies protocol/descriptor-manifest context but contains no authorization decision or sensitive input. It allows stateless verification; every request still authenticates and authorizes its concrete resource.

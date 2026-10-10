@@ -5,6 +5,7 @@ import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.ReplacePatch
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.boot.SpringApplication
@@ -43,13 +44,18 @@ class WogeQuickstartApplicationTest {
         assertTrue(shell.body().contains("src=\"/assets/application.js\""))
         assertFalse(shell.body().contains("Publish the first web-first guide"))
 
-        val patches = getBytes(origin, "/projects/woge/woge-patches")
+        val epoch = PAGE_EPOCH.find(shell.body())!!.groupValues[1]
+        val secondEpoch = PAGE_EPOCH.find(get(origin, "/projects/woge").body())!!.groupValues[1]
+        assertNotEquals(epoch, secondEpoch)
+        val patchUrl = PATCH_URL.find(shell.body())!!.groupValues[1]
+        val patches = getBytes(origin, patchUrl)
         assertEquals(200, patches.statusCode())
         assertTrue(patches.header("content-type").startsWith("application/vnd.woge.patch-stream"))
         assertTrue(patches.header("content-type").contains("version=1"))
         val events = decode(patches.body())
         val frames = events.filterIsInstance<PatchStreamEvent.PatchFrame>()
         assertEquals(shellRegions, frames.map { it.patch.target.region.value }.toSet())
+        assertEquals(setOf(epoch), frames.map { it.patch.target.pageEpoch.value }.toSet())
         assertEquals(PatchStreamEvent.Complete(3), events.last())
         assertTrue(frames.any { (it.patch as ReplacePatch).html.value.contains("Publish the first web-first guide") })
 
@@ -103,3 +109,5 @@ class WogeQuickstartApplicationTest {
 }
 
 private val REGION_ID = Regex("""data-woge-region="([^"]+)"""")
+private val PAGE_EPOCH = Regex("""name="woge-page-epoch" content="([^"]+)"""")
+private val PATCH_URL = Regex("""data-woge-patch-url="([^"]+)"""")
