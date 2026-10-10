@@ -76,6 +76,16 @@ missing or invalid CSRF verification at ingress, and only then supply `RequestCo
 submitted principal or CSRF-status field. The Woge handler reads its input after context creation;
 domain authorization still happens in the action.
 
+Enhanced forms also send a fresh random UUID in `Woge-Request-Identity`. Every action adapter makes
+it available as `request.context.mutationIdentity`, separately from the host's trace ID. A malformed
+or repeated header returns 400 before reading the command. Native forms can omit it; their command
+fields do not change. Diagnostics redact the identity.
+
+This does **not** make a mutation idempotent: until an explicitly scoped reservation store is
+configured, duplicate permitted requests can still change data twice. The client never retries a
+POST, and domain authorization is still required on every call. See
+[ADR 0063](../adr/0063-mutation-request-identities.md); the store contract remains part of #34.
+
 The body must still be readable when decoding starts. A Servlet security filter that calls
 `getParameter` can consume the form before Woge sees it. Such integrations need a bounded,
 replayable request body or a verification path that leaves the body intact; the bindings do not

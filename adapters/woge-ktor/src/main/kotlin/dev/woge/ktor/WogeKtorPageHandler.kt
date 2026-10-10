@@ -1,7 +1,10 @@
 package dev.woge.ktor
 
+import dev.woge.host.FailureCategory
 import dev.woge.host.FailurePages
 import dev.woge.host.FormDecodingException
+import dev.woge.host.MUTATION_REQUEST_IDENTITY_HEADER
+import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
@@ -11,6 +14,7 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
 import dev.woge.host.withFailurePages
+import dev.woge.host.withMutationRequestIdentity
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import io.ktor.server.application.ApplicationCall
@@ -38,7 +42,17 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
         val observationContext = WogeObservationContext(requestTrace = context.trace)
         val result =
             try {
-                val pageRequest = PageRequest(input.decode(call), context)
+                val actionContext =
+                    if (actionAccept != null) {
+                        context.withMutationRequestIdentity(
+                            call.request.headers
+                                .getAll(MUTATION_REQUEST_IDENTITY_HEADER)
+                                .orEmpty(),
+                        )
+                    } else {
+                        context
+                    }
+                val pageRequest = PageRequest(input.decode(call), actionContext)
                 observer.observeOperation(
                     operation = WogeOperation.PAGE_REQUEST,
                     context = observationContext,
@@ -50,6 +64,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 failure(invalid.category, context.correlationId)
             } catch (invalid: FormDecodingException) {
                 failure(invalid.category, context.correlationId)
+            } catch (_: MutationRequestIdentityException) {
+                failure(FailureCategory.BAD_REQUEST, context.correlationId)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {

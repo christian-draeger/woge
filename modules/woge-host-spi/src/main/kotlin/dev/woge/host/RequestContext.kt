@@ -50,6 +50,7 @@ public data class RequestTrace(
 )
 
 /** Immutable request facts available to portable page code. */
+@Suppress("LongParameterList")
 public class RequestContext(
     public val method: RequestMethod,
     public val trace: RequestTrace,
@@ -57,6 +58,7 @@ public class RequestContext(
     public val headers: RequestHeaders = RequestHeaders.EMPTY,
     public val cookies: RequestCookies = RequestCookies.EMPTY,
     public val security: RequestSecurity = RequestSecurity(),
+    public val mutationIdentity: MutationRequestIdentity? = null,
 ) {
     public val authentication: AuthenticationFacts
         get() = security.authentication
@@ -79,7 +81,8 @@ public class RequestContext(
             "headers=${headers.size}, " +
             "cookies=<redacted>, " +
             "authentication=${authentication.kind}, " +
-            "csrf=$csrf)"
+            "csrf=$csrf, " +
+            "mutationIdentity=${if (mutationIdentity == null) "absent" else "<redacted>"})"
 }
 
 private fun requireDiagnosticId(

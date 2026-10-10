@@ -1,7 +1,10 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.FailureCategory
 import dev.woge.host.FailurePages
 import dev.woge.host.FormDecodingException
+import dev.woge.host.MUTATION_REQUEST_IDENTITY_HEADER
+import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
@@ -11,6 +14,7 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
 import dev.woge.host.withFailurePages
+import dev.woge.host.withMutationRequestIdentity
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import jakarta.servlet.http.HttpServletRequest
@@ -40,12 +44,24 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
             return
         }
         val context = contexts.create(request)
-        val decoded = runCatching { input.decode(request) }
+        val decoded =
+            runCatching {
+                val actionContext =
+                    if (allowedMethods == setOf("POST")) {
+                        context.withMutationRequestIdentity(
+                            request.getHeaders(MUTATION_REQUEST_IDENTITY_HEADER).toList(),
+                        )
+                    } else {
+                        context
+                    }
+                PageRequest(input.decode(request), actionContext)
+            }
         val invalid =
             decoded.exceptionOrNull()?.let {
                 when (it) {
                     is RouteValueException -> it.category
                     is FormDecodingException -> it.category
+                    is MutationRequestIdentityException -> FailureCategory.BAD_REQUEST
                     else -> throw it
                 }
             }
@@ -60,7 +76,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                         context = observationContext,
                         successfulOutcome = { it.observationOutcome() },
                     ) {
-                        page.open(PageRequest(decoded.getOrThrow(), context))
+                        page.open(decoded.getOrThrow())
                     }
                 }
             result.withFailurePages(failurePages).writeToServlet(

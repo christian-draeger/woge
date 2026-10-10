@@ -687,15 +687,22 @@ private class AdapterTckVerification(
 
 private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boolean, String, String) -> Unit) {
     val contract = "enhanced-action-navigation"
+    val mutationIdentity = "4d8e0189-424b-4f7f-b89d-338ac48f6888"
     val headers =
         mapOf(
             "Content-Type" to FORM_CONTENT_TYPE,
             "X-Tck-Subject" to "tck-user",
             "Accept" to PatchStreamV1.MEDIA_TYPE,
+            "Woge-Request-Identity" to mutationIdentity,
         )
     open(RequestMethod.POST, TckSubmitAction.path, headers, "value=accepted").let { response ->
         response.body().use { body ->
             expect(response.statusCode() == ResponseStatus.OK.code, contract, "status changed")
+            expect(
+                response.header("woge-test-identity") == mutationIdentity,
+                contract,
+                "mutation identity did not reach the action",
+            )
             expect(
                 response.header("woge-navigate") == "/woge-tck/action-complete" && response.header("location") == null,
                 contract,
@@ -715,6 +722,7 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
     ).forEach { (body, status) ->
         open(RequestMethod.POST, TckSubmitAction.path, headers, body).verifyEnhancedRejection(status, expect)
     }
+    verifyInvalidMutationIdentities(headers, mutationIdentity, expect)
     repeat(2) {
         val refreshed = text(RequestMethod.GET, "/woge-tck/action-complete")
         expect(
@@ -724,6 +732,31 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
         )
     }
     verifyActionRegionUpdates(expect)
+}
+
+private suspend fun AdapterTckHttpClient.verifyInvalidMutationIdentities(
+    headers: Map<String, String>,
+    validIdentity: String,
+    expect: (Boolean, String, String) -> Unit,
+) {
+    val contract = "mutation-request-identity"
+    for (identity in listOf("", "secret", "1-1-1-1-1", "$validIdentity,$validIdentity")) {
+        val response =
+            open(
+                RequestMethod.POST,
+                TckSubmitAction.path,
+                headers + ("Woge-Request-Identity" to identity),
+                "value=accepted",
+            )
+        response.body().use { body ->
+            expect(
+                response.statusCode() == ResponseStatus.BAD_REQUEST.code,
+                contract,
+                "invalid identity reached execution",
+            )
+            expect(body.readAllBytes().isEmpty(), contract, "identity rejection exposed input or validation data")
+        }
+    }
 }
 
 private fun HttpResponse<InputStream>.verifyEnhancedRejection(
