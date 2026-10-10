@@ -18,6 +18,34 @@ function ownStylesheets() {
 
 let pending = [];
 
+// Firefox reuses an @import it loaded before, even with Cache-Control: no-store. Pointing each
+// same-origin @import at a build-specific URL makes every browser load the saved file.
+function refreshImports(sheet, build) {
+  let rules;
+  try {
+    rules = sheet.cssRules;
+  } catch {
+    return;
+  }
+  for (let index = 0; index < rules.length; index++) {
+    const rule = rules[index];
+    if (!(rule instanceof CSSImportRule)) continue;
+    const url = new URL(rule.href, sheet.href ?? location.href);
+    if (url.origin !== location.origin) continue;
+    url.searchParams.set("woge-development-build", String(build));
+    const media = rule.media.mediaText ? ` ${rule.media.mediaText}` : "";
+    const layer = rule.layerName === null || rule.layerName === undefined ? "" :
+      rule.layerName === "" ? " layer" : ` layer(${rule.layerName})`;
+    const supports = rule.supportsText ? ` supports(${rule.supportsText})` : "";
+    try {
+      sheet.insertRule(`@import url(${JSON.stringify(url.href)})${layer}${supports}${media};`, index + 1);
+      sheet.deleteRule(index);
+    } catch {
+      // Keep the loaded rule; a later save or refresh still shows the new file.
+    }
+  }
+}
+
 /**
  * Loads every same-origin stylesheet again for [build]. Calls [failed] once if any of them does not
  * load, so the caller can fall back to a document refresh. A newer call cancels an unfinished one.
@@ -37,6 +65,7 @@ export function swapStylesheets(build, failed) {
       next.addEventListener("load", () => {
         if (!next.isConnected) return resolve();
         next.removeAttribute(`${marker}-pending`);
+        if (next.sheet) refreshImports(next.sheet, build);
         current.remove();
         pending = pending.filter((link) => link !== next);
         resolve();

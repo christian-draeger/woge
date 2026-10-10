@@ -24,7 +24,8 @@ unknown file, keeps the normal restart and document refresh.
 **The browser swaps the page's own `<link rel="stylesheet">` elements.** For each same-origin
 stylesheet the client inserts a clone whose URL has `?woge-development-build=<build>`. When the
 clone loads, the old link is removed, so the page is never unstyled. The query string bypasses
-browser caches, including for `@import`ed files in tested engines. Stylesheets from other origins,
+browser caches. Firefox still reuses an `@import`ed file it loaded before, so the client also points
+each same-origin `@import` in the new sheet at a build-specific URL. Stylesheets from other origins,
 such as a Vite dev server or the Woge overlay, are left to their owner. A newer update cancels
 clones that have not loaded yet.
 
