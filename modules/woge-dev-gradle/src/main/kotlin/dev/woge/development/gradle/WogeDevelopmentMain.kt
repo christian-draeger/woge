@@ -4,6 +4,7 @@
 package dev.woge.development.gradle
 
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,8 +21,23 @@ public fun main(args: Array<String>) {
         exitProcess(2)
     }
     val settings = WogeDevelopmentSettings.readFrom(Path.of(args[0]))
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    var failure: Throwable? = null
+    val scope =
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, error -> failure = error },
+        )
     val session = scope.launch { WogeDevelopmentSession(settings).run() }
     Runtime.getRuntime().addShutdownHook(Thread { runBlocking { session.cancelAndJoin() } })
     runBlocking { session.join() }
+    when (val error = failure) {
+        null -> Unit
+        is ViteStartupException -> {
+            System.err.println("[woge] ${error.message}")
+            exitProcess(1)
+        }
+        else -> {
+            error.printStackTrace()
+            exitProcess(1)
+        }
+    }
 }

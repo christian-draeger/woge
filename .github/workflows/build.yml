@@ -52,6 +52,7 @@ jobs:
             client/woge-fallback-client/package-lock.json
             scaffolds/spring-boot/package-lock.json
             examples/tailwind-spring-boot/package-lock.json
+            examples/vite-spring-boot/package-lock.json
       - name: Install and build the browser-test client
         working-directory: client/woge-fallback-client
         run: |
@@ -71,6 +72,8 @@ jobs:
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
       - name: Build the Tailwind example with npm
         run: ./gradlew testTailwindExample --stacktrace
+      - name: Build and develop the Vite example with npm
+        run: ./gradlew testViteExample --stacktrace
       - name: Run the development SSE and overlay browser gate
         working-directory: client/woge-fallback-client
         run: npx playwright test --config=playwright.development.config.mjs

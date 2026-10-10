@@ -25,6 +25,21 @@ public object DevelopmentContentSecurityPolicy {
     public fun allow(
         policy: String,
         origin: String,
+    ): String = add(policy, directives, origin)
+
+    /**
+     * Returns [policy] with the Vite dev server at [origin] (such as `http://127.0.0.1:5173`) allowed for
+     * scripts, styles and requests, plus its hot-update WebSocket on the same host and port.
+     */
+    public fun allowVite(
+        policy: String,
+        origin: String,
+    ): String = add(add(policy, directives, origin), listOf("connect-src"), origin.replaceFirst("http://", "ws://"))
+
+    private fun add(
+        policy: String,
+        directives: List<String>,
+        origin: String,
     ): String {
         val parsed =
             policy

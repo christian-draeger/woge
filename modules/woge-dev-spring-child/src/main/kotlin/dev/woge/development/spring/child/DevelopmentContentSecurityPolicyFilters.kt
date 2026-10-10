@@ -26,23 +26,26 @@ import java.util.function.Supplier
 
 private val policyHeaders = listOf("Content-Security-Policy", "Content-Security-Policy-Report-Only")
 
-/** Finds the session origin and rewrites one CSP header value for it. */
+/** Set by `wogeDev` when the optional Vite adapter runs its dev server next to the application. */
+private const val VITE_ORIGIN_VARIABLE = "WOGE_VITE_ORIGIN"
+
+/** Finds the session origin (and the Vite dev server, if any) and rewrites one CSP header value for it. */
 @OptIn(ExperimentalWogeDevelopmentApi::class)
 internal class DevelopmentPolicyRewriter(
+    private val viteOrigin: String? = System.getenv(VITE_ORIGIN_VARIABLE)?.takeIf(String::isNotEmpty),
     private val settings: () -> DevelopmentClientSettings? = FileDevelopmentHeadContribution()::current,
 ) {
     fun rewrite(
         name: String,
         value: String,
     ): String {
-        val current = settings().takeIf { policyHeaders.any { it.equals(name, ignoreCase = true) } }
-        return current?.let {
+        val current = settings().takeIf { policyHeaders.any { it.equals(name, ignoreCase = true) } } ?: return value
+        val withClient =
             DevelopmentContentSecurityPolicy.allow(
                 value,
-                DevelopmentContentSecurityPolicy.originOf(it),
+                DevelopmentContentSecurityPolicy.originOf(current),
             )
-        }
-            ?: value
+        return viteOrigin?.let { DevelopmentContentSecurityPolicy.allowVite(withClient, it) } ?: withClient
     }
 
     fun rewrite(headers: HttpHeaders) {

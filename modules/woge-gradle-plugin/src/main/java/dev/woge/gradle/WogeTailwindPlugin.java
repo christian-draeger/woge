@@ -8,7 +8,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
 
 /**
@@ -17,7 +16,6 @@ import org.gradle.api.tasks.TaskProvider;
  */
 public final class WogeTailwindPlugin implements Plugin<Project> {
     static final String TASK = "wogeTailwind";
-    static final String ASSET_SOURCES_TASK = "wogeAssetSources";
 
     @Override
     public void apply(Project project) {
@@ -54,18 +52,7 @@ public final class WogeTailwindPlugin implements Plugin<Project> {
         });
         main.getResources().srcDir(tailwind.flatMap(WogeTailwindTask::getOutputDirectory));
 
-        var staticDirectory = project.getLayout().getProjectDirectory().dir("src/main/resources/static");
-        var assetSources = project.getLayout().getBuildDirectory().dir("generated/woge-tailwind/asset-sources");
-        TaskProvider<Sync> merged = project.getTasks().register(ASSET_SOURCES_TASK, Sync.class, task -> {
-            task.setDescription("Collects static files and the Tailwind stylesheet for content hashing.");
-            task.from(staticDirectory);
-            task.from(tailwind.flatMap(generated -> generated.getOutputDirectory().dir("static")));
-            task.into(assetSources);
-        });
-        project.getTasks().named("wogeAssets", WogeAssetsTask.class, task -> {
-            task.getSourceDirectory().set(assetSources);
-            task.getSourceFiles().setFrom(project.fileTree(assetSources).builtBy(merged));
-        });
+        WogeAssetSources.include(project, tailwind.flatMap(generated -> generated.getOutputDirectory().dir("static")));
     }
 
     private static Set<File> codeDirectories(SourceSet main, Directory buildDirectory) {

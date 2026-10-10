@@ -27,6 +27,13 @@ class WogeDevelopmentSettingsTest {
                 host = WogeDevelopmentHost.KTOR,
                 fastRestart = false,
                 pollIntervalMillis = 100,
+                vite =
+                    ViteDevServerSettings(
+                        command = listOf("node", "--eval", "import('vite')"),
+                        directory = directory.resolve("my app"),
+                        port = 5173,
+                        environment = mapOf("WOGE_VITE_ROOT" to "/x/my app/src/main/frontend", "A" to "b=c"),
+                    ),
             )
         val file = directory.resolve("settings.properties")
 

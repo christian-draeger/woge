@@ -1,0 +1,16 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  max-inline-size: 40rem;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+.bar {
+  block-size: 1.25rem;
+  background: CanvasText;
+  margin-block: 0.25rem;
+}

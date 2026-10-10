@@ -23,7 +23,7 @@ class DevelopmentContentSecurityPolicyFiltersTest {
             renderedBuild = null,
             generation = null,
         )
-    private val rewriter = DevelopmentPolicyRewriter { settings }
+    private val rewriter = DevelopmentPolicyRewriter(viteOrigin = null) { settings }
     private val expected = "script-src 'self' http://127.0.0.1:4100"
 
     @Test
@@ -60,8 +60,23 @@ class DevelopmentContentSecurityPolicyFiltersTest {
 
     @Test
     fun `without a running session the policy stays unchanged`() {
-        assertEquals("script-src 'self'", DevelopmentPolicyRewriter { null }.rewrite(POLICY, "script-src 'self'"))
+        assertEquals(
+            "script-src 'self'",
+            DevelopmentPolicyRewriter(viteOrigin = "http://127.0.0.1:5173") {
+                null
+            }.rewrite(POLICY, "script-src 'self'"),
+        )
         assertEquals("text/html", rewriter.rewrite("Content-Type", "text/html"))
+    }
+
+    @Test
+    fun `with the Vite adapter the policy also allows the Vite dev server`() {
+        assertEquals(
+            "script-src 'self' http://127.0.0.1:4100 http://127.0.0.1:5173; " +
+                "connect-src http://127.0.0.1:4100 http://127.0.0.1:5173 ws://127.0.0.1:5173",
+            DevelopmentPolicyRewriter(viteOrigin = "http://127.0.0.1:5173") { settings }
+                .rewrite(POLICY, "script-src 'self'; connect-src 'none'"),
+        )
     }
 
     private companion object {

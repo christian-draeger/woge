@@ -120,6 +120,8 @@ final class WogeDevelopmentTasks {
         command.add("--project-dir");
         command.add(root.getProjectDir().getAbsolutePath());
         command.add("--console=plain");
+        // Optional adapters skip production-only steps; for example, the Vite dev server replaces `vite build`.
+        command.add("-P" + WogeVitePlugin.DEVELOPMENT_PROPERTY + "=true");
         if (project.getGradle().getStartParameter().isOffline()) {
             command.add("--offline");
         }

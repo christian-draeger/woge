@@ -12,3 +12,6 @@ boundary and verifies deliberately invalid API shapes against the pinned Kotlin 
 
 The [Tailwind example](tailwind-spring-boot/README.md) is a standalone project like the scaffold. It
 is built against published Woge artifacts by `./gradlew testTailwindExample`.
+
+The [Vite example](vite-spring-boot/README.md) is standalone too. `./gradlew testViteExample` builds
+it and runs it under `wogeDev` with the Vite dev server.

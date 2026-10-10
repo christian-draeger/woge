@@ -154,4 +154,12 @@ class StylingAssetContractTest {
         assertTrue(output.contains("suffix"), output)
         assertFalse(output.contains("Tailwind"), output)
     }
+
+    @Test
+    fun `csp nonce metadata exposes the response nonce to style-injecting client tools`() {
+        assertEquals(
+            """<meta property="csp-nonce" nonce="abc123">""",
+            renderHtml { cspNonceMetadata(cspNonce("abc123")) },
+        )
+    }
 }

@@ -12,10 +12,12 @@ import dev.woge.development.orchestrator.DevelopmentOrchestrator
 import dev.woge.development.process.ChildLaunchSpec
 import dev.woge.development.process.ChildProcessDevelopmentHost
 import dev.woge.development.process.ChildProcessHostConfig
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.deleteIfExists
@@ -33,7 +35,17 @@ public class WogeDevelopmentSession(
         ChildProcessDevelopmentHost(config, ForwardingChildLauncher(print))
     },
 ) {
-    public suspend fun run(): Unit =
+    public suspend fun run() {
+        val vite = settings.vite?.let { ViteDevServer(it, settings.port, print) }
+        val viteChild = vite?.start()
+        try {
+            runWoge()
+        } finally {
+            if (vite != null && viteChild != null) withContext(NonCancellable) { vite.stop(viteChild) }
+        }
+    }
+
+    private suspend fun runWoge(): Unit =
         coroutineScope {
             Files.createDirectories(settings.triggerFile.parent)
             settings.clientFile.deleteIfExists()
@@ -86,6 +98,11 @@ public class WogeDevelopmentSession(
         }
     }
 
+    private companion object {
+        /** Read by `ViteAssets` in the application, so pages load modules from the Vite dev server. */
+        const val VITE_ORIGIN_VARIABLE = "WOGE_VITE_ORIGIN"
+    }
+
     private fun mainClass(): String? =
         runCatching { settings.mainClassFile.readText().trim() }.getOrNull()?.takeIf { it.isNotEmpty() }
 
@@ -95,9 +112,10 @@ public class WogeDevelopmentSession(
                 command = settings.childCommand(mainClass),
                 workingDirectory = settings.projectDirectory,
                 environment =
-                    mapOf(
+                    listOfNotNull(
                         FileDevelopmentHeadContribution.CLIENT_FILE_VARIABLE to settings.clientFile.toString(),
-                    ),
+                        settings.vite?.let { VITE_ORIGIN_VARIABLE to it.origin },
+                    ).toMap(),
             )
         return when (settings.host) {
             WogeDevelopmentHost.SPRING_BOOT ->

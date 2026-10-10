@@ -44,6 +44,7 @@ flowchart BT
     Ktor --> Protocol
     Ktor --> SPI
     Ktor --> Runtime
+    Vite[woge-vite<br/>optional Vite entry tags] --> Core
     Auto[woge-spring-boot-autoconfigure] --> SPI
     Auto -. compileOnly .-> MVC
     Auto -. compileOnly .-> WebFlux
