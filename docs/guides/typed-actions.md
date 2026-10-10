@@ -200,6 +200,18 @@ Native requests, external redirects and method-preserving 307/308 responses reta
 The all-host TCK verifies both paths and exact mutation counts. See
 [action-form enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement).
 
+To run the optional real-browser adapter contracts, install the client's npm dependencies and
+Playwright Chromium, then build the client before running the tests:
+
+```shell
+npm --prefix client/woge-fallback-client run build
+WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
+  ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test --tests '*AdapterTckTest'
+```
+
+These tests load the built bundle; a source checkout alone is not enough. Normal JVM checks
+without this explicit environment variable still require no Node installation.
+
 ## Update typed regions after an action
 
 Return `actionRegionUpdates` when an enhanced form should update part of the current page instead
