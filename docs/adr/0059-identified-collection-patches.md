@@ -65,6 +65,10 @@ still not one atomic transaction.
 
 ## Follow-up
 
+[ADR 0062](0062-latest-intent-and-bounded-region-recovery.md) refines stale-frame handling:
+duplicate/lower revisions and superseded interactions are ignored without item deduplication,
+lifecycle events or mutation. Valid current frames still require the exact contiguous transition.
+
 The shared JVM/browser golden covers Replace, Append and Remove. Browser conformance covers
 deduplication, revisions, removal focus, nested target cleanup and invalid item payloads. Full
 interaction state preservation remains #36. Additional collection-oriented action conveniences
