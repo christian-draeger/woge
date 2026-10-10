@@ -63,6 +63,21 @@ public class ApplicationTest {
                     "max-age=31536000, public, immutable",
                     css.headers().firstValue("cache-control").orElseThrow(),
                 )
+                val head = request(origin, assetUrl, method = "HEAD")
+                assertEquals(200, head.statusCode())
+                assertEquals("", head.body())
+                assertEquals(css.headers().firstValue("content-length"), head.headers().firstValue("content-length"))
+                assertEquals(css.headers().firstValue("cache-control"), head.headers().firstValue("cache-control"))
+                val modified = css.headers().firstValue("last-modified").orElseThrow()
+                for (method in listOf("GET", "HEAD")) {
+                    val revalidated = request(origin, assetUrl, method, mapOf("If-Modified-Since" to modified))
+                    assertEquals(304, revalidated.statusCode())
+                    assertEquals("", revalidated.body())
+                }
+                val range = request(origin, assetUrl, headers = mapOf("Range" to "bytes=0-7"))
+                assertEquals(206, range.statusCode())
+                assertEquals(css.body().take(8), range.body())
+                assertTrue(range.headers().firstValue("content-range").orElseThrow().startsWith("bytes 0-7/"))
                 val unknown = assetUrl.replace(context.getBean(AssetUrls::class.java).bundleHash, "0".repeat(64))
                 assertEquals(404, get(origin, unknown).statusCode())
                 assertEquals(200, get(origin, "/styles.css").statusCode())
@@ -78,9 +93,19 @@ public class ApplicationTest {
     private fun get(
         origin: String,
         path: String,
+    ): HttpResponse<String> = request(origin, path)
+
+    private fun request(
+        origin: String,
+        path: String,
+        method: String = "GET",
+        headers: Map<String, String> = emptyMap(),
     ): HttpResponse<String> =
         CLIENT.send(
-            HttpRequest.newBuilder(URI.create(origin + path)).GET().build(),
+            HttpRequest.newBuilder(URI.create(origin + path))
+                .method(method, HttpRequest.BodyPublishers.noBody())
+                .apply { headers.forEach { (name, value) -> header(name, value) } }
+                .build(),
             HttpResponse.BodyHandlers.ofString(),
         )
 

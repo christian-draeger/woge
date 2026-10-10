@@ -55,6 +55,10 @@ conditional file requests, HEAD and ranges. Original static URLs remain availabl
 receive this immutable policy. Use the typed resolved URL in production pages rather than hardcoding
 an old hash.
 
+The executable scaffold checks HEAD, conditional GET/HEAD returning a bodyless 304, and byte ranges
+on both Spring hosts. A 304 can omit `Cache-Control`: the browser keeps the stored response's cache
+policy. Woge does not replace the host's standard static-resource HTTP behavior.
+
 The deterministic manifest is packaged at `META-INF/woge/assets.properties`; the hashed tree is
 under `META-INF/woge/assets/<hash>/`. `verifyWogeProductionArtifact` verifies the **actual JAR**:
 its manifest must match the current build, every registered file must exist, file bytes must reproduce
