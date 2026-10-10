@@ -19,11 +19,11 @@ const decoder = new TextDecoder("utf-8", { fatal: true });
 
 const opaqueId = "([A-Za-z0-9_-]{1,256})";
 const unsignedLong = "(0|[1-9][0-9]{0,18})";
-const replaceMetadataPattern = new RegExp(
+const patchMetadataPattern = new RegExp(
   `^\\{"protocolVersion":(0|[1-9][0-9]{0,9}),"operation":"([a-z]+)",` +
     `"patchId":"${opaqueId}","epoch":"${opaqueId}","target":"${opaqueId}",` +
     `"interactionSequence":${unsignedLong},"baseRevision":${unsignedLong},` +
-    `"nextRevision":${unsignedLong}\\}$`,
+    `"nextRevision":${unsignedLong}(?:,"itemId":"${opaqueId}"(?:,"focusTarget":"${opaqueId}")?)?\\}$`,
 );
 const completionMetadataPattern = /^\{"patches":(0|[1-9][0-9]{0,9})\}$/;
 const errorMetadataPattern =
@@ -156,6 +156,9 @@ export class PatchStreamDecoder {
 
   #decodeEvent(kind, metadata, payloadOffset, payloadLength) {
     if (kind === PATCH) {
+      if (metadata.operation === "remove" && payloadLength !== 0) {
+        fail("WOGE_INVALID_LENGTH", "Remove patch payload must be empty");
+      }
       const html = decodeUtf8(this.#buffer.view(payloadOffset, payloadLength));
       return Object.freeze({ type: "patch", patch: Object.freeze({ ...metadata, html }) });
     }
@@ -240,19 +243,25 @@ class BoundedByteBuffer {
 }
 
 function decodeMetadata(kind, value) {
-  if (kind === PATCH) return decodeReplaceMetadata(value);
+  if (kind === PATCH) return decodePatchMetadata(value);
   if (kind === COMPLETE) return decodeCompletionMetadata(value);
   return decodeErrorMetadata(value);
 }
 
-function decodeReplaceMetadata(value) {
-  const match = replaceMetadataPattern.exec(value);
+function decodePatchMetadata(value) {
+  const match = patchMetadataPattern.exec(value);
   if (!match) fail("WOGE_INVALID_METADATA", "Patch frame metadata is invalid or non-canonical");
   const version = Number(match[1]);
   if (version !== WOGE_PATCH_PROTOCOL_VERSION) {
     fail("WOGE_UNSUPPORTED_VERSION", "Patch metadata version is unsupported");
   }
-  if (match[2] !== "replace") fail("WOGE_INVALID_METADATA", "Patch operation is unsupported");
+  const operation = match[2];
+  if ((operation === "replace" && match[9] !== undefined) ||
+      (operation === "append" && (match[9] === undefined || match[10] !== undefined)) ||
+      (operation === "remove" && (match[9] === undefined || match[10] === undefined)) ||
+      !["replace", "append", "remove"].includes(operation)) {
+    fail("WOGE_INVALID_METADATA", "Patch operation or item metadata is unsupported");
+  }
 
   const interactionSequence = parseLong(match[6]);
   const baseRevision = parseLong(match[7]);
@@ -262,13 +271,15 @@ function decodeReplaceMetadata(value) {
   }
   return {
     protocolVersion: version,
-    operation: "replace",
+    operation,
     patchId: match[3],
     epoch: match[4],
     target: match[5],
     interactionSequence,
     baseRevision,
     nextRevision,
+    ...(match[9] === undefined ? {} : { itemId: match[9] }),
+    ...(match[10] === undefined ? {} : { focusTarget: match[10] }),
   };
 }
 

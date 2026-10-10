@@ -8,13 +8,16 @@ import dev.woge.host.WogeOperation
 import dev.woge.host.WogeOutcome
 import dev.woge.protocol.ByteSink
 import dev.woge.protocol.InteractionSequence
+import dev.woge.protocol.Patch
 import dev.woge.protocol.PatchId
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.ReplacePatch
 import dev.woge.protocol.TargetRevisionStep
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.io.ByteArrayOutputStream
 
 /** One complete encoder flush boundary for a host adapter. */
@@ -33,20 +36,7 @@ public class EncodedPatchChunk internal constructor(
 
 /** Encodes fully prepared action replacements in their declared order, without rerendering. */
 public fun PageResult.RegionUpdates.encodeActionPatchStream(): Flow<EncodedPatchChunk> =
-    flow {
-        val pending = ByteArrayOutputStream()
-        val encoder = PatchStreamV1.encoder(ByteSink(pending::write))
-        encoder.start()
-        emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
-        pending.reset()
-        patches.forEach { patch ->
-            encoder.write(patch)
-            emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
-            pending.reset()
-        }
-        encoder.complete()
-        emit(EncodedPatchChunk(pending.toByteArray(), terminal = true))
-    }
+    patches.asFlow().encodePatchStream()
 
 /** Maps a page-load deferred update to its single contiguous target-revision step. */
 public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
@@ -65,11 +55,17 @@ public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =
  * A terminal chunk follows the last update. Upstream, patch-ID, or encoder failures are
  * propagated without manufacturing a successful terminal frame.
  */
-@Suppress("TooGenericExceptionCaught")
 public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
     observer: WogeObserver = WogeObserver.NONE,
     requestTrace: RequestTrace? = null,
     patchId: (DeferredRegionUpdate) -> PatchId,
+): Flow<EncodedPatchChunk> = map { it.toReplacePatch(patchId(it)) }.encodePatchStream(observer, requestTrace)
+
+/** Encodes the accepted semantic patch operations through every host's existing chunk transport. */
+@Suppress("TooGenericExceptionCaught")
+public fun Flow<Patch>.encodePatchStream(
+    observer: WogeObserver = WogeObserver.NONE,
+    requestTrace: RequestTrace? = null,
 ): Flow<EncodedPatchChunk> =
     flow {
         val pending = ByteArrayOutputStream()
@@ -78,19 +74,18 @@ public fun Flow<DeferredRegionUpdate>.encodeDeferredPatchStream(
         emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
         pending.reset()
 
-        collect { update ->
-            val id = patchId(update)
+        collect { patch ->
             val observation =
                 observer.startOperation(
                     WogeOperation.PATCH_ENCODE,
                     WogeObservationContext(
                         requestTrace = requestTrace,
-                        target = update.region.target,
-                        patchId = id,
+                        target = patch.target,
+                        patchId = patch.patchId,
                     ),
                 )
             try {
-                encoder.write(update.toReplacePatch(id))
+                encoder.write(patch)
                 emit(EncodedPatchChunk(pending.toByteArray(), terminal = false))
                 pending.reset()
                 observation.finish(WogeOutcome.SUCCEEDED)

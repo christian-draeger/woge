@@ -13,6 +13,12 @@ internal inline fun <T> parseMetadata(
     value: String,
     expectedKeys: Set<String>,
     read: (JsonObject) -> T,
+): T = parseMetadata(value, { expectedKeys }, read)
+
+internal inline fun <T> parseMetadata(
+    value: String,
+    expectedKeys: (JsonObject) -> Set<String>,
+    read: (JsonObject) -> T,
 ): T {
     val element =
         try {
@@ -21,7 +27,7 @@ internal inline fun <T> parseMetadata(
             invalidMetadata()
         }
     val objectValue = element as? JsonObject ?: invalidMetadata()
-    if (objectValue.keys != expectedKeys) invalidMetadata()
+    if (objectValue.keys != expectedKeys(objectValue)) invalidMetadata()
     return read(objectValue)
 }
 

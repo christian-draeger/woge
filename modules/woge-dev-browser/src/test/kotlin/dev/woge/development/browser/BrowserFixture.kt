@@ -1,6 +1,7 @@
 package dev.woge.development.browser
 
 import com.sun.net.httpserver.HttpServer
+import dev.woge.css.declarations
 import dev.woge.development.BuildId
 import dev.woge.development.DevelopmentChange
 import dev.woge.development.DevelopmentChangeKind
@@ -20,7 +21,9 @@ import dev.woge.development.orchestrator.DevelopmentHostAdapter
 import dev.woge.development.orchestrator.DevelopmentHostRestartRequest
 import dev.woge.development.orchestrator.DevelopmentHostRestartResult
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
+import dev.woge.html.HtmlWriter
 import dev.woge.html.renderHtml
+import dev.woge.html.textarea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,6 +43,7 @@ internal object BrowserFixture {
     fun main(args: Array<String>) {
         val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
         val fail = AtomicBoolean(false)
+        val resetName = AtomicBoolean(false)
         val servedBuild = AtomicReference<BuildId?>(null)
         val servedGeneration = AtomicReference<ServerGeneration?>(null)
         val adapters =
@@ -97,6 +101,10 @@ internal object BrowserFixture {
                         fail.set(true)
                     } else if (command == "save") {
                         fail.set(false)
+                        resetName.set(false)
+                    } else if (command == "reset") {
+                        fail.set(false)
+                        resetName.set(true)
                     }
                     orchestrator.reportChange(DevelopmentChange(DevelopmentChangeKind.KOTLIN_SOURCE))
                     "ok"
@@ -117,8 +125,13 @@ internal object BrowserFixture {
                                     voidElement("input") {
                                         attribute("id", "name")
                                         attribute("name", "name")
+                                        attribute("data-woge-state-key", "name")
+                                        attribute("data-woge-development-preserve", "")
+                                        if (resetName.get()) attribute("data-woge-state", "reset")
                                     }
+                                    stateControls()
                                 }
+                                element("div", { styles(declarations("height: 2400px;")) }) { text("Scroll fixture") }
                             }
                         }
                     }
@@ -139,5 +152,36 @@ internal object BrowserFixture {
         )
         server.start()
         CountDownLatch(1).await()
+    }
+
+    private fun HtmlWriter.stateControls() {
+        element("label", { attribute("for", "notes") }) { text("Notes") }
+        textarea("Server notes") {
+            attribute("id", "notes")
+            attribute("data-woge-state-key", "notes")
+            attribute("data-woge-development-preserve", "")
+        }
+        for (type in listOf("checkbox", "radio", "password", "file", "hidden")) {
+            voidElement("input") {
+                attribute("id", type)
+                attribute("type", type)
+                attribute("data-woge-state-key", type)
+                attribute("data-woge-development-preserve", "")
+            }
+        }
+        element("select", {
+            attribute("id", "choice")
+            boolean("multiple")
+            attribute("data-woge-state-key", "choice")
+            attribute("data-woge-development-preserve", "")
+        }) {
+            for (value in listOf("one", "two", "three")) {
+                element("option", { attribute("value", value) }) { text(value) }
+            }
+        }
+        voidElement("input") {
+            attribute("id", "private")
+            attribute("data-woge-state-key", "private")
+        }
     }
 }

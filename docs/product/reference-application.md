@@ -23,6 +23,11 @@ The deliberately slower task table may arrive after a region declared later. Tes
 
 ## Mutations and validation
 
+The implemented #33 slice is the [public task board](../../examples/reference-application/README.md#try-a-multi-region-action):
+one validated mutation updates the count, task list, ordering controls and success status on every
+host. Native POST/Redirect/GET and enhanced submissions share the same executor. Rich field-error
+presentation is available in the public form APIs; the broader CRUD journey below remains roadmap scope.
+
 The first complete mutation flow supports:
 
 1. creating a task with a title, optional owner and optional due date;

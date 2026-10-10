@@ -17,6 +17,7 @@ import dev.woge.host.htmlPage
 import dev.woge.protocol.PageEpoch
 import dev.woge.protocol.patchHtml
 import kotlinx.coroutines.delay
+import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 /** Selects the immediate enhanced shell or a complete full-navigation response. */
@@ -37,6 +38,13 @@ public data class ProjectPageInput(
     public val view: ProjectPageView? = null,
 )
 
+/** Carries the rendered document's epoch back to the public demo's deferred GET. Not authorization. */
+@WogeRoute("/projects/{project}/woge-patches/{epoch}")
+public data class ProjectPatchesInput(
+    public val project: String,
+    public val epoch: UUID,
+)
+
 /**
  * Host-neutral project page used unchanged by the Spring MVC, WebFlux and Ktor launchers.
  *
@@ -45,19 +53,20 @@ public data class ProjectPageInput(
 public class ProjectPage(
     private val identitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
 ) : PageUseCase<ProjectPageInput>,
-    DeferredRegionsUseCase<ProjectPageInput> {
+    DeferredRegionsUseCase<ProjectPatchesInput> {
     override suspend fun open(request: PageRequest<ProjectPageInput>): PageResult {
         val project =
             findProject(request.input.project)
                 ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
         val view = request.input.view ?: ProjectPageView.SHELL
-        val regions = if (view == ProjectPageView.SHELL) projectRegions(project, identitySecret) else emptyList()
-        return htmlPage { renderProjectDocument(project, view, regions) }
+        val epoch = UUID.randomUUID()
+        val regions = if (view == ProjectPageView.SHELL) projectRegions(project, identitySecret, epoch) else emptyList()
+        return htmlPage { renderProjectDocument(project, view, regions, epoch) }
     }
 
-    override suspend fun regions(request: PageRequest<ProjectPageInput>): Iterable<DeferredRegion> {
+    override suspend fun regions(request: PageRequest<ProjectPatchesInput>): Iterable<DeferredRegion> {
         val project = findProject(request.input.project) ?: return emptyList()
-        return projectRegions(project, identitySecret).map(ProjectRegion::deferred)
+        return projectRegions(project, identitySecret, request.input.epoch).map(ProjectRegion::deferred)
     }
 }
 
@@ -72,8 +81,9 @@ private fun findProject(slug: String): ProjectSnapshot? = REFERENCE_PROJECT.take
 private fun projectRegions(
     project: ProjectSnapshot,
     secret: RenderIdentitySecret,
+    epoch: UUID,
 ): List<ProjectRegion> {
-    val page = PageIdentity(projectEpoch(project), secret)
+    val page = PageIdentity(PageEpoch.of(epoch.toString()), secret)
     return listOf(
         projectRegion(project, ProjectSummaryRegion.target(page), "summary", "Project summary", SUMMARY_DELAY_MILLIS),
         projectRegion(project, ProjectTasksRegion.target(page), "tasks", "Tasks", TASKS_DELAY_MILLIS),
@@ -106,8 +116,6 @@ private fun projectRegion(
             },
         ),
     )
-
-internal fun projectEpoch(project: ProjectSnapshot): PageEpoch = PageEpoch.of("quickstart-${project.slug}")
 
 internal fun failureLabel(failure: DeferredRegionFailure): String =
     when (failure) {

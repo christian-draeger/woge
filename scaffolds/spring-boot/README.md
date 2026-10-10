@@ -59,6 +59,16 @@ ecosystem, select MVC explicitly:
 When materializing from the Woge repository, pass `mvc` as the optional second argument to persist
 that selection and generate matching coding guidance.
 
+`-PwogeSpringAdapter=mvc` is a temporary build override; it works for `check`, `test`, `bootRun` and
+`wogeDev` without rewriting `AGENTS.md`. Guidance describes the default saved in `gradle.properties`.
+For a permanent switch, set `wogeSpringAdapter=mvc` there and regenerate from your application root:
+
+```shell
+/path/to/woge/scripts/generate-spring-boot-agent-guidance.sh AGENTS.md .
+```
+
+Use the matching Woge checkout for this pre-release generator. Do not edit the generated file by hand.
+
 ## Read the project as a web developer
 
 - `HomePage.kt` writes familiar `html`, `head`, `body`, `h1` and `p` elements. Dynamic values go

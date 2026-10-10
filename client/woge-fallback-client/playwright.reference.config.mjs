@@ -2,6 +2,11 @@ import { defineConfig } from "@playwright/test";
 
 const browsers = ["chromium", "firefox", "webkit"];
 const hostName = process.env.WOGE_REFERENCE_HOST ?? "spring-webflux";
+const port = Number(process.env.WOGE_REFERENCE_PORT ?? 8080);
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error("WOGE_REFERENCE_PORT must be a valid TCP port");
+}
+const origin = `http://127.0.0.1:${port}`;
 const hosts = {
   "spring-webflux": {
     command: "../../gradlew -p ../.. :woge-reference-spring-webflux:bootRun --console=plain",
@@ -21,24 +26,25 @@ if (!host) {
 
 export default defineConfig({
   testDir: "./reference-browser-tests",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: true,
   retries: 0,
-  workers: process.env.CI ? 3 : undefined,
+  workers: 1,
   outputDir: `test-results/reference-application/${hostName}`,
   reporter: [
     ["line"],
     ["html", { open: "never", outputFolder: `playwright-report/reference-application/${hostName}` }],
   ],
   use: {
-    baseURL: "http://127.0.0.1:8080",
+    baseURL: origin,
     headless: true,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
   webServer: {
     command: host.command,
-    url: "http://127.0.0.1:8080/projects/woge",
+    url: `${origin}/projects/woge`,
+    env: { SERVER_PORT: String(port), PORT: String(port) },
     reuseExistingServer: false,
     timeout: 120_000,
     stdout: "pipe",

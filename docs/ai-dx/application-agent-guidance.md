@@ -43,6 +43,15 @@ It persists the choice as `wogeSpringAdapter` before generating the application'
 the build and guidance therefore name the same selected host. Optional Tailwind/Vite setup remains
 absent; Playwright is identified as test-only tooling.
 
+A temporary `-PwogeSpringAdapter=mvc` build override does not change the saved default or rewrite
+guidance. Its normal `check` verifies guidance against the persisted host. For a permanent switch,
+edit `wogeSpringAdapter` in the application's `gradle.properties`, then run this command from the
+application root using the matching Woge checkout:
+
+```shell
+/path/to/woge/scripts/generate-spring-boot-agent-guidance.sh AGENTS.md .
+```
+
 ## Deterministic verification
 
 `./gradlew :woge-m1-api-corpus:check` verifies that the framework index points to the real generator,

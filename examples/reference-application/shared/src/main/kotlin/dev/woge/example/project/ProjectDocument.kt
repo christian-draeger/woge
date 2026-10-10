@@ -22,28 +22,31 @@ import dev.woge.html.noscript
 import dev.woge.html.p
 import dev.woge.html.stylesheet
 import dev.woge.html.title
+import java.util.UUID
 
 internal fun HtmlWriter.renderProjectDocument(
     project: ProjectSnapshot,
     view: ProjectPageView,
     regions: List<ProjectRegion>,
+    epoch: UUID,
 ) {
     doctype()
     html(attributes = { attribute("lang", "en") }) {
-        renderHead(project, view)
-        renderBody(project, view, regions)
+        renderHead(project, view, epoch)
+        renderBody(project, view, regions, epoch)
     }
 }
 
 private fun HtmlWriter.renderHead(
     project: ProjectSnapshot,
     view: ProjectPageView,
+    epoch: UUID,
 ) {
     head {
         meta { attribute("charset", "utf-8") }
         metadata("viewport", "width=device-width, initial-scale=1")
         metadata("description", "A web-native Woge project page")
-        metadata("woge-page-epoch", projectEpoch(project).value)
+        metadata("woge-page-epoch", epoch.toString())
         title("${project.name} project · Woge quickstart")
         stylesheet(applicationUrl("/assets/application.css"))
         if (view == ProjectPageView.SHELL) {
@@ -56,12 +59,13 @@ private fun HtmlWriter.renderBody(
     project: ProjectSnapshot,
     view: ProjectPageView,
     regions: List<ProjectRegion>,
+    epoch: UUID,
 ) {
     body(
         attributes = {
             classes("project-page")
             if (view == ProjectPageView.SHELL) {
-                data("woge-patch-url", "/projects/${project.slug}/woge-patches")
+                data("woge-patch-url", ProjectPatchesRoute.url(ProjectPatchesInput(project.slug, epoch)).value)
             }
         },
     ) {
@@ -75,6 +79,9 @@ private fun HtmlWriter.renderBody(
             nav(attributes = { aria("label", "Primary") }) {
                 a(attributes = { url("href", ProjectPageRoute.url(ProjectPageInput(project.slug))) }) {
                     text("Projects")
+                }
+                a(attributes = { url("href", TaskBoardRoute.url(TaskBoardInput())) }) {
+                    text("Task board")
                 }
             }
         }

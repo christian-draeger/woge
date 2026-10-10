@@ -1,4 +1,7 @@
-import { AFTER_REPLACE_EVENT, BEFORE_REPLACE_EVENT, PageRegionRegistry } from "./dom.js";
+import {
+  AFTER_REPLACE_EVENT, BEFORE_REPLACE_EVENT, AFTER_APPEND_EVENT, BEFORE_APPEND_EVENT,
+  AFTER_REMOVE_EVENT, BEFORE_REMOVE_EVENT, PageRegionRegistry,
+} from "./dom.js";
 import {
   PatchStreamDecoder,
   WogePatchError,
@@ -8,6 +11,7 @@ import {
 import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 import { installWogeActionForms, ACTION_ERROR_EVENT } from "./actions.js";
+import { captureWogeBrowserState, prepareWogeBrowserState } from "./state.js";
 
 /** Owns one active document's region registry and applies validated patch streams to it. */
 class WogePatchRuntime {
@@ -71,7 +75,7 @@ class WogePatchRuntime {
     const started = performance.now();
     this.#emit(Object.freeze({ observationId, phase: "started", operation: "patch.apply", context }));
     try {
-      this.#registry.applyReplace(patch);
+      this.#registry.applyPatch(patch);
       this.#emitFinished(observationId, context, "succeeded", started);
     } catch (problem) {
       this.#emitFinished(observationId, context, patchOutcome(problem), started);
@@ -114,10 +118,16 @@ function patchOutcome(problem) {
 }
 
 export {
+  captureWogeBrowserState,
+  prepareWogeBrowserState,
   ACTION_ERROR_EVENT,
   installWogeActionForms,
   AFTER_REPLACE_EVENT,
   BEFORE_REPLACE_EVENT,
+  AFTER_APPEND_EVENT,
+  BEFORE_APPEND_EVENT,
+  AFTER_REMOVE_EVENT,
+  BEFORE_REMOVE_EVENT,
   classifyWogeFailure,
   createWogeRecoveryBudget,
   WogePatchError,

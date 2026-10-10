@@ -249,8 +249,12 @@ undo a mutation that your application already committed. Network delivery can st
 never automatically repeat the POST.
 
 The shared JVM HTTP tests and optional Chromium flows exercise native and enhanced two-region
-updates on all three hosts, including refresh without mutation replay. This is a Replace-only
-foundation for #33, not its complete collection-update API. See
+updates on all three hosts, including refresh without mutation replay.
+The [reference task board](../../examples/reference-application/README.md#try-a-multi-region-action)
+uses the same builder to update its count, list, ordering fields and success status from one mutation.
+Its ordinary form keeps visible controls outside the replaced regions, preserving focus without
+an additional state-restoration layer. Replace is sufficient for this workflow; collection Append
+and Remove remain available in the semantic Patch IR without adding a second action-builder API. See
 [ADR 0057](../adr/0057-prepared-typed-action-region-updates.md).
 
 ## Share accessible field and form errors

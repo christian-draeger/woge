@@ -24,7 +24,9 @@ import {
   WOGE_PATCH_PROTOCOL_VERSION,
 } from "@woge/fallback-client";
 
-const response = await fetch("/projects/woge/woge-patches", {
+const patchUrl = document.body.dataset.wogePatchUrl;
+if (!patchUrl) throw new Error("The document has no deferred patch URL");
+const response = await fetch(patchUrl, {
   headers: {
     Accept: `application/vnd.woge.patch-stream; version=${WOGE_PATCH_PROTOCOL_VERSION}`,
   },

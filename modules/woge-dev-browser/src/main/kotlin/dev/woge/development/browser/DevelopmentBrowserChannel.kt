@@ -176,6 +176,8 @@ public class DevelopmentBrowserChannel(
     private fun route(exchange: HttpExchange) {
         when (exchange.requestURI.path) {
             "/client.js" -> asset(exchange, "client.js", "text/javascript; charset=utf-8")
+            "/refresh-state.js" -> asset(exchange, "refresh-state.js", "text/javascript; charset=utf-8")
+            "/state-controls.js" -> asset(exchange, "state-controls.js", "text/javascript; charset=utf-8")
             "/overlay.css" -> asset(exchange, "overlay.css", "text/css; charset=utf-8")
             "/events", "/details" -> {
                 val credential = exchange.requestURI.rawQuery.orEmpty()

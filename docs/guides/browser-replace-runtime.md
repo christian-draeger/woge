@@ -43,8 +43,8 @@ frames: a proxy may split one frame into many chunks or combine many frames in o
 the protocol lengths and verifies the terminal frame before reporting completion.
 
 Create one runtime for one active document. A full navigation creates a new page epoch and therefore a
-new runtime. Fetch/form interception is deliberately deferred; normal links and forms remain the
-baseline until the action enhancer installs this call.
+new runtime. Normal links and forms remain the baseline;
+[action enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement) is explicitly installed.
 
 Pass an optional `observer` when structured tooling needs patch timing or rejected/stale outcomes.
 The callback receives no patch HTML; its operation names match the server observation port. See
@@ -58,6 +58,11 @@ owned. Valid custom elements in the new content connect through the browser's no
 
 Nested Woge regions are allowed. Their opaque IDs and counters are validated before the parent DOM is
 changed, then added to the same page registry atomically.
+
+Replace now protects browser-owned dirty controls through explicit stable keys, with deliberate
+reset and native-node preservation for files and local islands. See
+[Preserve browser-owned state](browser-owned-state.md) for the ownership matrix and supported focus
+and selection rules. Append leaves existing children intact; Remove retains its explicit focus fallback.
 
 ## Delegate controller lifecycle
 
@@ -80,6 +85,18 @@ before removal; an overlay that is itself the stable region target is retained.
 
 Focus, selection and dirty input preservation require more policy than these lifecycle events and are
 implemented separately in issue #36.
+
+Append and Remove use the same registry and safe-content checks. Collection items have a stable
+`data-woge-item` ID on their direct-child root. Append preserves existing rows and ignores an already
+present item ID while advancing the region revision. Remove does the same for an already absent ID.
+Ordering checks still run first; this never accepts an out-of-order frame.
+
+`woge:before-append` / `woge:after-append` and `woge:before-remove` / `woge:after-remove` are delegated
+events on the collection region. Their details include `itemId`; removal also includes `focusTarget`.
+No-op item operations emit no controller events because no content is inserted or removed.
+Removal unregisters nested targets and closes removed native overlays. If the removed item owns
+focus, focus moves to the explicitly declared, registered fallback region, which must already be
+focusable. Otherwise focus stays where it is. No live announcement is created.
 
 ## Handle failures without best effort
 
@@ -107,7 +124,7 @@ between atomic patches, not one transaction for the complete response.
 
 ## What comes from Kotlin?
 
-Application Kotlin code creates typed `ReplacePatch` values; the shared server encoder turns them into
+Application Kotlin code creates typed Replace, Append and Remove values; the shared server encoder turns them into
 the byte stream. The browser API above does not require Kotlin knowledge. Its JVM/browser Golden
 fixture proves both sides agree on field names, lengths, UTF-8 and 64-bit revision values.
 

@@ -2,13 +2,21 @@ package dev.woge.protocol.internal
 
 import dev.woge.html.applicationUrl
 import dev.woge.html.externalUrl
+import dev.woge.protocol.PatchItemId
 import dev.woge.protocol.PatchStreamErrorCode
-import org.jsoup.Jsoup
+import org.jsoup.nodes.Comment
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
+import org.jsoup.parser.Parser
 import java.util.Locale
 
-internal fun validatePatchHtml(html: String) {
-    val document = Jsoup.parseBodyFragment(html)
-    document.allElements.forEach { element ->
+internal fun validatePatchHtml(
+    html: String,
+    itemId: PatchItemId? = null,
+) {
+    val fragment = Element("template")
+    fragment.insertChildren(0, Parser.parseFragment(html, fragment, ""))
+    fragment.allElements.forEach { element ->
         val tagName = element.normalName()
         if (tagName in BLOCKED_ELEMENTS) {
             activeContentFailure()
@@ -23,6 +31,28 @@ internal fun validatePatchHtml(html: String) {
                 activeContentFailure()
             }
         }
+    }
+    if (itemId != null) {
+        validateItemRoot(fragment, itemId)
+    }
+}
+
+private fun validateItemRoot(
+    fragment: Element,
+    itemId: PatchItemId,
+) {
+    val root = fragment.children().singleOrNull()
+    val extraContent =
+        fragment.childNodes().any { node ->
+            when (node) {
+                is Element -> false
+                is TextNode -> !node.wholeText.isBlank()
+                is Comment -> !node.data.isBlank()
+                else -> true
+            }
+        }
+    if (root == null || root.attr("data-woge-item") != itemId.value || extraContent) {
+        protocolFailure(PatchStreamErrorCode.INVALID_ITEM, "Append patch must contain one identified item root")
     }
 }
 

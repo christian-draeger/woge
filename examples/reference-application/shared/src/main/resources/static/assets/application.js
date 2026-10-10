@@ -2,14 +2,19 @@ import {
   classifyWogeFailure,
   createWogePatchRuntime,
   createWogeRecoveryBudget,
+  installWogeActionForms,
   WOGE_PATCH_PROTOCOL_VERSION,
 } from "./woge/index.js";
 
 const page = document.querySelector("[data-woge-patch-url]");
 const budget = createWogeRecoveryBudget();
+let runtime;
 
 if (page) {
   void loadDeferredRegions(page.dataset.wogePatchUrl);
+} else if (document.querySelector("[data-woge-action]")) {
+  runtime = createWogePatchRuntime(document);
+  installWogeActionForms(document, runtime);
 }
 
 async function loadDeferredRegions(url) {
@@ -18,7 +23,8 @@ async function loadDeferredRegions(url) {
       headers: { Accept: `application/vnd.woge.patch-stream; version=${WOGE_PATCH_PROTOCOL_VERSION}` },
     });
     if (!response.ok || !response.body) throw response;
-    await createWogePatchRuntime(document).applyPatchStream(response.body);
+    runtime ??= createWogePatchRuntime(document);
+    await runtime.applyPatchStream(response.body);
   } catch (problem) {
     recover(url, classifyWogeFailure(problem, { safeRequest: true }));
   }

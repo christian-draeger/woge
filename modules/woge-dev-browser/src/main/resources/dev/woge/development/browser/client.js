@@ -1,3 +1,5 @@
+import { saveRefreshState, takeRefreshState, restoreRefreshState } from "./refresh-state.js";
+
 const phases = new Set([
   "IDLE", "BUILDING", "BUILD_FAILED", "RELOAD_PENDING", "SERVER_RESTARTING",
   "SERVER_FAILED", "READY", "STOPPED",
@@ -90,6 +92,7 @@ export function connectDevelopmentClient(config, { reload = () => location.reloa
       !["127.0.0.1", "localhost", "[::1]"].includes(endpoint.hostname)) {
     throw new TypeError("A loopback development endpoint is required");
   }
+  let pendingState = takeRefreshState(config);
   const source = new EventSource(endpoint);
   const render = config.overlay ? createOverlay(config.details) : () => {};
   let last = { phase: "IDLE", diagnostics: [] };
@@ -110,6 +113,7 @@ export function connectDevelopmentClient(config, { reload = () => location.reloa
       build = id(next.renderedBuild);
       generation = id(next.generation);
       source.close();
+      saveRefreshState(next);
       reload();
     }
   };
@@ -124,6 +128,11 @@ export function connectDevelopmentClient(config, { reload = () => location.reloa
       sequence = id(next.sequence);
       highestBuild = id(next.build);
       if (id(next.generation) !== 0n) highestGeneration = id(next.generation);
+      if (pendingState) {
+        const state = pendingState;
+        pendingState = null;
+        restoreRefreshState(state, next);
+      }
       last = next;
       render(next);
       refreshIfReady(next);

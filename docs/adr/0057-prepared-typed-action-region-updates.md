@@ -65,3 +65,12 @@ canonical GET page, not by automatically submitting again.
 Complete collection operations and the reference workflow in #32/#33.
 [ADR 0058](0058-shared-accessible-form-errors.md) extends the prepared result with a native HTML
 validation representation; its summary-focus policy does not change successful action behavior.
+
+The reference task board now demonstrates #33 on MVC, WebFlux and Ktor. Its count, task list,
+hidden form-state controls and one document-owned success status update in deterministic order.
+Visible controls remain outside replaced regions; hidden controls use the normal HTML `form`
+attribute. New documents get fresh epochs, and a submitted board version prevents stale writes.
+The in-memory example prepares all replacements before committing its new snapshot. This is an
+application transaction policy, not a new promise that Woge rolls back arbitrary application work.
+The public demo's host routes reject missing or non-matching Origin headers before command decoding;
+production authentication and CSRF integrations remain host-owned.

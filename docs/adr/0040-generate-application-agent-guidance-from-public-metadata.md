@@ -38,6 +38,11 @@ checks metadata paths, current versions, selected host, unresolved template toke
 concepts. External consumer tests materialize both WebFlux and MVC and assert that build properties and
 guidance agree.
 
+Guidance records the persisted default host, not a temporary `-PwogeSpringAdapter` override.
+Both hosts' tests can run on the same fresh scaffold without rewriting application-owned files.
+A permanent host switch changes `gradle.properties` and regenerates guidance with the existing
+repository generator; the scaffold README and stale-guidance error name that exact command.
+
 Model-family evaluations remain recorded milestone evidence under issue #93, not nondeterministic
 pull-request checks. Humans and agents receive the same compiler, tests, public docs and examples.
 
