@@ -92,6 +92,43 @@ internal enum class Rule(
         "Two routes in one module must not use the same path pattern; parameter names do not make them different.",
         "change one path, for example /projects/{project} and /archive/{project}",
     ),
+    ACTION_SHAPE(
+        "WOGE-ACTION-001",
+        "@WogeAction marks a top-level suspend function with no receiver or type parameters " +
+            "and exactly two parameters.",
+        "@WogeAction(\"create-task\") suspend fun createTask(command: CreateTask, context: RequestContext): PageResult",
+    ),
+    ACTION_ID(
+        "WOGE-ACTION-002",
+        "An action ID has at most 128 characters, starts with a lowercase ASCII letter " +
+            "and uses letters, digits or '-'.",
+        "@WogeAction(\"create-task\")",
+    ),
+    ACTION_COMMAND(
+        "WOGE-ACTION-003",
+        "The command is a non-null, non-generic data class with val fields using supported form value types.",
+        "data class CreateTask(val title: String); use scalar values, enums, value classes or List of scalar values",
+    ),
+    ACTION_CONTEXT(
+        "WOGE-ACTION-004",
+        "The second action parameter must be a non-null dev.woge.host.RequestContext.",
+        "context: RequestContext; translate host security facts before invocation",
+    ),
+    ACTION_RETURN(
+        "WOGE-ACTION-005",
+        "An action returns dev.woge.host.PageResult, not a host response or arbitrary value.",
+        ": PageResult = redirect(applicationUrl(\"/tasks\"))",
+    ),
+    ACTION_VISIBILITY(
+        "WOGE-ACTION-006",
+        "An action and every referenced command type must be internal or public.",
+        "make the action and its command internal or public",
+    ),
+    ACTION_COLLISION(
+        "WOGE-ACTION-007",
+        "Action IDs must be unique across the module and generated names must be unique within each package.",
+        "give each action a different ID and function name; createTask generates CreateTaskAction",
+    ),
     ;
 
     fun message(received: String): String = "$id $rule\nReceived: $received\nValid: $valid"

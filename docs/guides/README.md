@@ -28,6 +28,9 @@ facts, streamed HTML frames, redirects and safe failures shared by the Spring an
 The [typed page routes guide](typed-routes.md) declares a URL once on the page input, builds links
 from it and lets every host read the same path and query values.
 
+The [typed action descriptor guide](typed-actions.md) introduces stable form URLs, typed executors
+and explicit registries, with the remaining adapter-dispatch scope called out.
+
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
 

@@ -20,11 +20,11 @@ public class WogeProcessorProvider : SymbolProcessorProvider {
 }
 
 /**
- * Generates one descriptor file per `@WogeRegion` function and per `@WogeRoute` class.
+ * Generates descriptors for typed regions, routes and actions.
  *
  * A region file depends only on the source files that shape it, so KSP regenerates exactly the
  * regions whose sources changed. Route files are aggregating instead: KSP then hands every route
- * to each run, which the collision check needs. Routes are few and cheap to regenerate.
+ * to each run, which the collision check needs. Actions follow the same rule for IDs and registries.
  */
 internal class WogeProcessor(
     private val codeGenerator: CodeGenerator,
@@ -32,12 +32,48 @@ internal class WogeProcessor(
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val annotated =
-            listOf(WOGE_COMPONENT, WOGE_REGION, WOGE_ROUTE).flatMap { resolver.getSymbolsWithAnnotation(it).toList() }
+            listOf(
+                WOGE_COMPONENT,
+                WOGE_REGION,
+                WOGE_ROUTE,
+                WOGE_ACTION,
+            ).flatMap { resolver.getSymbolsWithAnnotation(it).toList() }
         val (ready, deferred) = annotated.partition { it.validate() }
         val classes = ready.filterIsInstance<KSClassDeclaration>()
-        processRegions(classes, ready.filterIsInstance<KSFunctionDeclaration>())
+        processRegions(
+            classes,
+            ready.filterIsInstance<KSFunctionDeclaration>().filter { it.hasAnnotation(WOGE_REGION) },
+        )
         processRoutes(classes.filter { it.hasAnnotation(WOGE_ROUTE) })
+        processActions(ready.filterIsInstance<KSFunctionDeclaration>().filter { it.hasAnnotation(WOGE_ACTION) })
         return deferred
+    }
+
+    private fun processActions(functions: List<KSFunctionDeclaration>) {
+        val reader = ActionReader(logger)
+        val actions = functions.mapNotNull(reader::action)
+        val ids = actions.groupBy { it.id }
+        val names = actions.groupBy { it.packageName to it.descriptorName }
+        val valid =
+            actions.filter { action ->
+                val unique =
+                    ids.getValue(action.id).size == 1 &&
+                        names.getValue(action.packageName to action.descriptorName).size == 1
+                if (!unique) reader.reportCollision(action)
+                unique
+            }
+        valid.forEach { action ->
+            write(action.packageName, action.descriptorName, action.sources, aggregating = true, action.source())
+        }
+        valid.groupBy { it.packageName }.forEach { (packageName, packageActions) ->
+            write(
+                packageName,
+                "WogeActions",
+                packageActions.flatMap { it.sources }.distinct(),
+                aggregating = true,
+                packageActions.registrySource(packageName),
+            )
+        }
     }
 
     private fun processRegions(
