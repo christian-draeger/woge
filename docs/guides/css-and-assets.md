@@ -22,8 +22,9 @@ The result is ordinary HTML:
 <link rel="stylesheet" href="/assets/application.a1b2c3.css">
 ```
 
-Woge does not bundle or transform that file. Your existing CSS tooling, browser support policy,
-cache headers and content hashing continue to work normally.
+Woge does not transform that file. Your existing CSS tooling and browser support policy continue to
+work normally. The optional Woge Gradle plugin can [package a content-hashed asset tree](production-assets.md)
+without Node and resolve it through `AssetUrls`; existing external asset pipelines remain compatible.
 
 ## Colocate a small stylesheet
 

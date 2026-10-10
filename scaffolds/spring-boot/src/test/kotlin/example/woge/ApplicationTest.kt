@@ -2,6 +2,8 @@ package example.woge
 
 import dev.woge.host.ApplicationManifest
 import dev.woge.host.ManifestHostAdapter
+import dev.woge.html.AssetUrls
+import dev.woge.html.applicationUrl
 import dev.woge.spring.boot.autoconfigure.WogeRuntimeInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -49,13 +51,21 @@ public class ApplicationTest {
                 assertTrue(page.body().startsWith("<!doctype html><html lang=\"en\">"))
                 assertTrue(page.body().contains("<h1>Hello from Woge</h1>"))
                 assertTrue(page.body().contains("<noscript>"))
-                assertTrue(page.body().contains("href=\"/styles.css\""))
+                val assetUrl = context.getBean(AssetUrls::class.java).url(applicationUrl("/styles.css")).value
+                assertTrue(page.body().contains("href=\"$assetUrl\""))
                 assertFalse(page.body().contains("<script"))
 
-                val css = get(origin, "/styles.css")
+                val css = get(origin, assetUrl)
                 assertEquals(200, css.statusCode())
                 assertTrue(css.body().contains("@layer reset, theme, page"))
                 assertTrue(css.body().contains("@container (width >= 36rem)"))
+                assertEquals(
+                    "max-age=31536000, public, immutable",
+                    css.headers().firstValue("cache-control").orElseThrow(),
+                )
+                val unknown = assetUrl.replace(context.getBean(AssetUrls::class.java).bundleHash, "0".repeat(64))
+                assertEquals(404, get(origin, unknown).statusCode())
+                assertEquals(200, get(origin, "/styles.css").statusCode())
 
                 val runtimeInfo = context.getBean(WogeRuntimeInfo::class.java)
                 assertEquals(

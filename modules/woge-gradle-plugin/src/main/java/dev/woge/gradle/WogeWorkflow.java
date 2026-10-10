@@ -26,7 +26,7 @@ final class WogeWorkflow {
     static final Step VERIFY_ARTIFACT = new Step(
             WogeSpringBootPlugin.VERIFY_TASK,
             "verification",
-            "Checks that the production jar contains no Woge development tooling.",
+            "Checks production assets and verifies that the jar contains no Woge development tooling.",
             List.of());
 
     static final List<Step> STEPS = List.of(
@@ -37,6 +37,8 @@ final class WogeWorkflow {
             VERIFY_ARTIFACT,
             new Step("wogeManifest", "documentation",
                     "Writes non-secret compiler metadata to .woge/manifest.json.", List.of()),
+            new Step("wogeAssets", "production",
+                    "Packages static files under content-hashed URLs without Node or Vite.", List.of()),
             new Step("bootJar", "production", "Builds the runnable production jar without development tooling.",
                     List.of()),
             new Step("bootRun", "production",

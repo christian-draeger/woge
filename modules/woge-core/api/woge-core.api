@@ -47,6 +47,19 @@ public final class dev/woge/html/AssetSecurityKt {
 	public static final fun subresourceIntegrity (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/html/AssetUrls {
+	public static final field Companion Ldev/woge/html/AssetUrls$Companion;
+	public final fun getBundleHash ()Ljava/lang/String;
+	public final fun url-pK5OWvo (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/html/AssetUrls$Companion {
+	public final fun load (Ljava/lang/ClassLoader;Z)Ldev/woge/html/AssetUrls;
+	public static synthetic fun load$default (Ldev/woge/html/AssetUrls$Companion;Ljava/lang/ClassLoader;ZILjava/lang/Object;)Ldev/woge/html/AssetUrls;
+	public final fun read (Ljava/io/InputStream;Z)Ldev/woge/html/AssetUrls;
+	public static synthetic fun read$default (Ldev/woge/html/AssetUrls$Companion;Ljava/io/InputStream;ZILjava/lang/Object;)Ldev/woge/html/AssetUrls;
+}
+
 public final class dev/woge/html/Attributes {
 	public final fun aria (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun attribute (Ljava/lang/String;Ljava/lang/String;)V

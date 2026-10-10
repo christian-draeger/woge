@@ -4,11 +4,13 @@ import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
+import dev.woge.html.AssetUrls
 import dev.woge.protocol.PatchProtocolVersion
 import org.apache.commons.logging.LogFactory
 import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.context.reactive.ConfigurableReactiveWebApplicationContext
@@ -17,12 +19,21 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ResourceLoader
 
+internal const val IMMUTABLE_ASSET_CACHE_DAYS = 365L
+
 /** Shared Spring Boot discovery, deterministic adapter selection and startup diagnostics. */
 @AutoConfiguration
 @ConditionalOnWebApplication
 @EnableConfigurationProperties(WogeProperties::class)
 @Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
 public class WogeAutoConfiguration {
+    /** Build-generated assets are shared by MVC and WebFlux, with plain URLs only in wogeDev. */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnResource(resources = ["classpath:META-INF/woge/assets.properties"])
+    public fun wogeAssetUrls(resourceLoader: ResourceLoader): AssetUrls =
+        AssetUrls.load(resourceLoader.classLoader ?: WogeAutoConfiguration::class.java.classLoader)
+
     /** Bodyless by default; applications can provide shared not-found and error HTML. */
     @Bean
     @ConditionalOnMissingBean

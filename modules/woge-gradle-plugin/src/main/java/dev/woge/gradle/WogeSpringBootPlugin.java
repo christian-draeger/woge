@@ -112,6 +112,11 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
                     task.getReport().set(project.getLayout().getBuildDirectory().file("woge/production-artifact.txt"));
                 });
         project.getTasks().named(LifecycleBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(verify));
+        project.getPluginManager().withPlugin("org.jetbrains.kotlin.jvm", ignored -> {
+            TaskProvider<WogeAssetsTask> assets = project.getTasks().named("wogeAssets", WogeAssetsTask.class);
+            verify.configure(task -> task.getAssetManifest().set(
+                    assets.flatMap(assetTask -> assetTask.getOutputDirectory().file(WogeAssetsTask.MANIFEST))));
+        });
     }
 
     private static List<String> innerBuild(Project project) {
