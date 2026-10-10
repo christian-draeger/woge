@@ -53,6 +53,49 @@ public final class dev/woge/host/ActionRegistry {
 	public final fun getActions ()Ljava/util/List;
 }
 
+public final class dev/woge/host/ApplicationManifest {
+	public static final field Companion Ldev/woge/host/ApplicationManifest$Companion;
+	public static final field SCHEMA_VERSION I
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ldev/woge/host/ManifestHostAdapter;Ljava/util/List;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ldev/woge/host/ManifestHostAdapter;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun component8 ()Ljava/util/List;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ldev/woge/host/ManifestHostAdapter;Ljava/util/List;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Ldev/woge/host/ApplicationManifest;
+	public static synthetic fun copy$default (Ldev/woge/host/ApplicationManifest;ILjava/lang/String;Ljava/lang/String;Ldev/woge/host/ManifestHostAdapter;Ljava/util/List;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Ldev/woge/host/ApplicationManifest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCapabilities ()Ljava/util/List;
+	public final fun getDescriptors ()Ljava/util/List;
+	public final fun getDocumentation ()Ljava/util/Map;
+	public final fun getFrontendMode ()Ljava/lang/String;
+	public final fun getHostAdapter ()Ldev/woge/host/ManifestHostAdapter;
+	public final fun getKotlinVersion ()Ljava/lang/String;
+	public final fun getSchemaVersion ()I
+	public final fun getWogeVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/woge/host/ApplicationManifest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/woge/host/ApplicationManifest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/woge/host/ApplicationManifest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/woge/host/ApplicationManifest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/woge/host/ApplicationManifest$Companion {
+	public final fun decode (Ljava/lang/String;)Ldev/woge/host/ApplicationManifest;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/woge/host/ApplicationRedirectLocation : dev/woge/host/RedirectLocation {
 	public final fun getUrl-r4VgPSI ()Ljava/lang/String;
 	public fun getValue ()Ljava/lang/String;
@@ -248,6 +291,61 @@ public final class dev/woge/host/DeferredRegionKt {
 
 public abstract interface class dev/woge/host/DeferredRegionsUseCase {
 	public abstract fun regions (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/DescriptorKind : java/lang/Enum {
+	public static final field ACTION Ldev/woge/host/DescriptorKind;
+	public static final field COMPONENT Ldev/woge/host/DescriptorKind;
+	public static final field Companion Ldev/woge/host/DescriptorKind$Companion;
+	public static final field PAGE Ldev/woge/host/DescriptorKind;
+	public static final field REGION Ldev/woge/host/DescriptorKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/DescriptorKind;
+	public static fun values ()[Ldev/woge/host/DescriptorKind;
+}
+
+public final class dev/woge/host/DescriptorKind$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/woge/host/DescriptorMetadata {
+	public static final field Companion Ldev/woge/host/DescriptorMetadata$Companion;
+	public fun <init> (Ldev/woge/host/DescriptorKind;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/woge/host/DescriptorKind;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/woge/host/DescriptorKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ldev/woge/host/DescriptorKind;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/DescriptorMetadata;
+	public static synthetic fun copy$default (Ldev/woge/host/DescriptorMetadata;Ldev/woge/host/DescriptorKind;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/DescriptorMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getComponent ()Ljava/lang/String;
+	public final fun getDeclaration ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getInputType ()Ljava/lang/String;
+	public final fun getKeyType ()Ljava/lang/String;
+	public final fun getKind ()Ldev/woge/host/DescriptorKind;
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/woge/host/DescriptorMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/woge/host/DescriptorMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/woge/host/DescriptorMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/woge/host/DescriptorMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/woge/host/DescriptorMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class dev/woge/host/DuplicateIdentityException : java/lang/IllegalStateException {
@@ -630,6 +728,20 @@ public final class dev/woge/host/LanguageTag {
 public final class dev/woge/host/LanguageTag$Companion {
 	public final fun getUNDETERMINED-3P5dIGk ()Ljava/lang/String;
 	public final fun of-0bfmgbQ (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/ManifestHostAdapter : java/lang/Enum {
+	public static final field Companion Ldev/woge/host/ManifestHostAdapter$Companion;
+	public static final field KTOR Ldev/woge/host/ManifestHostAdapter;
+	public static final field SPRING_MVC Ldev/woge/host/ManifestHostAdapter;
+	public static final field SPRING_WEBFLUX Ldev/woge/host/ManifestHostAdapter;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/ManifestHostAdapter;
+	public static fun values ()[Ldev/woge/host/ManifestHostAdapter;
+}
+
+public final class dev/woge/host/ManifestHostAdapter$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class dev/woge/host/MediaType {

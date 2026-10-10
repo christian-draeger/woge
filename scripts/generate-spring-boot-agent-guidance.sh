@@ -54,6 +54,7 @@ html_guide_url="$repository_blob_url/$(json_string "$framework_index" htmlGuide)
 css_guide_url="$repository_blob_url/$(json_string "$framework_index" cssGuide)"
 page_guide_url="$repository_blob_url/$(json_string "$framework_index" pageGuide)"
 patch_guide_url="$repository_blob_url/$(json_string "$framework_index" patchGuide)"
+manifest_guide_url="$repository_blob_url/$(json_string "$framework_index" manifestGuide)"
 compiler_examples_url="$repository_tree_url/$(json_string "$framework_index" compilerExamples)"
 
 case "$selected_host" in
@@ -96,6 +97,7 @@ awk \
   -v css_guide_url="$css_guide_url" \
   -v page_guide_url="$page_guide_url" \
   -v patch_guide_url="$patch_guide_url" \
+  -v manifest_guide_url="$manifest_guide_url" \
   -v compiler_examples_url="$compiler_examples_url" \
   '{
     gsub(/\{\{GUIDANCE_VERSION\}\}/, guidance_version)
@@ -115,6 +117,7 @@ awk \
     gsub(/\{\{CSS_GUIDE_URL\}\}/, css_guide_url)
     gsub(/\{\{PAGE_GUIDE_URL\}\}/, page_guide_url)
     gsub(/\{\{PATCH_GUIDE_URL\}\}/, patch_guide_url)
+    gsub(/\{\{MANIFEST_GUIDE_URL\}\}/, manifest_guide_url)
     gsub(/\{\{COMPILER_EXAMPLES_URL\}\}/, compiler_examples_url)
     print
   }' "$template" > "$temporary_output"

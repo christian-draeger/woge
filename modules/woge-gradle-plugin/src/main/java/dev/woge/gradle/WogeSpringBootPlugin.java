@@ -40,6 +40,11 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
     }
 
     private void configure(Project project) {
+        project.getPluginManager().apply(WogeApplicationPlugin.class);
+        project.getTasks().withType(WogeManifestTask.class).configureEach(task ->
+                task.getHostAdapter().convention(project.getProviders()
+                        .gradleProperty("wogeSpringAdapter").map(adapter -> "spring-" + adapter)
+                        .orElse(project.getProviders().gradleProperty("wogeHostAdapter"))));
         String wogeVersion = wogeVersion();
         String springBootVersion = springBootVersion(project);
 
@@ -165,7 +170,7 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
         return paths;
     }
 
-    private static String wogeVersion() {
+    static String wogeVersion() {
         Properties properties = new Properties();
         try (InputStream input = WogeSpringBootPlugin.class.getResourceAsStream("woge-gradle-plugin.properties")) {
             if (input == null) {

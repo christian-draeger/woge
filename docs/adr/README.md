@@ -90,6 +90,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0061](0061-development-full-refresh-state-handoff.md) | Accepted | Preserve explicitly opted-in non-sensitive state around one bounded development reload |
 | [0062](0062-latest-intent-and-bounded-region-recovery.md) | Accepted | Register latest browser intent, ignore superseded frames and bound explicit safe region recovery |
 | [0063](0063-mutation-request-identities.md) | Accepted | Separate mutation UUIDs, verified authenticity and optional scoped lease-fenced replay reservations |
+| [0064](0064-compiler-owned-application-manifest.md) | Accepted | Compose a non-secret application manifest from deterministic compiler metadata and explicit build settings |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

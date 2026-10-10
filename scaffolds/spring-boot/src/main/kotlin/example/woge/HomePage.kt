@@ -3,6 +3,7 @@ package example.woge
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.WogeRoute
 import dev.woge.host.htmlPage
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
@@ -22,9 +23,12 @@ import dev.woge.html.stylesheet
 import dev.woge.html.title
 import dev.woge.html.ul
 
+@WogeRoute("/")
+public data object HomeInput
+
 /** A server-rendered page with normal HTML and no required browser runtime. */
-public class HomePage : PageUseCase<Unit> {
-    override suspend fun open(request: PageRequest<Unit>): PageResult =
+public class HomePage : PageUseCase<HomeInput> {
+    override suspend fun open(request: PageRequest<HomeInput>): PageResult =
         htmlPage {
             doctype()
             html(attributes = { attribute("lang", "en") }) {

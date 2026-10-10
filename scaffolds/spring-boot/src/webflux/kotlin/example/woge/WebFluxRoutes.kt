@@ -1,6 +1,5 @@
 package example.woge
 
-import dev.woge.spring.webflux.WebFluxPageInput
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,9 +14,9 @@ public class WebFluxRoutes {
         homePage: HomePage,
         handlers: WogeWebFluxHandlers,
     ): RouterFunction<ServerResponse> {
-        val page = handlers.page(homePage, WebFluxPageInput { Unit })
+        val page = handlers.page(homePage, HomeRoute)
         return coRouter {
-            GET("/", page::handle)
+            GET(HomeRoute.path, page::handle)
         }
     }
 }

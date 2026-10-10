@@ -83,7 +83,7 @@ Use the matching Woge checkout for this pre-release generator. Do not edit the g
 The generated-source root is `build/generated/ksp/main/kotlin`. The scaffold applies the KSP Gradle
 plugin, and the Woge plugin adds the Woge processor to it. The processor turns `@WogeRegion`
 functions into typed region descriptors; `./gradlew wogeDev` regenerates them on save. Generators own
-only that directory; edit application source under `src` and never commit generated output.
+the `build/generated/ksp` directories; edit application source under `src` and never commit generated output.
 
 ## Add deferred regions
 
@@ -142,6 +142,19 @@ the external stylesheet and useful content. Playwright is not a production depen
 
 Tailwind and Vite are intentionally absent. Add them later only when the application needs a frontend
 asset pipeline. Ktor is a supported Woge host, but it is not installed in this Spring-first scaffold.
+
+## Inspect application metadata
+
+Run `./gradlew wogeManifest` (or `./gradlew build`) to write `.woge/manifest.json`. It describes the
+selected host, versions, capabilities and compiler-generated descriptors, including `HomeRoute`.
+The MVC override changes the manifest's host too. No Node.js is needed.
+
+The file contains structural metadata, not page HTML, source bodies, secrets or runtime sessions.
+Do not commit it or serve it as an HTTP endpoint. A changed/failed compile invalidates the previous
+manifest, and `clean` removes it. It is not copied into the production JAR. Compiler catalogues and
+typed `wogeDescriptors` lists are structural library metadata and remain available to build consumers.
+See the [manifest guide](https://github.com/christian-draeger/woge/blob/main/docs/guides/application-manifest.md)
+for the schema and the typed in-process model.
 
 For more context, read the Woge
 [Spring Boot quickstart](https://github.com/christian-draeger/woge/blob/main/docs/guides/quickstart-spring-boot.md)

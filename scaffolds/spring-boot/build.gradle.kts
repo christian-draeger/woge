@@ -45,6 +45,11 @@ kotlin {
     }
 }
 
+tasks.named<dev.woge.gradle.WogeManifestTask>("wogeManifest") {
+    hostAdapter.set("spring-$wogeSpringAdapter")
+    capabilities.set(listOf("pages"))
+}
+
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
     implementation("dev.woge:woge-spring-boot-starter:$wogeVersion")
@@ -93,6 +98,7 @@ val verifyWogeAgentGuidance =
 
 tasks.test {
     dependsOn(verifyWogeAgentGuidance)
+    dependsOn("wogeManifest")
     useJUnitPlatform()
     systemProperty("woge.expected-adapter", wogeSpringAdapter)
 }

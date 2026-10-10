@@ -11,6 +11,15 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
+dependencies {
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 tasks.withType<JavaCompile>().configureEach {
     options.release = 17
     options.compilerArgs.addAll(listOf("-Xlint:all", "-Werror"))
@@ -18,6 +27,12 @@ tasks.withType<JavaCompile>().configureEach {
 
 gradlePlugin {
     plugins {
+        register("wogeApplication") {
+            id = "dev.woge.application"
+            implementationClass = "dev.woge.gradle.WogeApplicationPlugin"
+            displayName = "Woge application metadata"
+            description = "Generates a deterministic application manifest for any Woge host."
+        }
         register("wogeSpringBoot") {
             id = "dev.woge.spring-boot"
             implementationClass = "dev.woge.gradle.WogeSpringBootPlugin"
