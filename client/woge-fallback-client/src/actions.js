@@ -54,6 +54,7 @@ export function installWogeActionForms(root, runtime) {
 function eligibleSubmission(root, form, submitter) {
   const view = root.defaultView;
   if (!(form instanceof view.HTMLFormElement) || !form.hasAttribute("data-woge-action")) return;
+  if (typeof view.crypto?.randomUUID !== "function") return;
   if (submitter?.type === "image" || form.closest("dialog")) return;
   const override = (name) => submitter?.getAttribute(`form${name}`) ?? form.getAttribute(name);
   if ((override("method") ?? "get").toLowerCase() !== "post") return;
@@ -80,7 +81,10 @@ function eligibleSubmission(root, form, submitter) {
     if (typeof value !== "string") return;
     body.append(normalizeLines(name), normalizeLines(value));
   }
-  return { form, action, body, alert, summaryId: form.getAttribute("data-woge-error-summary") };
+  return {
+    form, action, body, alert, summaryId: form.getAttribute("data-woge-error-summary"),
+    identity: view.crypto.randomUUID(),
+  };
 }
 
 async function submit(root, runtime, submission, signal) {
@@ -89,7 +93,7 @@ async function submit(root, runtime, submission, signal) {
     body: submission.body,
     credentials: "same-origin",
     redirect: "error",
-    headers: { Accept: PATCH_STREAM_MEDIA_TYPE },
+    headers: { Accept: PATCH_STREAM_MEDIA_TYPE, "Woge-Request-Identity": submission.identity },
     signal,
   });
   const navigation = response.headers.get("Woge-Navigate");

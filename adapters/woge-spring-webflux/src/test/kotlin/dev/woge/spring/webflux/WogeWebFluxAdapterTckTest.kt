@@ -68,7 +68,10 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 application.actionSubmissions,
                 tckActionForm.webFluxSubmission(),
                 WebFluxRequestContextFactory { request ->
-                    tckActionContext(request.headers().firstHeader("X-Tck-Subject"))
+                    tckActionContext(
+                        request.headers().firstHeader("X-Tck-Subject"),
+                        verified = request.headers().firstHeader("X-Tck-Unverified") != "true",
+                    )
                 },
             )
         val complete = WogeWebFluxHandlers().page(application.actionCompletion, WebFluxPageInput { })

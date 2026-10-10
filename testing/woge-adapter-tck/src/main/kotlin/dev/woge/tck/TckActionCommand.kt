@@ -18,9 +18,11 @@ import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
 import dev.woge.host.RequestSecurity
 import dev.woge.host.RequestTrace
+import dev.woge.host.ResponseHeaders
 import dev.woge.host.WogeAction
 import dev.woge.host.actionValidationUpdates
 import dev.woge.host.failure
+import dev.woge.host.httpHeader
 import dev.woge.host.redirect
 import dev.woge.html.applicationUrl
 import kotlinx.serialization.Serializable
@@ -44,8 +46,20 @@ public suspend fun tckSubmit(
     command: TckActionCommand,
     context: RequestContext,
 ): PageResult =
-    if (authorized(context) && command.value in setOf("accepted", "update")) {
-        redirect(applicationUrl("/woge-tck/action-complete"))
+    if (authorized(context) &&
+        command.value in
+        setOf("accepted", "update", "replay-completed", "replay-rejected", "replay-ambiguous", "replay-in-progress")
+    ) {
+        redirect(
+            applicationUrl("/woge-tck/action-complete"),
+            headers =
+                ResponseHeaders.of(
+                    httpHeader(
+                        "Woge-Test-Identity",
+                        context.mutationIdentity?.value?.toString() ?: "absent",
+                    ),
+                ),
+        )
     } else {
         failure(FailureCategory.FORBIDDEN, context.correlationId)
     }
@@ -85,7 +99,10 @@ private fun authorized(context: RequestContext): Boolean {
 }
 
 /** Test-only ingress mapping: the harness simulates facts established by a host security integration. */
-public fun tckActionContext(subject: String?): RequestContext =
+public fun tckActionContext(
+    subject: String?,
+    verified: Boolean = true,
+): RequestContext =
     RequestContext(
         method = RequestMethod.POST,
         trace = RequestTrace(RequestId.of("tck-action"), CorrelationId.of("tck-action")),
@@ -95,6 +112,6 @@ public fun tckActionContext(subject: String?): RequestContext =
                     subject?.let {
                         AuthenticationFacts.Authenticated(PrincipalFacts(PrincipalId.of(it)))
                     } ?: AuthenticationFacts.Anonymous,
-                csrf = CsrfVerification.VERIFIED,
+                csrf = if (verified) CsrfVerification.VERIFIED else CsrfVerification.NOT_REQUIRED,
             ),
     )

@@ -76,6 +76,51 @@ missing or invalid CSRF verification at ingress, and only then supply `RequestCo
 submitted principal or CSRF-status field. The Woge handler reads its input after context creation;
 domain authorization still happens in the action.
 
+An action binding rejects `CsrfVerification.NOT_REQUIRED` with bodyless 403 before command decoding,
+even for an authenticated principal. Supply `VERIFIED` only after the configured host authenticity
+strategy has actually passed; do not copy that value from a submitted field.
+
+Enhanced forms also send a fresh random UUID in `Woge-Request-Identity`. Every action adapter makes
+it available as `request.context.mutationIdentity`, separately from the host's trace ID. A malformed
+or repeated header returns 400 before reading the command. Native forms can omit it; their command
+fields do not change. Diagnostics redact the identity.
+
+This does **not** make a mutation idempotent: until an explicitly scoped reservation store is
+configured, duplicate permitted requests can still change data twice. The client never retries a
+POST, and domain authorization is still required on every call. See
+[ADR 0063](../adr/0063-mutation-request-identities.md).
+
+### Reserve a mutation explicitly
+
+`MutationReservationStore` is an optional infrastructure port, not part of your domain interface.
+Supply a durable implementation with atomic scope/identity reservation and lease-fenced resolution.
+After current CSRF and domain authorization, construct a `MutationReservationRequest` with:
+
+- a trusted scope including the action, subject and resource;
+- the request identity and a SHA-256 fingerprint of your canonical command;
+- a fixed identity expiry and a later retention deadline, established in trusted state or signed context.
+
+Never derive the scope or renew the expiry from untrusted request fields. `reserve(request, now)`
+returns `Acquired(lease)` only once. Existing states distinguish ongoing work, completed work,
+rejected work, an ambiguous commit, an expired identity and a conflicting command or replay window.
+None permits repeating the mutation automatically.
+
+After explicit domain commit facts are known, `resolve(request, lease, resolution, now)` records
+`COMPLETED`, `REJECTED` (no commit), or `AMBIGUOUS`. A lost response, exception, crash or cancelled
+request may have committed; never release that reservation for another execution. Storage errors
+propagate. Your transaction design coordinates durable domain state and the reservation; Woge
+cannot infer commit from a 200/400/500 response or safely cache streamed HTML for a future document.
+
+Native success remains POST–redirect–GET: refreshing the GET never repeats a mutation. A deliberate
+native resubmit needs your issued replay identity/window. Enhancement sends the UUID header but
+still never retries a POST or treats a completed reservation as authorization.
+
+The shared matrices `WOGE-CSRF-001`, `WOGE-AUTH-001` and `WOGE-REPLAY-001` run on MVC, WebFlux and
+Ktor. They cover native and enhanced tokens, missing/invalid/expired-session rejection, authorization
+on duplicates, completed/rejected/ambiguous reservations, changed-command conflicts, and exact
+mutation counts. Spring tests use real Spring Security; Ktor's test explicitly supplies a bounded
+form and session-token policy. The fixture store and session-expiry route are test-only.
+
 The body must still be readable when decoding starts. A Servlet security filter that calls
 `getParameter` can consume the form before Woge sees it. Such integrations need a bounded,
 replayable request body or a verification path that leaves the body intact; the bindings do not

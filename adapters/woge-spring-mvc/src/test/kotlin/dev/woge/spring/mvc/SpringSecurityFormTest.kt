@@ -8,6 +8,7 @@ import dev.woge.tck.SecurityFormContract
 import dev.woge.tck.TckSubmitAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionValidation
+import dev.woge.tck.tckSecurityAction
 import dev.woge.tck.tckSecurityForm
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -81,7 +82,7 @@ private class SecurityFormConfiguration {
     fun routes(): SimpleUrlHandlerMapping {
         val action =
             WogeSpringMvcHandlers().action(
-                TckSubmitAction.withFormValidation(tckActionValidation),
+                tckSecurityAction().withFormValidation(tckActionValidation),
                 SpringMvcPageInput { request ->
                     (request.getAttribute(PREPARED_SECURITY_FORM_ATTRIBUTE) as PreparedSecurityForm).submission
                 },
@@ -97,7 +98,15 @@ private class SecurityFormConfiguration {
                 response.writer.write(token.token)
             }
 
-        return SimpleUrlHandlerMapping(mapOf(TckSubmitAction.path to action, "/csrf" to csrf), 0)
+        val expire =
+            HttpRequestHandler { request, response ->
+                request.getSession(false)?.invalidate()
+                response.status = 200
+            }
+        return SimpleUrlHandlerMapping(
+            mapOf(TckSubmitAction.path to action, "/csrf" to csrf, "/expire-tck-session" to expire),
+            0,
+        )
     }
 }
 

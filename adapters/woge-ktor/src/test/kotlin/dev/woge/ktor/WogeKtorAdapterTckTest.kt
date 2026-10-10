@@ -69,7 +69,12 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
             WogeKtorHandlers().action(
                 application.actionSubmissions,
                 tckActionForm.ktorSubmission(),
-                KtorRequestContextFactory { call -> tckActionContext(call.request.headers["X-Tck-Subject"]) },
+                KtorRequestContextFactory { call ->
+                    tckActionContext(
+                        call.request.headers["X-Tck-Subject"],
+                        verified = call.request.headers["X-Tck-Unverified"] != "true",
+                    )
+                },
             )
         val complete = WogeKtorHandlers().page(application.actionCompletion, KtorPageInput { })
         val server =

@@ -23,6 +23,9 @@ test("preserves successful controls and submitter overrides, keeps focus and ann
   expect(requests).toHaveLength(1);
   expect(requests[0].method()).toBe("POST");
   expect(requests[0].headers().accept).toBe(mediaType);
+  expect(requests[0].headers()["woge-request-identity"]).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
   expect(Array.from(new URLSearchParams(requests[0].postData()))).toEqual([
     ["title", "A & B"], ["tag", "one"], ["tag", "two"], ["_csrf", "token"], ["intent", "preview"],
   ]);
@@ -60,6 +63,35 @@ test("busy state is focusable, blocks duplicate submits and restores original at
   release();
   await expect(page.getByRole("status")).toHaveText("Saved");
   await expect(page.locator("form")).toHaveAttribute("aria-busy", "false");
+});
+
+test("distinct submissions allocate distinct mutation identities without adding domain fields", async ({ page }) => {
+  const requests = [];
+  await page.route("**/action", async (route) => {
+    requests.push(route.request());
+    await route.continue();
+  });
+  const button = page.getByRole("button", { name: "Save", exact: true });
+  await button.click();
+  await expect(page.locator("form")).not.toHaveAttribute("aria-busy");
+  await button.click();
+  await expect(page.locator("form")).not.toHaveAttribute("aria-busy");
+  expect(requests).toHaveLength(2);
+  expect(requests[0].headers()["woge-request-identity"]).not.toBe(requests[1].headers()["woge-request-identity"]);
+  expect(Array.from(new URLSearchParams(requests[0].postData()).keys())).not.toContain("mutationIdentity");
+});
+
+test("without secure UUID generation the form remains native", async ({ page }) => {
+  await page.evaluate(() => {
+    Object.defineProperty(crypto, "randomUUID", { value: undefined });
+    document.addEventListener("submit", (event) => {
+      globalThis.nativeSubmission = !event.defaultPrevented;
+      event.preventDefault();
+    }, { once: true });
+  });
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  expect(await page.evaluate(() => globalThis.nativeSubmission)).toBe(true);
+  await expect(page.locator("form")).not.toHaveAttribute("aria-busy");
 });
 
 test("validation focuses the document-owned summary without a success or failure announcement", async ({ page }) => {

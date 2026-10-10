@@ -36,6 +36,67 @@ public class SecurityFormContract {
         expectStatus(ResponseStatus.BAD_REQUEST, post(client, origin, "tck-user", token.body(), "value=a&value=b"))
         expectStatus(ResponseStatus.UNAUTHORIZED, post(client, origin, null, token.body(), "value=accepted"))
         verifyNative(client, origin, token.body())
+        verifyReplay(client, origin, token.body())
+        verifyExpiredSession(client, origin, token.body())
+    }
+
+    private fun verifyExpiredSession(
+        client: HttpClient,
+        origin: URI,
+        token: String,
+    ) {
+        val expired =
+            client.send(
+                HttpRequest
+                    .newBuilder(origin.resolve("/expire-tck-session"))
+                    .header("Authorization", basic("tck-user"))
+                    .GET()
+                    .build(),
+                HttpResponse.BodyHandlers.discarding(),
+            )
+        expectStatus(ResponseStatus.OK, expired)
+        expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "tck-user", token, "value=accepted"))
+        val field = "_csrf=${java.net.URLEncoder.encode(token, Charsets.UTF_8)}"
+        expectStatus(ResponseStatus.FORBIDDEN, post(client, origin, "tck-user", null, "value=accepted&$field"))
+    }
+
+    private fun verifyReplay(
+        client: HttpClient,
+        origin: URI,
+        token: String,
+    ) {
+        var count = 0
+        for (enhanced in listOf(false, true)) {
+            for ((command, state, changes) in listOf(
+                Triple("replay-completed", "COMPLETED", 1),
+                Triple("replay-rejected", "REJECTED", 0),
+                Triple("replay-ambiguous", "AMBIGUOUS", 1),
+                Triple("replay-in-progress", "IN_PROGRESS", 0),
+            )) {
+                val identity =
+                    java.util.UUID
+                        .randomUUID()
+                        .toString()
+                val field = "_csrf=${java.net.URLEncoder.encode(token, Charsets.UTF_8)}"
+                val body = "value=$command" + if (enhanced) "" else "&$field"
+                count += changes
+                repeat(2) {
+                    val response =
+                        post(client, origin, "tck-user", if (enhanced) token else null, body, identity, enhanced)
+                    expectStatus(if (enhanced) ResponseStatus.OK else ResponseStatus.SEE_OTHER, response)
+                    check(response.headers().firstValue("Woge-Test-Mutation-State").orElseThrow() == state)
+                    check(response.headers().firstValue("Woge-Test-Mutation-Count").orElseThrow() == count.toString())
+                }
+                expectStatus(
+                    ResponseStatus.FORBIDDEN,
+                    post(client, origin, "other-user", token, body, identity, enhanced),
+                )
+                expectStatus(
+                    ResponseStatus.FORBIDDEN,
+                    post(client, origin, "tck-user", null, "value=$command", identity, enhanced),
+                )
+            }
+        }
     }
 
     private fun verifyNative(
@@ -69,12 +130,15 @@ public class SecurityFormContract {
         )
     }
 
+    @Suppress("LongParameterList")
     private fun post(
         client: HttpClient,
         origin: URI,
         user: String?,
         token: String?,
         body: String,
+        identity: String? = null,
+        enhanced: Boolean = false,
     ): HttpResponse<String> =
         client.send(
             HttpRequest
@@ -83,6 +147,8 @@ public class SecurityFormContract {
                 .apply {
                     user?.let { header("Authorization", basic(it)) }
                     token?.let { header("X-CSRF-TOKEN", it) }
+                    identity?.let { header("Woge-Request-Identity", it) }
+                    if (enhanced) header("Accept", dev.woge.protocol.PatchStreamV1.MEDIA_TYPE)
                 }.POST(HttpRequest.BodyPublishers.ofString(body))
                 .build(),
             HttpResponse.BodyHandlers.ofString(),
