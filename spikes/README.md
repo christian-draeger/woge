@@ -36,6 +36,7 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 | State | Spike | Decision | Production successor |
 | --- | --- | --- | --- |
 | Retired | [`spring-boot-reload-topology`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-boot-reload-topology) | Woge-owned orchestration, Spring DevTools trigger adapter, SSE lifecycle channel and no initial proxy in ADR [0041](../docs/adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Orchestrator [#147](https://github.com/christian-draeger/woge/issues/147), Spring restart [#144](https://github.com/christian-draeger/woge/issues/144) and browser channel [#145](https://github.com/christian-draeger/woge/issues/145) |
+| Frozen | [`vite-frontend`](vite-frontend/) | Optional, directly invoked Vite adapter; Kotlin sources stay outside Vite in ADR [0070](../docs/adr/0070-optional-direct-vite-frontend-adapter.md) | Vite adapter [#205](https://github.com/christian-draeger/woge/issues/205) |
 
 ## Repository rules
 

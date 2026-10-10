@@ -1,0 +1,14 @@
+@layer application {
+  :root {
+    --surface: oklch(98% 0.01 250);
+  }
+
+  .card {
+    background: var(--surface);
+    padding-inline: 1rem;
+
+    & h2 {
+      margin-block: 0;
+    }
+  }
+}

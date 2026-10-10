@@ -1,0 +1,14 @@
+{
+  "name": "woge-vite-frontend-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "measure": "node measure.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.4"
+  }
+}

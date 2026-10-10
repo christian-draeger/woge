@@ -1,0 +1,35 @@
+name: Vite frontend spike
+
+on:
+  pull_request:
+    paths:
+      - "spikes/vite-frontend/**"
+      - ".github/workflows/vite-frontend-spike.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spikes/vite-frontend/**"
+      - ".github/workflows/vite-frontend-spike.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: spikes/vite-frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: spikes/vite-frontend
+      - run: ./spikes/vite-frontend/validate.sh
