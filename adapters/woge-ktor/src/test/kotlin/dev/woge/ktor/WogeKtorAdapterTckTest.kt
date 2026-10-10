@@ -5,6 +5,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
+import dev.woge.tck.AdapterTckLiveRoute
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
@@ -69,6 +70,9 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val route = WogeKtorHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val live =
+            WogeKtorHandlers(observer = application.observer, liveLimits = application.liveLimits)
+                .live(application.live, AdapterTckLiveRoute)
         val failures =
             WogeKtorHandlers(failurePages = application.failurePages)
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
@@ -93,6 +97,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     head(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     get(AdapterTckRoutes.DEFERRED_PATTERN) { deferred.handle(call) }
                     get(AdapterTckRoute.path) { route.handle(call) }
+                    get(AdapterTckLiveRoute.path) { live.handle(call) }
                     get(AdapterTckFailureRoute.path) { failures.handle(call) }
                     head(AdapterTckFailureRoute.path) { failures.handle(call) }
                     post(TckSubmitAction.path) { action.handle(call) }

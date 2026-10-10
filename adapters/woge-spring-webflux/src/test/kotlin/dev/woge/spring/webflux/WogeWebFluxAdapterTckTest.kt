@@ -5,6 +5,7 @@ import dev.woge.tck.AdapterTckCapability
 import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
+import dev.woge.tck.AdapterTckLiveRoute
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
@@ -65,20 +66,13 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 patchStreamLimits = application.deferredPatchStreamLimits,
             )
         val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val live =
+            WogeWebFluxHandlers(observer = application.observer, liveLimits = application.liveLimits)
+                .live(application.live, AdapterTckLiveRoute)
         val failures =
             WogeWebFluxHandlers(failurePages = application.failurePages)
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
-        val action =
-            WogeWebFluxHandlers().action(
-                application.actionSubmissions,
-                tckActionForm.webFluxSubmission(),
-                WebFluxRequestContextFactory { request ->
-                    tckActionContext(
-                        request.headers().firstHeader("X-Tck-Subject"),
-                        verified = request.headers().firstHeader("X-Tck-Unverified") != "true",
-                    )
-                },
-            )
+        val action = submitAction(application)
         val complete = WogeWebFluxHandlers().page(application.actionCompletion, WebFluxPageInput { })
         val upload = uploadAction(application)
         val uploadPage = WogeWebFluxHandlers().page(tckUploadPage, WebFluxPageInput { })
@@ -88,6 +82,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 HEAD(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 GET(AdapterTckRoutes.DEFERRED_PATTERN, deferred::handle)
                 GET(AdapterTckRoute.path, route::handle)
+                GET(AdapterTckLiveRoute.path, live::handle)
                 GET(AdapterTckFailureRoute.path, failures::handle)
                 HEAD(AdapterTckFailureRoute.path, failures::handle)
                 POST(TckSubmitAction.path, action::handle)
@@ -105,6 +100,18 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 .bindNow(),
         )
     }
+
+    private fun submitAction(application: AdapterTckApplication) =
+        WogeWebFluxHandlers().action(
+            application.actionSubmissions,
+            tckActionForm.webFluxSubmission(),
+            WebFluxRequestContextFactory { request ->
+                tckActionContext(
+                    request.headers().firstHeader("X-Tck-Subject"),
+                    verified = request.headers().firstHeader("X-Tck-Unverified") != "true",
+                )
+            },
+        )
 
     private fun uploadAction(application: AdapterTckApplication) =
         WogeWebFluxHandlers().action(

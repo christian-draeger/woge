@@ -3,11 +3,14 @@ package dev.woge.ktor
 import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
+import dev.woge.host.LiveLimits
+import dev.woge.host.LiveUseCase
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.PatchStreamLimits
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
+import dev.woge.runtime.LiveAdmission
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -21,7 +24,10 @@ public class WogeKtorHandlers(
     private val failurePages: FailurePages = FailurePages.NONE,
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
+    liveLimits: LiveLimits = LiveLimits(),
 ) {
+    private val liveAdmission = LiveAdmission(liveLimits)
+
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     }
@@ -72,4 +78,19 @@ public class WogeKtorHandlers(
             maxRegions = maxRegions,
             patchStreamLimits = patchStreamLimits,
         )
+
+    /**
+     * Creates a live-update (Server-Sent Events) handler. All live handlers from this factory share
+     * one application-wide subscription limit.
+     */
+    public fun <Input : Any> live(
+        useCase: LiveUseCase<Input>,
+        input: KtorPageInput<Input>,
+    ): WogeKtorLiveHandler<Input> = WogeKtorLiveHandler(useCase, input, contexts, liveAdmission, observer)
+
+    /** Creates a live-update handler for a generated route: `get(LiveRoute.path) { live.handle(call) }`. */
+    public fun <Input : Any> live(
+        useCase: LiveUseCase<Input>,
+        route: PageRoute<Input>,
+    ): WogeKtorLiveHandler<Input> = live(useCase, route.ktorInput())
 }

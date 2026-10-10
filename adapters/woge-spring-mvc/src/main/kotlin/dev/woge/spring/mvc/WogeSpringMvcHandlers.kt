@@ -3,11 +3,14 @@ package dev.woge.spring.mvc
 import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
+import dev.woge.host.LiveLimits
+import dev.woge.host.LiveUseCase
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.PatchStreamLimits
 import dev.woge.host.WogeObserver
 import dev.woge.runtime.DeferredRegionPolicy
+import dev.woge.runtime.LiveAdmission
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
@@ -25,8 +28,10 @@ public class WogeSpringMvcHandlers(
     private val failurePages: FailurePages = FailurePages.NONE,
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
+    liveLimits: LiveLimits = LiveLimits(),
 ) {
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
+    private val liveAdmission = LiveAdmission(liveLimits)
     private val asyncTimeoutMillis: Long
 
     init {
@@ -86,4 +91,20 @@ public class WogeSpringMvcHandlers(
             observer,
             patchStreamLimits,
         )
+
+    /**
+     * Creates a live-update (Server-Sent Events) handler. All live handlers from this factory share
+     * one application-wide subscription limit.
+     */
+    public fun <Input : Any> live(
+        useCase: LiveUseCase<Input>,
+        input: SpringMvcPageInput<Input>,
+    ): WogeSpringMvcLiveHandler<Input> =
+        WogeSpringMvcLiveHandler(useCase, input, contexts, dispatcher, liveAdmission, observer)
+
+    /** Creates a live-update handler for a generated route. Map it at the route's own path. */
+    public fun <Input : Any> live(
+        useCase: LiveUseCase<Input>,
+        route: PageRoute<Input>,
+    ): WogeSpringMvcLiveHandler<Input> = live(useCase, route.springMvcInput())
 }

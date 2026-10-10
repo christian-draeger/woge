@@ -6,6 +6,8 @@ public enum class ResourceLimit {
     PAGE_BYTES,
     PATCH_STREAM_BYTES,
     PATCH_COUNT,
+    LIVE_SUBSCRIPTIONS,
+    LIVE_SESSION_SUBSCRIPTIONS,
 }
 
 /** Identifies a rejected budget and its configured threshold, without recording submitted content. */

@@ -15,6 +15,7 @@ import dev.woge.host.enhancedActionNavigation
 import dev.woge.html.HtmlByteBudget
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
+import dev.woge.runtime.LiveEventStream
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import dev.woge.runtime.renderByteChunks
@@ -85,6 +86,18 @@ internal suspend fun Flow<EncodedPatchChunk>.toWebFluxPatchResponse(): ServerRes
         .header("Cache-Control", "no-store")
         .body(patchBody(this))
         .awaitSingle()
+
+internal suspend fun Flow<ByteArray>.toWebFluxLiveResponse(): ServerResponse {
+    val builder =
+        ServerResponse
+            .ok()
+            .contentType(MediaType.parseMediaType("${LiveEventStream.MEDIA_TYPE};charset=UTF-8"))
+    LiveEventStream.HEADERS.forEach { (name, value) -> builder.header(name, value) }
+    val events = this
+    return builder
+        .body(flushingBody { response -> events.map { Flux.just(response.bufferFactory().wrap(it)) }.asPublisher() })
+        .awaitSingle()
+}
 
 private fun responseBuilder(
     metadata: ResponseMetadata,

@@ -36,12 +36,18 @@ public final class dev/woge/spring/webflux/WogeWebFluxDeferredHandler {
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxHandlers {
-	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/spring/webflux/WebFluxRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/spring/webflux/WebFluxPageInput;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;)Ldev/woge/spring/webflux/WogeWebFluxActionHandler;
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxDeferredHandler;
+	public final fun live (Ldev/woge/host/LiveUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WogeWebFluxLiveHandler;
+	public final fun live (Ldev/woge/host/LiveUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxLiveHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/spring/webflux/WebFluxPageInput;)Ldev/woge/spring/webflux/WogeWebFluxPageHandler;
+}
+
+public final class dev/woge/spring/webflux/WogeWebFluxLiveHandler {
+	public final fun handle (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/woge/spring/webflux/WogeWebFluxPageHandler {

@@ -32,5 +32,12 @@ completion frame. Bind `application.observer` on page/deferred handlers and
 allowance proves host override wiring and incremental rejection without allocating multi-megabyte
 test responses. It is not the production default.
 
+Live updates are part of the core contract. Bind `handlers(liveLimits = application.liveLimits)
+.live(application.live, AdapterTckLiveRoute)` with `application.observer`. The `live-sse` contract
+checks a refused subscription, SSE headers and retry hint, merged invalidations with increasing ids,
+heartbeats, `resync` after `Last-Event-ID`, the 429 session and 503 application limits, and that
+closing a connection releases the subscription. See the
+[live updates guide](../../docs/guides/live-updates.md).
+
 See the [server-adapter parity matrix](../../docs/architecture/server-adapter-parity.md) for contract
 ownership and current adapter coverage.
