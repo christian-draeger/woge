@@ -37,6 +37,7 @@ export const AFTER_REMOVE_EVENT = "woge:after-remove";
 export class PageRegionRegistry {
   #document;
   #regions = new Map();
+  #interaction = 0n;
 
   constructor(root) {
     if (!root || root.nodeType !== 9 || typeof root.querySelectorAll !== "function") {
@@ -45,6 +46,54 @@ export class PageRegionRegistry {
     this.#document = root;
     this.epoch = readPageEpoch(root);
     this.#registerInitialRegions();
+    for (const entry of this.#regions.values()) {
+      if (entry.interactionSequence > this.#interaction) this.#interaction = entry.interactionSequence;
+    }
+  }
+
+  beginInteraction(targets) {
+    this.#assertRegistryIntegrity();
+    if (!Array.isArray(targets) || targets.length === 0 || targets.length > 128 ||
+        new Set(targets).size !== targets.length) {
+      fail("WOGE_INVALID_INTERACTION", "An interaction requires distinct registered targets");
+    }
+    const entries = targets.map((target) => {
+      const entry = this.#regions.get(target);
+      if (!entry) fail("WOGE_UNKNOWN_TARGET", "Interaction target is not registered");
+      this.#assertEntryState(entry);
+      return entry;
+    });
+    let latest = this.#interaction;
+    for (const entry of this.#regions.values()) {
+      if (entry.interactionSequence > latest) latest = entry.interactionSequence;
+    }
+    if (latest === MAX_SIGNED_LONG) {
+      fail("WOGE_INTERACTION_EXHAUSTED", "Interaction overflow requires a new page epoch");
+    }
+    const sequence = latest + 1n;
+    for (const entry of entries) {
+      entry.element.setAttribute(INTERACTION_ATTRIBUTE, sequence.toString());
+      entry.interactionSequence = sequence;
+    }
+    this.#interaction = sequence;
+    return Object.freeze({
+      pageEpoch: this.epoch,
+      interactionSequence: sequence.toString(),
+      targets: Object.freeze(entries.map((entry) => Object.freeze({
+        target: entry.id, baseRevision: entry.revision.toString(),
+      }))),
+    });
+  }
+
+  interactionContext(target) {
+    this.#assertRegistryIntegrity();
+    const entry = this.#regions.get(target);
+    if (!entry) fail("WOGE_UNKNOWN_TARGET", "Recovery target is not registered");
+    this.#assertEntryState(entry);
+    return {
+      pageEpoch: this.epoch,
+      targets: [{ target: entry.id, baseRevision: entry.revision.toString() }],
+    };
   }
 
   applyPatch(patch) {
@@ -56,6 +105,9 @@ export class PageRegionRegistry {
     const entry = this.#regions.get(patch.target);
     if (!entry) fail("WOGE_UNKNOWN_TARGET", "Patch target is not registered in the active page");
     this.#assertEntryState(entry);
+    if (patch.interactionSequence < entry.interactionSequence || patch.nextRevision <= entry.revision) {
+      return "stale";
+    }
     if (patch.interactionSequence !== entry.interactionSequence) {
       fail("WOGE_INTERACTION_MISMATCH", "Patch does not belong to the active target interaction");
     }

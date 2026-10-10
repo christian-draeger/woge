@@ -34,12 +34,17 @@ const BROWSER_APPLY_CODES = new Set([
   "WOGE_ITEM_CHANGED",
   "WOGE_INVALID_BROWSER_STATE",
   "WOGE_BROWSER_STATE_CONFLICT",
+  "WOGE_INVALID_INTERACTION",
+  "WOGE_INVALID_RESYNC",
+  "WOGE_RESYNC_EXHAUSTED",
 ]);
 const LOCAL_OUTCOMES = new Map([
   ["WOGE_UNSAFE_ACTION_NAVIGATION", ["security", "fail-closed"]],
   ["WOGE_UNSUPPORTED_VERSION", ["incompatible-client", "reload-page"]],
   ["WOGE_STALE_PAGE_EPOCH", ["stale", "reload-page"]],
   ["WOGE_INTERACTION_MISMATCH", ["stale", "ignore-stale"]],
+  ["WOGE_STALE_PATCH", ["stale", "ignore-stale"]],
+  ["WOGE_INTERACTION_EXHAUSTED", ["stale", "reload-page"]],
   ["WOGE_CANCELLED", ["cancelled", "ignore-stale"]],
   ["WOGE_REVISION_MISMATCH", ["stale", "refetch-region"]],
   ["WOGE_UNKNOWN_TARGET", ["stale", "refetch-region"]],
@@ -64,17 +69,21 @@ export function classifyWogeFailure(problem, { safeRequest = false } = {}) {
 }
 
 /**
- * Bounds automatic recovery: at most one reload per page epoch and tab, and at most one retry per
- * request key. Recovery therefore cannot loop.
+ * Bounds automatic recovery across fresh document epochs: one reload for the current page URL and
+ * tab, and one retry per request key. A non-browser caller can supply its own stable pageUrl.
  */
-export function createWogeRecoveryBudget({ storage = globalThis.sessionStorage } = {}) {
+export function createWogeRecoveryBudget({
+  storage, pageUrl = globalThis.location?.href,
+} = {}) {
   const retried = new Set();
   return Object.freeze({
     tryReload(pageEpoch) {
-      const key = `woge:reloaded:${pageEpoch}`;
+      const key = "woge:reload-attempt";
+      const page = pageUrl ?? pageEpoch;
       try {
-        if (!storage || storage.getItem(key) !== null) return false;
-        storage.setItem(key, "1");
+        const session = storage === undefined ? globalThis.sessionStorage : storage;
+        if (!session || session.getItem(key) === page) return false;
+        session.setItem(key, page);
         return true;
       } catch {
         return false;

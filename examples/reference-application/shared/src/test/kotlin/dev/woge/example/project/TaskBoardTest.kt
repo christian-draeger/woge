@@ -16,12 +16,65 @@ import org.junit.jupiter.api.Test
 
 class TaskBoardTest {
     @Test
+    fun `region refresh rejects invalid context and never mutates domain data`() =
+        runTest {
+            val board = TaskBoard()
+            val html = document(board)
+            val epoch = Regex("""name="epoch" value="([^"]+)"""").find(html)!!.groupValues[1]
+            val target = Regex("""data-woge-region="([^"]+)"[^>]*><ul id="board-tasks"""").find(html)!!.groupValues[1]
+            val context =
+                RequestContext(RequestMethod.GET, RequestTrace(RequestId.of("refresh"), CorrelationId.of("refresh")))
+            val result =
+                board.refresh.open(
+                    PageRequest(BoardRegionInput(epoch, target, 5, 3, "Review"), context),
+                ) as PageResult.RegionUpdates
+            assertEquals(
+                5L,
+                result.patches
+                    .single()
+                    .revision.base.value,
+            )
+            assertEquals(
+                3L,
+                result.patches
+                    .single()
+                    .interactionSequence.value,
+            )
+            assertEquals(
+                true,
+                result.patches
+                    .single()
+                    .html.value
+                    .contains("Review the project"),
+            )
+            for (input in listOf(
+                BoardRegionInput(epoch, target, -1, 3),
+                BoardRegionInput(epoch, target, Long.MAX_VALUE, 3),
+                BoardRegionInput(epoch, target, 0, -1),
+                BoardRegionInput("", target, 0, 3),
+                BoardRegionInput(epoch, target, 0, 3, "a".repeat(121)),
+            )) {
+                val failure = board.refresh.open(PageRequest(input, context)) as PageResult.Failure
+                assertEquals(FailureCategory.BAD_REQUEST, failure.failure.category)
+            }
+            val unknown =
+                board.refresh.open(
+                    PageRequest(BoardRegionInput(epoch, "unknown", 0, 3), context),
+                ) as PageResult.Failure
+            assertEquals(FailureCategory.NOT_FOUND, unknown.failure.category)
+            assertEquals(
+                html.substringAfter("<ul").substringBefore("</ul>"),
+                document(board).substringAfter("<ul").substringBefore("</ul>"),
+            )
+        }
+
+    @Test
     fun `one mutation prepares ordered authoritative regions and stale submissions never mutate again`() =
         runTest {
             val board = TaskBoard()
             val html = document(board)
             val epoch = Regex("""name="epoch" value="([^"]+)"""").find(html)!!.groupValues[1]
-            val command = AddBoardTask("A new task", epoch, 0, 0)
+            val command = AddBoardTask("A new task", epoch, 0, 0, interaction = 2)
             val result =
                 assertInstanceOf(
                     PageResult.RegionUpdates::class.java,
@@ -38,6 +91,7 @@ class TaskBoardTest {
             )
             assertEquals(listOf(0L, 0L, 0L, 0L), result.patches.map { it.revision.base.value })
             assertEquals(listOf(1L, 1L, 1L, 1L), result.patches.map { it.revision.next.value })
+            assertEquals(listOf(2L, 2L, 2L, 2L), result.patches.map { it.interactionSequence.value })
             assertEquals(
                 true,
                 result.patches[0]

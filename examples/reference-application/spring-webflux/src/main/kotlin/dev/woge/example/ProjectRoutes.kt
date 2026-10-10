@@ -1,6 +1,7 @@
 package dev.woge.example
 
 import dev.woge.example.project.AddBoardTaskAction
+import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
@@ -41,6 +42,7 @@ public class ProjectRoutes {
     public fun taskBoardRoutes(handlers: WogeWebFluxHandlers): RouterFunction<ServerResponse> {
         val board = TaskBoard()
         val page = handlers.page(board.page, TaskBoardRoute)
+        val refresh = handlers.page(board.refresh, BoardRegionRoute)
         val action =
             handlers.action(
                 board.action,
@@ -49,6 +51,7 @@ public class ProjectRoutes {
             )
         return coRouter {
             GET(TaskBoardRoute.path, page::handle)
+            GET(BoardRegionRoute.path, refresh::handle)
             POST(AddBoardTaskAction.path) { request ->
                 val uri = request.uri()
                 val origin = "${uri.scheme}://${uri.rawAuthority}"

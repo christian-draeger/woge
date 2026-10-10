@@ -44,6 +44,7 @@ public final class dev/woge/host/ActionRegionUpdatesKt {
 	public static synthetic fun actionRegionUpdates-CtbFQ_Y$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static final fun actionValidationUpdates-WIkas4w (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static synthetic fun actionValidationUpdates-WIkas4w$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun regionRefresh-VSjR1bo (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJ)Ldev/woge/host/PageResult$RegionUpdates;
 }
 
 public final class dev/woge/host/ActionRegistry {

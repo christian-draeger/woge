@@ -13,7 +13,7 @@ exactly one predictable reaction. This page is the reference; the decision and i
 | `error-response` | The server answers with an ordinary HTML status page or re-rendered form. | Invalid form input, missing login |
 | `ignore-stale` | The result is dropped because newer work has replaced it. | An older search finishes after a newer one |
 | `refetch-region` | Woge asks the server for the current state of one region. | The region revision no longer matches |
-| `reload-page` | The browser loads the page again, at most once per page epoch and tab. | A new deployment or protocol version |
+| `reload-page` | The browser loads the page again, once for the current page URL and tab, even across fresh epochs. | A new deployment or protocol version |
 | `retry-safe` | The request is sent once more. This happens only for a safe GET without side effects. | Network failure while loading deferred regions |
 
 Woge never repeats a form submission or any other request with side effects on its own. A retry

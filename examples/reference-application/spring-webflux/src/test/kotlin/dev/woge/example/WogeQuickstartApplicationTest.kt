@@ -67,6 +67,7 @@ class WogeQuickstartApplicationTest {
 
         assertEquals(404, get(origin, "/projects/missing").statusCode())
         assertEquals(400, get(origin, "/projects/woge?view=unknown").statusCode())
+        assertEquals(404, get(origin, "/projects/woge/woge-patches/invalid-epoch").statusCode())
 
         val css = get(origin, "/assets/application.css")
         assertTrue(css.body().contains("@container (width >= 32rem)"))

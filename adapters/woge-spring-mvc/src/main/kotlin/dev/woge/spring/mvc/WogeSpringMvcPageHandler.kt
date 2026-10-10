@@ -3,6 +3,7 @@ package dev.woge.spring.mvc
 import dev.woge.host.FailurePages
 import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
+import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
@@ -67,7 +68,12 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                 response,
                 observer,
                 observationContext,
-                actionAccept = if (allowedMethods == setOf("POST")) request.getHeader("Accept").orEmpty() else null,
+                actionAccept =
+                    if (allowedMethods == setOf("POST") || result is PageResult.RegionUpdates) {
+                        request.getHeader("Accept").orEmpty()
+                    } else {
+                        null
+                    },
             )
         }
     }

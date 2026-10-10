@@ -68,6 +68,7 @@ class WogeMvcQuickstartApplicationTest {
 
         assertEquals(404, get(origin, "/projects/missing").statusCode())
         assertEquals(400, get(origin, "/projects/woge?view=unknown").statusCode())
+        assertEquals(404, get(origin, "/projects/woge/woge-patches/invalid-epoch").statusCode())
         val wrongPageMethod = post(origin, "/projects/woge")
         assertEquals(405, wrongPageMethod.statusCode())
         assertEquals("GET, HEAD", wrongPageMethod.header("allow"))

@@ -88,6 +88,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0059](0059-identified-collection-patches.md) | Accepted | Append and remove identified collection items with contiguous revisions and explicit removal focus recovery |
 | [0060](0060-explicit-browser-owned-state.md) | Accepted | Preserve keyed dirty controls, focus and text selection with explicit reset and native-node ownership |
 | [0061](0061-development-full-refresh-state-handoff.md) | Accepted | Preserve explicitly opted-in non-sensitive state around one bounded development reload |
+| [0062](0062-latest-intent-and-bounded-region-recovery.md) | Accepted | Register latest browser intent, ignore superseded frames and bound explicit safe region recovery |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

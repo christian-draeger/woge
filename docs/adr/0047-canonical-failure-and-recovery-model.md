@@ -39,7 +39,8 @@ These rules are fixed:
    idempotent GET without side effects, such as loading deferred regions) can get `retry-safe`.
    HTTP error statuses are never retried. A future retry for mutations needs its own idempotency
    ADR.
-2. **Recovery is bounded.** `reload-page` runs at most once per page epoch and browser tab;
+2. **Recovery is bounded.** `reload-page` runs at most once for the current page URL and browser tab
+   (refined in [ADR 0062](0062-latest-intent-and-bounded-region-recovery.md), because reload creates a fresh epoch);
    `retry-safe` runs at most once per request. Without session storage there is no automatic
    reload at all.
 3. **The server decides about reload after commit.** A terminal Error frame carries `reload` or

@@ -176,14 +176,15 @@ test("emits delegated lifecycle events and closes removed native overlays", asyn
   expect(await page.evaluate(() => globalThis.connections)).toContain("connected:new");
 });
 
-test("rejects epoch interaction and revision mismatches before mutation", async ({ page }) => {
+test("rejects wrong epochs and forward revision gaps while ignoring superseded work", async ({ page }) => {
   await resetPage(page, {
     regionAttributes: 'data-woge-revision="4" data-woge-interaction-sequence="9"',
   });
   const cases = [
     [patchFrame({ epoch: "epoch-old", interactionSequence: 9, baseRevision: 4, nextRevision: 5 }), "WOGE_STALE_PAGE_EPOCH"],
-    [patchFrame({ interactionSequence: 8, baseRevision: 4, nextRevision: 5 }), "WOGE_INTERACTION_MISMATCH"],
-    [patchFrame({ interactionSequence: 9, baseRevision: 3, nextRevision: 4 }), "WOGE_REVISION_MISMATCH"],
+    [patchFrame({ interactionSequence: 8, baseRevision: 4, nextRevision: 5 }), null],
+    [patchFrame({ interactionSequence: 9, baseRevision: 3, nextRevision: 4 }), null],
+    [patchFrame({ interactionSequence: 9, baseRevision: 5, nextRevision: 6 }), "WOGE_REVISION_MISMATCH"],
   ];
 
   for (const [frame, code] of cases) {

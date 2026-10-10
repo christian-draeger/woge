@@ -1,6 +1,7 @@
 package dev.woge.example.mvc
 
 import dev.woge.example.project.AddBoardTaskAction
+import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
@@ -57,6 +58,7 @@ public class ProjectMvcRoutes {
         return SimpleUrlHandlerMapping(
             mapOf(
                 TaskBoardRoute.path to handlers.page(board.page, TaskBoardRoute),
+                BoardRegionRoute.path to handlers.page(board.refresh, BoardRegionRoute),
                 AddBoardTaskAction.path to protectedAction,
             ),
             0,

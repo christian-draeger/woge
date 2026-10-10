@@ -3,6 +3,7 @@ package dev.woge.ktor
 import dev.woge.host.FailurePages
 import dev.woge.host.FormDecodingException
 import dev.woge.host.PageRequest
+import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RouteValueException
 import dev.woge.host.WogeObservationContext
@@ -55,6 +56,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 call.respondWogePreStreamFailure(failure)
                 return
             }
-        call.respondWogePage(result.withFailurePages(failurePages), observer, observationContext, actionAccept)
+        val accept =
+            actionAccept ?: if (result is PageResult.RegionUpdates) call.request.headers["Accept"].orEmpty() else null
+        call.respondWogePage(result.withFailurePages(failurePages), observer, observationContext, accept)
     }
 }
