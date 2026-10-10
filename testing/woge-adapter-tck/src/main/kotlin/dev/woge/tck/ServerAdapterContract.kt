@@ -113,6 +113,8 @@ private class AdapterTckVerification(
         ) { client.verifyMultipartUploads(server.origin, fixture.uploadDirectory, ::expect) }
         client.verifyMutationReplay(::expect)
         verifySemanticObservations()
+        // Runs last: its probes add observations that earlier contracts count.
+        runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }
     }
 
     private suspend fun verifyActions() {

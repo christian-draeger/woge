@@ -69,6 +69,15 @@ Public ABI baselines record the additional case and helper.
 
 ## Follow-up
 
-#117 remains open for dedicated proxy/CDN fixtures and the static
-asset integration with #170. Production SSE must use no-store when introduced. Region/component
-memoization and invalidation belong to #59 and are not implied by conditional HTTP pages.
+Static assets landed with #170 ([ADR 0068](0068-content-addressed-production-asset-trees.md)):
+only content-hashed URLs are served as `public, max-age=31536000, immutable`.
+
+Reverse proxies and CDNs are covered by the `shared-cache-safety` TCK contract. It sends every
+Woge response class (pages, 304, redirects, failures, typed routes, deferred patch streams and 405
+for GET on an action) through the shared-cache storage rules of RFC 9111, section 3, with and without
+`Authorization`. None may be storable. POST action results never are. Because heuristic freshness lets a proxy store a plain 200
+or 404, only `no-store` or `private` count. Woge needs no proxy-specific code or headers for this.
+Running a real nginx or CDN in CI would add setup without testing anything beyond these rules.
+
+Production SSE must use no-store when introduced (#38). Proxy buffering of streams belongs to #45.
+Region/component memoization and invalidation belong to #59 and are not implied by conditional HTTP pages.

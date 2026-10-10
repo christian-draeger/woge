@@ -13,4 +13,7 @@ dependencies {
     implementation(project(":woge-server-runtime"))
     implementation(libs.kotlinxCoroutinesCore)
     ksp(project(":woge-ksp"))
+
+    testImplementation(libs.junitJupiter)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }
