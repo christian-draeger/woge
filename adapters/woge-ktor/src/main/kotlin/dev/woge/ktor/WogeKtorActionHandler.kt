@@ -15,6 +15,7 @@ public class WogeKtorActionHandler<Command : Any> internal constructor(
             delegate.handleAction(call)
         } else {
             call.response.headers.append("Allow", "POST")
+            call.response.headers.append("Cache-Control", "no-store")
             call.respond(HttpStatusCode.MethodNotAllowed)
         }
     }

@@ -35,6 +35,17 @@ public fun interface PageUseCase<Input : Any> {
 public sealed interface PageResult {
     public val metadata: ResponseMetadata
 
+    /** A conditional GET/HEAD matched after authorization; no document frames are rendered. */
+    public class NotModified internal constructor(
+        override val metadata: ResponseMetadata,
+    ) : PageResult {
+        init {
+            require(metadata.status == ResponseStatus.NOT_MODIFIED && metadata.contentType == null) {
+                "Not-modified results require bodyless HTTP 304 metadata"
+            }
+        }
+    }
+
     /** Fully prepared replacements with their native redirect or validation document. */
     public class RegionUpdates internal constructor(
         public val patches: List<ReplacePatch>,

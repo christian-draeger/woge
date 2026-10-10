@@ -17,6 +17,7 @@ public class WogeWebFluxActionHandler<Command : Any> internal constructor(
             ServerResponse
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .header("Allow", "POST")
+                .header("Cache-Control", "no-store")
                 .build()
                 .awaitSingle()
         }

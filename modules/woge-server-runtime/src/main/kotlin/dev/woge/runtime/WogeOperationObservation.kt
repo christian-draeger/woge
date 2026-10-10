@@ -80,6 +80,7 @@ public fun PageResult.observationOutcome(): WogeOutcome =
     when (this) {
         is PageResult.Document,
         is PageResult.Redirect,
+        is PageResult.NotModified,
         -> WogeOutcome.SUCCEEDED
 
         is PageResult.RegionUpdates -> if (focusSummary == null) WogeOutcome.SUCCEEDED else WogeOutcome.REJECTED

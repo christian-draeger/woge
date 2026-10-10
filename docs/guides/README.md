@@ -34,6 +34,9 @@ and explicit registries, with the remaining adapter-dispatch scope called out.
 The [native multipart upload guide](native-multipart-uploads.md) adds ordinary file inputs, bounded
 text and file decoding, request-owned cleanup and the explicit Spring MVC resolver configuration.
 
+The [HTTP caching guide](http-caching.md) explains no-store defaults, explicit page validators,
+conditional GET/HEAD responses and ordinary Vary/intermediary rules.
+
 The [Patch IR guide](patch-ir.md) explains the first transport-neutral replace operation and its
 page, target, interaction and revision checks in browser terms.
 

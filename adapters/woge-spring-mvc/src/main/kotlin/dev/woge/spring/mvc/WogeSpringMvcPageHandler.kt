@@ -8,6 +8,7 @@ import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.RequestMethod
 import dev.woge.host.RouteValueException
 import dev.woge.host.UnverifiedActionSecurityException
 import dev.woge.host.UploadDecodingException
@@ -15,6 +16,7 @@ import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.forHttpRequest
 import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
@@ -89,15 +91,25 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                         }
                     }
                 }
-            result.withFailurePages(failurePages).writeToServlet(
-                request,
-                response,
-                observer,
-                observationContext,
-                actionAccept = actionAccept(request, result),
-            )
+            result
+                .withFailurePages(failurePages)
+                .finalizeCache(request)
+                .writeToServlet(
+                    request,
+                    response,
+                    observer,
+                    observationContext,
+                    actionAccept = actionAccept(request, result),
+                )
         }
     }
+
+    private fun PageResult.finalizeCache(request: HttpServletRequest): PageResult =
+        forHttpRequest(
+            RequestMethod.of(request.method),
+            request.getHeaders("If-None-Match").toList(),
+            request.getHeaders("If-Modified-Since").toList(),
+        )
 
     private fun actionAccept(
         request: HttpServletRequest,

@@ -139,6 +139,9 @@ public class ResponseHeaders private constructor(
         public val EMPTY: ResponseHeaders = ResponseHeaders(emptyList())
 
         public fun of(vararg entries: HttpHeader): ResponseHeaders = ResponseHeaders(entries.asIterable())
+
+        /** Creates a snapshot without requiring an adapter to copy through a vararg array. */
+        public fun of(entries: Iterable<HttpHeader>): ResponseHeaders = ResponseHeaders(entries)
     }
 }
 

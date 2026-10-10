@@ -66,7 +66,9 @@ internal suspend fun ApplicationCall.respondWogePage(
             respond(BodylessContent)
         }
 
-        is PageResult.Failure -> {
+        is PageResult.NotModified,
+        is PageResult.Failure,
+        -> {
             applyMetadata(result.metadata)
             respond(BodylessContent)
         }
@@ -90,6 +92,7 @@ internal suspend fun Flow<EncodedPatchChunk>.writeAndFlushKtorChunks(writeAndFlu
 internal suspend fun ApplicationCall.respondWogePreStreamFailure(failure: Throwable) {
     application.log.error("Woge request failed before response streaming", failure)
     response.status(HttpStatusCode.InternalServerError)
+    response.headers.append(HttpHeaders.CacheControl, "no-store")
     respond(BodylessContent)
 }
 

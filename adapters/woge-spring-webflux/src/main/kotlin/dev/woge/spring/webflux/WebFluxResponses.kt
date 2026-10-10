@@ -70,7 +70,9 @@ internal suspend fun PageResult.toWebFluxResponse(
                 .build()
                 .awaitSingle()
 
-        is PageResult.Failure ->
+        is PageResult.NotModified,
+        is PageResult.Failure,
+        ->
             responseBuilder(metadata)
                 .build()
                 .awaitSingle()

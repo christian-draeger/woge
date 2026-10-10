@@ -47,6 +47,7 @@ public enum class AdapterTckPageScenario(
     CONTROLLED_FAILURE("controlled-failure"),
     PRE_STREAM_FAILURE("pre-stream-failure"),
     PAGE_BYTE_BUDGET("page-byte-budget"),
+    CACHEABLE("cacheable"),
     ;
 
     public companion object {
@@ -116,6 +117,7 @@ internal class AdapterTckFixtureState {
     val budgetContentCalls: AtomicInteger = AtomicInteger()
     val budgetDeclarations: AtomicInteger = AtomicInteger()
     val afterPageBudget: AtomicInteger = AtomicInteger()
+    val cacheRenders: AtomicInteger = AtomicInteger()
     private val observedContexts: ConcurrentLinkedQueue<RequestContext> = ConcurrentLinkedQueue()
     private val observationEvents: ConcurrentLinkedQueue<WogeObservationEvent> = ConcurrentLinkedQueue()
 
@@ -129,6 +131,15 @@ internal class AdapterTckFixtureState {
         observedContexts += request.context
         return when (request.input) {
             AdapterTckPageScenario.DOCUMENT -> document()
+            AdapterTckPageScenario.CACHEABLE ->
+                if (request.context.headers
+                        .values(HeaderName.of("X-Tck-Deny"))
+                        .any { it.value == "true" }
+                ) {
+                    failure(FailureCategory.FORBIDDEN, request.context.correlationId)
+                } else {
+                    cacheablePage { cacheRenders.incrementAndGet() }
+                }
             AdapterTckPageScenario.REDIRECT -> redirect(applicationUrl("/woge-tck/redirect-target"))
             AdapterTckPageScenario.CONTROLLED_FAILURE ->
                 failure(FailureCategory.NOT_FOUND, request.context.correlationId)

@@ -144,7 +144,9 @@ internal suspend fun PageResult.writeToServlet(
             }
         }
 
-        is PageResult.Failure -> response.applyMetadata(metadata)
+        is PageResult.NotModified,
+        is PageResult.Failure,
+        -> response.applyMetadata(metadata)
     }
 }
 
@@ -205,12 +207,14 @@ private fun HttpServletResponse.writeSafeServerFailure() {
     if (!isCommitted) {
         reset()
         status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+        setHeader("Cache-Control", "no-store")
     }
 }
 
 internal fun HttpServletResponse.writeMethodNotAllowed(allowedMethods: Iterable<String>) {
     status = HttpServletResponse.SC_METHOD_NOT_ALLOWED
     setHeader("Allow", allowedMethods.joinToString(", "))
+    setHeader("Cache-Control", "no-store")
 }
 
 private val logger: Logger = Logger.getLogger("dev.woge.spring.mvc")

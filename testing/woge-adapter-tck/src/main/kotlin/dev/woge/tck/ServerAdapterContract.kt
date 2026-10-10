@@ -95,6 +95,7 @@ private class AdapterTckVerification(
     suspend fun verifyCore() {
         verifyMutationStore()
         verifyDocumentGetAndHead()
+        runContract("http-caching") { client.verifyHttpCaching(fixture, ::expect) }
         runContract("page-byte-budget") { client.verifyPageByteBudget(fixture, ::expect) }
         verifyRedirectAndFailures()
         verifyDeferredCompletionOrder()

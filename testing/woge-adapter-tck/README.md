@@ -18,6 +18,11 @@ and authenticity rejection, malformed/oversized input, application failure and m
 The application owns a dedicated temporary parent and verifies that every journey leaves it empty.
 The optional native-form browser gate submits a real file with JavaScript disabled and enabled.
 
+HTTP caching is part of the core contract: explicitly cacheable pages preserve validators and Vary
+on bodyless GET/HEAD 304 responses, skip frame collection and never bypass current authorization.
+Dynamic results without an explicit policy use no-store. See the
+[HTTP caching guide](../../docs/guides/http-caching.md).
+
 Resource exhaustion is part of the core contract: deferred admission must reject before work,
 HTML byte overflow must stop later frames, and patch byte overflow must not emit a successful
 completion frame. Bind `application.observer` on page/deferred handlers and

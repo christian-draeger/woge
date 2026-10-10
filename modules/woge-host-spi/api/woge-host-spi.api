@@ -651,6 +651,11 @@ public final class dev/woge/host/HeaderValue$Companion {
 	public final fun of-w_y-vJ0 (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class dev/woge/host/HttpCachingKt {
+	public static final fun forHttpRequest-K4r7yug (Ldev/woge/host/PageResult;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Ldev/woge/host/PageResult;
+	public static synthetic fun forHttpRequest-K4r7yug$default (Ldev/woge/host/PageResult;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/woge/host/PageResult;
+}
+
 public final class dev/woge/host/HttpHeader {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-HwGi37U ()Ljava/lang/String;
@@ -922,6 +927,10 @@ public final class dev/woge/host/PageResult$Document : dev/woge/host/PageResult 
 
 public final class dev/woge/host/PageResult$Failure : dev/woge/host/PageResult {
 	public final fun getFailure ()Ldev/woge/host/PublicFailure;
+	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
+}
+
+public final class dev/woge/host/PageResult$NotModified : dev/woge/host/PageResult {
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 }
 
@@ -1259,6 +1268,7 @@ public final class dev/woge/host/ResponseHeaders : java/lang/Iterable, kotlin/jv
 
 public final class dev/woge/host/ResponseHeaders$Companion {
 	public final fun getEMPTY ()Ldev/woge/host/ResponseHeaders;
+	public final fun of (Ljava/lang/Iterable;)Ldev/woge/host/ResponseHeaders;
 	public final fun of ([Ldev/woge/host/HttpHeader;)Ldev/woge/host/ResponseHeaders;
 }
 
@@ -1295,6 +1305,7 @@ public final class dev/woge/host/ResponseStatus$Companion {
 	public final fun getFORBIDDEN-Db9x0Hk ()I
 	public final fun getINTERNAL_SERVER_ERROR-Db9x0Hk ()I
 	public final fun getNOT_FOUND-Db9x0Hk ()I
+	public final fun getNOT_MODIFIED-Db9x0Hk ()I
 	public final fun getOK-Db9x0Hk ()I
 	public final fun getPAYLOAD_TOO_LARGE-Db9x0Hk ()I
 	public final fun getPERMANENT_REDIRECT-Db9x0Hk ()I

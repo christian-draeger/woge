@@ -8,6 +8,7 @@ import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
+import dev.woge.host.RequestMethod
 import dev.woge.host.RouteValueException
 import dev.woge.host.UnverifiedActionSecurityException
 import dev.woge.host.UploadDecodingException
@@ -15,6 +16,7 @@ import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.failure
+import dev.woge.host.forHttpRequest
 import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
@@ -84,6 +86,12 @@ public class WogeWebFluxPageHandler<Input : Any>(
         val accept =
             actionAccept
                 ?: if (result is PageResult.RegionUpdates) request.headers().firstHeader("Accept").orEmpty() else null
-        return result.withFailurePages(failurePages).toWebFluxResponse(observer, observationContext, accept)
+        return result
+            .withFailurePages(failurePages)
+            .forHttpRequest(
+                RequestMethod.of(request.method().name()),
+                request.headers().header("If-None-Match"),
+                request.headers().header("If-Modified-Since"),
+            ).toWebFluxResponse(observer, observationContext, accept)
     }
 }
