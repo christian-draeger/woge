@@ -7,8 +7,9 @@
   </head>
   <body>
     <form action="/action" method="post" data-woge-action data-woge-status="status"
-      data-woge-alert="alert" data-woge-failure-message="The result is unknown. Check before submitting again.">
-      <input name="title" value="A &amp; B"><input name="tag" value="one"><input name="tag" value="two">
+      data-woge-alert="alert" data-woge-error-summary="errors"
+      data-woge-failure-message="The result is unknown. Check before submitting again.">
+      <input id="title" name="title" value="A &amp; B"><input name="tag" value="one"><input name="tag" value="two">
       <input name="unchecked" type="checkbox"><input name="disabled" value="no" disabled>
       <input name="_csrf" value="token">
       <button name="intent" value="save">Save</button>

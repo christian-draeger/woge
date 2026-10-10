@@ -1,16 +1,17 @@
 package dev.woge.spring.mvc
 
 import dev.woge.host.ACTION_NAVIGATION_HEADER
+import dev.woge.host.ACTION_VALIDATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
+import dev.woge.host.ResponseStatus
 import dev.woge.host.SameSite
 import dev.woge.host.WogeObservationContext
 import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -115,13 +116,15 @@ internal suspend fun PageResult.writeToServlet(
             if (acceptsActionPatches(actionAccept)) {
                 response.applyMetadata(metadata)
                 response.addHeader("Vary", "Accept")
-                encodeActionPatchStream().writeToServlet(response)
+                focusSummary?.let { response.addHeader(ACTION_VALIDATION_HEADER, it.value) }
+                encodeActionPatchStream().writeToServlet(response, metadata.status)
             } else {
-                nativeRedirect().writeToServlet(request, response, observer, observationContext, actionAccept)
+                nativeResult.writeToServlet(request, response, observer, observationContext, actionAccept)
             }
         }
         is PageResult.Document -> {
             response.applyMetadata(metadata)
+            if (actionAccept != null) response.addHeader("Vary", "Accept")
             if (!request.method.equals("HEAD", ignoreCase = true)) {
                 writeDocument(response, observer, observationContext)
             }
@@ -144,8 +147,11 @@ internal suspend fun PageResult.writeToServlet(
     }
 }
 
-internal suspend fun Flow<EncodedPatchChunk>.writeToServlet(response: HttpServletResponse) {
-    response.status = HttpServletResponse.SC_OK
+internal suspend fun Flow<EncodedPatchChunk>.writeToServlet(
+    response: HttpServletResponse,
+    status: ResponseStatus = ResponseStatus.OK,
+) {
+    response.status = status.code
     response.contentType = PatchStreamV1.MEDIA_TYPE
     response.setHeader("Cache-Control", "no-store")
     val output = response.outputStream

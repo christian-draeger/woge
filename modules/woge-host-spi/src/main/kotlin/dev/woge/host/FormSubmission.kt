@@ -19,6 +19,10 @@ public class FormValues internal constructor(
     public fun all(name: String): List<String> = values[name].orEmpty()
 
     override fun toString(): String = "FormValues(values=<redacted>)"
+
+    public companion object {
+        public val EMPTY: FormValues = FormValues(emptyMap())
+    }
 }
 
 /** A bounded submission can be a valid command or field errors with text for a native validation page. */

@@ -39,9 +39,11 @@ public final class dev/woge/host/ActionRegionUpdates {
 }
 
 public final class dev/woge/host/ActionRegionUpdatesKt {
+	public static final field ACTION_VALIDATION_HEADER Ljava/lang/String;
 	public static final fun actionRegionUpdates-CtbFQ_Y (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static synthetic fun actionRegionUpdates-CtbFQ_Y$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
-	public static final fun nativeRedirect (Ldev/woge/host/PageResult$RegionUpdates;)Ldev/woge/host/PageResult$Redirect;
+	public static final fun actionValidationUpdates-WIkas4w (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun actionValidationUpdates-WIkas4w$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 }
 
 public final class dev/woge/host/ActionRegistry {
@@ -300,6 +302,8 @@ public final class dev/woge/host/FormDecoder {
 	public final fun body ()Ldev/woge/host/FormBody;
 	public final fun decode (Ldev/woge/host/FormBody;)Ldev/woge/host/FormResult;
 	public final fun decode ([B)Ldev/woge/host/FormResult;
+	public final fun field-HRBFrZE (Lkotlin/reflect/KProperty1;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/FormField;
+	public static synthetic fun field-HRBFrZE$default (Ldev/woge/host/FormDecoder;Lkotlin/reflect/KProperty1;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/FormField;
 	public final fun getLimits ()Ldev/woge/host/FormLimits;
 	public final fun requireContentType (Ljava/lang/String;)V
 	public final fun submission (Ldev/woge/host/FormBody;)Ldev/woge/host/FormSubmission;
@@ -311,6 +315,31 @@ public final class dev/woge/host/FormDecodingException : java/lang/RuntimeExcept
 	public final fun getProblem ()Ldev/woge/host/FormProblem;
 }
 
+public final class dev/woge/host/FormElementId {
+	public static final field Companion Ldev/woge/host/FormElementId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Ldev/woge/host/FormElementId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormElementId$Companion {
+	public final fun of-AlSP1r0 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormError {
+	public fun <init> (Ldev/woge/host/FormField;Ljava/lang/String;)V
+	public final fun getField ()Ldev/woge/host/FormField;
+	public final fun getMessage ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/woge/host/FormErrorCode : java/lang/Enum {
 	public static final field MALFORMED Ldev/woge/host/FormErrorCode;
 	public static final field MISSING Ldev/woge/host/FormErrorCode;
@@ -319,6 +348,28 @@ public final class dev/woge/host/FormErrorCode : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/host/FormErrorCode;
 	public static fun values ()[Ldev/woge/host/FormErrorCode;
+}
+
+public final class dev/woge/host/FormErrors {
+	public fun <init> (Ldev/woge/host/FormValues;Ljava/lang/Iterable;)V
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getValues ()Ldev/woge/host/FormValues;
+	public final fun messages (Ldev/woge/host/FormField;)Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+	public final fun value (Ldev/woge/host/FormField;)Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormErrorsKt {
+	public static final fun formErrorSummary-N98y3xE (Ldev/woge/html/HtmlWriter;Ldev/woge/host/FormErrors;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun formField (Ldev/woge/html/Attributes;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;Ljava/util/List;)V
+	public static synthetic fun formField$default (Ldev/woge/html/Attributes;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;Ljava/util/List;ILjava/lang/Object;)V
+	public static final fun formFieldErrors (Ldev/woge/html/HtmlWriter;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;)V
+}
+
+public final class dev/woge/host/FormField {
+	public final fun getErrorId-NEaI0rA ()Ljava/lang/String;
+	public final fun getId-NEaI0rA ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
 }
 
 public final class dev/woge/host/FormFieldError {
@@ -452,9 +503,14 @@ public final class dev/woge/host/FormValidation {
 }
 
 public final class dev/woge/host/FormValues {
+	public static final field Companion Ldev/woge/host/FormValues$Companion;
 	public final fun all (Ljava/lang/String;)Ljava/util/List;
 	public final fun first (Ljava/lang/String;)Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormValues$Companion {
+	public final fun getEMPTY ()Ldev/woge/host/FormValues;
 }
 
 public final class dev/woge/host/HeaderName {
@@ -634,8 +690,9 @@ public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult 
 }
 
 public final class dev/woge/host/PageResult$RegionUpdates : dev/woge/host/PageResult {
-	public final fun getFallback-r4VgPSI ()Ljava/lang/String;
+	public final fun getFocusSummary-NWzxd-g ()Ljava/lang/String;
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
+	public final fun getNativeResult ()Ldev/woge/host/PageResult;
 	public final fun getPatches ()Ljava/util/List;
 }
 

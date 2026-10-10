@@ -80,7 +80,7 @@ function eligibleSubmission(root, form, submitter) {
     if (typeof value !== "string") return;
     body.append(normalizeLines(name), normalizeLines(value));
   }
-  return { form, action, body, alert };
+  return { form, action, body, alert, summaryId: form.getAttribute("data-woge-error-summary") };
 }
 
 async function submit(root, runtime, submission, signal) {
@@ -102,11 +102,25 @@ async function submit(root, runtime, submission, signal) {
     if (!signal.aborted) root.defaultView.location.assign(url.href);
     return;
   }
-  if (!response.ok || !isPatchStreamMediaType(response.headers.get("Content-Type"))) {
+  const validation = response.status === 400 && response.headers.get("Woge-Validation");
+  if ((!response.ok && !validation) || !isPatchStreamMediaType(response.headers.get("Content-Type")) ||
+      (validation && validation !== submission.summaryId)) {
     await response.body?.cancel();
     throw new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "Action did not return a compatible patch stream");
   }
   await runtime.applyPatchStream(response.body, { signal });
+  if (validation && !signal.aborted) {
+    const summary = root.getElementById(validation);
+    if (!(summary instanceof root.defaultView.HTMLElement) ||
+        summary.getAttribute("tabindex") !== "-1" ||
+        summary.closest('[aria-live], [role="alert"], [role="status"]')) {
+      throw new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "Validation needs the document-owned error summary");
+    }
+    summary.focus();
+    if (root.activeElement !== summary) {
+      throw new WogePatchError("WOGE_ACTION_RESPONSE_REJECTED", "Validation summary could not receive focus");
+    }
+  }
 }
 
 function safeUrl(url, origin) {

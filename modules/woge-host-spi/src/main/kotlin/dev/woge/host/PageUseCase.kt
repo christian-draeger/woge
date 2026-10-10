@@ -33,10 +33,11 @@ public fun interface PageUseCase<Input : Any> {
 public sealed interface PageResult {
     public val metadata: ResponseMetadata
 
-    /** Fully prepared typed replacements with a canonical native POST/Redirect/GET fallback. */
+    /** Fully prepared replacements with their native redirect or validation document. */
     public class RegionUpdates internal constructor(
         public val patches: List<ReplacePatch>,
-        public val fallback: ApplicationUrl,
+        public val nativeResult: PageResult,
+        public val focusSummary: FormElementId?,
         override val metadata: ResponseMetadata,
     ) : PageResult
 

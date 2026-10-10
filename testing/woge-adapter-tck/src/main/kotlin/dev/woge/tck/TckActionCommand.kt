@@ -5,6 +5,8 @@ import dev.woge.host.CorrelationId
 import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
+import dev.woge.host.FormError
+import dev.woge.host.FormErrors
 import dev.woge.host.FormLimits
 import dev.woge.host.FormValidation
 import dev.woge.host.PageResult
@@ -16,17 +18,11 @@ import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
 import dev.woge.host.RequestSecurity
 import dev.woge.host.RequestTrace
-import dev.woge.host.ResponseMetadata
-import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeAction
-import dev.woge.host.actionForm
+import dev.woge.host.actionValidationUpdates
 import dev.woge.host.failure
-import dev.woge.host.htmlPage
 import dev.woge.host.redirect
 import dev.woge.html.applicationUrl
-import dev.woge.html.button
-import dev.woge.html.input
-import dev.woge.html.p
 import kotlinx.serialization.Serializable
 
 /** Command bound unchanged by every adapter in the action contract. */
@@ -60,23 +56,24 @@ public val tckActionValidation: PageUseCase<FormValidation> =
         if (!authorized(request.context)) {
             failure(FailureCategory.FORBIDDEN, request.context.correlationId)
         } else {
-            htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
-                actionForm(TckSubmitAction) {
-                    input(attributes = {
-                        attribute("name", "value")
-                        attribute("aria-label", "Command value")
-                        attribute(
-                            "value",
-                            request.input.values
-                                .first("value")
-                                .orEmpty(),
+            val errors =
+                FormErrors(
+                    request.input.values,
+                    request.input.errors.map {
+                        FormError(
+                            if (it.field ==
+                                tckValueField.name
+                            ) {
+                                tckValueField
+                            } else {
+                                null
+                            },
+                            "${it.field}: ${it.code}",
                         )
-                    })
-                    request.input.errors.forEach { error ->
-                        p { text("${error.field}: ${error.code}") }
-                    }
-                    button { text("Submit command") }
-                }
+                    },
+                )
+            actionValidationUpdates(tckValidationDocument(errors), tckErrorSummary) {
+                replace(ActionCommandFormRegion.target(actionPageIdentity()), errors)
             }
         }
     }

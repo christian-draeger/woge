@@ -337,4 +337,5 @@ private val RESERVED_RESPONSE_HEADERS: Set<String> =
         "transfer-encoding",
         "upgrade",
         "woge-navigate",
+        "woge-validation",
     )

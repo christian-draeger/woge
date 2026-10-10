@@ -190,14 +190,14 @@ on MVC, WebFlux and Ktor, including validation and domain rejection. Their secur
 explicit test fixtures. Separate real Spring Security filter-chain tests verify authentication,
 header and hidden-field CSRF rejection and domain authorization on both Spring adapters. They also
 reject repeated tokens, query-only tokens, malformed encoding and excessive input. This foundation
-does not complete #30: actual enhanced-submission parity is still pending.
+also covers actual enhanced submissions: field errors keep the same status and values, while
+successful updates and refresh never repeat a mutation.
 
 The action bindings recognize an explicit `Accept: application/vnd.woge.patch-stream; version=1`.
 For a successful application-owned 303, they return a bodyless 200 with `Woge-Navigate` instead.
 The opt-in browser client then loads that canonical URL with GET, without repeating the mutation.
 Native requests, external redirects and method-preserving 307/308 responses retain their behavior.
-The all-host TCK verifies both paths and exact mutation counts. Enhanced field-error presentation
-remains follow-up work. See
+The all-host TCK verifies both paths and exact mutation counts. See
 [action-form enhancement](fallback-client-installation.md#opt-in-to-action-form-enhancement).
 
 ## Update typed regions after an action
@@ -240,6 +240,69 @@ The shared JVM HTTP tests and optional Chromium flows exercise native and enhanc
 updates on all three hosts, including refresh without mutation replay. This is a Replace-only
 foundation for #33, not its complete collection-update API. See
 [ADR 0057](../adr/0057-prepared-typed-action-region-updates.md).
+
+## Share accessible field and form errors
+
+Create field descriptors once from your decoder. Reuse the same descriptor when assigning an error
+and rendering its field. Names come from the generated serializer, not reflective property access:
+
+```kotlin
+val title = createTaskForm.field(CreateTask::title, FormElementId.of("task-title"))
+val summary = FormElementId.of("task-errors")
+val errors = FormErrors(
+    submitted.values,
+    listOf(FormError(title, "Enter a task title"), FormError(null, "Check the task details")),
+)
+```
+
+For `@SerialName("task-title")`, pass `serializedName = "task-title"` to `field`. A wrong command
+property does not type-check; an unknown submitted name fails when the descriptor is created.
+Translate decoder error codes into your application's safe messages. Business-rule errors use the
+same model. Always authorize the renderer and run server validation for every submission.
+
+The form stays ordinary HTML:
+
+```kotlin
+actionForm(CreateTaskAction, attributes = {
+    data("woge-action", "")
+    data("woge-status", "task-status")
+    data("woge-alert", "task-alert")
+    data("woge-error-summary", summary.value)
+    data("woge-failure-message", "Check the result before submitting again.")
+}) {
+    formErrorSummary(errors, summary, "Check the task")
+    input(attributes = {
+        formField(title, errors)
+        attribute("value", errors.value(title).orEmpty())
+    })
+    formFieldErrors(title, errors)
+    button { text("Create task") }
+}
+```
+
+The field helper adds its name, ID and error references. Pass `describedBy = listOf(hintId)` to
+retain application help text. Text preservation is explicit: do not add the value attribute for
+passwords or CSRF tokens. `FormValues.EMPTY` is available for the initial form.
+The summary is focusable and links to invalid fields; it is not a live region.
+
+Use the same typed form region to render a native 400 document and enhanced replacements:
+
+```kotlin
+val nativePage = htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
+    region(formTarget, errors, elementName = "section")
+}
+return actionValidationUpdates(nativePage, summary) {
+    replace(formTarget, errors, revision = currentFormRevision)
+}
+```
+
+Here `formTarget` comes from your `@WogeRegion` form function and takes `FormErrors<CreateTask>`.
+The surrounding native document still needs your normal HTML head, title and other page content.
+Native requests receive that HTML with status 400. Enhanced requests receive prepared patches with
+the same status, then focus the named summary. No extra alert or success announcement is added.
+The referenced status/alert elements still belong in your document shell for other action outcomes.
+Supply the active interaction sequence and revisions as for other region updates.
+See [ADR 0058](../adr/0058-shared-accessible-form-errors.md).
 
 ## Request limits
 

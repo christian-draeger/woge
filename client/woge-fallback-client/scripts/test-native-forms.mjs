@@ -146,7 +146,16 @@ async function verifyEnhanced(browser, expectedMutations) {
       const posted = page.waitForResponse((response) => response.request().method() === "POST");
       await page.getByRole("button", { name: button, exact: true }).click();
       assert.equal((await posted).status(), status);
-      await page.getByRole("alert").waitFor({ state: "visible" });
+      if (status === 400) {
+        await page.waitForFunction(() => document.activeElement?.id === "tck-error-summary");
+        assert.equal(await page.getByRole("alert").textContent(), "");
+        assert.equal(await page.getByRole("status").textContent(), "");
+        assert.equal(await page.getByRole("textbox", { name: "Command value" }).getAttribute("aria-describedby"),
+          "tck-command-value-error");
+        assert.equal(await page.locator("#tck-error-summary a").getAttribute("href"), "#tck-command-value");
+      } else {
+        await page.getByRole("alert").waitFor({ state: "visible" });
+      }
       assert.equal(page.url(), complete);
       assert.equal(await page.getByRole("textbox", { name: "Command value" }).inputValue(), value);
       assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));

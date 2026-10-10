@@ -1,6 +1,7 @@
 package dev.woge.ktor
 
 import dev.woge.host.ACTION_NAVIGATION_HEADER
+import dev.woge.host.ACTION_VALIDATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
@@ -10,7 +11,6 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -47,12 +47,16 @@ internal suspend fun ApplicationCall.respondWogePage(
             if (acceptsActionPatches(actionAccept)) {
                 applyMetadata(result.metadata)
                 response.headers.append(HttpHeaders.Vary, "Accept")
+                result.focusSummary?.let { response.headers.append(ACTION_VALIDATION_HEADER, it.value) }
                 respondWogePatches(result.encodeActionPatchStream())
             } else {
-                respondWogePage(result.nativeRedirect(), observer, observationContext, actionAccept)
+                respondWogePage(result.nativeResult, observer, observationContext, actionAccept)
             }
         }
-        is PageResult.Document -> respondDocument(result, observer, observationContext)
+        is PageResult.Document -> {
+            if (actionAccept != null) response.headers.append(HttpHeaders.Vary, "Accept")
+            respondDocument(result, observer, observationContext)
+        }
         is PageResult.Redirect -> {
             applyMetadata(result.metadata)
             if (actionAccept != null) response.headers.append(HttpHeaders.Vary, "Accept")

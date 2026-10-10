@@ -1,6 +1,7 @@
 package dev.woge.spring.webflux
 
 import dev.woge.host.ACTION_NAVIGATION_HEADER
+import dev.woge.host.ACTION_VALIDATION_HEADER
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
@@ -11,7 +12,6 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.WogeOperation
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.enhancedActionNavigation
-import dev.woge.host.nativeRedirect
 import dev.woge.html.DEFAULT_HTML_CHUNK_CHARS
 import dev.woge.html.HtmlSink
 import dev.woge.html.StreamingHtmlSink
@@ -51,13 +51,15 @@ internal suspend fun PageResult.toWebFluxResponse(
                     .contentType(MediaType.parseMediaType(PatchStreamV1.MEDIA_TYPE))
                     .headers { it.set("Cache-Control", "no-store") }
                     .header("Vary", "Accept")
+                    .headers { headers -> focusSummary?.let { headers.set(ACTION_VALIDATION_HEADER, it.value) } }
                     .body(patchBody(encodeActionPatchStream()))
                     .awaitSingle()
             } else {
-                nativeRedirect().toWebFluxResponse(observer, observationContext, actionAccept)
+                nativeResult.toWebFluxResponse(observer, observationContext, actionAccept)
             }
         is PageResult.Document ->
             responseBuilder(metadata)
+                .apply { if (actionAccept != null) header("Vary", "Accept") }
                 .body(documentBody(this, observer, observationContext))
                 .awaitSingle()
 

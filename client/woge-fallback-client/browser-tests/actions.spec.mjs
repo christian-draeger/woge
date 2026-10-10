@@ -62,6 +62,57 @@ test("busy state is focusable, blocks duplicate submits and restores original at
   await expect(page.locator("form")).toHaveAttribute("aria-busy", "false");
 });
 
+test("validation focuses the document-owned summary without a success or failure announcement", async ({ page }) => {
+  await page.locator("form").evaluate((form) => form.action = "/action?validation");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.locator("#errors")).toBeFocused();
+  await expect(page.locator("#errors a")).toHaveAttribute("href", "#title");
+  await expect(page.locator('input[name="title"]')).toHaveValue("A & B");
+  await expect(page.getByRole("alert")).toBeEmpty();
+  await expect(page.getByRole("status")).toBeEmpty();
+  await expect(page.locator("form")).not.toHaveAttribute("aria-busy");
+  expect(await page.evaluate(() => actionErrors)).toEqual([]);
+});
+
+test("validation cannot redirect focus to an unconfigured element", async ({ page }) => {
+  await page.locator("form").evaluate((form) => form.action = "/action?validation&summary=title");
+  const button = page.getByRole("button", { name: "Save", exact: true });
+  await button.focus();
+  await button.press("Enter");
+  await expect(page.getByRole("alert")).not.toBeEmpty();
+  await expect(button).toBeFocused();
+  await expect(page.locator("#errors")).toHaveCount(0);
+});
+
+test("stale validation never focuses or announces its summary", async ({ page }) => {
+  await page.locator("form").evaluate((form) => form.action = "/action?validation&stale");
+  const button = page.getByRole("button", { name: "Save", exact: true });
+  await button.focus();
+  await button.press("Enter");
+  await expect(page.locator("form")).not.toHaveAttribute("aria-busy");
+  await expect(button).toBeFocused();
+  await expect(page.locator("#errors")).toHaveCount(0);
+  await expect(page.getByRole("alert")).toBeEmpty();
+});
+
+test("a hidden or live validation summary is rejected rather than silently losing focus", async ({ page }) => {
+  for (const attribute of ["hidden", "aria-live"]) {
+    await page.reload();
+    await page.waitForFunction(() => globalThis.actions !== undefined);
+    await page.evaluate((attribute) => {
+      document.querySelector("form").action = "/action?validation";
+      document.addEventListener(Woge.AFTER_REPLACE_EVENT, () => {
+        document.getElementById("errors")?.setAttribute(attribute, attribute === "hidden" ? "" : "polite");
+      }, { once: true });
+    }, attribute);
+    await page.getByRole("button", { name: "Save", exact: true }).focus();
+    await page.getByRole("button", { name: "Save", exact: true }).press("Enter");
+    await expect(page.getByRole("alert")).not.toBeEmpty();
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeFocused();
+    expect(await page.evaluate(() => actionErrors)).toEqual(["WOGE_ACTION_RESPONSE_REJECTED"]);
+  }
+});
+
 test("network failure never replays a POST and leaves input editable with one alert", async ({ page }) => {
   let count = 0;
   await page.route("**/action", (route) => {

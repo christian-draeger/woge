@@ -151,15 +151,21 @@ successful response with `Woge-Navigate: /tasks` requests a normal same-origin G
 Ordinary HTML or redirect responses are not silently treated as patches. Woge action bindings on
 MVC, WebFlux and Ktor translate an application-owned 303 redirect into this navigation response for
 the explicit current-version patch request. Native requests still receive their original 303.
-External and POST-preserving 307/308 redirects are never translated. Patch rendering and enhanced
-field-error presentation remain follow-up work; do not opt in a workflow before its response policy
-meets your needs.
+External and POST-preserving 307/308 redirects are never translated. Server actions can return
+[prepared typed region updates](typed-actions.md#update-typed-regions-after-an-action).
 
 The form is busy only while its request runs. Its submitter uses `aria-disabled`, not the HTML
-`disabled` attribute, and focus stays in place. Failure restores those attributes, retains input,
+`disabled` attribute, and success keeps focus in place. Failure restores those attributes, retains input,
 writes the form's safe failure message into its existing alert, and emits `woge:action-error`
 with a diagnostic `detail.code`. The client never retries a POST, including after an uncertain
 network result. Application recovery must first establish whether the mutation happened.
 `forms.dispose()` cancels owned requests and restores busy state without submitting again.
 
-The policy is recorded in [ADR 0056](../adr/0056-explicit-action-form-enhancement.md).
+For accessible validation, also set `data-woge-error-summary` to your document-owned summary ID.
+`actionValidationUpdates` returns HTTP 400 patches with `Woge-Validation` naming that exact ID.
+After the complete valid stream, the client focuses its `tabindex="-1"` summary, without an extra
+status or alert announcement. Wrong summary IDs, missing focus targets and incompatible responses
+fail closed; stale or cancelled responses stay silent. The summary must not be a live region.
+
+The policies are recorded in [ADR 0056](../adr/0056-explicit-action-form-enhancement.md) and
+[ADR 0058](../adr/0058-shared-accessible-form-errors.md).

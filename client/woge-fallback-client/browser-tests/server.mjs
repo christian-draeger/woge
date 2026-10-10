@@ -29,6 +29,21 @@ const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
   if (["/action", "/preview"].includes(url.pathname) && request.method === "POST") {
     for await (const _ of request) {}
+    if (url.searchParams.has("validation")) {
+      response.writeHead(400, {
+        "content-type": "application/vnd.woge.patch-stream; version=1",
+        "woge-validation": url.searchParams.get("summary") ?? "errors",
+      });
+      const interactionSequence = url.searchParams.has("stale") ? 1 : 0;
+      response.end(Buffer.from(encodeStream([
+        patchFrame({
+          html: '<section id="errors" tabindex="-1"><h2>Check the form</h2><a href="#title">Title is required</a></section>',
+          interactionSequence,
+        }),
+        completeFrame(1),
+      ])));
+      return;
+    }
     response.writeHead(200, { "content-type": "application/vnd.woge.patch-stream; version=1" });
     const interactionSequence = url.searchParams.has("stale") ? 1 : 0;
     response.end(Buffer.from(encodeStream([

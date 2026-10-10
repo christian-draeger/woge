@@ -259,7 +259,10 @@ private class AdapterTckVerification(
                         "status changed",
                     )
                     expect(
-                        html.contains("""value="&lt;script&gt;"""") && html.contains("<p>value: REPEATED</p>"),
+                        html.contains("""value="&lt;script&gt;"""") &&
+                            html.contains("value: REPEATED</p>") &&
+                            html.contains("""aria-describedby="tck-command-value-error"""") &&
+                            html.contains("""href="#tck-command-value""""),
                         "native-form-validation",
                         "submitted text and structured errors were not safely rerendered",
                     )
@@ -710,11 +713,7 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
         "value=denied" to ResponseStatus.FORBIDDEN,
         "value=a&value=b" to ResponseStatus.BAD_REQUEST,
     ).forEach { (body, status) ->
-        open(RequestMethod.POST, TckSubmitAction.path, headers, body).let { response ->
-            response.body().close()
-            expect(response.statusCode() == status.code, contract, "domain or validation changed")
-            expect(response.header("woge-navigate") == null, contract, "failure requested navigation")
-        }
+        open(RequestMethod.POST, TckSubmitAction.path, headers, body).verifyEnhancedRejection(status, expect)
     }
     repeat(2) {
         val refreshed = text(RequestMethod.GET, "/woge-tck/action-complete")
@@ -725,6 +724,36 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
         )
     }
     verifyActionRegionUpdates(expect)
+}
+
+private fun HttpResponse<InputStream>.verifyEnhancedRejection(
+    status: ResponseStatus,
+    expect: (Boolean, String, String) -> Unit,
+) {
+    val contract = "enhanced-action-rejection"
+    body().use { stream ->
+        if (status == ResponseStatus.BAD_REQUEST) {
+            val decoder = PatchStreamV1.decoder()
+            val events = decoder.feed(stream.readAllBytes())
+            decoder.finish()
+            val html =
+                events
+                    .filterIsInstance<PatchStreamEvent.PatchFrame>()
+                    .map { it.patch }
+                    .filterIsInstance<ReplacePatch>()
+                    .single()
+                    .html.value
+            expect(
+                header("woge-validation") == "tck-error-summary" &&
+                    html.contains("""href="#tck-command-value"""") &&
+                    events.last() == PatchStreamEvent.Complete(1),
+                contract,
+                "enhanced validation lost the typed error summary or completion",
+            )
+        }
+    }
+    expect(statusCode() == status.code, contract, "domain or validation changed")
+    expect(header("woge-navigate") == null, contract, "failure requested navigation")
 }
 
 private suspend fun AdapterTckHttpClient.verifyActionRegionUpdates(expect: (Boolean, String, String) -> Unit) {

@@ -73,5 +73,5 @@ The browser fixtures verify real HTTP patch responses, native no-JavaScript subm
 semantics, focus, recovery and explicit navigation. The shared real-HTTP TCK and optional Chromium
 flows verify native and enhanced navigation, authorization, validation status and exact mutation
 counts on all hosts. [ADR 0057](0057-prepared-typed-action-region-updates.md) adds typed replacement
-results and their all-host evidence. Enhanced field-error presentation still needs its parity
-evidence before #30/#31 can close. Full collection updates and the reference application belong to #33.
+results and their all-host evidence. [ADR 0058](0058-shared-accessible-form-errors.md) adds native/enhanced
+field-error parity and summary focus. Full collection updates and the reference application belong to #33.

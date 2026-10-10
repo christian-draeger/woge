@@ -46,15 +46,12 @@ public class ActionRegionUpdates internal constructor(
         incomplete = false
     }
 
-    internal fun finish(
-        fallback: ApplicationUrl,
-        metadata: ResponseMetadata,
-    ): PageResult.RegionUpdates {
+    internal fun finish(): List<ReplacePatch> {
         check(!finished) { "Action updates are already finished" }
         check(!incomplete) { "Action update preparation failed" }
         require(patches.isNotEmpty()) { "An action must update at least one region" }
         finished = true
-        return PageResult.RegionUpdates(Collections.unmodifiableList(patches.toList()), fallback, metadata)
+        return Collections.unmodifiableList(patches.toList())
     }
 }
 
@@ -65,13 +62,42 @@ public fun actionRegionUpdates(
     headers: ResponseHeaders = ResponseHeaders.EMPTY,
     cookies: Iterable<ResponseCookie> = emptyList(),
     updates: ActionRegionUpdates.() -> Unit,
-): PageResult.RegionUpdates =
-    ActionRegionUpdates(interaction).apply(updates).finish(
-        fallback,
-        ResponseMetadata(contentType = null, headers = headers, cookies = cookies),
+): PageResult.RegionUpdates {
+    val native = redirect(fallback, headers = headers, cookies = cookies)
+    return PageResult.RegionUpdates(
+        ActionRegionUpdates(interaction).apply(updates).finish(),
+        native,
+        focusSummary = null,
+        metadata =
+            ResponseMetadata(
+                contentType = null,
+                headers = native.metadata.headers,
+                cookies = native.metadata.cookies,
+            ),
     )
+}
 
-public fun PageResult.RegionUpdates.nativeRedirect(): PageResult.Redirect =
-    redirect(fallback, headers = metadata.headers, cookies = metadata.cookies)
+/** Native validation keeps its 400 HTML page; enhancement replaces typed regions and focuses a summary. */
+public fun actionValidationUpdates(
+    nativePage: PageResult.Document,
+    summary: FormElementId,
+    interaction: InteractionSequence = InteractionSequence.INITIAL,
+    updates: ActionRegionUpdates.() -> Unit,
+): PageResult.RegionUpdates {
+    require(nativePage.metadata.status == ResponseStatus.BAD_REQUEST) { "A validation page must use status 400" }
+    return PageResult.RegionUpdates(
+        ActionRegionUpdates(interaction).apply(updates).finish(),
+        nativePage,
+        summary,
+        ResponseMetadata(
+            status = ResponseStatus.BAD_REQUEST,
+            contentType = null,
+            headers = nativePage.metadata.headers,
+            cookies = nativePage.metadata.cookies,
+        ),
+    )
+}
+
+public const val ACTION_VALIDATION_HEADER: String = "Woge-Validation"
 
 private const val MAX_ACTION_UPDATES = 128

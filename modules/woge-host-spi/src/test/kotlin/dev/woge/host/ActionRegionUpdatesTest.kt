@@ -44,8 +44,13 @@ class ActionRegionUpdatesTest {
                 .first()
                 .revision.next.value,
         )
-        assertEquals(ResponseStatus.SEE_OTHER, result.nativeRedirect().metadata.status)
-        assertEquals("/done", result.nativeRedirect().location.value)
+        val native =
+            org.junit.jupiter.api.Assertions.assertInstanceOf(
+                PageResult.Redirect::class.java,
+                result.nativeResult,
+            )
+        assertEquals(ResponseStatus.SEE_OTHER, native.metadata.status)
+        assertEquals("/done", native.location.value)
     }
 
     @Test

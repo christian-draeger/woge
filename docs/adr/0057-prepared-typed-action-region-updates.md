@@ -62,5 +62,6 @@ canonical GET page, not by automatically submitting again.
 
 ## Follow-up
 
-Complete collection operations and the reference workflow in #32/#33. Keep accessible validation
-and native/enhanced field-error parity in #35/#30; neither is implied by successful region updates.
+Complete collection operations and the reference workflow in #32/#33.
+[ADR 0058](0058-shared-accessible-form-errors.md) extends the prepared result with a native HTML
+validation representation; its summary-focus policy does not change successful action behavior.
