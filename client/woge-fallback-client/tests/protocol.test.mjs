@@ -7,6 +7,7 @@ import {
   errorFrame,
   patchFrame,
   rawFrame,
+  readFuzzRegression,
   readGoldenStream,
   readGoldenWireFixture,
 } from "../test-support/protocol-fixture.mjs";
@@ -48,6 +49,84 @@ test("the JVM golden stream decodes at every two-chunk boundary", async () => {
     const events = [...decoder.push(bytes.slice(0, split)), ...decoder.push(bytes.slice(split))];
     decoder.finish();
     assertGoldenEvents(events);
+  }
+});
+
+test("seeded chunking, truncation and byte mutation stay bounded and typed", {
+  timeout: fuzzIterations() > 128 ? 120_000 : 5_000,
+}, () => {
+  const random = seededRandom(0x574f4745);
+  const bytes = encodeStream([patchFrame({ html: "<p>€ boundary</p>" }), completeFrame()]);
+  const expected = decode(bytes);
+
+  for (let iteration = 0; iteration < fuzzIterations(); iteration += 1) {
+    const decoder = new PatchStreamDecoder();
+    const events = [];
+    let offset = 0;
+    while (offset < bytes.byteLength) {
+      const end = Math.min(bytes.byteLength, offset + 1 + Math.floor(random() * 32));
+      events.push(...decoder.push(bytes.subarray(offset, end)));
+      offset = end;
+    }
+    decoder.finish();
+    assert.deepEqual(events, expected);
+
+    const cut = Math.floor(random() * bytes.byteLength);
+    const truncated = new PatchStreamDecoder();
+    let partialEvents = [];
+    try {
+      partialEvents = truncated.push(bytes.subarray(0, cut));
+    } catch (problem) {
+      assert.ok(isTypedTruncation(problem), problem.code);
+    }
+    assert.ok(partialEvents.every((event) => event.type !== "complete"));
+    assert.throws(() => truncated.finish(), isTypedTruncation);
+
+    const mutated = bytes.slice();
+    const index = Math.floor(random() * mutated.byteLength);
+    mutated[index] = Math.floor(random() * 256);
+    assertTypedOrValid(mutated);
+  }
+});
+
+test("shared malformed-wire regressions retain their stable failure codes", { timeout: 5_000 }, async () => {
+  const fixtures = new Map([
+    ["unsupported-version", "WOGE_UNSUPPORTED_VERSION"],
+    ["oversized-metadata", "WOGE_METADATA_TOO_LARGE"],
+    ["truncated-header", "WOGE_TRUNCATED_STREAM"],
+    ["unknown-frame-kind", "WOGE_UNKNOWN_FRAME_KIND"],
+    ["oversized-payload", "WOGE_PAYLOAD_TOO_LARGE"],
+  ]);
+  for (const [name, code] of fixtures) {
+    const decoder = new PatchStreamDecoder();
+    const bytes = await readFuzzRegression(name);
+    assert.throws(() => {
+      decoder.push(bytes);
+      decoder.finish();
+    }, (problem) => problem instanceof WogePatchError && problem.code === code, name);
+  }
+});
+
+test("invalid UTF-8 in an HTML payload fails with a typed error", { timeout: 5_000 }, () => {
+  const frame = rawFrame(1, "text/html; charset=utf-8",
+    '{"protocolVersion":1,"operation":"replace","patchId":"patch-1",' +
+      '"epoch":"epoch-a","target":"summary-1","interactionSequence":0,"baseRevision":0,"nextRevision":1}',
+    Uint8Array.of(0xc3, 0x28));
+  assertFailure("WOGE_INVALID_UTF8", () => new PatchStreamDecoder().push(encodeStream([frame])));
+});
+
+test("oversized length declarations fail from the fixed header", { timeout: 5_000 }, () => {
+  for (const [metadataLength, payloadLength, expected] of [
+    [64 * 1024 + 1, 0, "WOGE_METADATA_TOO_LARGE"],
+    [0, 8 * 1024 * 1024 + 1, "WOGE_PAYLOAD_TOO_LARGE"],
+  ]) {
+    const header = new Uint8Array(15);
+    header.set([0x57, 0x4f, 0x47, 0x45, 1, 1, 24]);
+    const view = new DataView(header.buffer);
+    view.setUint32(7, metadataLength, false);
+    view.setUint32(11, payloadLength, false);
+    assert.throws(() => new PatchStreamDecoder().push(header),
+      (problem) => problem.code === expected);
   }
 });
 
@@ -244,4 +323,40 @@ function assertGoldenEvents(events) {
 
 function assertFailure(code, action) {
   assert.throws(action, (problem) => problem instanceof WogePatchError && problem.code === code);
+}
+
+function fuzzIterations() {
+  const value = Number(process.env.WOGE_FUZZ_ITERATIONS ?? 128);
+  return Number.isSafeInteger(value) && value > 0 ? Math.min(value, 100_000) : 128;
+}
+
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return (state >>> 0) / 0x1_0000_0000;
+  };
+}
+
+function decode(bytes) {
+  const decoder = new PatchStreamDecoder();
+  const events = decoder.push(bytes);
+  decoder.finish();
+  return events;
+}
+
+function isTypedTruncation(problem) {
+  return problem instanceof WogePatchError && [
+    "WOGE_INVALID_PREAMBLE", "WOGE_TRUNCATED_STREAM", "WOGE_MISSING_TERMINAL",
+  ].includes(problem.code);
+}
+
+function assertTypedOrValid(bytes) {
+  try {
+    decode(bytes);
+  } catch (problem) {
+    assert.ok(problem instanceof WogePatchError, problem?.constructor?.name);
+  }
 }

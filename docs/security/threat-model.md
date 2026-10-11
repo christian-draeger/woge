@@ -103,6 +103,30 @@ released for replay. The all-host security matrix also checks expired sessions a
 authorization on duplicate identities. This is not an atomic transaction guarantee between a
 domain database and an independent replay store; the application must coordinate those commits.
 
+## Malformed-input fuzz coverage and residual limits
+
+The protocol and URL-encoded form readers run deterministic, seeded tests in the normal JVM and Node
+suites. They vary chunk boundaries, truncate streams, mutate wire bytes, replay shared malformed
+frame fixtures, and assert typed failure rather than parser crashes. Browser target tests cover stale
+page epochs, unknown and duplicate region IDs, cross-region interaction confusion, and revision
+regressions without changing the DOM. Live SSE invalidations are bounded to 64 Ki characters and
+128 distinct targets per event. Patch decoders reject declared lengths above the protocol limits
+while processing only a fixed header before rejection; form readers stop at the configured body and
+field limits.
+
+The routine fuzz pass uses a fixed seed and 128 iterations, keeping `check` fast. Run
+`WOGE_FUZZ_ITERATIONS=50000 ./gradlew :woge-protocol:test :woge-host-spi:test` and
+`WOGE_FUZZ_ITERATIONS=50000 npm run test:unit --prefix client/woge-fallback-client` for a longer
+local or nightly pass; the equivalent JVM-only Gradle option is
+`./gradlew -Pwoge.fuzz.iterations=50000 :woge-protocol:test :woge-host-spi:test`. Inputs found to
+cause a crash, hang or regression belong in the shared
+[`fuzz-regressions`](../../modules/woge-protocol/src/test/resources/fuzz-regressions/) directory
+with expected error assertions in both decoders. Current fixtures exercise unsupported versions,
+unknown frame kinds, truncation and oversized declarations. Fuzzing is not a proof of safety: it does
+not cover every browser engine, proxy behavior, arbitrary HTML semantics, or memory consumed by the
+transport before bytes reach Woge. Deployments still need request, connection, concurrency and
+reverse-proxy limits.
+
 ## Review and update process
 
 1. A pull request that changes a public input, output context, protocol, target/identity rule, host security mapping, browser sink, raw escape hatch or diagnostic boundary reviews this document.

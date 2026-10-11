@@ -23,6 +23,13 @@ dependencies {
 
 tasks.test {
     systemProperty("woge.xss.corpus", rootProject.file("testing/xss-corpus/payloads.tsv").absolutePath)
+    systemProperty(
+        "woge.fuzz.iterations",
+        providers
+            .gradleProperty("woge.fuzz.iterations")
+            .orElse(providers.environmentVariable("WOGE_FUZZ_ITERATIONS"))
+            .orElse("128"),
+    )
 }
 
 tasks.named("check") {
