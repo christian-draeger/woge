@@ -117,3 +117,12 @@ The [accessibility guide](../../docs/guides/accessibility.md) maps the shared au
 keyboard-only reference journeys, dashboard stress checks and the manual audit checklist.
 
 For the complete operations journey and optional Tailwind brand, see the [themed screen walkthrough](../../docs/guides/themed-reference-screen.md).
+
+## Production deployment verification
+
+`./gradlew productionDeploymentTest` packages MVC, WebFlux and Ktor and runs real Docker/nginx smoke
+and rolling-update checks. It is opt-in and requires a running Docker engine, Java 21 and Python 3,
+not Node or a browser. See [production operations](../../docs/guides/production-operations.md) for
+private health endpoints, bounded stream shutdown, retained assets and deployment settings.
+The `/deployment` confirmation is stateless; the notes/task-board stores remain in-memory demos,
+not a replicated production database.

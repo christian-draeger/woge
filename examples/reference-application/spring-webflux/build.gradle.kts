@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":woge-spring-boot-starter"))
     implementation(project(":woge-spring-webflux"))
     implementation(libs.springBootStarterWebflux)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
