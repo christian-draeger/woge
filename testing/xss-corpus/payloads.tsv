@@ -1,0 +1,26 @@
+# Woge XSS corpus v1 — tab-separated category and payload; keep samples inert and reviewed.
+text	</script><img src=x onerror=alert(1)>
+text	&lt;script&gt;alert(1)&lt;/script&gt; & "quoted"
+attribute	" autofocus onfocus="alert(1)
+attribute	' onmouseover='alert(1)
+style	--payload: '</style><script>alert(1)</script>';
+url	javascript:alert(1)
+url	JaVaScRiPt:alert(1)
+url	vbscript:msgbox(1)
+url	data:text/html,<script>alert(1)</script>
+url	data:image/svg+xml,<svg onload="alert(1)"/>
+url	//attacker.invalid/collect
+url	https://user:password@example.invalid/path
+patch	<script>globalThis.wogeXssExecuted=true</script>
+patch	<template><script>globalThis.wogeXssExecuted=true</script></template>
+patch	<img src=x onerror="globalThis.wogeXssExecuted=true">
+patch	<a href="java&#x73;cript:globalThis.wogeXssExecuted=true">click</a>
+patch	<svg onload="globalThis.wogeXssExecuted=true"></svg>
+patch	<svg><script>globalThis.wogeXssExecuted=true</script></svg>
+patch	<svg><foreignObject><img src=x onerror="globalThis.wogeXssExecuted=true"></foreignObject></svg>
+patch	<svg><a xlink:href="javascript:alert(1)">click</a></svg>
+patch	<math><annotation-xml encoding="text/html"><img src=x onerror="globalThis.wogeXssExecuted=true"></annotation-xml></math>
+patch	<math><mtext><img src=x onerror="globalThis.wogeXssExecuted=true"></mtext></math>
+patch	<base href="https://attacker.invalid/">
+patch	<iframe srcdoc="<img src=x onerror=alert(1)>"></iframe>
+patch	<a href="data:text/html,active">click</a>

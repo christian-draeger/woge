@@ -56,6 +56,10 @@ jmh {
     resultFormat.set("JSON")
 }
 
+tasks.test {
+    systemProperty("woge.xss.corpus", rootProject.file("testing/xss-corpus/payloads.tsv").absolutePath)
+}
+
 tasks.named("check") {
     dependsOn(tasks.named("jmhClasses"))
     dependsOn(verifyHtmlElementDataset)

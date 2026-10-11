@@ -19,6 +19,11 @@ class HtmlCompilerBoundaryTest {
     }
 
     @Test
+    fun `generic event attribute escape hatch requires unsafe API opt-in`() {
+        assertFixtureHasDiagnostics("unsafe-attribute-without-opt-in", "opt-in", "UnsafeWogeHtmlApi")
+    }
+
+    @Test
     fun `WOGE-XSS-002 ordinary strings cannot cross the validated URL boundary`() {
         assertFixtureFails("url-string", "HtmlUrl")
     }
@@ -36,6 +41,11 @@ class HtmlCompilerBoundaryTest {
     @Test
     fun `mistyped standard tag name is rejected by the compiler`() {
         assertFixtureHasDiagnostics("html-tag-typo", "Unresolved reference", "sectoin")
+    }
+
+    @Test
+    fun `the typed DSL has no base element that could retarget relative URLs`() {
+        assertFixtureHasDiagnostics("html-base-element", "Unresolved reference", "base")
     }
 
     @Test

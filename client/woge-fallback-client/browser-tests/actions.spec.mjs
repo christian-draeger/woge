@@ -190,6 +190,9 @@ for (const response of [
   { status: 200, contentType: "text/html", body: "<p>HTML is not a patch stream</p>" },
   { status: 403, contentType: mediaType, body: "" },
   { status: 200, headers: { "Woge-Navigate": "https://example.invalid/" }, body: "" },
+  { status: 200, headers: { "Woge-Navigate": "javascript:alert(1)" }, body: "" },
+  { status: 200, headers: { "Woge-Navigate": "data:text/html,active" }, body: "" },
+  { status: 200, headers: { "Woge-Navigate": "//example.invalid/" }, body: "" },
   { status: 200, contentType: mediaType, body: "truncated" },
 ]) {
   test(`rejects incompatible response ${JSON.stringify(response)} without mutation replay`, async ({ page }) => {
@@ -230,6 +233,21 @@ for (const attributes of [
     expect(prevented).toBe(false);
   });
 }
+
+test("an external base URL keeps a relative form native instead of enhancing it", async ({ page }) => {
+  const prevented = await page.locator("form").evaluate((form) => {
+    const base = document.createElement("base");
+    base.href = "https://example.invalid/";
+    document.head.prepend(base);
+    form.action = "/action";
+    const event = new SubmitEvent("submit", {
+      bubbles: true, cancelable: true, submitter: form.querySelector("button"),
+    });
+    form.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  expect(prevented).toBe(false);
+});
 
 test("browser validation still prevents an invalid submission", async ({ page }) => {
   await page.locator('input[name="title"]').evaluate((input) => { input.required = true; input.value = ""; });

@@ -137,8 +137,6 @@ public final class dev/woge/html/GeneratedHtmlElementsKt {
 	public static synthetic fun audio$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun b (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun b$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun base (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun base$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun bdi (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun bdi$default (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun bdo (Ldev/woge/html/HtmlWriter;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
