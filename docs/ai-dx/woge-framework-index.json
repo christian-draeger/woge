@@ -95,6 +95,7 @@
     "security": "docs/guides/typed-actions.md",
     "development": "docs/guides/development-loop.md",
     "styling": "docs/guides/ui-primitives.md",
+    "components": "docs/guides/component-registry.md",
     "compatibility": "docs/guides/compatibility-and-upgrades.md",
     "enhancedNavigation": "docs/guides/enhanced-navigation.md",
     "nativeDpu": "docs/guides/browser-support.md",

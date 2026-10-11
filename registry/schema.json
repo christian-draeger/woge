@@ -1,0 +1,383 @@
+{
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "uniqueItems": true
+              },
+              "modules": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^dev\\.woge:woge-[a-z0-9-]+$"
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "items",
+              "modules"
+            ],
+            "additionalProperties": false
+          },
+          "primitives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "designTokens": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^--[a-z][a-z0-9-]*$"
+            },
+            "uniqueItems": true
+          },
+          "compatibility": {
+            "type": "object",
+            "properties": {
+              "woge": {
+                "type": "object",
+                "properties": {
+                  "minimum": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                  },
+                  "maximumExclusive": {
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                  }
+                },
+                "required": [
+                  "minimum",
+                  "maximumExclusive"
+                ],
+                "additionalProperties": false
+              },
+              "kotlinMinimum": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "hydration": {
+                "type": "string",
+                "enum": [
+                  "none"
+                ]
+              }
+            },
+            "required": [
+              "woge",
+              "kotlinMinimum",
+              "hydration"
+            ],
+            "additionalProperties": false
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "repository": {
+                "type": "string",
+                "pattern": "^https://"
+              },
+              "revision": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{40,64}$"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revisionKind": {
+                "type": "string",
+                "enum": [
+                  "git-commit",
+                  "source-tree-sha256"
+                ]
+              }
+            },
+            "required": [
+              "repository",
+              "revision",
+              "path",
+              "revisionKind"
+            ],
+            "additionalProperties": false
+          },
+          "variants": {
+            "type": "object",
+            "properties": {
+              "css": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "kotlin",
+                            "css",
+                            "license",
+                            "asset"
+                          ]
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "target",
+                        "kind",
+                        "sha256"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  },
+                  "styleAssets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "global",
+                            "scoped",
+                            "tailwind"
+                          ]
+                        },
+                        "file": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "pattern": "^woge-[a-z][a-z0-9-]*$"
+                        },
+                        "layer": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9.-]*$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "file",
+                        "layer"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  },
+                  "tests": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sha256"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "files",
+                  "styleAssets",
+                  "tests"
+                ],
+                "additionalProperties": false
+              },
+              "tailwind": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "kotlin",
+                            "css",
+                            "license",
+                            "asset"
+                          ]
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "target",
+                        "kind",
+                        "sha256"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  },
+                  "styleAssets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "global",
+                            "scoped",
+                            "tailwind"
+                          ]
+                        },
+                        "file": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "pattern": "^woge-[a-z][a-z0-9-]*$"
+                        },
+                        "layer": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9.-]*$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "file",
+                        "layer"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  },
+                  "tests": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sha256"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "files",
+                  "styleAssets",
+                  "tests"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "minProperties": 1,
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "description",
+          "dependencies",
+          "primitives",
+          "designTokens",
+          "compatibility",
+          "license",
+          "provenance",
+          "variants"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://woge.dev/schemas/component-registry-v1.json",
+  "title": "Woge source-owned component registry v1"
+}

@@ -152,3 +152,6 @@ them at once with `[data-woge-ui="dialog"]` if you prefer.
 
 No primitive writes inline scripts, inline styles or event attributes. They work with
 `script-src 'self'; style-src 'self'`.
+
+For editable visual recipes with a lockfile and safe updates, see the
+[source-owned component registry](component-registry.md).

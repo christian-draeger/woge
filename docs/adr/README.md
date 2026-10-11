@@ -144,3 +144,4 @@ indexes and assembles these decisions rather than adding one.
 
 | [0097](0097-opt-in-kotlin-js-island-assets.md) | Accepted | Register opt-in Kotlin/JS island assets from production output |
 | [0097](0097-opt-in-kotlin-js-island-assets.md) | Accepted | Register opt-in Kotlin/JS island assets from production output |
+| [0098](0098-source-owned-component-registry.md) | Accepted | Install source-owned components from an offline versioned registry |

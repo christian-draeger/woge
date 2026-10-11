@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "disclosure-card",
+      "version": "1.0.0",
+      "description": "Native expandable content card.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "disclosure"
+      ],
+      "designTokens": [
+        "--woge-card-border",
+        "--woge-card-radius"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "4e683228ab48c0b2259787a8351f3f14ce09f1ac733f492cebc040a6207370a8",
+        "path": "registry/disclosure-card",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "disclosure-card/css/DisclosureCard.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DisclosureCard.kt",
+              "kind": "kotlin",
+              "sha256": "d38b45e066438367f3ddea582742e04bb193477336d1b75454111b134386a0ca"
+            },
+            {
+              "source": "disclosure-card/css/disclosure-card.css",
+              "target": "src/main/resources/static/assets/components/disclosure-card.css",
+              "kind": "css",
+              "sha256": "f7f45102d437a4c0c39d1bdcefaff1e55e81cced13fb39931c3c28403b33c097"
+            },
+            {
+              "source": "disclosure-card/css/LICENSE.txt",
+              "target": "woge-components/licenses/disclosure-card.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "disclosure-card/css/disclosure-card.css",
+              "scope": "woge-disclosure-card",
+              "layer": "woge.components.disclosure-card"
+            }
+          ],
+          "tests": [
+            {
+              "source": "disclosure-card/css/DisclosureCardTest.kt",
+              "sha256": "fa30d885a9153f77fb8d714eab4b55b41a2d77f029565b8b43e6257f2fa60c73"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "disclosure-card/tailwind/DisclosureCard.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DisclosureCard.kt",
+              "kind": "kotlin",
+              "sha256": "93da24ab69a8b28bc7121e675644b72fc8fb5077d25fccc29cc3a1b7838146b4"
+            },
+            {
+              "source": "disclosure-card/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/disclosure-card.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "disclosure-card/tailwind/DisclosureCard.kt",
+              "scope": "woge-disclosure-card",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "disclosure-card/tailwind/DisclosureCardTest.kt",
+              "sha256": "fa30d885a9153f77fb8d714eab4b55b41a2d77f029565b8b43e6257f2fa60c73"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "status-message",
+      "version": "1.0.0",
+      "description": "Accessible status or error feedback. Render empty before announcing updates.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "liveRegion"
+      ],
+      "designTokens": [
+        "--woge-status-color"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "651ca3bfa343ce8ecc2cd27c01c9230c0e58eff5eb3d809b1d43d6ec6fb45eb2",
+        "path": "registry/status-message",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "status-message/css/StatusMessage.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/StatusMessage.kt",
+              "kind": "kotlin",
+              "sha256": "de5c9aa399831c5b7c25f7c57d1e05aba0e79d265eb4ab555259f344a4be2924"
+            },
+            {
+              "source": "status-message/css/status-message.css",
+              "target": "src/main/resources/static/assets/components/status-message.css",
+              "kind": "css",
+              "sha256": "6ad10b20452ee259070f00b072c636425d3b4cf8ba28b67c45dd66d22ab9d4b5"
+            },
+            {
+              "source": "status-message/css/LICENSE.txt",
+              "target": "woge-components/licenses/status-message.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "status-message/css/status-message.css",
+              "scope": "woge-status-message",
+              "layer": "woge.components.status-message"
+            }
+          ],
+          "tests": [
+            {
+              "source": "status-message/css/StatusMessageTest.kt",
+              "sha256": "d1e6710c904c27b095ac4042a71a627de82dac2c278619e9e68e4ec6a390137e"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

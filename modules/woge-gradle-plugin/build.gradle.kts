@@ -12,6 +12,8 @@ java {
 }
 
 dependencies {
+    implementation(localGroovy())
+    testImplementation(gradleTestKit())
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
@@ -27,6 +29,12 @@ tasks.withType<JavaCompile>().configureEach {
 
 gradlePlugin {
     plugins {
+        register("wogeComponents") {
+            id = "dev.woge.components"
+            implementationClass = "dev.woge.gradle.WogeComponentsPlugin"
+            displayName = "Woge source-owned components"
+            description = "Installs editable Kotlin and CSS with provenance and safe three-way updates."
+        }
         register("wogeApplication") {
             id = "dev.woge.application"
             implementationClass = "dev.woge.gradle.WogeApplicationPlugin"
@@ -74,4 +82,10 @@ sourceSets.main {
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
+}
+
+tasks.processResources {
+    from(rootProject.layout.projectDirectory.dir("registry")) {
+        into("dev/woge/gradle/registry")
+    }
 }
