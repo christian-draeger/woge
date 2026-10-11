@@ -98,9 +98,14 @@ class FormSubmissionTest {
                 sink.content(),
             )
             val original = mutableListOf("first", "second")
-            val values = FormValues(mapOf("title" to original))
+            val fields = mutableMapOf("title" to original)
+            val values = FormValues.of(fields)
+            fields.clear()
             original.clear()
             assertEquals(listOf("first", "second"), values.all("title"))
+            assertEquals("first", values.first("title"))
+            assertEquals(emptyList<String>(), values.all("missing"))
+            assertFalse(values.toString().contains("first"))
             assertThrows(UnsupportedOperationException::class.java) { (values.all("title") as MutableList).clear() }
         }
 

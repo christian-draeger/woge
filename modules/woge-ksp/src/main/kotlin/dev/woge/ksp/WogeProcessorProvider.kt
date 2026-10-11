@@ -62,10 +62,11 @@ internal class WogeProcessor(
         val names = actions.groupBy { it.packageName to it.descriptorName }
         val valid =
             actions.filter { action ->
-                val unique =
-                    ids.getValue(action.id).size == 1 &&
-                        names.getValue(action.packageName to action.descriptorName).size == 1
-                if (!unique) reader.reportCollision(action)
+                val collisions =
+                    (ids.getValue(action.id) + names.getValue(action.packageName to action.descriptorName))
+                        .distinct() - action
+                val unique = collisions.isEmpty()
+                if (!unique) reader.reportCollision(action, collisions)
                 unique
             }
         valid.forEach { action ->
@@ -153,7 +154,7 @@ internal class WogeProcessor(
             val sameName = names.getValue(route.packageName to route.descriptorName)
             val samePattern = patterns.getValue(route.pattern)
             when {
-                sameName.size > 1 -> reader.reportDuplicateName(route)
+                sameName.size > 1 -> reader.reportDuplicateName(route, sameName - route)
                 samePattern.size > 1 -> reader.reportCollision(route, samePattern - route)
                 else -> {
                     write(

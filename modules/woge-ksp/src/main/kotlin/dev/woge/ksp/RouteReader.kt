@@ -38,8 +38,12 @@ internal class RouteReader(
 ) {
     fun route(declaration: KSClassDeclaration): RouteModel? = logger.readOrReport { readRoute(declaration) }
 
-    fun reportDuplicateName(route: RouteModel) {
-        logger.error(Rule.ROUTE_NAME.message("${route.received()} generates ${route.descriptorName}"), route.symbol)
+    fun reportDuplicateName(
+        route: RouteModel,
+        others: List<RouteModel>,
+    ) {
+        val names = (listOf(route) + others).joinToString { it.received() }
+        logger.error(Rule.ROUTE_NAME.message("$names generate ${route.descriptorName}"), route.symbol)
     }
 
     fun reportCollision(
@@ -122,7 +126,7 @@ internal class RouteReader(
     }
 }
 
-private fun RouteModel.received(): String = "@WogeRoute(\"$path\") ${symbol.simpleName.asString()}"
+private fun RouteModel.received(): String = "@WogeRoute(\"$path\") ${symbol.declarationLocation()}"
 
 private fun KSClassDeclaration.routePath(): String =
     annotations

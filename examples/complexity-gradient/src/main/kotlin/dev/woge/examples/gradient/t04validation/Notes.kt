@@ -11,7 +11,6 @@ import dev.woge.host.FormValues
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
-import dev.woge.host.RequestContext
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeAction
@@ -69,16 +68,14 @@ private const val NOTE_MESSAGE = "Enter a note of 1 to 80 characters."
 
 /** Business rules live in the action; the same errors model renders them. */
 @WogeAction("add-validated-note")
-@Suppress("UnusedParameter")
-public suspend fun addValidatedNote(
-    command: AddNote,
-    context: RequestContext,
-): PageResult {
+public suspend fun addValidatedNote(command: AddNote): PageResult {
     val text = command.text.trim()
     return if (text.isEmpty() || text.length > MAX_NOTE_LENGTH) {
         notesDocument(
-            FormErrors(FormValues.EMPTY, listOf(FormError(textField, NOTE_MESSAGE))),
-            command.text,
+            FormErrors(
+                FormValues.of(mapOf("text" to listOf(command.text))),
+                listOf(FormError(textField, NOTE_MESSAGE)),
+            ),
             ResponseStatus.BAD_REQUEST,
         )
     } else {
@@ -93,9 +90,6 @@ private val decodingProblems =
         val errors = FormErrors(request.input.values, request.input.errors.map { FormError(textField, NOTE_MESSAGE) })
         notesDocument(
             errors,
-            request.input.values
-                .first("text")
-                .orEmpty(),
             ResponseStatus.BAD_REQUEST,
         )
     }
@@ -107,12 +101,11 @@ public val addNoteAction: ActionExecutor<FormSubmission<AddNote>> =
 
 public class NotesPage : PageUseCase<ValidatedNotesInput> {
     override suspend fun open(request: PageRequest<ValidatedNotesInput>): PageResult =
-        notesDocument(FormErrors(FormValues.EMPTY, emptyList()), "", ResponseStatus.OK)
+        notesDocument(FormErrors(FormValues.EMPTY, emptyList()), ResponseStatus.OK)
 }
 
 private fun notesDocument(
     errors: FormErrors<AddNote>,
-    draft: String,
     status: ResponseStatus,
 ): PageResult =
     htmlPage(ResponseMetadata(status = status)) {
@@ -133,7 +126,7 @@ private fun notesDocument(
                         label(attributes = { attribute("for", textField.id.value) }) { text("New note") }
                         input(attributes = {
                             formField(textField, errors)
-                            attribute("value", draft)
+                            attribute("value", errors.value(textField).orEmpty())
                         })
                         formFieldErrors(textField, errors)
                         button { text("Add note") }

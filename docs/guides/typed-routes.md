@@ -138,3 +138,9 @@ The build fails with a located message, a rule ID and a valid example when a rou
 `/projects/new` and `/projects/{project}` may both exist: a literal segment is a different pattern.
 
 The design is recorded in [ADR 0051](../adr/0051-typed-page-routes.md).
+
+Route patterns are public URLs and stay unique across the module, even when declarations live in
+different Kotlin packages. Duplicate-pattern (`WOGE-ROUTE-008`) and generated-name
+(`WOGE-ROUTE-007`) diagnostics include both fully qualified declarations and their source files and
+lines. Rename a generated-name conflict or choose distinct public paths; moving packages does not
+silently change URLs. See [ADR 0087](../adr/0087-smooth-action-signatures-and-form-values.md).

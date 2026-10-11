@@ -8,7 +8,7 @@ internal fun ActionModel.source(): String =
     /** Typed entry point for the native form action `$id`. */
     $visibility object $descriptorName : dev.woge.host.ActionDescriptor<$commandType>(dev.woge.host.ActionId.of("$id")) {
         override suspend fun execute(request: dev.woge.host.PageRequest<$commandType>): dev.woge.host.PageResult =
-            $packageName.$functionName(request.input, request.context)
+            $packageName.$functionName(request.input${if (symbol.parameters.size == 2) ", request.context" else ""})
     }
 
     """.trimIndent()

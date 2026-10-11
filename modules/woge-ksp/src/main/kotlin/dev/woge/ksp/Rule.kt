@@ -95,8 +95,8 @@ internal enum class Rule(
     ACTION_SHAPE(
         "WOGE-ACTION-001",
         "@WogeAction marks a top-level suspend function with no receiver or type parameters " +
-            "and exactly two parameters.",
-        "@WogeAction(\"create-task\") suspend fun createTask(command: CreateTask, context: RequestContext): PageResult",
+            "and a command plus an optional request context parameter.",
+        "@WogeAction(\"create-task\") suspend fun createTask(command: CreateTask): PageResult",
     ),
     ACTION_ID(
         "WOGE-ACTION-002",
@@ -112,7 +112,7 @@ internal enum class Rule(
     ),
     ACTION_CONTEXT(
         "WOGE-ACTION-004",
-        "The second action parameter must be a non-null dev.woge.host.RequestContext.",
+        "When present, the second action parameter must be a non-null dev.woge.host.RequestContext.",
         "context: RequestContext; translate host security facts before invocation",
     ),
     ACTION_RETURN(

@@ -17,7 +17,7 @@ class RouteDiagnosticsTest {
     ) {
         val result = runKsp(mapOf("Fixture.kt" to PRELUDE + source.trimIndent()))
 
-        assertEquals(expected, result.errors)
+        assertEquals(expected, result.errors.map { it.replace(Regex("\\([^)]*/Fixture\\.kt:"), "(Fixture.kt:") })
         assertTrue(expected.all { it.contains(rule.id) })
         assertEquals(emptyMap<String, String>(), result.generated.filterKeys { it.endsWith("Route.kt") })
     }
@@ -34,8 +34,8 @@ class RouteDiagnosticsTest {
         @JvmStatic
         fun fixtures(): List<Arguments> = FIXTURES
 
-        private const val PROJECT = "@WogeRoute(\"/projects/{id}\") ProjectInput"
-        private const val ARCHIVE = "@WogeRoute(\"/projects/{key}\") ArchiveInput"
+        private const val PROJECT = "@WogeRoute(\"/projects/{id}\") fixture.ProjectInput (Fixture.kt:6)"
+        private const val ARCHIVE = "@WogeRoute(\"/projects/{key}\") fixture.ArchiveInput (Fixture.kt:9)"
 
         private val FIXTURES: List<Arguments> =
             listOf(
@@ -121,8 +121,18 @@ class RouteDiagnosticsTest {
                     data object PageInput
                     """,
                     listOf(
-                        message(6, Rule.ROUTE_NAME, "@WogeRoute(\"/a\") Page generates PageRoute"),
-                        message(9, Rule.ROUTE_NAME, "@WogeRoute(\"/b\") PageInput generates PageRoute"),
+                        message(
+                            6,
+                            Rule.ROUTE_NAME,
+                            "@WogeRoute(\"/a\") fixture.Page (Fixture.kt:6), " +
+                                "@WogeRoute(\"/b\") fixture.PageInput (Fixture.kt:9) generate PageRoute",
+                        ),
+                        message(
+                            9,
+                            Rule.ROUTE_NAME,
+                            "@WogeRoute(\"/b\") fixture.PageInput (Fixture.kt:9), " +
+                                "@WogeRoute(\"/a\") fixture.Page (Fixture.kt:6) generate PageRoute",
+                        ),
                     ),
                 ),
                 Arguments.of(

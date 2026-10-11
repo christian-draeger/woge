@@ -52,6 +52,25 @@ class FormErrorsTest {
     }
 
     @Test
+    fun `business rule snapshots use serialized field names and escape selected text`() {
+        val command = Command("  <private>  ")
+        val values = FormValues.of(mapOf(field.name to listOf(command.title)))
+        val errors = FormErrors(values, listOf(FormError(field, "Choose another title")))
+        assertEquals(command.title, errors.value(field))
+        assertEquals(null, values.first("password"))
+        val html =
+            renderHtml {
+                input(attributes = {
+                    formField(field, errors)
+                    attribute("value", errors.value(field).orEmpty())
+                })
+            }
+        assertTrue(html.contains("value=\"  &lt;private&gt;  \""))
+        assertTrue(html.contains("name=\"task-title\""))
+        assertFalse(html.contains("password"))
+    }
+
+    @Test
     fun `form-wide errors have no fabricated field and error collections are snapshots`() {
         val source = mutableListOf(FormError<Command>(null, "Try another title"))
         val errors = FormErrors(FormValues.EMPTY, source)
