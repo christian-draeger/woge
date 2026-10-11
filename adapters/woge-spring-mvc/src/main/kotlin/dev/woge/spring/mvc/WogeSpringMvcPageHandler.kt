@@ -21,6 +21,7 @@ import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.host.withUploadCleanup
+import dev.woge.runtime.InitialDocumentRuntime
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import jakarta.servlet.http.HttpServletRequest
@@ -39,6 +40,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
     private val observer: WogeObserver,
     private val failurePages: FailurePages,
     private val allowedMethods: Set<String> = setOf("GET", "HEAD"),
+    private val initialDocuments: InitialDocumentRuntime = InitialDocumentRuntime(),
 ) : HttpRequestHandler {
     /** Snapshots the request, releases its Servlet thread and streams the page asynchronously. */
     override fun handleRequest(
@@ -85,7 +87,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                             context = observationContext,
                             successfulOutcome = { it.observationOutcome() },
                         ) {
-                            page.open(pageRequest)
+                            prepareDocument(page.open(pageRequest), request, context.trace)
                         }
                     }
                 }
@@ -101,6 +103,12 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                 )
         }
     }
+
+    private fun prepareDocument(
+        result: PageResult,
+        request: HttpServletRequest,
+        trace: dev.woge.host.RequestTrace,
+    ): PageResult = initialDocuments.prepare(result, request.getHeaders("Cookie").toList().joinToString(";"), trace)
 
     private fun rejectRequest(
         request: HttpServletRequest,

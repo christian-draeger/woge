@@ -12,6 +12,16 @@ import java.util.Base64
 
 class RenderIdentityConfigurationTest {
     @Test
+    fun `native DPU modes bind explicitly and unknown modes fail`() {
+        for (mode in dev.woge.runtime.NativeDpuMode.entries) {
+            WogeKtorHandlers(MapApplicationConfig("woge.native-dpu.mode" to mode.name.lowercase().replace('_', '-')))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            WogeKtorHandlers(MapApplicationConfig("woge.native-dpu.mode" to "guess-browser"))
+        }
+    }
+
+    @Test
     fun `Ktor configuration produces stable deployment identities without exposing the secret`() {
         val encoded = Base64.getEncoder().encodeToString(ByteArray(32) { 9 })
         val config = MapApplicationConfig("woge.render-identity.secret" to encoded)

@@ -6,6 +6,9 @@ Task-oriented, web-first guides live here. Start with the executable
 [mental model and DX doctrine](mental-model.md) before adding regions or live updates.
 [Request troubleshooting](troubleshooting.md) covers buffering, recovery and version skew.
 
+The [experimental initial-document guide](native-deferred-documents.md) streams deferred results
+through a typed HTML document on MVC, WebFlux and Ktor, with guarded native DPU and framed fallback.
+
 To begin from a small standalone repository rather than the multi-host framework example, use the
 [versioned Spring Boot application scaffold](../../scaffolds/spring-boot/README.md). It defaults to
 WebFlux, offers an explicit MVC switch and needs no JavaScript toolchain for normal development.

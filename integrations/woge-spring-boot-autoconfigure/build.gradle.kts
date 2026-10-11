@@ -16,6 +16,7 @@ kotlin {
 dependencies {
     api(platform(libs.springBootDependencies))
     api(project(":woge-host-spi"))
+    api(project(":woge-server-runtime"))
     api(libs.springBootAutoconfigure)
 
     compileOnly(project(":woge-spring-mvc"))

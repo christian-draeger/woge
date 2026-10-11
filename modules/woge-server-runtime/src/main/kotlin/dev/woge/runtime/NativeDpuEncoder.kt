@@ -2,10 +2,7 @@ package dev.woge.runtime
 
 import dev.woge.protocol.PatchHtml
 import dev.woge.protocol.ReplacePatch
-import org.jsoup.nodes.Element
-import org.jsoup.parser.Parser
-import java.net.URI
-import java.util.Locale
+import dev.woge.protocol.isInitialDocumentHtmlEligible
 import java.util.UUID
 
 /** Opaque generated name shared by a page's range boundary and its deferred replacement. */
@@ -39,7 +36,7 @@ internal object NativeDpuEncoder {
             cookieHeader
                 ?.split(';')
                 ?.map(String::trim)
-                ?.filter { it.startsWith(CAPABILITY_COOKIE_PREFIX) }
+                ?.filter { it.substringBefore('=').trim() == CAPABILITY_COOKIE_NAME }
                 ?: return false
         return signals.singleOrNull() == CAPABILITY_COOKIE
     }
@@ -63,42 +60,8 @@ internal object NativeDpuEncoder {
     }
 
     /** Active or explicitly unsafe markup is never handed to the active native HTML parser. */
-    public fun isEligible(html: PatchHtml): Boolean {
-        if (html.containsUnsafeHtml) return false
-        val fragment = Element("template")
-        fragment.insertChildren(0, Parser.parseFragment(html.value, fragment, ""))
-        return fragment.allElements.all(::isPassiveElement)
-    }
+    public fun isEligible(html: PatchHtml): Boolean = isInitialDocumentHtmlEligible(html)
 
-    private fun isPassiveElement(element: Element): Boolean {
-        if (element.normalName() in ACTIVE_ELEMENTS) return false
-        return element.attributes().all { attribute ->
-            val name = attribute.key.lowercase(Locale.ROOT)
-            when {
-                name.startsWith("on") || name in BLOCKED_ATTRIBUTES -> false
-                name in URL_ATTRIBUTES -> isPassiveUrl(attribute.value)
-                else -> true
-            }
-        }
-    }
-
-    private fun isPassiveUrl(value: String): Boolean =
-        if (isRelativeUrl(value)) {
-            true
-        } else {
-            runCatching { URI(value.trim()) }.fold(
-                onSuccess = { uri -> uri.scheme?.lowercase(Locale.ROOT)?.let(SAFE_URL_SCHEMES::contains) ?: true },
-                onFailure = { false },
-            )
-        }
-
-    private fun isRelativeUrl(value: String): Boolean = value.isBlank() || value.firstOrNull() in setOf('/', '#', '?')
-
-    private const val CAPABILITY_COOKIE_PREFIX = "woge_dpu="
+    private const val CAPABILITY_COOKIE_NAME = "woge_dpu"
     private const val CAPABILITY_COOKIE = "woge_dpu=1"
-    private val ACTIVE_ELEMENTS = setOf("base", "embed", "iframe", "link", "meta", "object", "script", "style")
-    private val BLOCKED_ATTRIBUTES = setOf("srcdoc", "style", "srcset", "imagesrcset", "ping")
-    private val URL_ATTRIBUTES =
-        setOf("action", "background", "cite", "data", "formaction", "href", "manifest", "poster", "src", "xlink:href")
-    private val SAFE_URL_SCHEMES = setOf("http", "https", "mailto", "tel")
 }

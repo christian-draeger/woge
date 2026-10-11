@@ -61,6 +61,7 @@ public sealed interface PageResult {
         override val metadata: ResponseMetadata,
         public val frames: Flow<HtmlFrame>,
         public val maxBytes: Long = DEFAULT_PAGE_BYTES,
+        public val deferredDocument: DeferredDocument? = null,
     ) : PageResult {
         init {
             require(maxBytes > 0) { "HTML page byte budget must be positive" }

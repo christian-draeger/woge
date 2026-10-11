@@ -492,8 +492,8 @@ public final class dev/woge/html/HeadAssetsKt {
 	public static synthetic fun assetLink$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ldev/woge/html/HtmlUrl;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun cspNonceMetadata-qcfNtoU (Ldev/woge/html/HtmlWriter;Ljava/lang/String;)V
 	public static final fun metadata (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;)V
-	public static final fun moduleScript-0cTZK0c (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
-	public static synthetic fun moduleScript-0cTZK0c$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V
+	public static final fun moduleScript-Z8SXmf0 (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;Z)V
+	public static synthetic fun moduleScript-Z8SXmf0$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ZILjava/lang/Object;)V
 	public static final fun preload-sGZyPek (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;)V
 	public static synthetic fun preload-sGZyPek$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/HtmlUrl;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/html/CrossOrigin;ILjava/lang/Object;)V
 	public static final fun propertyMetadata (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;)V

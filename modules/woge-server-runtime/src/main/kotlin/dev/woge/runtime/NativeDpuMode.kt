@@ -1,7 +1,7 @@
 package dev.woge.runtime
 
 /** Experimental selection policy for the initial-document native DPU encoder. */
-internal enum class NativeDpuMode {
+public enum class NativeDpuMode {
     /** Keep all responses on the supported framed fallback path. */
     OFF,
 

@@ -12,13 +12,13 @@ import dev.woge.html.writeHtml
  * text; bypassing escaping still requires Woge's explicit unsafe HTML opt-in.
  */
 public class HtmlFrame internal constructor(
-    private val content: HtmlWriter.() -> Unit,
+    private val render: (HtmlSink) -> Unit,
 ) {
     /** Renders this frame to [sink], preserving writer order and downstream failures. */
     public fun writeTo(sink: HtmlSink) {
-        writeHtml(sink, content)
+        render(sink)
     }
 }
 
 /** Creates one lazy HTML frame using the same safe DSL as a complete buffered document. */
-public fun htmlFrame(content: HtmlWriter.() -> Unit): HtmlFrame = HtmlFrame(content)
+public fun htmlFrame(content: HtmlWriter.() -> Unit): HtmlFrame = HtmlFrame { writeHtml(it, content) }

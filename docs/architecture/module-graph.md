@@ -12,7 +12,7 @@ flowchart BT
     Protocol[woge-protocol] --> Core
     SPI[woge-host-spi] --> Core
     SPI --> Protocol
-    Runtime[woge-server-runtime<br/>internal] --> Core
+    Runtime[woge-server-runtime<br/>shared execution and experimental policy] --> Core
     Runtime --> Protocol
     Runtime --> SPI
     DevModel[woge-dev-model<br/>internal tooling model]
@@ -48,6 +48,7 @@ flowchart BT
     Ktor --> Runtime
     Vite[woge-vite<br/>optional Vite entry tags] --> Core
     Auto[woge-spring-boot-autoconfigure] --> SPI
+    Auto --> Runtime
     Auto -. compileOnly .-> MVC
     Auto -. compileOnly .-> WebFlux
     Starter[woge-spring-boot-starter] --> Auto
@@ -64,7 +65,7 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Accessible behavior without styling | `woge-ui-headless` | Components stay portable across hosts and CSS choices |
 | Patch and streaming values | `woge-protocol` | Hosts share one versioned wire vocabulary |
 | Page/action/live use cases | `woge-host-spi` | Application code sees Woge-owned ports, not server requests |
-| Shared execution machinery | `woge-server-runtime` | Adapters reuse implementation without making it public API |
+| Shared execution and experimental document policy | `woge-server-runtime` | Adapters reuse bounded execution; applications can explicitly select the experimental document mode |
 | Development lifecycle semantics | `woge-dev-model` | Tool adapters share ordering and fallback rules without entering production artifacts |
 | Spring Boot and Ktor dev host (managed child process) | `woge-dev-process-host` | One process host for both frameworks; Spring adds a fast trigger-file restart, Ktor always restarts fully |
 | Development browser channel | `woge-dev-browser` | Stable loopback SSE, typed opt-in markup and optional status overlay, outside the application process |

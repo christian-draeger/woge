@@ -22,7 +22,13 @@ experimentation with explicit capability detection and fallback. Core components
 
 “Current and previous” is evaluated on the release date, not hard-coded in library source. A release record names exact versions. Playwright's WebKit is a useful cross-engine signal but is not branded Safari, so it does not replace the release smoke test. Unsupported legacy browsers and embedded webviews may still receive the HTML baseline, but they are not compatibility targets until an adapter documents them.
 
-Chrome 150 shipped native `<template for>` out-of-order streaming, but this remains a limited-availability Woge adapter rather than part of the supported enhancement tier. The [native DPU evidence](../../spikes/native-dpu/evidence.md) limits M0/MVP use to an off-by-default Chrome 150+ initial-document encoder for Woge-generated active-content-free patches. Framed action, navigation and live updates continue through the cross-browser runtime. [ADR 0015](../adr/0015-limit-native-dpu-to-initial-document-optimization.md) records the full ceiling and capability-negotiation constraint.
+Chrome 150 shipped native `<template for>` out-of-order streaming, but this remains a limited-availability
+adapter, not the supported enhancement tier or a beta requirement. The typed original-document route
+is off by default, selects automatic mode only with a capability cookie, and rejects ineligible loading
+or replacement HTML before native bytes. MVC, WebFlux and Ktor have a dedicated real-adapter Chromium
+conformance gate; production code has no dependency on spikes. Framed fetch, action, navigation and live
+updates remain on the cross-browser runtime. [ADR 0015](../adr/0015-limit-native-dpu-to-initial-document-optimization.md)
+sets the ceiling; [ADR 0106](../adr/0106-stream-typed-deferred-documents-with-native-dpu.md) records the route and fallback.
 
 The enhancement runtime may depend by default only on APIs available across the supported stable set. A narrowly missing API needs a tested fallback or a small replaceable polyfill; user-agent sniffing is not a substitute for capability detection.
 

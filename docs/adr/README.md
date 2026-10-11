@@ -156,3 +156,5 @@ indexes and assembles these decisions rather than adding one.
 | [0104](0104-enhanced-uploads-and-dynamic-forms.md) | Accepted | Enhance native uploads with optional progress and bind stable typed dynamic rows |
 
 | [0105](0105-optional-websocket-patch-transport.md) | Accepted | Keep WebSocket patch delivery optional and bounded |
+
+| [0106](0106-stream-typed-deferred-documents-with-native-dpu.md) | Accepted | Stream typed original documents with guarded native DPU and framed late fallback |

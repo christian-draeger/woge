@@ -32,6 +32,14 @@ import java.nio.file.Path
 
 class WogeWebFluxAdapterTckTest {
     @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_DPU_BROWSER_SCRIPT", matches = ".+")
+    fun `native DPU passes original document browser conformance`() {
+        ServerAdapterContract(WebFluxTckHarnessFactory).verify(
+            listOf(dev.woge.tck.NativeDpuBrowserContract(Path.of(System.getenv("WOGE_DPU_BROWSER_SCRIPT")))),
+        )
+    }
+
+    @Test
     @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
     fun `native forms pass the real browser contract`() {
         ServerAdapterContract(WebFluxTckHarnessFactory).verify(
@@ -80,6 +88,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
         val uploadPage = WogeWebFluxHandlers().page(tckUploadPage, WebFluxPageInput { })
         val routes =
             coRouter {
+                initialDocumentRoutes(application)
                 GET(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 HEAD(AdapterTckRoutes.PAGE_PATTERN, page::handle)
                 GET(AdapterTckRoutes.DEFERRED_PATTERN, deferred::handle)
@@ -102,6 +111,32 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 .handle(ReactorHttpHandlerAdapter(withCursorSocket(application, routes)))
                 .bindNow(),
         )
+    }
+
+    private fun org.springframework.web.reactive.function.server.CoRouterFunctionDsl.initialDocumentRoutes(
+        application: AdapterTckApplication,
+    ) {
+        for ((mode, policy) in listOf(
+            "auto" to dev.woge.runtime.NativeDpuMode.AUTO,
+            "native" to dev.woge.runtime.NativeDpuMode.FORCE_NATIVE,
+            "fallback" to dev.woge.runtime.NativeDpuMode.FORCE_FALLBACK,
+        )) {
+            val dpu =
+                WogeWebFluxHandlers(nativeDpuMode = policy, maxRegions = 2).page(
+                    application.initialDocuments.pages,
+                    WebFluxPageInput { it.pathVariable("scenario") },
+                )
+            GET("/woge-tck/dpu/$mode/{scenario}", dpu::handle)
+            HEAD("/woge-tck/dpu/$mode/{scenario}", dpu::handle)
+        }
+        GET("/woge-tck/dpu/complete") {
+            dev.woge.host
+                .htmlPage {
+                    element("ul") {
+                        listOf("Alpha", "Beta", "Gamma").forEach { element("li") { text(it) } }
+                    }
+                }.toWebFluxResponse(dev.woge.host.WogeObserver.NONE, dev.woge.host.WogeObservationContext())
+        }
     }
 
     private fun withCursorSocket(

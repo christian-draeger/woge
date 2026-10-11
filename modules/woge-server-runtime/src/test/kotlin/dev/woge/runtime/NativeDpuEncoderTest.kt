@@ -43,6 +43,7 @@ class NativeDpuEncoderTest {
         assertFalse(NativeDpuEncoder.isSelected(NativeDpuMode.AUTO, "woge_dpu=0", html))
         assertFalse(NativeDpuEncoder.isSelected(NativeDpuMode.AUTO, "woge_dpu=10", html))
         assertFalse(NativeDpuEncoder.isSelected(NativeDpuMode.AUTO, "woge_dpu=1; woge_dpu=0", html))
+        assertFalse(NativeDpuEncoder.isSelected(NativeDpuMode.AUTO, "woge_dpu=1; woge_dpu = 0", html))
         assertTrue(NativeDpuEncoder.isSelected(NativeDpuMode.AUTO, "other=x; woge_dpu=1", html))
         assertTrue(NativeDpuEncoder.isSelected(NativeDpuMode.FORCE_NATIVE, null, html))
         assertFalse(NativeDpuEncoder.isSelected(NativeDpuMode.FORCE_FALLBACK, "woge_dpu=1", html))
@@ -67,6 +68,14 @@ class NativeDpuEncoderTest {
             NativeDpuEncoder.encodeReplace(replace { raw(unsafeHtml("<script>x</script>")) }, newNativeDpuName())
         }
         assertFalse(NativeDpuEncoder.isEligible(rawPatch("<strong>raw</strong>").html))
+    }
+
+    @Test
+    fun `parser-sensitive and custom elements cannot enter a native range`() {
+        for (name in listOf("template", "table", "tr", "select", "svg", "math", "woge-widget")) {
+            assertFalse(NativeDpuEncoder.isEligible(patchHtml { element(name) { text("Content") } }), name)
+        }
+        assertTrue(NativeDpuEncoder.isEligible(patchHtml { element("p") { text("<script>escaped</script>") } }))
     }
 
     private fun replace(content: dev.woge.html.HtmlWriter.() -> Unit): ReplacePatch =

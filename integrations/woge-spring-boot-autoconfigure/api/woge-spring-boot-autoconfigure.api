@@ -29,10 +29,12 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties {
 	public final fun getAdapter ()Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
 	public final fun getDeferred ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;
 	public final fun getMvc ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;
+	public final fun getNativeDpu ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$NativeDpu;
 	public final fun getRenderIdentity ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity;
 	public final fun setAdapter (Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;)V
 	public final fun setDeferred (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;)V
 	public final fun setMvc (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;)V
+	public final fun setNativeDpu (Ldev/woge/spring/boot/autoconfigure/WogeProperties$NativeDpu;)V
 	public final fun setRenderIdentity (Ldev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity;)V
 }
 
@@ -53,6 +55,12 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Mvc {
 	public fun <init> ()V
 	public final fun getAsyncTimeout ()Ljava/time/Duration;
 	public final fun setAsyncTimeout (Ljava/time/Duration;)V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties$NativeDpu {
+	public fun <init> ()V
+	public final fun getMode ()Ldev/woge/runtime/NativeDpuMode;
+	public final fun setMode (Ldev/woge/runtime/NativeDpuMode;)V
 }
 
 public final class dev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity {

@@ -71,6 +71,7 @@ internal class WogeWebFluxAutoConfiguration {
             observer = observer,
             failurePages = failurePages,
             renderIdentitySecret = renderIdentitySecret,
+            nativeDpuMode = properties.nativeDpu.mode,
         )
     }
 }

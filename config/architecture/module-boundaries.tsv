@@ -3,7 +3,7 @@ woge-core	foundation	public	modules/woge-core	-	-
 woge-ui-headless	ui	public	modules/woge-ui-headless	woge-core	-
 woge-protocol	protocol	public	modules/woge-protocol	woge-core	-
 woge-host-spi	port	public	modules/woge-host-spi	woge-core,woge-protocol	-
-woge-server-runtime	runtime	internal	modules/woge-server-runtime	woge-core,woge-protocol,woge-host-spi	-
+woge-server-runtime	runtime	public	modules/woge-server-runtime	woge-core,woge-protocol,woge-host-spi	-
 woge-dev-model	tooling-model	internal	modules/woge-dev-model	-	-
 woge-dev-orchestrator	tooling	internal	modules/woge-dev-orchestrator	woge-dev-model	-
 woge-dev-process-host	tooling	internal	modules/woge-dev-process-host	woge-dev-orchestrator	-
@@ -19,7 +19,7 @@ woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-pr
 woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-webflux	adapter	public	adapters/woge-spring-webflux	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-ktor	adapter	public	adapters/woge-ktor	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
-woge-spring-boot-autoconfigure	integration	public	integrations/woge-spring-boot-autoconfigure	woge-host-spi	woge-spring-mvc,woge-spring-webflux
+woge-spring-boot-autoconfigure	integration	public	integrations/woge-spring-boot-autoconfigure	woge-host-spi,woge-server-runtime	woge-spring-mvc,woge-spring-webflux
 woge-spring-boot-starter	integration	public	integrations/woge-spring-boot-starter	woge-spring-boot-autoconfigure	-
 woge-vite	integration	public	integrations/woge-vite	woge-core	-
 woge-component-registry	test-support	support	testing/woge-component-registry	woge-ui-headless,woge-host-spi	-

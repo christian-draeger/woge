@@ -125,6 +125,7 @@ private class AdapterTckVerification(
         runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }
         runContract("streaming-deployment") { verifyStreamingDeployment(server, fixture, adapterName) }
         runContract("deferred-native-fallback") { client.verifyDeferredFallback(::expect) }
+        runContract("initial-document-dpu") { client.verifyInitialDocument(fixture.initialDocuments, ::expect) }
     }
 
     private suspend fun verifyActions() {

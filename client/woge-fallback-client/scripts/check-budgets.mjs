@@ -14,10 +14,12 @@ async function bundle(name, path) {
     entryPoints: [fileURLToPath(path)], bundle: true, write: false, minify: true,
     external: ["./transactions.js"], format: "esm", target: "es2022", legalComments: "none", metafile: true,
   });
-  verifyGraph(result, name.startsWith("core-") ? ["./transactions.js"] : []);
+  verifyGraph(result, name.startsWith("core-") || name.startsWith("dpu-") ? ["./transactions.js"] : []);
   actual[name] = sizes(result.outputFiles[0].contents);
 }
 await measure("navigation-module.js", new URL("../dist/woge-navigation.js", import.meta.url));
+await measure("dpu-module.js", new URL("../dist/dpu.js", import.meta.url));
+await bundle("dpu-graph.js", new URL("../src/dpu.js", import.meta.url));
 for (const name of ["state.js"]) {
   await measure(`navigation-shared/${name}`, new URL(`../dist/${name}`, import.meta.url));
 }

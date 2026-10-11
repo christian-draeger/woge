@@ -185,13 +185,15 @@
     {
       "name": "woge-server-runtime",
       "role": "runtime",
-      "exposure": "internal",
+      "exposure": "public",
       "sourcePath": "modules/woge-server-runtime",
-      "artifact": null,
+      "artifact": "dev.woge:woge-server-runtime",
       "concepts": [
-        "shared-server-execution"
+        "shared-server-execution",
+        "experimental-native-document-policy",
+        "bounded-original-document-streaming"
       ],
-      "guide": "docs/architecture/module-graph.md",
+      "guide": "docs/guides/native-deferred-documents.md",
       "example": null
     },
     {

@@ -63,6 +63,7 @@ public fun HtmlWriter.moduleScript(
     nonce: CspNonce? = null,
     integrity: SubresourceIntegrity? = null,
     crossOrigin: CrossOrigin? = null,
+    async: Boolean = false,
 ) {
     requireCrossOriginForExternalIntegrity(src, integrity, crossOrigin)
     rememberNonce(nonce)
@@ -70,6 +71,7 @@ public fun HtmlWriter.moduleScript(
         name = "script",
         attributes = {
             attribute("type", "module")
+            boolean("async", async)
             url("src", src)
             nonce?.let { attribute("nonce", it.value) }
             integrity?.let { attribute("integrity", it.value) }

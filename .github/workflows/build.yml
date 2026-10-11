@@ -76,6 +76,11 @@ jobs:
           WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
             ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
             --tests '*AdapterTckTest' --stacktrace
+      - name: Run experimental native DPU conformance on all hosts
+        run: |
+          ./gradlew :woge-spring-mvc:nativeDpuBrowserTest \
+            :woge-spring-webflux:nativeDpuBrowserTest \
+            :woge-ktor:nativeDpuBrowserTest --stacktrace
       - name: Upload reference-browser evidence
         if: always()
         uses: actions/upload-artifact@v7

@@ -17,8 +17,12 @@
     "server-driven-ui"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": ["./dist/dpu.js"],
   "exports": {
+    "./dpu": {
+      "types": "./dist/dpu.d.ts",
+      "import": "./dist/dpu.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/woge-fallback.js"

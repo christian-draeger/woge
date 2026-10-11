@@ -45,9 +45,16 @@ available by navigation/manual refresh; HTML-only pages do not promise automatic
 
 ## Experimental native DPU
 
-Chrome 150+ can patch a page natively with Declarative Partial Updates (DPU): `<?start name="…">` / `<?end>` marks a range, and a later `<template for="…">` replaces it while the HTML is still loading. Woge contains an experimental internal encoder for this, but no application switch yet. Follow-up [#230](https://github.com/christian-draeger/woge/issues/230) tracks integration.
+Chrome 150+ can patch a page natively with Declarative Partial Updates (DPU): `<?start name="…">` /
+`<?end>` marks a range, and a later `<template for="…">` replaces it while HTML is loading.
+Woge offers an experimental, off-by-default original-document route through `deferredHtmlPage`.
+It is Chrome-only and not a beta requirement.
 
-Native DPU only works while the browser is still parsing the original HTML document. Woge's deferred regions are fetched after the page shell, so they always use Woge's normal fallback runtime. You do not need to change anything, and your Kotlin page and component code will stay the same if a native path is added later.
+Native DPU only works while the browser parses the original navigation response. The new typed
+document streams its shell and replacements on that one response in MVC, WebFlux and Ktor.
+Existing post-shell deferred fetches always remain framed. Spring's `woge.native-dpu.mode` and
+Ktor's `nativeDpuMode` select `off`, `auto`, `force-native` or `force-fallback`; forced modes are
+experimental test overrides and still enforce eligibility. The page Kotlin is unchanged between modes.
 
 What the native forms mean:
 
@@ -55,12 +62,20 @@ What the native forms mean:
 - **Append:** there is no native append. Each update must write the marker again, or later updates have nowhere to go. Woge does not encode append natively.
 - **Not eligible:** raw HTML, scripts, event-handler attributes, `srcdoc`, `javascript:` URLs and inline styles always use the fallback, because the native parser runs active markup.
 
-Woge never guesses support from the User-Agent. Details: [ADR 0086](../adr/0086-experimental-native-dpu-encoder.md).
+The optional `dpu.js` module records a short-lived `woge_dpu` capability cookie. Automatic mode
+requires one affirmative signal; absent, expired or ambiguous signals fall back. Loading and
+completed HTML are checked independently. A rejected result stays framed inside an inert HTML
+envelope on the original response, decoded by the optional module through the production DOM sink.
+Responses are no-store and vary on Cookie. Ordinary complete-HTML links remain available without
+JavaScript. Woge never guesses support from the User-Agent.
+See the [initial-document guide](native-deferred-documents.md) and
+[ADR 0106](../adr/0106-stream-typed-deferred-documents-with-native-dpu.md).
 
 ## Force the fallback in a test
 
-The production runtime is explicitly imported and installed; it does not choose a native DPU path
-by feature detection. Native initial-document DPU remains off by default under
+The ordinary production patch runtime is explicitly imported and installed; it does not choose native
+DPU. The separate optional module advertises capability for the typed initial-document route, which
+remains off by default under
 [ADR 0015](../adr/0015-limit-native-dpu-to-initial-document-optimization.md).
 
 For the local browser-contract fixture, navigate to `/strict?runtime=fallback` (or
