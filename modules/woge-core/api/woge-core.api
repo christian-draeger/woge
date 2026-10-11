@@ -74,6 +74,16 @@ public final class dev/woge/html/Attributes {
 	public final fun url (Ljava/lang/String;Ldev/woge/html/HtmlUrl;)V
 }
 
+public final class dev/woge/html/BoundedComponentCacheStorage : dev/woge/html/ComponentCacheStorage {
+	public fun <init> (I)V
+	public fun associateTags (Ldev/woge/html/ComponentCacheKey;Ljava/util/Set;)V
+	public fun get (Ldev/woge/html/ComponentCacheKey;)Ldev/woge/html/CachedComponent;
+	public fun getMaxEntries ()I
+	public fun put (Ldev/woge/html/ComponentCacheKey;Ldev/woge/html/CachedComponent;)V
+	public fun remove (Ldev/woge/html/ComponentCacheKey;)V
+	public fun removeTag (Ljava/lang/String;)V
+}
+
 public final class dev/woge/html/BufferedHtmlSink : dev/woge/html/HtmlSink {
 	public fun <init> ()V
 	public fun <init> (I)V
@@ -81,6 +91,131 @@ public final class dev/woge/html/BufferedHtmlSink : dev/woge/html/HtmlSink {
 	public final fun content ()Ljava/lang/String;
 	public final fun getLength ()I
 	public fun write (Ljava/lang/String;)V
+}
+
+public final class dev/woge/html/CachedComponent {
+	public final fun getHtml ()Ljava/lang/String;
+	public final fun getRevision ()J
+	public final fun getWrittenAt ()Ljava/time/Instant;
+}
+
+public final class dev/woge/html/ComponentCache {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/html/ComponentCacheStorage;Ljava/time/Clock;Ldev/woge/html/ComponentCacheListener;Ljava/util/concurrent/Executor;)V
+	public synthetic fun <init> (Ldev/woge/html/ComponentCacheStorage;Ljava/time/Clock;Ldev/woge/html/ComponentCacheListener;Ljava/util/concurrent/Executor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun invalidate (Ldev/woge/html/ComponentCacheKey;)V
+	public final fun invalidateTag (Ljava/lang/String;)V
+	public final fun render (Ldev/woge/html/ComponentCacheKey;Ldev/woge/html/ComponentCacheOptions;Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
+}
+
+public final class dev/woge/html/ComponentCacheEvent {
+	public fun <init> (Ldev/woge/html/ComponentCacheEvent$Type;Ljava/lang/String;)V
+	public final fun component1 ()Ldev/woge/html/ComponentCacheEvent$Type;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ldev/woge/html/ComponentCacheEvent$Type;Ljava/lang/String;)Ldev/woge/html/ComponentCacheEvent;
+	public static synthetic fun copy$default (Ldev/woge/html/ComponentCacheEvent;Ldev/woge/html/ComponentCacheEvent$Type;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/html/ComponentCacheEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getComponent ()Ljava/lang/String;
+	public final fun getType ()Ldev/woge/html/ComponentCacheEvent$Type;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/ComponentCacheEvent$Type : java/lang/Enum {
+	public static final field HIT Ldev/woge/html/ComponentCacheEvent$Type;
+	public static final field INVALIDATED Ldev/woge/html/ComponentCacheEvent$Type;
+	public static final field MISS Ldev/woge/html/ComponentCacheEvent$Type;
+	public static final field STALE Ldev/woge/html/ComponentCacheEvent$Type;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/html/ComponentCacheEvent$Type;
+	public static fun values ()[Ldev/woge/html/ComponentCacheEvent$Type;
+}
+
+public final class dev/woge/html/ComponentCacheKey {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;Ldev/woge/html/ComponentCacheScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun component3 ()Ldev/woge/html/ComponentCacheScope;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Object;Ldev/woge/html/ComponentCacheScope;)Ldev/woge/html/ComponentCacheKey;
+	public static synthetic fun copy$default (Ldev/woge/html/ComponentCacheKey;Ljava/lang/String;Ljava/lang/Object;Ldev/woge/html/ComponentCacheScope;ILjava/lang/Object;)Ldev/woge/html/ComponentCacheKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getComponent ()Ljava/lang/String;
+	public final fun getInputs ()Ljava/lang/Object;
+	public final fun getScope ()Ldev/woge/html/ComponentCacheScope;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/html/ComponentCacheListener {
+	public static final field Companion Ldev/woge/html/ComponentCacheListener$Companion;
+	public abstract fun onEvent (Ldev/woge/html/ComponentCacheEvent;)V
+}
+
+public final class dev/woge/html/ComponentCacheListener$Companion {
+	public final fun getNONE ()Ldev/woge/html/ComponentCacheListener;
+}
+
+public final class dev/woge/html/ComponentCacheOptions {
+	public fun <init> (Ljava/time/Duration;JJLjava/util/Set;ZZ)V
+	public synthetic fun <init> (Ljava/time/Duration;JJLjava/util/Set;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/time/Duration;
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/util/Set;
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun copy (Ljava/time/Duration;JJLjava/util/Set;ZZ)Ldev/woge/html/ComponentCacheOptions;
+	public static synthetic fun copy$default (Ldev/woge/html/ComponentCacheOptions;Ljava/time/Duration;JJLjava/util/Set;ZZILjava/lang/Object;)Ldev/woge/html/ComponentCacheOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMinimumRevision ()J
+	public final fun getRequestIsPersonalized ()Z
+	public final fun getRevision ()J
+	public final fun getStaleWhileRevalidate ()Z
+	public final fun getTags ()Ljava/util/Set;
+	public final fun getTtl ()Ljava/time/Duration;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/html/ComponentCacheScope {
+}
+
+public final class dev/woge/html/ComponentCacheScope$Principal : dev/woge/html/ComponentCacheScope {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/woge/html/ComponentCacheScope$Principal;
+	public static synthetic fun copy$default (Ldev/woge/html/ComponentCacheScope$Principal;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/html/ComponentCacheScope$Principal;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/ComponentCacheScope$Public : dev/woge/html/ComponentCacheScope {
+	public static final field INSTANCE Ldev/woge/html/ComponentCacheScope$Public;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/html/ComponentCacheScope$Tenant : dev/woge/html/ComponentCacheScope {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/woge/html/ComponentCacheScope$Tenant;
+	public static synthetic fun copy$default (Ldev/woge/html/ComponentCacheScope$Tenant;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/html/ComponentCacheScope$Tenant;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/html/ComponentCacheStorage {
+	public abstract fun associateTags (Ldev/woge/html/ComponentCacheKey;Ljava/util/Set;)V
+	public abstract fun get (Ldev/woge/html/ComponentCacheKey;)Ldev/woge/html/CachedComponent;
+	public abstract fun getMaxEntries ()I
+	public abstract fun put (Ldev/woge/html/ComponentCacheKey;Ldev/woge/html/CachedComponent;)V
+	public abstract fun remove (Ldev/woge/html/ComponentCacheKey;)V
+	public abstract fun removeTag (Ljava/lang/String;)V
 }
 
 public final class dev/woge/html/CrossOrigin : java/lang/Enum {

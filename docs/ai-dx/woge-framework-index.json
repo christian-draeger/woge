@@ -96,6 +96,7 @@
     "development": "docs/guides/development-loop.md",
     "styling": "docs/guides/ui-primitives.md",
     "components": "docs/guides/component-registry.md",
+    "componentCaching": "docs/guides/component-caching.md",
     "compatibility": "docs/guides/compatibility-and-upgrades.md",
     "enhancedNavigation": "docs/guides/enhanced-navigation.md",
     "nativeDpu": "docs/guides/browser-support.md",
