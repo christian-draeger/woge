@@ -135,3 +135,5 @@ indexes and assembles these decisions rather than adding one.
 | [0091](0091-spring-mvc-async-handoff.md) | Accepted | Hand the Spring MVC response head back to a container thread |
 
 | [0092](0092-atomic-patch-transactions.md) | Accepted | Apply bounded atomic region transactions independently of optional animation |
+
+| [0093](0093-kotlin-js-local-islands.md) | Accepted | Use Kotlin/JS ES modules for opt-in local islands; keep HTML useful without them |
