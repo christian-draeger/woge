@@ -1,7 +1,6 @@
 package dev.woge.example.project
 
 import dev.woge.host.ActionExecutor
-import dev.woge.host.CorrelationId
 import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
@@ -12,11 +11,6 @@ import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RenderIdentitySecret
 import dev.woge.host.RequestContext
-import dev.woge.host.RequestHeaders
-import dev.woge.host.RequestId
-import dev.woge.host.RequestMethod
-import dev.woge.host.RequestSecurity
-import dev.woge.host.RequestTrace
 import dev.woge.host.WogeAction
 import dev.woge.host.WogeRoute
 import dev.woge.host.actionRegionUpdates
@@ -82,7 +76,7 @@ public data class AddBoardTask(
 
 public val boardTaskForm: FormDecoder<AddBoardTask> = FormDecoder(AddBoardTask.serializer())
 
-/** The demo is a public shared board; the host rejects cross-origin POSTs before this executor. */
+/** The demo is a public shared board; the host verifies same-origin POSTs before this executor. */
 @WogeAction("add-board-task")
 public suspend fun addBoardTask(
     command: AddBoardTask,
@@ -244,15 +238,4 @@ public class TaskBoard {
 
     private fun snapshot(revision: Long): TaskBoardSnapshot =
         TaskBoardSnapshot(titles, version, revision, PageIdentity(PageEpoch.of("board-${UUID.randomUUID()}"), secret))
-}
-
-/** Called only after the host's strict Origin check; no forwarded header establishes trust. */
-public fun boardActionContext(): RequestContext {
-    val id = UUID.randomUUID().toString()
-    return RequestContext(
-        RequestMethod.POST,
-        RequestTrace(RequestId.of(id), CorrelationId.of(id)),
-        headers = RequestHeaders.EMPTY,
-        security = RequestSecurity(csrf = CsrfVerification.VERIFIED),
-    )
 }

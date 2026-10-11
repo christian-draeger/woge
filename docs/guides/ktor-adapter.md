@@ -65,15 +65,18 @@ is requested.
 The browser receives the same versioned patch stream as it does from either Spring adapter. No RPC
 layer or Ktor serialization format sits between the browser and the web-native page contract.
 
-## Add authentication explicitly
+## Protect form actions and add authentication
 
-The default mapper supports safe GET, HEAD and OPTIONS requests. It copies ordinary headers, parsed
-cookies and the preferred language, but deliberately excludes raw credentials and CSRF headers.
+The default mapper treats requests as anonymous. `handlers.action(...)` uses the built-in same-origin
+CSRF check: a matching Origin is accepted, or, if Origin is missing or `null`,
+`Sec-Fetch-Site: same-origin` is accepted. Cross-origin and unverifiable requests receive 403 before
+form decoding. This does not authenticate users or replace domain authorization.
 
-For an authenticated application, supply a `KtorRequestContextFactory` to `WogeKtorHandlers`. Read
-the principal and verified security decisions from your installed Ktor plugins and translate only
-the immutable facts that application authorization needs. Both the page and deferred-patch routes
-must repeat the same authorization decision.
+For an authenticated application or token-based CSRF, supply a `KtorRequestContextFactory` to the
+action binding. Read verified security decisions from your installed Ktor plugins and translate only
+the immutable facts the application needs. When TLS terminates at a trusted proxy, install Ktor's
+`XForwardedHeaders` plugin so the request origin reflects the public scheme and host. Do not trust
+forwarded headers from arbitrary clients.
 
 ## Understand cancellation and failures
 

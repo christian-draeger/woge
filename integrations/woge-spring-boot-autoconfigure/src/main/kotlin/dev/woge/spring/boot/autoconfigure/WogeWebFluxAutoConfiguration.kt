@@ -2,7 +2,7 @@ package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.FailurePages
 import dev.woge.host.WogeObserver
-import dev.woge.spring.webflux.DefaultWebFluxRequestContextFactory
+import dev.woge.spring.webflux.SameOriginWebFluxRequestContextFactory
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -39,10 +39,13 @@ internal class WogeWebFluxAutoConfiguration {
             }
         }
 
-    /** Safe-method anonymous default; security-aware applications should provide their own bean. */
+    /**
+     * Built-in same-origin CSRF policy. Applications using authentication or token-based CSRF
+     * should provide their own bean.
+     */
     @Bean
     @ConditionalOnMissingBean
-    public fun wogeWebFluxRequestContextFactory(): WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory
+    public fun wogeWebFluxRequestContextFactory(): WebFluxRequestContextFactory = SameOriginWebFluxRequestContextFactory
 
     /** Shared policy factory used from familiar functional WebFlux routes. */
     @Bean

@@ -84,9 +84,11 @@ val page = PageUseCase<ProjectPageInput> { request ->
 }
 ```
 
-`CsrfVerification.VERIFIED` likewise says only that the adapter's CSRF policy succeeded. Missing or
-invalid verification is rejected before the use case runs. Neither fact replaces domain
-authorization.
+`CsrfVerification.VERIFIED` likewise says only that the adapter's CSRF policy succeeded. Built-in
+action bindings verify a matching Origin, or `Sec-Fetch-Site: same-origin` when Origin is absent or
+`null`; missing or mismatched evidence is rejected before the use case runs. Neither authentication
+nor CSRF verification replaces domain authorization. Applications using CSRF tokens or another
+policy provide their own request-context factory.
 
 ## Set response metadata
 

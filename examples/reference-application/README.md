@@ -55,11 +55,12 @@ The generated `AddBoardTaskAction` supplies the ordinary form URL; `BoardSummary
 application-selected CSS patch selectors. Hidden controls use HTML's `form="board-form"` attribute,
 so the same command is submitted natively and through browser `FormData`.
 
-This is a public, in-memory demo board, not a production authentication example. Each host requires
-exactly one matching `Origin` header before reading the action body. Missing, `null`, duplicate or
-foreign origins are rejected with 403. No permissive CORS or forwarded-header trust is installed.
-For a deployed application, configure trusted proxy/origin handling and the host's normal
-authentication and CSRF policy; see the [typed action guide](../../docs/guides/typed-actions.md).
+This is a public, in-memory demo board, not a production authentication example. The built-in action
+context checks same-origin requests before reading the action body. A mismatched Origin or missing
+same-origin evidence is rejected with 403. For TLS-terminating proxies, configure trusted forwarded
+headers so the observed origin matches the public URL. Deployed applications should also configure
+their normal authentication and, when needed, token-based CSRF policy; see the
+[typed action guide](../../docs/guides/typed-actions.md).
 
 The server checks the title and board version on every submission. A stale version returns 409
 without mutation; reload the canonical GET before trying again. Epochs and revisions are ordering

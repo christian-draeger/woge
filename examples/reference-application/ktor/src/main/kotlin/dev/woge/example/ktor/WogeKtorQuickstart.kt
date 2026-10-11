@@ -9,17 +9,13 @@ import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
-import dev.woge.example.project.boardActionContext
 import dev.woge.example.project.boardTaskForm
-import dev.woge.ktor.KtorRequestContextFactory
 import dev.woge.ktor.WogeKtorHandlers
 import dev.woge.ktor.ktorInput
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
-import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.head
 import io.ktor.server.routing.post
@@ -37,11 +33,7 @@ public fun Application.wogeReferenceModule() {
     val boardActivity = handlers.page(board.activity, BoardActivityRoute)
     val boardLive = handlers.live(board.live, BoardLiveRoute)
     val boardAction =
-        handlers.action(
-            board.action,
-            boardTaskForm.ktorInput(),
-            KtorRequestContextFactory { boardActionContext() },
-        )
+        handlers.action(board.action, boardTaskForm.ktorInput())
 
     routing {
         get(ProjectPageRoute.path) { page.handle(call) }
@@ -51,15 +43,7 @@ public fun Application.wogeReferenceModule() {
         get(BoardRegionRoute.path) { boardRefresh.handle(call) }
         get(BoardActivityRoute.path) { boardActivity.handle(call) }
         get(BoardLiveRoute.path) { boardLive.handle(call) }
-        post(AddBoardTaskAction.path) {
-            val connection = call.request.local
-            val origin = "${connection.scheme}://${call.request.headers["Host"]}"
-            if (call.request.headers.getAll("Origin") != listOf(origin)) {
-                call.respond(HttpStatusCode.Forbidden)
-            } else {
-                boardAction.handle(call)
-            }
-        }
+        post(AddBoardTaskAction.path) { boardAction.handle(call) }
         staticResources("/assets", "static/assets")
     }
 }

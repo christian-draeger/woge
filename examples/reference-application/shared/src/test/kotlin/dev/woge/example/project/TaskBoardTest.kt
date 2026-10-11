@@ -1,6 +1,7 @@
 package dev.woge.example.project
 
 import dev.woge.host.CorrelationId
+import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
 import dev.woge.host.LiveResult
 import dev.woge.host.PageRequest
@@ -8,6 +9,7 @@ import dev.woge.host.PageResult
 import dev.woge.host.RequestContext
 import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
+import dev.woge.host.RequestSecurity
 import dev.woge.host.RequestTrace
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
@@ -197,4 +199,13 @@ class TaskBoardTest {
         (result as PageResult.Document).frames.collect { it.writeTo(dev.woge.html.HtmlSink(output::append)) }
         return output.toString()
     }
+}
+
+private fun boardActionContext(): RequestContext {
+    val id = "task-board-test"
+    return RequestContext(
+        RequestMethod.POST,
+        RequestTrace(RequestId.of(id), CorrelationId.of(id)),
+        security = RequestSecurity(csrf = CsrfVerification.VERIFIED),
+    )
 }

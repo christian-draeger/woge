@@ -1403,6 +1403,10 @@ public final class dev/woge/host/RouteValues {
 	public final fun uuid (Ljava/lang/String;)Ljava/util/UUID;
 }
 
+public final class dev/woge/host/SameOriginCsrfKt {
+	public static final fun sameOriginCsrf-EXQgeJo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/CsrfVerification;
+}
+
 public final class dev/woge/host/SameSite : java/lang/Enum {
 	public static final field LAX Ldev/woge/host/SameSite;
 	public static final field NONE Ldev/woge/host/SameSite;

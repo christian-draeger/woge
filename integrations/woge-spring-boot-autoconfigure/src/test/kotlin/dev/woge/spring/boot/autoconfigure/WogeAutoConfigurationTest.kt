@@ -4,8 +4,10 @@ import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
 import dev.woge.host.WogeObserver
+import dev.woge.spring.mvc.SameOriginSpringMvcRequestContextFactory
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
+import dev.woge.spring.webflux.SameOriginWebFluxRequestContextFactory
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +33,10 @@ class WogeAutoConfigurationTest {
             .run { context ->
                 assertNull(context.startupFailure)
                 assertNotNull(context.getBean(WogeWebFluxHandlers::class.java))
+                assertSame(
+                    SameOriginWebFluxRequestContextFactory,
+                    context.getBean(WebFluxRequestContextFactory::class.java),
+                )
                 assertSame(FailurePages.NONE, context.getBean(FailurePages::class.java))
 
                 val catalog = context.getBean(WogeApplicationCatalog::class.java)
@@ -53,7 +59,10 @@ class WogeAutoConfigurationTest {
                 assertNull(context.startupFailure)
                 assertNotNull(context.getBean(WogeSpringMvcHandlers::class.java))
                 assertSame(FailurePages.NONE, context.getBean(FailurePages::class.java))
-                assertNotNull(context.getBean(SpringMvcRequestContextFactory::class.java))
+                assertSame(
+                    SameOriginSpringMvcRequestContextFactory,
+                    context.getBean(SpringMvcRequestContextFactory::class.java),
+                )
 
                 val catalog = context.getBean(WogeApplicationCatalog::class.java)
                 assertEquals(listOf("homePage"), catalog.pageUseCases)

@@ -1,6 +1,5 @@
 package dev.woge.examples.gradient.t05enhancedaction
 
-import dev.woge.examples.gradient.support.SameOriginActionContexts
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import dev.woge.spring.webflux.webFluxInput
 import org.springframework.context.annotation.Bean
@@ -14,7 +13,7 @@ public class Routes {
     @Bean
     public fun noteRoutes(handlers: WogeWebFluxHandlers): RouterFunction<ServerResponse> {
         val page = handlers.page(NotesPage(), EnhancedNotesRoute)
-        val add = handlers.action(AddEnhancedNoteAction, addNoteForm.webFluxInput(), SameOriginActionContexts)
+        val add = handlers.action(AddEnhancedNoteAction, addNoteForm.webFluxInput())
         return coRouter {
             GET(EnhancedNotesRoute.path, page::handle)
             POST(AddEnhancedNoteAction.path, add::handle)

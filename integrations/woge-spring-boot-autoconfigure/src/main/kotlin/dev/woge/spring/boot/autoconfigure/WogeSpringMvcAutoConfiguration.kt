@@ -2,7 +2,7 @@ package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.FailurePages
 import dev.woge.host.WogeObserver
-import dev.woge.spring.mvc.DefaultSpringMvcRequestContextFactory
+import dev.woge.spring.mvc.SameOriginSpringMvcRequestContextFactory
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -36,11 +36,14 @@ internal class WogeSpringMvcAutoConfiguration {
             }
         }
 
-    /** Safe-method anonymous default; security-aware applications should provide their own bean. */
+    /**
+     * Built-in same-origin CSRF policy. Applications using authentication or token-based CSRF
+     * should provide their own bean.
+     */
     @Bean
     @ConditionalOnMissingBean
     public fun wogeSpringMvcRequestContextFactory(): SpringMvcRequestContextFactory =
-        DefaultSpringMvcRequestContextFactory
+        SameOriginSpringMvcRequestContextFactory
 
     /** Shared policy factory used from ordinary Spring MVC URL handler mappings. */
     @Bean
