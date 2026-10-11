@@ -233,3 +233,10 @@ all of `dist`, including the adjacent shared state modules. JVM applications ser
 `/assets/woge/navigation.js` without Node. See the
 [guide](../../docs/guides/enhanced-navigation.md) for typed markers, native platform alternatives,
 heading/scroll ownership and the deliberately native managed action/live/deferred boundary.
+
+## Optional local islands
+
+Load `@woge/fallback-client/islands` (or serve `dist/islands.js` as an external module) only on pages
+with an initial `woge-islands` JSON manifest. It auto-installs after parsing;
+`installWogeIslands()` is idempotent and exposes `scan`, explicit `update` and `dispose`. Imports are
+lazy, manifest-only and root-scoped. See [the public guide](../../docs/guides/local-islands.md).

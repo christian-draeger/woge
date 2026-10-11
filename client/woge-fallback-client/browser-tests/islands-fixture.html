@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Local islands contract</title>
+<meta name="woge-page-epoch" content="islands-epoch">
+<script type="application/json" id="woge-islands">{"counter":{"url":"/island-counter.js?v=1","mount":"mount","propsVersion":1},"missing":{"url":"/island-missing.js?v=1","mount":"mount","propsVersion":1}}</script>
+<script type="module" src="/islands-bootstrap.js"></script></head>
+<body><h1>Useful server HTML</h1>
+<main data-woge-region="notes" data-woge-revision="0" tabindex="-1">
+<div style="margin-top:200vh" data-woge-island="counter" data-woge-island-loading="visible">
+<label>Note <input name="note" maxlength="120"></label><p role="status">Up to 120 characters</p>
+<template data-woge-island-props>{"version":1,"value":{"maximum":"120"}}</template>
+</div></main></body></html>

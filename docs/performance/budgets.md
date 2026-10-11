@@ -49,6 +49,8 @@ package metadata and test tools: none of these are loaded by the browser at runt
 | Opt-in classpath navigation source | 9,176 | 2,903 | 2,485 |
 | Lazy transaction module, including its complete dependency graph | 8,853 | 3,595 | 3,145 |
 | Lazy classpath transaction source, reusing existing protocol module | 3,893 | 1,533 | 1,271 |
+| Opt-in islands module and complete graph | 4,386 | 1,899 | 1,671 |
+| Opt-in classpath islands source | 7,619 | 2,498 | 2,136 |
 | Reference application's generated/minified plain CSS | 3,071 | 1,238 | 1,027 |
 | Equivalent plain-CSS service card | 424 | 261 | 186 |
 | Optional dark/high-contrast card theme | 224 | 162 | 113 |
@@ -224,3 +226,10 @@ only walks already-resolved jar files and is incrementally up to date when they 
 Browser timings remain outside normal `check`: the isolated fallback timing test took 4.5 seconds.
 Focused real-host timing runs took 10.9–18.8 seconds including server startup; the existing reference
 jobs already pay that startup cost, so these tests add only their three constrained journeys.
+
+Issue #54 adds a separate opt-in `islands.js`, never imported by core. Its minified module and
+self-contained graph each have fixed 5,000 raw / 2,200 gzip / 2,000 Brotli ceilings; unbundled
+classpath source has 9,000 / 3,000 / 2,600 ceilings. The +10% drift rule also applies. No existing
+ceiling or core bytes change. Dynamic app imports resolve only through the original page allowlist;
+application-owned island modules and chunks report their own cost outside framework budgets. See
+[local islands](../guides/local-islands.md).

@@ -13,6 +13,8 @@ public class HtmlWriter internal constructor(
     /** The CSP nonce this document already used for a head asset; development tooling reuses it. */
     internal var documentNonce: CspNonce? = null
 
+    internal var islandManifestWritten: Boolean = false
+
     /** Writes the standard declaration that selects standards mode for an HTML document. */
     public fun doctype() {
         sink.write("<!doctype html>")

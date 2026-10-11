@@ -27,6 +27,10 @@
     "./navigation": {
       "types": "./dist/navigation.d.ts",
       "import": "./dist/woge-navigation.js"
+    },
+    "./islands": {
+      "types": "./dist/islands.d.ts",
+      "import": "./dist/islands.js"
     }
   },
   "publishConfig": {

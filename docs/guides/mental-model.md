@@ -66,6 +66,7 @@ and [precise reload terms](development-loop.md#what-updates-mean).
    either CSS approach; this is not a mandatory published component library.
 5. **Islands** are optional browser-owned widgets, such as a canvas editor. Keep ordinary navigation
    outside them and declare [ownership/preservation](browser-owned-state.md); Vite is optional.
+   Use the [lazy local-island API](local-islands.md) for typed manifests and root-local mount/dispose.
    See the [compiled island example](../../examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt).
 
 [Native DPU](browser-support.md#experimental-native-dpu) is an **experimental internal** initial-document

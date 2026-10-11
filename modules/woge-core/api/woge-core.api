@@ -420,6 +420,48 @@ public final class dev/woge/html/HtmlWriterKt {
 	public static final fun writeHtmlWithUnsafeTracking (Ldev/woge/html/HtmlSink;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
 }
 
+public final class dev/woge/html/IslandLoading : java/lang/Enum {
+	public static final field EAGER Ldev/woge/html/IslandLoading;
+	public static final field VISIBLE Ldev/woge/html/IslandLoading;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/html/IslandLoading;
+	public static fun values ()[Ldev/woge/html/IslandLoading;
+}
+
+public final class dev/woge/html/IslandModule {
+	public fun <init> (Ldev/woge/html/IslandType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/woge/html/IslandType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAssetVersion ()Ljava/lang/String;
+	public final fun getModulePath ()Ljava/lang/String;
+	public final fun getMountExport ()Ljava/lang/String;
+	public final fun getType ()Ldev/woge/html/IslandType;
+}
+
+public final class dev/woge/html/IslandProps {
+	public fun <init> (Ljava/util/Map;)V
+	public final fun getFields ()Ljava/util/Map;
+}
+
+public final class dev/woge/html/IslandRegistry {
+	public fun <init> ([Ldev/woge/html/IslandModule;)V
+}
+
+public final class dev/woge/html/IslandType {
+	public fun <init> (Ljava/lang/String;ILkotlin/jvm/functions/Function1;)V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPropsVersion ()I
+	public final fun getSerialize ()Lkotlin/jvm/functions/Function1;
+}
+
+public final class dev/woge/html/LocalIslandsKt {
+	public static final fun island (Ldev/woge/html/HtmlWriter;Ldev/woge/html/IslandType;Ljava/lang/Object;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun island$default (Ldev/woge/html/HtmlWriter;Ldev/woge/html/IslandType;Ljava/lang/Object;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun islandLoader-ZSNIQDo (Ldev/woge/html/HtmlWriter;Ljava/lang/String;)V
+	public static synthetic fun islandLoader-ZSNIQDo$default (Ldev/woge/html/HtmlWriter;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun islandLoading (Ldev/woge/html/Attributes;Ldev/woge/html/IslandLoading;)V
+	public static final fun islandManifest (Ldev/woge/html/HtmlWriter;Ldev/woge/html/IslandRegistry;)V
+}
+
 public final class dev/woge/html/StreamingHtmlSink : dev/woge/html/HtmlSink {
 	public fun <init> (Ldev/woge/html/HtmlSink;I)V
 	public synthetic fun <init> (Ldev/woge/html/HtmlSink;IILkotlin/jvm/internal/DefaultConstructorMarker;)V

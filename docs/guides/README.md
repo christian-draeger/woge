@@ -91,3 +91,6 @@ nginx/Caddy profiles, compression, diagnostic timings and Spring Boot operationa
 
 The [browser support guide](browser-support.md) explains stable browser versions, three-engine
 conformance, explicit fallback testing, JavaScript-disabled journeys and failure artifacts.
+
+The [local islands guide](local-islands.md) adds one lazy, lifecycle-managed browser widget to useful
+server HTML through a typed, versioned manifest, without hydrating the page.

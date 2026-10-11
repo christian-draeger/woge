@@ -14,7 +14,8 @@ test("quickstart enhances the same safe form without navigating", async ({ page 
   expect(result.status()).toBe(200);
   expect(result.headers()["content-type"]).toContain("application/vnd.woge.patch-stream");
   await expect(page.locator("li", { hasText: title })).toHaveCount(1);
-  await expect(page.getByRole("status")).toHaveText("Note added");
+  await expect(page.locator("#note-status")).toHaveText("Note added");
+  await expect(page.locator("#note-count")).toHaveText(`${title.length} / 120 UTF-16 code units`);
   await expect(page.getByLabel("New note")).toBeFocused();
   expect(navigations).toEqual([]);
   await page.reload();
@@ -34,4 +35,18 @@ test("quickstart rejects cross-origin and invalid native posts before mutation",
   expect(invalid.status()).toBe(400);
   await page.reload();
   await expect(page.locator("li", { hasText: title })).toHaveCount(0);
+});
+
+
+test("quickstart keeps its useful form when the app island module cannot load", async ({ page }) => {
+  await page.route("**/assets/note-counter.js?v=1", (route) => route.abort());
+  await page.goto("/notes");
+  await expect(page.locator("#note-count")).toHaveText(
+    "Up to 120 UTF-16 code units. Your note is checked on the server.");
+  const title = `Fallback ${test.info().project.name}`;
+  await page.getByLabel("New note").fill(title);
+  await page.getByRole("button", { name: "Add note" }).click();
+  await expect(page.locator("li", { hasText: title })).toHaveCount(1);
+  await expect(page.locator("#note-count")).toHaveText(
+    "Up to 120 UTF-16 code units. Your note is checked on the server.");
 });
