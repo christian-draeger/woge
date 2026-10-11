@@ -62,3 +62,29 @@ val verifyNoDevelopmentTooling =
 tasks.named("check") {
     dependsOn(verifyNoDevelopmentTooling)
 }
+
+val reportProductionOverhead =
+    tasks.register("reportProductionOverhead") {
+        group = "verification"
+        description = "Reports starter jar and runtime dependency bytes separately from browser assets."
+        inputs.files(configurations.named("runtimeClasspath"))
+        inputs.files(tasks.named<Jar>("jar").flatMap { it.archiveFile })
+        val reportFile = layout.buildDirectory.file("reports/production-overhead.json")
+        outputs.file(reportFile)
+        doLast {
+            val files = inputs.files.files.sortedBy { it.name }
+            val entries =
+                files.joinToString(",\n") { file ->
+                    "    {\"artifact\":\"${file.name}\",\"bytes\":${file.length()}}"
+                }
+            val report = reportFile.get().asFile
+            report.parentFile.mkdirs()
+            report.writeText(
+                "{\n  \"totalJarBytes\":${files.sumOf { it.length() }},\n  \"artifacts\":[\n$entries\n  ]\n}\n",
+            )
+        }
+    }
+
+tasks.named("check") {
+    dependsOn(reportProductionOverhead)
+}

@@ -1,0 +1,33 @@
+{
+  "recorded": "2026-10-11",
+  "os": "macOS",
+  "node": "26.3.0",
+  "java": "21.0.6 Liberica",
+  "playwright": "1.62.1",
+  "results": {
+    "spring-mvc": {
+      "firstShell": 244,
+      "firstPatch": 1037.9000000059605,
+      "actionRoundTrip": 128.89999997615814,
+      "patchApply": 0.4000000059604645
+    },
+    "spring-webflux": {
+      "firstShell": 248,
+      "firstPatch": 1050.4000000059605,
+      "actionRoundTrip": 125.80000001192093,
+      "patchApply": 0.5999999940395355
+    },
+    "ktor": {
+      "firstShell": 244,
+      "firstPatch": 1041.300000011921,
+      "actionRoundTrip": 124.2000000178814,
+      "patchApply": 0.5
+    },
+    "bundled-client-fixture": {
+      "firstShell": 108,
+      "firstPatch": 564.8000000119209,
+      "actionRoundTrip": 113.5,
+      "patchApply": 2.0999999940395355
+    }
+  }
+}

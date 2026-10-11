@@ -3,6 +3,9 @@ name: Fallback client
 on:
   pull_request:
     paths:
+      - "testing/performance/**"
+      - "modules/woge-ui-headless/**"
+      - "examples/reference-application/shared/src/main/resources/**"
       - "client/woge-fallback-client/**"
       - "integrations/woge-fallback-client-assets/**"
       - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/Patch.kt"
@@ -13,6 +16,9 @@ on:
     branches:
       - main
     paths:
+      - "testing/performance/**"
+      - "modules/woge-ui-headless/**"
+      - "examples/reference-application/shared/src/main/resources/**"
       - "client/woge-fallback-client/**"
       - "integrations/woge-fallback-client-assets/**"
       - "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/Patch.kt"
@@ -46,6 +52,8 @@ jobs:
           name: fallback-client-evidence
           if-no-files-found: warn
           path: |
+            client/woge-fallback-client/build/budget-metrics.json
+            client/woge-fallback-client/build/browser-budget-metrics.json
             client/woge-fallback-client/build/size-metrics.json
             client/woge-fallback-client/build/package-test-result.json
             client/woge-fallback-client/build/pack-a/*.tgz

@@ -58,3 +58,6 @@ This baseline does not yet claim production latency, allocation or throughput bu
 a fixed deployment environment, warm-up policy and representative action/live-update workload. The
 current measurements establish the reproducible comparison point without turning workstation or CI
 timing noise into a compatibility promise.
+
+Current fixture-based production allocation and browser budgets are published separately in
+[production performance and bundle budgets](budgets.md); the structural M1 comparison above is unchanged.

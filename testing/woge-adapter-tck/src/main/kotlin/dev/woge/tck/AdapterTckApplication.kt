@@ -97,7 +97,10 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
     public val pages: PageUseCase<AdapterTckPageScenario> = PageUseCase(state::openPage)
     public val deferredRegions: DeferredRegionsUseCase<AdapterTckDeferredScenario> =
         DeferredRegionsUseCase(state::deferredRegions)
-    public val routePages: PageUseCase<AdapterTckRouteInput> = ROUTE_PAGE
+    public val routePages: PageUseCase<AdapterTckRouteInput> =
+        PageUseCase { request ->
+            if (request.input.note == "performance") state.performance.page() else ROUTE_PAGE.open(request)
+        }
     public val failureRoutePages: PageUseCase<Int> = FAILURE_ROUTE_PAGE
     public val failurePages: FailurePages = FAILURE_PAGES
 
@@ -116,6 +119,7 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
 }
 
 internal class AdapterTckFixtureState {
+    val performance: PerformanceRenderFixture = PerformanceRenderFixture()
     val uploadDirectory: java.nio.file.Path =
         java.nio.file.Files
             .createTempDirectory("woge-upload-tck-")

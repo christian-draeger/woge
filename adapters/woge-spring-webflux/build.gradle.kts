@@ -35,7 +35,16 @@ tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
 }
 
+val updatePerformanceBaseline = providers.gradleProperty("woge.budgets.update").getOrElse("false")
+
 tasks.test {
+    systemProperty("woge.budgets.root", rootProject.layout.projectDirectory.asFile.absolutePath)
+    systemProperty("woge.budgets.update", providers.gradleProperty("woge.budgets.update").getOrElse("false"))
+    inputs.files(rootProject.file("testing/performance/server-policy.json"))
+    inputs.files(rootProject.file("testing/performance/spring-webflux-baseline.json"))
+    val updatingPerformanceBaseline = updatePerformanceBaseline == "true"
+    outputs.upToDateWhen { !updatingPerformanceBaseline }
+
     inputs.property("streamProxyProfile", providers.environmentVariable("WOGE_STREAM_PROXY_PROFILE").orElse("nginx"))
     inputs.property("streamProxyScript", providers.environmentVariable("WOGE_STREAM_PROXY_SCRIPT").orElse(""))
     inputs.files(

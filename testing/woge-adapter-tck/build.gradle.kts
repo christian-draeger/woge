@@ -12,6 +12,7 @@ dependencies {
     api(project(":woge-host-spi"))
     implementation(project(":woge-server-runtime"))
     implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.kotlinxSerializationJson)
     ksp(project(":woge-ksp"))
 
     testImplementation(libs.junitJupiter)

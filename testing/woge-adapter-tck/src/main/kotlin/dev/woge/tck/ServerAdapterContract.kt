@@ -34,6 +34,11 @@ public class ServerAdapterContract(
             val server = start(application)
             server.use {
                 validateHarness(server)
+                ProductionPerformanceContract(
+                    factory.adapterName,
+                    server,
+                    application.fixtureState().performance,
+                ).verify()
                 kotlinx.coroutines.runBlocking {
                     val verification = AdapterTckVerification(factory.adapterName, server, application.fixtureState())
                     verification.verifyCore()

@@ -222,6 +222,15 @@ val detekt = registerAggregate("detekt", "Runs Detekt in every production build 
 val ktlintCheck = registerAggregate("ktlintCheck", "Checks Kotlin formatting in every production build project.", "ktlintCheck")
 registerAggregate("ktlintFormat", "Formats Kotlin source in every production build project.", "ktlintFormat")
 
+// Needs Node; CI runs the same budgets in the fallback-client workflow, so `check` stays Node-free.
+tasks.register<Exec>("performanceBudgets") {
+    group = "verification"
+    description = "Checks production browser, component and stylesheet byte budgets."
+    workingDir(layout.projectDirectory.dir("client/woge-fallback-client"))
+    commandLine("npm", "run", "budgets")
+    environment("WOGE_BUDGETS_UPDATE", providers.gradleProperty("woge.budgets.update").getOrElse("false"))
+}
+
 tasks.named("check") {
     dependsOn(
         validateAdrs,

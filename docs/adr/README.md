@@ -111,6 +111,8 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 
 | [0082](0082-shared-web-accessibility-contract.md) | Accepted | Audit keyboard, focus, announcements and semantic reflow through one shared native/enhanced contract |
 
+| [0083](0083-production-performance-and-bundle-budgets.md) | Proposed | Gate production performance and bundle growth separately from safety and development feedback |
+
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
 executable spikes are supporting evidence and do not override an accepted ADR. Issue

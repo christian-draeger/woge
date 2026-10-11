@@ -1,0 +1,6 @@
+/* Same service card as tailwind.html; no reset is needed for this scoped comparison. */
+.service-card { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid #d1d5db; border-radius: .5rem; background: #fff; color: #111827; }
+.service-card h2 { font-size: 1.125rem; font-weight: 600; }
+.service-card button { padding: .5rem 1rem; background: #2563eb; color: #fff; border-radius: .25rem; }
+.service-card button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+@media (width < 40rem) { .service-card { flex-direction: column; } }

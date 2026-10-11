@@ -1,0 +1,8 @@
+/* Optional theme: same card, system-owned dark and higher contrast choices. */
+@media (prefers-color-scheme: dark) {
+  .service-card { background: #111827; color: #fff; border-color: #9ca3af; }
+}
+@media (prefers-contrast: more) {
+  .service-card { border-color: currentColor; }
+  .service-card button { outline: 2px solid currentColor; }
+}

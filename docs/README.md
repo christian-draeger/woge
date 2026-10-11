@@ -63,6 +63,8 @@ The documentation grows with executable product slices. Pages describing unimple
 
 ## Performance evidence
 
+- [Production performance and bundle budgets](performance/budgets.md)
+
 - [M1 multi-host walking-skeleton baseline](performance/m1-multi-host-baseline.md)
 - [Fallback client implementation baseline](performance/fallback-client-baseline.md)
 - [HTML sink baseline](performance/html-sinks-baseline.md)
