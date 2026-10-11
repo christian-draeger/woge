@@ -907,7 +907,8 @@ internal class AdapterTckHttpClient(
             path,
             headers,
             HttpResponse.BodyHandlers.ofInputStream(),
-            body?.let { HttpRequest.BodyPublishers.ofInputStream { it.byteInputStream() } }
+            // Browsers send form posts with Content-Length; chunked uploads are covered over a raw socket.
+            body?.let { HttpRequest.BodyPublishers.ofString(it) }
                 ?: HttpRequest.BodyPublishers.noBody(),
         )
 

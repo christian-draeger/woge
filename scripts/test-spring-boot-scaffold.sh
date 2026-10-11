@@ -20,7 +20,8 @@ scratch_root=$(mktemp -d)
 daemon_registry="-Dorg.gradle.daemon.registry.base=$scratch_root/daemons"
 cleanup() {
   "$scratch_root/mvc/gradlew" "$daemon_registry" --stop >/dev/null 2>&1 || true
-  rm -rf "$scratch_root"
+  # A stopping daemon may still write its log; leftover temp files must not fail the check.
+  rm -rf "$scratch_root" 2>/dev/null || true
 }
 trap cleanup EXIT
 
