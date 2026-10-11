@@ -29,6 +29,7 @@ val scaffoldPublicationModules =
         "woge-dev-spring-child",
         "woge-dev-process-host",
         "woge-dev-browser",
+        "woge-dev-mcp",
         "woge-dev-gradle",
         "woge-fallback-client-assets",
         "woge-ksp",

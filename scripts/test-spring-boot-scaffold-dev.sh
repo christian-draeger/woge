@@ -2,7 +2,8 @@
 
 # Runs `./gradlew wogeDev` in a fresh Spring Boot scaffold and checks the edit loop:
 # start, stylesheet edit without restart, edit, compile error (old version keeps serving), fix, a new typed region (KSP), a rejected
-# region declaration, incremental action registries, and clean shutdown.
+# region declaration, incremental action registries, and clean shutdown. The session runs with `--mcp`, and the same loop is
+# observed through the experimental MCP endpoint the way a coding agent would (ADR 0075).
 
 set -eu
 
@@ -73,6 +74,25 @@ ready_count() {
   grep -c '^\[woge\] Ready:' "$log_file" || true
 }
 
+mcp_file="$fixture_root/build/woge-dev/mcp.json"
+
+mcp() {
+  node "$repository_root/scripts/woge-mcp.mjs" "$mcp_file" "$@"
+}
+
+# Prints a Python expression evaluated on the JSON document from stdin, bound to `d`.
+json() {
+  python3 -c 'import json, sys; d = json.load(sys.stdin); print(eval(sys.argv[1]))' "$1"
+}
+
+build_cursor() {
+  mcp status | json 'd["latestRequestedBuild"]'
+}
+
+await_build() {
+  mcp await_build "{\"afterBuild\": $1, \"timeoutSeconds\": 180}"
+}
+
 wait_for_page() {
   local text=$1 seconds=$2
   for _ in $(seq 1 "$seconds"); do
@@ -140,7 +160,7 @@ fi
   --no-daemon \
   --console=plain \
   "-PwogeRepository=$published_repository" \
-  wogeDev "--port=$port" >"$log_file" 2>&1 &
+  wogeDev "--port=$port" --mcp >"$log_file" 2>&1 &
 gradle_pid=$!
 
 wait_for_log '^\[woge\] Ready:' 1 300
@@ -155,6 +175,20 @@ policy=$(curl --silent --max-time 10 --dump-header - --output /dev/null "http://
 grep -Fq "connect-src 'self' $client_origin" <<<"$policy" ||
   fail "strict CSP does not allow the development client: $policy"
 
+# MCP: owner-only connection file, structured status and the compiler-generated manifest.
+[[ -f "$mcp_file" ]] || fail 'wogeDev --mcp did not write build/woge-dev/mcp.json'
+[[ $(python3 -c 'import os, sys; print(oct(os.stat(sys.argv[1]).st_mode & 0o777))' "$mcp_file") == 0o600 ]] ||
+  fail 'mcp.json is readable by other users'
+grep -Fq 'Experimental MCP endpoint for coding agents' "$log_file" || fail 'MCP endpoint was not announced'
+if grep -Fq "$(json 'd["headers"]["Authorization"]' <"$mcp_file")" "$log_file"; then
+  fail 'MCP token leaked into the terminal'
+fi
+[[ $(mcp status | json 'd["phase"]') == READY ]] || fail 'MCP status is not READY'
+grep -Eq "^http://(127\.0\.0\.1|localhost):$port/?$" <<<"$(mcp get_dev_urls | json 'd["urls"][0]')" ||
+  fail 'MCP URL is wrong'
+[[ $(mcp get_manifest | json '[x["path"] for x in d["manifest"]["descriptors"] if x["kind"] == "page"]') == "['/']" ]] ||
+  fail 'MCP manifest does not list the home page'
+
 # A stylesheet-only edit is served without restarting the application.
 ready_before=$(ready_count)
 printf '\n.woge-hot-css-smoke { color: rebeccapurple; }\n' >>"$fixture_root/src/main/resources/static/styles.css"
@@ -163,19 +197,51 @@ curl --silent --max-time 10 "http://127.0.0.1:$port/styles.css" | grep -Fq 'woge
   fail 'stylesheet edit is not served'
 (( $(ready_count) == ready_before )) || fail 'stylesheet edit restarted the application'
 
+# The agent loop: remember the build cursor, edit, wait through MCP, then read the page immediately.
+cursor=$(build_cursor)
 sed -i.bak 's/Hello from Woge/Edited by wogeDev/g' "$page_file"
-wait_for_log '^\[woge\] Ready:' 2 120
+result=$(await_build "$cursor")
+[[ $(json 'd["result"], d["status"]["phase"]' <<<"$result") == "('succeeded', 'READY')" ]] ||
+  fail "MCP await_build did not report the edit: $result"
 grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'edit did not reach the browser'
+wait_for_log '^\[woge\] Ready:' 2 120
 
+cursor=$(build_cursor)
 printf '\nval brokenOnPurpose: Int = "not a number"\n' >>"$page_file"
+result=$(await_build "$cursor")
+[[ $(json 'd["result"]' <<<"$result") == failed ]] || fail "MCP await_build did not report the error: $result"
+[[ $(json 'd["build"]["diagnostics"][0]["file"]' <<<"$result") == src/main/kotlin/example/woge/HomePage.kt ]] ||
+  fail "MCP diagnostic has no source file: $result"
+(( $(json 'd["build"]["diagnostics"][0]["line"]' <<<"$result") > 0 )) || fail 'MCP diagnostic has no line'
+[[ $(json 'd["status"]["applicationAvailable"]' <<<"$result") == True ]] || fail 'MCP lost the last working version'
+(( $(mcp get_diagnostics | json 'len(d["diagnostics"])') > 0 )) || fail 'MCP get_diagnostics is empty'
 wait_for_log '^\[woge\] Build #[0-9]* failed' 1 120
 grep -q '^\[woge\]   src/main/kotlin/example/woge/HomePage.kt:[0-9]*:[0-9]* ' "$log_file" ||
   fail 'compile error has no source location'
 grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'last working version stopped serving'
 
+cursor=$(build_cursor)
 sed -i.bak '/brokenOnPurpose/d' "$page_file"
+result=$(await_build "$cursor")
+[[ $(json 'd["result"], d["status"]["diagnosticCount"]' <<<"$result") == "('succeeded', 0)" ]] ||
+  fail "MCP await_build did not report the fix: $result"
 wait_for_log '^\[woge\] Ready:' 3 120
 grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'fixed version is not served'
+
+# Commands for an outdated build are refused; a restart keeps the MCP endpoint and the page available.
+stale=$(mcp reload '{"buildId": 1}' || true)
+[[ $(json 'd["reason"]' <<<"$stale") == STALE_BUILD ]] || fail "MCP accepted a stale reload: $stale"
+generation=$(mcp status | json 'd["activeServerGeneration"]')
+[[ $(mcp restart | json 'd["accepted"]') == True ]] || fail 'MCP restart was refused'
+restarted() {
+  mcp status | json "d['phase'] == 'READY' and (d['activeServerGeneration'] or 0) > $generation"
+}
+for _ in $(seq 1 120); do
+  [[ $(restarted) == True ]] && break
+  sleep 1
+done
+[[ $(restarted) == True ]] || fail "MCP restart did not reach a new generation: $(mcp status)"
+grep -Fq '<h1>Edited by wogeDev</h1>' <<<"$(page)" || fail 'page is missing after the MCP restart'
 
 # Structural edit: a new @WogeRegion function makes KSP generate StatusRegion, which the page renders.
 cat >"$region_file" <<'KOTLIN'
@@ -247,5 +313,7 @@ stop_session
 if curl --silent --max-time 2 "http://127.0.0.1:$port/" >/dev/null; then
   fail 'application still answers after the session stopped'
 fi
+[[ ! -f "$mcp_file" ]] || fail 'mcp.json survived the session'
+
 
 printf 'wogeDev edit loop passed for %s.\n' "$adapter"

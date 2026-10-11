@@ -34,6 +34,8 @@ class WogeDevelopmentSettingsTest {
                         port = 5173,
                         environment = mapOf("WOGE_VITE_ROOT" to "/x/my app/src/main/frontend", "A" to "b=c"),
                     ),
+                mcp = true,
+                mcpPort = 7311,
             )
         val file = directory.resolve("settings.properties")
 

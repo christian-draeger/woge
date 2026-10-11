@@ -27,6 +27,11 @@ framework version; the normal test task rejects stale guidance.
 `ApplicationManifest` model or generated `wogeDescriptors` lists; do not scan source or running
 application objects. The manifest is generated, non-secret build output, not an endpoint registry.
 
+Coding agents can start `./gradlew wogeDev --mcp` (experimental) and connect to the local MCP endpoint
+described in `build/woge-dev/mcp.json`. Read the build cursor with `status`, edit, then call
+`await_build` instead of polling the terminal or the page. See `docs/guides/development-mcp.md` in the
+Woge repository.
+
 ## Keep the web platform visible
 
 - Render semantic HTML on the server. Keep links, forms, methods, status codes and URLs recognizable.

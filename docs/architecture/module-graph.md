@@ -26,6 +26,8 @@ flowchart BT
     DevChild[woge-dev-spring-child<br/>dev-only, inside the app] --> DevClient
     DevGradle[woge-dev-gradle<br/>wogeDev launcher] --> DevProcess
     DevGradle --> DevBrowser
+    DevMcp[woge-dev-mcp<br/>experimental agent endpoint] --> DevModel
+    DevGradle --> DevMcp
     GradlePlugin[woge-gradle-plugin<br/>dev.woge.spring-boot]
     Ksp[woge-ksp<br/>build-time code generation]
     TCK[woge-adapter-tck<br/>test support] --> Core
@@ -69,6 +71,7 @@ the Spring adapters cannot depend on each other, and Ktor never wraps Spring con
 | Development orchestration (builds, restarts, fallbacks) | `woge-dev-orchestrator` | One framework-neutral coordinator; Gradle, Spring and Ktor plug in as adapters |
 | Development client markup for every page | `woge-dev-client` | Adds the SSE client to each `head` while `wogeDev` runs, using the typed DSL |
 | Spring readiness inside the application | `woge-dev-spring-child` | The only dev code inside the app process; added as `developmentOnly`, never packaged |
+| Experimental MCP endpoint for coding agents | `woge-dev-mcp` | Opt-in with `wogeDev --mcp`; loopback and token only, thin layer over the development capabilities |
 | The `wogeDev` command | `woge-dev-gradle` | Watches files, runs Gradle builds and composes host, orchestrator and browser channel |
 | Gradle plugin `dev.woge.spring-boot` | `woge-gradle-plugin` | Registers `wogeDev` and checks that `bootJar` contains no dev code |
 | Typed region descriptors from `@WogeRegion` | `woge-ksp` | Build-time only; generated code uses `woge-host-spi` types |
