@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="woge-patch-protocol-version" content="1">
+<meta name="woge-navigation-version" content="fixture-v1">
+<meta name="description" content="Second page" data-woge-navigation-meta>
+<title>Page B</title>
+<script type="module" src="/navigation-bootstrap.js"></script>
+</head><body>
+<nav data-woge-navigation="true">
+<a href="/navigation/a">Page A</a>
+<a href="/navigation/b">Page B</a>
+<a href="/navigation/b#bottom">Fragment</a>
+<a href="/navigation/redirect">Redirect</a>
+<a href="/navigation/cross-origin">Cross origin redirect</a>
+<a href="/navigation/error">Error</a>
+<a href="/navigation/skew">Skew</a>
+<a href="/navigation/non-html">Non HTML</a>
+<a href="/navigation/assets">Assets</a>
+<a href="/navigation/managed">Managed</a>
+<a href="/navigation/b" data-woge-navigation="false">Opt out</a>
+<a href="/navigation/b" target="_blank">Target</a>
+<a href="/navigation/b" download="page.html">Download</a>
+<a href="https://example.org/" id="external">External</a>
+<a href="mailto:help@example.org">Mail</a>
+<a href="/navigation/b" rel="external">External relationship</a>
+<a href="#bottom">Local fragment</a>
+</nav>
+<label>Shell draft <input id="shell"></label>
+<p role="status" data-woge-navigation-status></p>
+<main data-woge-navigation-region="route">
+<h1 data-woge-heading>Page B</h1>
+<label>Route draft <input data-woge-state-key="draft" value="Server B"></label>
+<div data-woge-island data-woge-state-key="editor"><span>Editor B</span></div>
+<div style="height:2400px"></div>
+<p id="bottom">Bottom B</p>
+</main>
+</body></html>

@@ -36,3 +36,15 @@ for (const name of ["View fast result", "View slow result"]) {
     await expect(page.locator('[aria-label="Slow result"]')).toHaveText("Slow result");
   });
 }
+
+test("navigation opt-in anchors still serve complete pages without JavaScript", async ({ page }) => {
+  await page.goto("/navigation/a");
+  await page.getByRole("link", { name: "Page B", exact: true }).click();
+  await expect(page).toHaveURL(/\/navigation\/b$/);
+  await expect(page).toHaveTitle("Page B");
+  await expect(page.getByRole("heading")).toHaveText("Page B");
+  await page.reload();
+  await expect(page.getByRole("heading")).toHaveText("Page B");
+  await page.goto("/navigation/a");
+  await expect(page.getByRole("heading")).toHaveText("Page A");
+});

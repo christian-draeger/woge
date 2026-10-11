@@ -223,6 +223,54 @@
         "gzip": 900,
         "brotli": 750
       }
+    },
+    "navigation-module.js": {
+      "measured": {
+        "raw": 5167,
+        "gzip": 2183,
+        "brotli": 1927
+      },
+      "ceiling": {
+        "raw": 5500,
+        "gzip": 2500,
+        "brotli": 2200
+      }
+    },
+    "classpath/navigation.js": {
+      "measured": {
+        "raw": 9176,
+        "gzip": 2903,
+        "brotli": 2485
+      },
+      "ceiling": {
+        "raw": 12000,
+        "gzip": 4000,
+        "brotli": 3500
+      }
+    },
+    "navigation-graph.js": {
+      "measured": {
+        "raw": 10370,
+        "gzip": 4081,
+        "brotli": 3613
+      },
+      "ceiling": {
+        "raw": 11000,
+        "gzip": 4500,
+        "brotli": 4000
+      }
+    },
+    "navigation-shared/state.js": {
+      "measured": {
+        "raw": 5317,
+        "gzip": 2177,
+        "brotli": 1894
+      },
+      "ceiling": {
+        "raw": 6000,
+        "gzip": 2500,
+        "brotli": 2200
+      }
     }
   }
 }

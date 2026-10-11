@@ -17,6 +17,11 @@ async function bundle(name, path) {
   verifyGraph(result);
   actual[name] = sizes(result.outputFiles[0].contents);
 }
+await measure("navigation-module.js", new URL("../dist/woge-navigation.js", import.meta.url));
+for (const name of ["state.js"]) {
+  await measure(`navigation-shared/${name}`, new URL(`../dist/${name}`, import.meta.url));
+}
+await bundle("navigation-graph.js", new URL("../src/navigation.js", import.meta.url));
 await measure("core-bundle.js", new URL("../dist/woge-fallback.js", import.meta.url));
 // Also gate the unbundled classpath delivery used by plain Spring/Ktor applications.
 for (const name of (await readdir(new URL("../src/", import.meta.url))).filter((name) => name.endsWith(".js")).sort()) {

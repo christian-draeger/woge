@@ -208,3 +208,13 @@ and `trusted-types woge` through one private, lazy HTML-only policy; inert-conte
 mandatory. No default policy, inline executable handler or nonce is required for same-origin
 external assets. See the [CSP guide](../../docs/guides/content-security-policy.md) for the complete
 production header and development differences.
+
+## Optional document navigation
+
+Document navigation is independent of the patch runtime. Import `installWogeNavigation` from
+`@woge/fallback-client/navigation` only on explicitly opted-in pages. The separate module fetches
+complete HTML from real GET routes; the core bundle does not import it. Static deployments copy
+all of `dist`, including the adjacent shared state modules. JVM applications serve the opt-in
+`/assets/woge/navigation.js` without Node. See the
+[guide](../../docs/guides/enhanced-navigation.md) for typed markers, native platform alternatives,
+heading/scroll ownership and the deliberately native managed action/live/deferred boundary.

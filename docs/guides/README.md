@@ -37,6 +37,9 @@ The [HTML sink guide](stream-html.md) explains when to buffer or stream the same
 The [server host SPI guide](server-host-spi.md) introduces typed page use cases, immutable request
 facts, streamed HTML frames, redirects and safe failures shared by the Spring and Ktor adapters.
 
+The [enhanced navigation guide](enhanced-navigation.md) keeps plain MPA navigation plus native
+View Transitions/Speculation Rules as the default, with a separate opt-in route-swap helper.
+
 The [typed page routes guide](typed-routes.md) declares a URL once on the page input, builds links
 from it and lets every host read the same path and query values.
 

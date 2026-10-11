@@ -42,6 +42,10 @@ package metadata and test tools: none of these are loaded by the browser at runt
 | Unbundled classpath modules, sum of ten separately served files | 66,571 | 20,519 | 17,274 |
 | Opt-in native dialog helper, as shipped | 1,374 | 661 | 549 |
 | Dialog helper if separately minified | 649 | 397 | 311 |
+| Opt-in minified navigation entry | 5,167 | 2,183 | 1,927 |
+| Navigation shared browser-state module, minified | 5,317 | 2,177 | 1,894 |
+| Navigation and state if bundled together | 10,370 | 4,081 | 3,613 |
+| Opt-in classpath navigation source | 9,176 | 2,903 | 2,485 |
 | Reference application's generated/minified plain CSS | 3,071 | 1,238 | 1,027 |
 | Equivalent plain-CSS service card | 424 | 261 | 186 |
 | Optional dark/high-contrast card theme | 224 | 162 | 113 |
@@ -57,6 +61,17 @@ of the ceiling and baseline +10% wins. Per-file ceilings and measurements are in
 [`asset-baseline.json`](../../testing/performance/asset-baseline.json), including every unbundled
 module. A real server must enable compression to achieve the compressed figures; the classpath
 artifact does not itself turn HTTP compression on. Summed file compression is not bundle compression.
+
+Issue #51 adds a separate opt-in navigation entry, never imported by core. The core bytes and
+SHA-256 (`8773a7cb726fbe23b01d849821037017242d96df048d93544b34d4921f96469f`) remain unchanged.
+The optional minified entry has fixed ceilings of 5,500 raw / 2,500 gzip / 2,200 Brotli bytes;
+its separately shipped shared state module has 6,000 / 2,500 / 2,200-byte ceilings. The complete
+self-contained navigation graph is also checked at 11,000 / 4,500 / 4,000 bytes, so shared imports
+cannot hide its cost. Node-free classpath delivery adds only `navigation.js` (12,000 / 4,000 /
+3,500-byte ceilings), using already measured classpath state modules. These are separate opt-in
+costs, not an increase to the core ceiling or automatic runtime loading. All encodings and the
++10% drift rule are enforced by the existing inventory gate. See
+[enhanced navigation](../guides/enhanced-navigation.md).
 
 Disclosure, popover and live-region primitives use browser-native behavior and add no behavior
 script. Dialog behavior is opt-in and separate from core. There is no shipped component-wide client
