@@ -110,6 +110,13 @@ load it using your own external module script. Bundlers can import `installWogeI
 installation is idempotent. CSP must allow your same-origin modules (`script-src 'self'`, or nonce
 policy with trusted module dependencies). There is no eval or inline executable bootstrap.
 
+## Small local reactions and optimistic feedback
+
+The separate [signals and optimistic actions guide](island-signals.md) shows `signal`, lazy
+`computed`, disposable `effect`, synchronous `batch` and explicit authoritative reconciliation.
+Use them only when normal server forms/patches are insufficient. Nothing renders or diffs DOM, and
+an optimistic counter is never proof of a successful save. The module is opt-in, not part of core.
+
 ## Kotlin/JS authoring
 
 Use a **separate opt-in Kotlin Multiplatform/JS IR module** with `js(IR)`, `useEsModules()`, a browser

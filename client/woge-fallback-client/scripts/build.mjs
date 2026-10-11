@@ -47,7 +47,12 @@ await build({
   outfile: new URL("islands.js", distDirectory).pathname,
   bundle: true, format: "esm", target: "es2022", minify: true, legalComments: "none",
 });
-for (const name of ["navigation.d.ts", "islands.d.ts"]) {
+await build({
+  entryPoints: [new URL("../src/signals.js", import.meta.url).pathname],
+  outfile: new URL("signals.js", distDirectory).pathname,
+  bundle: true, format: "esm", target: "es2022", minify: true, legalComments: "none",
+});
+for (const name of ["navigation.d.ts", "islands.d.ts", "signals.d.ts"]) {
   await copyFile(new URL(`../src/${name}`, import.meta.url), new URL(name, distDirectory));
 }
 await copyFile(new URL("../src/index.d.ts", import.meta.url), declarationFile);
@@ -58,7 +63,7 @@ for (const [name, url] of [
   ["module", moduleFile],
   ["sourceMap", sourceMapFile],
   ["types", declarationFile],
-  ...["woge-navigation.js", "navigation.d.ts", "state.js", "transactions.js", "islands.js", "islands.d.ts"]
+  ...["woge-navigation.js", "navigation.d.ts", "state.js", "transactions.js", "islands.js", "islands.d.ts", "signals.js", "signals.d.ts"]
     .map((name) => [name, new URL(name, distDirectory)]),
 ]) {
   const bytes = await readFile(url);

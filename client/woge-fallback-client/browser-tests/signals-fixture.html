@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Optimistic island contract</title>
+<meta name="woge-page-epoch" content="signals-epoch">
+<script type="application/json" id="woge-islands">{"notes":{"url":"/signals-island.js?v=1","mount":"mount","propsVersion":1}}</script>
+<script type="module" src="/signals-bootstrap.js"></script></head>
+<body><h1>Server-owned notes</h1>
+<section data-woge-region="saved" data-woge-revision="0" tabindex="-1">
+<output data-authoritative-count="0">0 saved notes</output></section>
+<div data-woge-island="notes" data-woge-island-loading="eager">
+<form method="post" action="/signals-action"><label>Note <input name="note" value="first"></label><button>Add note</button></form>
+<p role="status">0 notes</p><p role="alert"></p>
+<template data-woge-island-props>{"version":1,"value":{"count":"0"}}</template></div></body></html>

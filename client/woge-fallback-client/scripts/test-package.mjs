@@ -37,6 +37,8 @@ const expectedFiles = [
   "package/dist/navigation.d.ts",
   "package/dist/islands.js",
   "package/dist/islands.d.ts",
+  "package/dist/signals.js",
+  "package/dist/signals.d.ts",
   "package/dist/state.js",
   "package/dist/woge-fallback.js",
   "package/dist/woge-fallback.js.map",
@@ -69,6 +71,8 @@ await writeFile(
   entryFile,
   [
     'import { createWogePatchRuntime, WOGE_PATCH_PROTOCOL_VERSION } from "@woge/fallback-client";',
+    'import { signal, createOptimisticAction } from "@woge/fallback-client/signals";',
+    "if (createOptimisticAction(signal(0)).pendingCount.get() !== 0) throw new Error(\"Signals export failed\");",
     "if (WOGE_PATCH_PROTOCOL_VERSION !== 1) throw new Error(\"Installed protocol version mismatch\");",
     "globalThis.WogePackageConsumer = { createWogePatchRuntime, protocolVersion: WOGE_PATCH_PROTOCOL_VERSION };",
     "",
