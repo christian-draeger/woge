@@ -154,6 +154,10 @@ internal object HtmlElementSourceGenerator {
             appendLine("// The specialized style(CssStylesheet, ...) wrapper is maintained in HeadAssets.kt.")
             return
         }
+        if (definition.name == "base") {
+            appendLine("// base is omitted: it changes how every relative URL resolves (ADR 0078).")
+            return
+        }
         val functionName = definition.name.asKotlinIdentifier()
         appendLine("/**")
         appendLine(" * Writes the standard `${definition.name}` element (`${definition.domInterface}`).")

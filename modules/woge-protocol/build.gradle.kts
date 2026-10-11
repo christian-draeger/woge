@@ -21,6 +21,10 @@ dependencies {
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
+tasks.test {
+    systemProperty("woge.xss.corpus", rootProject.file("testing/xss-corpus/payloads.tsv").absolutePath)
+}
+
 tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
 }

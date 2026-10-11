@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readXssCorpus } from "../test-support/xss-corpus.mjs";
 import {
   completeFrame,
   encodeStream,
@@ -205,6 +206,53 @@ test("rejects executable content and leaves the existing DOM unchanged", async (
     expect(result.revision, html).toBe("0");
     expect(await page.evaluate(() => globalThis.patchScriptRan)).toBeUndefined();
   }
+});
+
+test("rejects every executable fragment in the shared XSS corpus before DOM mutation", async ({ page }) => {
+  const payloads = (await readXssCorpus()).filter((entry) => entry.category === "patch");
+  expect(payloads.length).toBeGreaterThan(0);
+
+  for (const { payload } of payloads) {
+    await resetPage(page);
+    const result = await apply(page, encodeStream([patchFrame({ html: payload }), completeFrame()]), "one-byte");
+    expect(result.error, payload).toBe("WOGE_ACTIVE_CONTENT");
+    expect(result.html, payload).toBe("<p>Original</p>");
+    expect(result.revision, payload).toBe("0");
+    expect(await page.evaluate(() => globalThis.wogeXssExecuted), payload).toBeUndefined();
+  }
+});
+
+test("rejected corpus payloads are not copied into browser observations", async ({ page }) => {
+  const payload = (await readXssCorpus()).find((entry) => entry.category === "patch").payload;
+  await resetPage(page);
+  const bytes = encodeStream([patchFrame({ html: payload }), completeFrame()]);
+  const result = await page.evaluate(async (values) => {
+    const events = [];
+    const runtime = Woge.createWogePatchRuntime(document, { observer: (event) => events.push(event) });
+    try {
+      await runtime.applyPatchStream(byteStream(Uint8Array.from(values)));
+    } catch (problem) {
+      return { code: problem.code, serialized: JSON.stringify(events) };
+    }
+    return { code: null, serialized: JSON.stringify(events) };
+  }, Array.from(bytes));
+  expect(result.code).toBe("WOGE_ACTIVE_CONTENT");
+  expect(result.serialized).not.toContain(payload);
+});
+
+test("style-sensitive text remains an inert style attribute in an enhanced patch", async ({ page }) => {
+  await resetPage(page);
+  const style = (await readXssCorpus()).find((entry) => entry.category === "style").payload;
+  const escapedStyle = style.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  const result = await apply(page, encodeStream([
+    patchFrame({ html: `<p style="${escapedStyle}">safe</p>` }), completeFrame(),
+  ]), "one-byte");
+
+  expect(result.error).toBeNull();
+  expect(result.html).toContain("style=");
+  expect(await page.locator('[data-woge-region="summary-1"] p').getAttribute("style")).toContain("</style>");
+  expect(await page.evaluate(() => globalThis.wogeXssExecuted)).toBeUndefined();
 });
 
 test("rejects duplicate incoming regions atomically", async ({ page }) => {

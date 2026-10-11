@@ -292,7 +292,9 @@ private val ATTRIBUTE_SUFFIX: Regex = Regex("[a-z][a-z0-9._-]*")
 
 private fun requireElementName(value: String): String {
     require(ELEMENT_NAME.matches(value)) { "Invalid HTML element name '$value'" }
-    return value.lowercase()
+    val normalizedName = value.lowercase()
+    require(normalizedName != "base") { "HTML base elements require an application-owned document policy" }
+    return normalizedName
 }
 
 private fun requireAttributeName(value: String): String {
