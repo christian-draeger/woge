@@ -14,9 +14,12 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.concurrent.withLock
 
 /**
  * Releases the container thread and runs [block] on [dispatcher]. The block never touches the
@@ -56,7 +59,7 @@ internal fun HttpServletRequest.launchWogeResponse(
                 handoff.close(failed)
             }
         }
-    async.addListener(ServletCoroutineListener(job, handoff.terminal, response))
+    async.addListener(ServletCoroutineListener(job, handoff, response))
     job.start()
 }
 
@@ -70,13 +73,20 @@ internal fun HttpServletRequest.resumeWogeResponse(response: HttpServletResponse
     return true
 }
 
-/** Worker-side handle that moves the response head onto a container thread. */
+/**
+ * Worker-side handle that moves the response head onto a container thread and owns every body write.
+ * Tomcat recycles the request and response right after async completion, so body writes and the
+ * async listeners share [bodyLock]: once [end] ran, a late write can no longer reach the recycled
+ * objects of the next request on that connection.
+ */
 internal class ServletResponseHandoff(
     @Volatile private var async: AsyncContext,
     private val deadlineMillis: Long,
 ) {
     val terminal = AtomicBoolean()
+    private val bodyLock = ReentrantLock()
     private var headSent = false
+    private var output: OutputStream? = null
 
     @Volatile
     private var pending: PendingHead? = null
@@ -88,13 +98,36 @@ internal class ServletResponseHandoff(
         }
     }
 
-    /** Commits [head] on a container thread, then returns the response for body writes from this worker. */
-    suspend fun stream(head: (HttpServletResponse) -> Unit): HttpServletResponse {
+    /** Commits [head] on a container thread; afterwards this worker may call [write]. */
+    suspend fun stream(head: (HttpServletResponse) -> Unit) {
         check(!headSent) { "Woge response head was already sent" }
-        val resumed = CompletableDeferred<HttpServletResponse>()
+        val resumed = CompletableDeferred<OutputStream>()
         dispatch(PendingHead(head, resumed))
-        return resumed.await()
+        output = resumed.await()
     }
+
+    /** Writes and flushes [chunks] unless the request already ended. */
+    fun write(chunks: List<ByteArray>) {
+        val target = checkNotNull(output) { "Woge response head was not sent" }
+        bodyLock.withLock {
+            if (terminal.get()) throw CancellationException("Servlet async response already ended")
+            try {
+                chunks.forEach(target::write)
+                target.flush()
+            } catch (failure: IOException) {
+                throw clientDisconnected(failure)
+            }
+        }
+    }
+
+    /**
+     * Called by the container before it recycles the response; waits for an in-flight [write].
+     * Runs [action] and returns `true` only for the first end of this request.
+     */
+    fun end(action: () -> Unit = {}): Boolean =
+        bodyLock.withLock {
+            terminal.compareAndSet(false, true).also { first -> if (first) action() }
+        }
 
     fun close(failed: Boolean) {
         if (!headSent) {
@@ -118,9 +151,9 @@ internal class ServletResponseHandoff(
             }
         try {
             response.flushBuffer()
-            resumed.complete(response)
+            resumed.complete(response.outputStream)
         } catch (failure: IOException) {
-            resumed.completeExceptionally(failure)
+            resumed.completeExceptionally(clientDisconnected(failure))
         }
     }
 
@@ -133,37 +166,40 @@ internal class ServletResponseHandoff(
 
     private class PendingHead(
         val apply: (HttpServletResponse) -> Unit,
-        val resumed: CompletableDeferred<HttpServletResponse>?,
+        val resumed: CompletableDeferred<OutputStream>?,
     )
 }
 
 private class ServletCoroutineListener(
     private val job: Job,
-    private val terminal: AtomicBoolean,
+    private val handoff: ServletResponseHandoff,
     private val response: HttpServletResponse,
 ) : AsyncListener {
     override fun onComplete(event: AsyncEvent) {
-        terminal.set(true)
         job.cancel(CancellationException("Servlet async response completed"))
+        handoff.end()
     }
 
     override fun onTimeout(event: AsyncEvent) {
-        response.writeSafeServerFailure()
         job.cancel(CancellationException("Servlet async response timed out"))
-        if (terminal.compareAndSet(false, true)) {
+        if (handoff.end { response.writeSafeServerFailure() }) {
             runCatching(event.asyncContext::complete)
         }
     }
 
     override fun onError(event: AsyncEvent) {
-        terminal.set(true)
         job.cancel(CancellationException("Servlet async response failed", event.throwable))
+        handoff.end()
     }
 
     override fun onStartAsync(event: AsyncEvent) {
         event.asyncContext.addListener(this)
     }
 }
+
+/** A closed connection is a normal end of a web response, not a server failure. */
+private fun clientDisconnected(failure: IOException) =
+    CancellationException("Client disconnected").apply { initCause(failure) }
 
 internal fun HttpServletResponse.writeSafeServerFailure() {
     if (!isCommitted) {
