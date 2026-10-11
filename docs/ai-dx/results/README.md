@@ -16,16 +16,18 @@ Copy this template for every human or AI-assisted run. One file records one part
 
 ## Results
 
-| Task | Compile | Tests | Unsafe or inaccessible behavior | Invented APIs | Correction iterations | Added production files/dependencies/nonblank lines | Notes |
-| --- | --- | --- | --- | ---: | ---: | --- | --- |
-| ADX-01 |  |  |  |  |  |  |  |
-| ADX-02 |  |  |  |  |  |  |  |
-| ADX-03 |  |  |  |  |  |  |  |
-| ADX-04 |  |  |  |  |  |  |  |
-| ADX-05 |  |  |  |  |  |  |  |
-| ADX-06 |  |  |  |  |  |  |  |
-| ADX-07 |  |  |  |  |  |  |  |
-| ADX-08 |  |  |  |  |  |  |  |
+| Task | Compile | Tests | Unsafe or inaccessible behavior | Invented APIs | Compile failures | Correction iterations | Files touched | Woge declarations | Woge concepts | Manual configuration | Added production files/dependencies/nonblank lines | Notes |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| ADX-01 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-02 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-03 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-04 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-05 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-06 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-07 |  |  |  |  |  |  |  |  |  |  |  |  |
+| ADX-08 |  |  |  |  |  |  |  |  |  |  |  |  |
+
+Count Woge declarations (`@WogeRoute`, `@WogeAction`, …), distinct imported `dev.woge.*` names and hand-written host bindings the same way as the [complexity gradient](../complexity-gradient.md), so runs compare with its baseline.
 
 ## Deterministic gates
 

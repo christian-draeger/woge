@@ -15,3 +15,6 @@ is built against published Woge artifacts by `./gradlew testTailwindExample`.
 
 The [Vite example](vite-spring-boot/README.md) is standalone too. `./gradlew testViteExample` builds
 it and runs it under `wogeDev` with the Vite dev server.
+
+The [complexity gradient](complexity-gradient/README.md) is a ladder of nine small tasks, from a static
+page to a live update, with measured size and concept counts. It runs in `./gradlew check`.
