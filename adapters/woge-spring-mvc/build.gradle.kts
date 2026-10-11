@@ -20,6 +20,7 @@ dependencies {
     api(libs.springWebmvc)
 
     implementation(project(":woge-server-runtime"))
+    implementation(libs.springContext)
     implementation(libs.kotlinxCoroutinesCore)
 
     testImplementation(project(":woge-adapter-tck"))

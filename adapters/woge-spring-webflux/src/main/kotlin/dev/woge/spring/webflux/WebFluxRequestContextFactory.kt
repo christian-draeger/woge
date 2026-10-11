@@ -77,10 +77,10 @@ internal suspend fun mapWebFluxRequestContext(
         }
     val language =
         request
-            .headers()
-            .acceptLanguage()
-            .firstOrNull()
-            ?.range
+            .exchange()
+            .localeContext.locale
+            ?.toLanguageTag()
+            ?.lowercase(Locale.ROOT)
             .orEmpty()
 
     return RequestContext(

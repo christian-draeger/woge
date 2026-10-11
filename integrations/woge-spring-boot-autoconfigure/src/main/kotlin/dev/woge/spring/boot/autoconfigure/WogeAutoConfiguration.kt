@@ -22,7 +22,7 @@ import org.springframework.core.io.ResourceLoader
 internal const val IMMUTABLE_ASSET_CACHE_DAYS = 365L
 
 /** Shared Spring Boot discovery, deterministic adapter selection and startup diagnostics. */
-@AutoConfiguration
+@AutoConfiguration(after = [WogeObservationAutoConfiguration::class])
 @ConditionalOnWebApplication
 @EnableConfigurationProperties(WogeProperties::class)
 @Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
@@ -39,7 +39,7 @@ public class WogeAutoConfiguration {
     @ConditionalOnMissingBean
     public fun wogeFailurePages(): FailurePages = FailurePages.NONE
 
-    /** Framework-neutral no-op that applications can replace with Micrometer or OpenTelemetry. */
+    /** Framework-neutral fallback when no observation registry or application observer is available. */
     @Bean
     @ConditionalOnMissingBean
     public fun wogeObserver(): WogeObserver = WogeObserver.NONE
@@ -63,6 +63,16 @@ public class WogeAutoConfiguration {
         resourceLoader: ResourceLoader,
         applicationContext: ApplicationContext,
     ): WogeRuntimeInfo {
+        requireWogeConfiguration(
+            properties.deferred.maxConcurrency > 0 &&
+                !properties.deferred.regionTimeout.isNegative &&
+                !properties.deferred.regionTimeout.isZero &&
+                !properties.mvc.asyncTimeout.isNegative &&
+                !properties.mvc.asyncTimeout.isZero,
+        ) {
+            "Woge requires positive 'woge.deferred.max-concurrency', 'woge.deferred.region-timeout' " +
+                "and 'woge.mvc.async-timeout' values."
+        }
         val classLoader = resourceLoader.classLoader ?: WogeAutoConfiguration::class.java.classLoader
         val selectedAdapter = WogeAdapterSelector.select(properties.adapter, classLoader)
         val contextAdapter =
@@ -71,7 +81,7 @@ public class WogeAutoConfiguration {
             } else {
                 WogeSpringAdapter.MVC
             }
-        check(selectedAdapter == contextAdapter) {
+        requireWogeConfiguration(selectedAdapter == contextAdapter) {
             "Woge selected '$selectedAdapter', but Spring Boot created a '$contextAdapter' web application. " +
                 "Set 'woge.adapter=${contextAdapter.name.lowercase()}' or configure " +
                 "'spring.main.web-application-type' to match."

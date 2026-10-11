@@ -21,10 +21,13 @@ dependencies {
     compileOnly(project(":woge-spring-mvc"))
     compileOnly(project(":woge-spring-webflux"))
 
+    compileOnly(libs.micrometerObservation)
+
     kapt(libs.springBootConfigurationProcessor)
 
     testImplementation(project(":woge-spring-webflux"))
     testImplementation(project(":woge-spring-mvc"))
+    testImplementation(libs.micrometerObservation)
     testImplementation(libs.assertjCore)
     testImplementation(libs.jakartaServletApi)
     testImplementation(libs.junitJupiter)

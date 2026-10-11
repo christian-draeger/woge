@@ -56,3 +56,5 @@ springSecurityConfig = { module = "org.springframework.security:spring-security-
 springSecurityWeb = { module = "org.springframework.security:spring-security-web" }
 springWebmvc = { module = "org.springframework:spring-webmvc" }
 springWebflux = { module = "org.springframework:spring-webflux" }
+
+micrometerObservation = { module = "io.micrometer:micrometer-observation" }

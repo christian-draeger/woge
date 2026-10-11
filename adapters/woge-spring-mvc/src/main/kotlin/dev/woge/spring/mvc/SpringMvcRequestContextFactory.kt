@@ -14,6 +14,7 @@ import dev.woge.host.httpHeader
 import dev.woge.host.requestCookie
 import dev.woge.host.sameOriginCsrf
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.web.servlet.support.RequestContextUtils
 import java.net.URI
 import java.util.Locale
 import java.util.UUID
@@ -75,13 +76,7 @@ internal fun mapSpringMvcRequestContext(
             }
         }
     val cookies = request.cookies.orEmpty().map { cookie -> requestCookie(cookie.name, cookie.value) }
-    val language =
-        request.locales
-            ?.asSequence()
-            ?.firstOrNull()
-            ?.toLanguageTag()
-            ?.lowercase(Locale.ROOT)
-            .orEmpty()
+    val language = RequestContextUtils.getLocale(request).toLanguageTag().lowercase(Locale.ROOT)
 
     return RequestContext(
         method = method,

@@ -62,6 +62,16 @@ Applications using Spring Security CSRF tokens or authentication should pass a c
 `server.forward-headers-strategy=framework` and trust forwarded headers only from that proxy, so the
 request origin reflects the public URL.
 
+## Locale and sessions
+
+The default request snapshot uses Spring's resolved locale. In MVC this respects `LocaleResolver`;
+in WebFlux it respects `LocaleContextResolver` on the exchange. Authentication and verified token
+CSRF facts remain explicit through a request-context factory; Woge does not infer domain permissions.
+
+Spring owns the session. Read it in the input/context factory and copy only application facts into
+portable inputs. Do not pass a mutable session or host request into page code. See the
+[starter guide](spring-boot-starter.md#use-spring-locale-identity-and-sessions) for the host APIs.
+
 ## Understand the execution model
 
 Input and request context are snapshotted on the original Servlet request thread. Woge then starts

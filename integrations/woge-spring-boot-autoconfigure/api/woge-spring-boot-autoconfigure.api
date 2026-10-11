@@ -12,6 +12,15 @@ public final class dev/woge/spring/boot/autoconfigure/WogeAutoConfiguration {
 	public final fun wogeRuntimeInfo (Ldev/woge/spring/boot/autoconfigure/WogeProperties;Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;Lorg/springframework/core/io/ResourceLoader;Lorg/springframework/context/ApplicationContext;)Ldev/woge/spring/boot/autoconfigure/WogeRuntimeInfo;
 }
 
+public final class dev/woge/spring/boot/autoconfigure/WogeFailureAnalyzer : org/springframework/boot/diagnostics/AbstractFailureAnalyzer {
+	public fun <init> ()V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeObservationAutoConfiguration {
+	public fun <init> ()V
+	public final fun wogeMicrometerObserver (Lio/micrometer/observation/ObservationRegistry;)Ldev/woge/host/WogeObserver;
+}
+
 public final class dev/woge/spring/boot/autoconfigure/WogeProperties {
 	public static final field Companion Ldev/woge/spring/boot/autoconfigure/WogeProperties$Companion;
 	public static final field DEFAULT_MAX_CONCURRENCY I

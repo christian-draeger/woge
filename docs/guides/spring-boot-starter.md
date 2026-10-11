@@ -82,6 +82,40 @@ Deferred limits apply per patch-stream request. `mvc.async-timeout` bounds a Ser
 response and should exceed the region timeout. Invalid non-positive values fail while the application
 context starts.
 
+| Property | Default | Meaning |
+| --- | --- | --- |
+| `woge.adapter` | `auto` | Select `mvc` or `webflux`; auto requires one web stack. |
+| `woge.deferred.max-concurrency` | `8` | Maximum concurrent regions per patch response. |
+| `woge.deferred.region-timeout` | `30s` | Maximum time for one region. |
+| `woge.mvc.async-timeout` | `60s` | Maximum Servlet response lifetime. |
+
+The configuration processor publishes `woge.*` IDE metadata. Boot's failure report explains missing
+adapter dependencies, mixed stacks, a mismatched application type and non-positive limits. Servlet
+async support is checked when a request starts; enable it on the servlet and every filter in its chain.
+
+## Override shared policy
+
+Declare an application bean of the matching type to replace `WogeObserver`, `FailurePages`,
+`AssetUrls`, `WogeApplicationCatalog`, `WogeRuntimeInfo`, either request-context factory, or either
+handler factory. Defaults use `@ConditionalOnMissingBean`; an application bean wins without enabling
+bean-definition overriding.
+
+To replace the asset resource mapping, name your `WebMvcConfigurer` bean `wogeSpringMvcAssets`, or
+name your `WebFluxConfigurer` bean `wogeWebFluxAssets`. Other Spring configurers do not disable the
+Woge asset mapping. Build-generated assets remain normal Spring resources under `/_woge/assets/**`,
+with immutable caching and 404 for unknown hashes.
+
+## Use Spring locale, identity and sessions
+
+Default contexts use Spring's resolved locale, not a second interpretation of `Accept-Language`.
+MVC respects `LocaleResolver`; WebFlux respects the exchange's `LocaleContextResolver`.
+
+Spring owns sessions. Read `request.getSession(false)` in an MVC input/context factory, or await
+`request.exchange().session` in a WebFlux factory, and copy only the facts needed by portable code.
+Do not retain a Servlet request, exchange or mutable session in `RequestContext`. Woge has no parallel
+session store and does not create sessions for ordinary page requests. Spring Security can use its
+normal session and CSRF token storage; the shared security-form tests cover expired sessions.
+
 ## Use the default form-action security
 
 The default `WebFluxRequestContextFactory` or `SpringMvcRequestContextFactory` creates anonymous
@@ -97,10 +131,21 @@ only from the proxy, so the request origin matches the browser's public URL.
 
 ## Connect metrics, traces or development tools
 
-Spring Boot provides a no-op `WogeObserver` unless the application declares its own bean. The same
-typed events are emitted by MVC, WebFlux and Ktor, so an integration can map them to Micrometer or
-OpenTelemetry without changing portable page code. See the
-[semantic observability guide](semantic-observability.md) for a safe mapping and cardinality rules.
+When Micrometer's `ObservationRegistry` is present as a bean, Boot installs a Woge observation bridge.
+For example, add Spring Boot Actuator and configure its normal observation/tracing handlers. The
+bridge uses the registry that Boot configures; Woge does not create a second registry or exporter.
+Boot's Micrometer OpenTelemetry tracing bridge can export these observations without a direct
+OpenTelemetry dependency in Woge. Applications without a registry keep the no-op observer.
+
+Observations are named `woge.operation`, with only `operation` and terminal `outcome` as metric tags.
+Request/correlation IDs, page epochs, region and patch IDs are high-cardinality trace attributes only.
+Started and finished events are paired by observation ID, even when coroutines change threads.
+No thread-local observation scope is opened across suspended work. Registry handlers measure the
+start-to-stop interval; a custom observer can record the exact semantic event duration instead.
+
+Your own `WogeObserver` bean replaces the bridge. Micrometer is optional in the autoconfigure module;
+Spring, Micrometer, OpenTelemetry and Reactor stay out of portable core modules. See the
+[semantic observability guide](semantic-observability.md) for the portable events and cardinality rules.
 
 ## Resolve mixed Spring stacks
 

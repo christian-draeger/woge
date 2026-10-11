@@ -23,6 +23,7 @@ import kotlin.time.toKotlinDuration
 @ConditionalOnClass(name = ["dev.woge.spring.webflux.WogeWebFluxHandlers"])
 internal class WogeWebFluxAutoConfiguration {
     @Bean
+    @ConditionalOnMissingBean(name = ["wogeWebFluxAssets"])
     @ConditionalOnResource(resources = ["classpath:META-INF/woge/assets.properties"])
     public fun wogeWebFluxAssets(): WebFluxConfigurer =
         object : WebFluxConfigurer {

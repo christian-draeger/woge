@@ -3,7 +3,7 @@ package dev.woge.spring.boot.autoconfigure
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.time.Duration
 
-/** Small set of proven Spring Boot settings for the M1 deferred-page path. */
+/** Spring Boot settings for adapter selection and bounded response execution. */
 @ConfigurationProperties("woge")
 public class WogeProperties {
     /** Adapter selection. AUTO requires exactly one supported Spring web stack. */
