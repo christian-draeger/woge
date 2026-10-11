@@ -109,6 +109,8 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0080](0080-streaming-deployment-contract.md) | Accepted | Verify bounded streaming, disconnect cleanup and proxy delivery across hosts |
 | [0081](0081-cross-engine-fallback-conformance.md) | Accepted | Reuse three-engine fallback gates with explicit HTML-only projects and failure evidence |
 
+| [0082](0082-shared-web-accessibility-contract.md) | Accepted | Audit keyboard, focus, announcements and semantic reflow through one shared native/enhanced contract |
+
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
 executable spikes are supporting evidence and do not override an accepted ADR. Issue

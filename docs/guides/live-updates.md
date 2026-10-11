@@ -106,8 +106,9 @@ const live = connectWogeLive(runtime, "/board/live/" + epoch, {
 `context.interactionSequence`, exactly like any other region refresh. The connector refreshes each
 changed region once at a time, with at most one follow-up, and keeps working after a failed refresh.
 
-Background updates are silent and keep focus. Wrap a region in `role="status"` only when a short
-message helps, such as "3 new tasks". Prefer a link to the fresh page over changing content the user
+Background updates are silent and keep focus. Use a short `role="status"` summary, such as
+"3 new tasks", only after the user explicitly chooses to follow updates. See the
+[announcement policy and accessibility checklist](accessibility.md). Prefer a link to the fresh page over changing content the user
 is reading. The [reference task board](../../examples/reference-application/README.md) shows exactly
 that on Spring MVC, Spring WebFlux and Ktor.
 

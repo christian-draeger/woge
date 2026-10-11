@@ -3,6 +3,8 @@
 `woge-ui-headless` gives you four small building blocks for common interface patterns. Each one
 writes a native HTML element with the right attributes. The browser handles keyboard, focus and
 screen readers. You add the looks with your own CSS or Tailwind classes.
+Use the [shared accessibility contract and manual checklist](accessibility.md) to verify your
+page, including native fallbacks, asynchronous outcomes and small-screen layouts.
 
 ```kotlin
 dependencies {

@@ -49,6 +49,11 @@ try {
       assert.equal(await page.getByRole("textbox", { name: "Command value" }).inputValue(), "<private>");
       assert.ok((await page.textContent("body")).includes("value: REPEATED"));
       assert.equal(await page.locator("private").count(), 0);
+      assert.equal(await page.locator("#tck-error-summary").getAttribute("tabindex"), "-1");
+      assert.equal(await page.locator("#tck-error-summary").getAttribute("role"), null);
+      assert.equal(await page.locator("#tck-error-summary").getAttribute("aria-live"), null);
+      assert.equal(await page.locator("#tck-error-summary a").getAttribute("href"), "#tck-command-value");
+      assert.equal(await page.getByRole("textbox", { name: "Command value" }).getAttribute("aria-invalid"), "true");
       await page.goto(complete);
       assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
 
@@ -171,10 +176,19 @@ async function verifyEnhanced(browser, expectedMutations) {
         assert.equal(await page.getByRole("textbox", { name: "Command value" }).getAttribute("aria-describedby"),
           "tck-command-value-error");
         assert.equal(await page.locator("#tck-error-summary a").getAttribute("href"), "#tck-command-value");
+        await page.keyboard.press("Tab");
+        assert.equal(await page.locator("#tck-error-summary a").evaluate(
+          (link) => document.activeElement === link,
+        ), true);
+        await page.keyboard.press("Enter");
+        assert.equal(new URL(page.url()).hash, "#tck-command-value");
+        assert.equal(await page.getByRole("textbox", { name: "Command value" }).evaluate(
+          (input) => document.activeElement === input,
+        ), true);
       } else {
         await page.getByRole("alert").waitFor({ state: "visible" });
       }
-      assert.equal(page.url(), complete);
+      assert.equal(page.url().split("#")[0], complete);
       assert.equal(await page.getByRole("textbox", { name: "Command value" }).inputValue(), value);
       assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
       await page.reload();

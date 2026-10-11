@@ -48,6 +48,12 @@ The M1 module manifest should add `woge-ui-headless` as a public module dependin
 
 Spring MVC, Spring WebFlux and Ktor render the same component API because components sit above the framework-neutral host boundary. Spring Boot remains the primary getting-started integration without becoming part of component semantics.
 
+## Accessibility release contract
+
+Every published family must pass the [shared accessibility contract](../guides/accessibility.md)
+with its own native and enhanced fixtures. Document native element alternatives before custom
+widget behavior. Primitive-level checks do not certify copied or customized CSS and markup.
+
 ## Authoring rules
 
 - Recipes keep real elements, attributes, URLs, forms and HTTP methods visible.

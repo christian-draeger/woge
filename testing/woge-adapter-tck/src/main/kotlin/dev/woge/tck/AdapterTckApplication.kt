@@ -269,5 +269,6 @@ internal const val TCK_RESPONSE_HEADER: String = "x-woge-tck"
 internal const val PRE_STREAM_PRIVATE_DETAIL: String = "tck-private-pre-stream-detail"
 internal const val TCK_DOCUMENT_STATUS_CODE: Int = 202
 
-private const val DISCONNECT_PULSES = 8
+// Resource plus pulses must fit the default concurrency of 8, or pulses can starve the resource region.
+private const val DISCONNECT_PULSES = 6
 private const val DISCONNECT_PULSE_MILLIS = 400L
