@@ -219,12 +219,12 @@
     {
       "id": "deferred-region",
       "files": 4,
-      "nonblankLines": 129,
-      "kotlinLines": 107,
+      "nonblankLines": 145,
+      "kotlinLines": 123,
       "javascriptLines": 9,
       "cssLines": 13,
       "wogeDeclarations": 3,
-      "conceptCount": 31,
+      "conceptCount": 32,
       "concepts": [
         "DeferredRegion",
         "DeferredRegionFailure",
@@ -237,6 +237,7 @@
         "WogeRegion",
         "WogeRoute",
         "WogeWebFluxHandlers",
+        "a",
         "applicationUrl",
         "body",
         "deferredRegion",

@@ -1,5 +1,8 @@
 package dev.woge.host
 
+import dev.woge.html.a
+import dev.woge.html.applicationUrl
+import dev.woge.html.noscript
 import dev.woge.html.renderHtml
 import dev.woge.protocol.PageEpoch
 import dev.woge.protocol.PatchTarget
@@ -21,7 +24,14 @@ class DeferredRegionTest {
         val region =
             deferredRegion(
                 target = target,
-                loading = { element("p") { text("Loading projects…") } },
+                loading = {
+                    element("p") { text("Loading projects…") }
+                    noscript {
+                        a(attributes = { url("href", applicationUrl("/projects?complete=true&sort=name")) }) {
+                            text("View projects")
+                        }
+                    }
+                },
                 onFailure = { patchHtml { element("p") { text("Projects are unavailable") } } },
                 content = {
                     contentStarted = true
@@ -40,7 +50,8 @@ class DeferredRegionTest {
         assertEquals(
             "<section data-woge-region=\"summary-1\" data-woge-revision=\"0\" " +
                 "class=\"project-summary\" aria-label=\"Project summary\">" +
-                "<p>Loading projects…</p></section>",
+                "<p>Loading projects…</p><noscript>" +
+                "<a href=\"/projects?complete=true&amp;sort=name\">View projects</a></noscript></section>",
             html,
         )
         assertEquals(target, region.target)

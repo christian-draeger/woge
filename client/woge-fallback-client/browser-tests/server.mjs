@@ -10,6 +10,7 @@ const routes = new Map([
   }],
   ["/", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/action-forms", { path: new URL("./actions-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/deferred-complete", { path: new URL("./deferred-complete-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/deferred", { path: new URL("./deferred-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   [
     "/deferred-bootstrap.js",

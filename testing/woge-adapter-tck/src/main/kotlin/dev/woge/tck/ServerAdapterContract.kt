@@ -123,6 +123,7 @@ private class AdapterTckVerification(
         // Runs last: its probes add observations that earlier contracts count.
         runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }
         runContract("streaming-deployment") { verifyStreamingDeployment(server, fixture, adapterName) }
+        runContract("deferred-native-fallback") { client.verifyDeferredFallback(::expect) }
     }
 
     private suspend fun verifyActions() {

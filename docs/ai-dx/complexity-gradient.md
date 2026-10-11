@@ -36,7 +36,7 @@ context, so no shared host-specific POST factory contributes to these tasks.
 | form | 3 | 109 | 2 | 26 | 2 | 0 | none |
 | validation | 3 | 163 | 2 | 39 | 2 | 0 | none |
 | enhanced action | 3 | 152 | 4 | 32 | 2 | 0 | none |
-| deferred region | 4 | 129 | 3 | 31 | 2 | 9 | none |
+| deferred region | 4 | 145 | 3 | 32 | 2 | 9 | none |
 | live update | 3 | 98 | 2 | 21 | 1 | 0 | none |
 | custom JavaScript | 4 | 103 | 1 | 22 | 1 | 8 | none |
 | island | 4 | 105 | 2 | 21 | 1 | 18 | none |
@@ -52,6 +52,10 @@ live updates from 174 to 98 lines and 31 to 21 concepts; islands from 109 to 105
 concepts. These tasks have no protocol imports or module-level secrets. The live task has one route
 binding (formerly three) and no application JavaScript (formerly 25 lines). Enhanced actions also
 use the shipped module directly (2 application JavaScript lines removed).
+
+Issue #216 adds a native full-page forecast GET and a `noscript` link inside the loading region.
+The deferred task grows from 129 to 145 lines and 31 to 32 concepts, with no new route binding,
+annotation or JavaScript. Native and enhanced responses share the same loader and renderer.
 
 ## Comparison with hand-written HTML
 
@@ -82,13 +86,14 @@ gap is the goal of the follow-up issues below.
 - Native and enhanced actions share one action and one outcome model; the enhanced task adds regions,
   not a second handler.
 - Enhanced pages use host-owned render sessions; identity and revision state no longer leak into
-  commands. Deferred streams still need explicit fetch JavaScript pending #216.
+  commands. Deferred streams still use explicit fetch JavaScript, but the same content is now
+  reachable without JavaScript through a normal full-page GET (#216).
 
 ## Follow-up
 
 - [#213](https://github.com/christian-draeger/woge/issues/213) Built-in same-origin request context for POST actions — done
 - [#214](https://github.com/christian-draeger/woge/issues/214) Optional action context, `FormValues` for business-rule errors, clearer duplicate-ID errors — done
 - [#215](https://github.com/christian-draeger/woge/issues/215) Hide identity, epoch and revision plumbing; simpler live regions — done
-- [#216](https://github.com/christian-draeger/woge/issues/216) No-JavaScript fallback for deferred regions
+- [#216](https://github.com/christian-draeger/woge/issues/216) No-JavaScript fallback for deferred regions — done
 
 When another follow-up lands, update the task, regenerate the baseline and update this table.

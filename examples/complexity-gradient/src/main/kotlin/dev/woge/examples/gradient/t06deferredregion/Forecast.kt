@@ -14,6 +14,7 @@ import dev.woge.host.htmlPage
 import dev.woge.host.regionHtml
 import dev.woge.host.regionPlaceholder
 import dev.woge.html.HtmlWriter
+import dev.woge.html.a
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
 import dev.woge.html.h1
@@ -33,7 +34,9 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @WogeRoute("/forecast")
-public data object ForecastInput
+public data class ForecastInput(
+    val complete: Boolean? = null,
+)
 
 /** The browser opens this URL to receive the slow region; [epoch] ties it to the rendered page. */
 @WogeRoute("/forecast/woge-patches/{epoch}")
@@ -46,6 +49,7 @@ public class ForecastPage :
     DeferredRegionsUseCase<ForecastPatchesInput> {
     override suspend fun open(request: PageRequest<ForecastInput>): PageResult {
         val page = request.context.render
+        val complete = if (request.input.complete == true) loadForecast() else null
         return htmlPage {
             doctype()
             html(attributes = { attribute("lang", "en") }) {
@@ -55,15 +59,20 @@ public class ForecastPage :
                     page.metadata(this)
                     title("Forecast · Deferred region")
                     stylesheet(applicationUrl("/assets/deferred-region/site.css"))
-                    moduleScript(applicationUrl("/assets/deferred-region/app.js"))
+                    if (complete == null) moduleScript(applicationUrl("/assets/deferred-region/app.js"))
                 }
                 body(attributes = {
-                    data("woge-patch-url", ForecastPatchesRoute.url(ForecastPatchesInput(page.epoch)).value)
+                    if (complete == null) {
+                        data("woge-patch-url", ForecastPatchesRoute.url(ForecastPatchesInput(page.epoch)).value)
+                    }
                 }) {
                     main {
                         h1 { text("Weekend forecast") }
-                        regionPlaceholder(forecastRegion(page), elementName = "section")
-                        noscript { p { text("The forecast needs JavaScript.") } }
+                        if (complete == null) {
+                            regionPlaceholder(forecastRegion(page), elementName = "section")
+                        } else {
+                            forecast(complete)
+                        }
                     }
                 }
             }
@@ -76,7 +85,14 @@ public class ForecastPage :
     private fun forecastRegion(page: RenderSession): DeferredRegion =
         deferredRegion(
             target = page.target(ForecastRegion),
-            loading = { p { text("Loading the forecast…") } },
+            loading = {
+                p { text("Loading the forecast…") }
+                noscript {
+                    a(attributes = { url("href", ForecastRoute.url(ForecastInput(complete = true))) }) {
+                        text("View the complete forecast")
+                    }
+                }
+            },
             onFailure = { failure -> regionHtml { p { text(failureMessage(failure)) } } },
             content = { loadForecast() },
         )

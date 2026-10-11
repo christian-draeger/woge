@@ -1,7 +1,8 @@
 # Render independent page regions when their data is ready
 
 A deferred region lets the browser receive useful page HTML while slower server work continues. The
-loading state is ordinary HTML, and the final content uses the same safe HTML writer.
+loading state is ordinary HTML, and the final content uses the same safe HTML writer. Include a
+normal link to a complete HTML page so the content is also reachable without JavaScript.
 
 ## Declare the region
 
@@ -30,7 +31,14 @@ function, so a summary target can never receive task-list HTML:
 ```kotlin
 val summary = deferredRegion(
     target = projectSummaryTarget,
-    loading = { element("p") { text("Loading project summary…") } },
+    loading = {
+        element("p") { text("Loading project summary…") }
+        noscript {
+            a(attributes = { url("href", ProjectRoute.url(ProjectInput(complete = true))) }) {
+                text("View the complete project summary")
+            }
+        }
+    },
     onFailure = { regionHtml { element("p") { text("Summary unavailable") } } },
     content = { projectRepository.load() },
 )
@@ -118,6 +126,7 @@ This initially renders HTML equivalent to:
   data-woge-revision="0"
 >
   <p>Loading project summary…</p>
+  <noscript><a href="/project?complete=true">View the complete project summary</a></noscript>
 </section>
 ```
 
@@ -127,6 +136,84 @@ opaque region ID and revision. The region ID is not a CSS selector and does not 
 Do not add `aria-live` merely because content is deferred. Whether loading, success or failure should
 be announced depends on the interaction. Woge defines that shared policy before providing a generic
 announcement API.
+
+## Provide a full HTML GET without JavaScript
+
+The patch stream is for the browser client, not for navigation. Linking to the patch URL would show
+binary protocol bytes, not a page. Instead, put an ordinary link in the loading HTML to a page route
+that waits for the data and renders a complete HTML document. `regionPlaceholder` preserves this
+HTML; it cannot choose your application's URL or access rules for you.
+
+Use the same typed route with a query option, or a separate typed page route. Here is the same-route
+option (the route processor generates `ProjectRoute`):
+
+```kotlin
+@WogeRoute("/project")
+data class ProjectInput(val complete: Boolean? = null)
+
+val projectPage = PageUseCase<ProjectInput> { request ->
+    // This access check runs before either document mode loads any data.
+    authorizeProject(request)?.let { return@PageUseCase it }
+    val complete = if (request.input.complete == true) projectRepository.load() else null
+    val summary = deferredRegion(
+        target = request.context.render.target(ProjectSummaryRegion),
+        loading = {
+            element("p") { text("Loading project summary…") }
+            noscript {
+                a(attributes = { url("href", ProjectRoute.url(ProjectInput(complete = true))) }) {
+                    text("View the complete project summary")
+                }
+            }
+        },
+        onFailure = { regionHtml { element("p") { text("Summary unavailable") } } },
+        content = { projectRepository.load() },
+    )
+    htmlPage {
+        doctype()
+        html(attributes = { attribute("lang", "en") }) {
+            head { title("Project summary") }
+            body {
+                h1 { text("Project summary") }
+                if (complete != null) {
+                    projectSummary(complete)
+                } else {
+                    regionPlaceholder(summary)
+                }
+            }
+        }
+    }
+}
+```
+
+`authorizeProject` is your application's access check. Creating `summary` does not start its work.
+Both paths use `projectRepository.load()` and `projectSummary`; the complete document does not start
+the patch client or another deferred request. Keep your usual document head, stylesheet, language
+and navigation in both modes. Only the shell includes the patch URL and external client module.
+
+Bind this as a normal page GET: `handlers.page(projectPage, ProjectRoute)` in Spring MVC, WebFlux or
+Ktor. No special deferred handler is needed for the complete page. The
+[forecast example](../../examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t06deferredregion/Forecast.kt)
+shows this pattern with `/forecast?complete=true`.
+
+A `noscript` link appears when scripting is disabled and is ignored when the browser enhances the
+region. It needs no client code or CSS. If the link should also help when an enabled script fails to
+load, put a plain `a` outside `noscript`; the patch will replace it with the finished region. Use a
+label that names the content, not just "click here".
+
+All document, fallback and patch requests must use the same authentication and access rules. Use
+ordinary session cookies or the host's established authentication, never an epoch or region ID as a
+credential. The native URL contains only normal page input such as `complete=true`; it needs no
+render epoch, region ID, secret or access token. The GET must only read data: no writes, mutation
+replay or action execution. Refreshing the full page must be safe. Deny unauthorized requests before
+loading the data, even if someone copies the fallback URL or adds render parameters to it.
+
+Test both browser modes: with JavaScript, the link inside `noscript` must not appear and patches must
+still replace the region; with `javaScriptEnabled: false`, follow the link, check for a complete
+`text/html` result, and reload it. Also test direct unauthorized requests to both HTML modes and the
+patch endpoint. The shared adapter TCK runs this contract on all three hosts; its optional real
+browser suite uses the shipped client for the enhanced path.
+
+See [ADR 0089](../adr/0089-native-deferred-region-navigation.md) for this HTML-only fallback contract.
 
 ## Keep loading states accessible
 

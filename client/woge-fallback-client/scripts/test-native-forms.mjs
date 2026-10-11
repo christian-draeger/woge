@@ -98,6 +98,7 @@ try {
     }
   }
   await verifyEnhanced(browser, expectedMutations);
+  await verifyDeferred(browser);
 } finally {
   await browser.close();
 }
@@ -203,5 +204,64 @@ async function verifyEnhanced(browser, expectedMutations) {
     assert.ok((await page.textContent("body")).includes(`Completed mutations: ${expectedMutations}`));
   } finally {
     await context.close();
+  }
+}
+
+async function verifyDeferred(browser) {
+  const source = await readFile(new URL("../dist/woge-fallback.js", import.meta.url), "utf8");
+  for (const javaScriptEnabled of [false, true]) {
+    const context = await browser.newContext({
+      javaScriptEnabled,
+      extraHTTPHeaders: { "X-Tck-Subject": "tck-user" },
+    });
+    try {
+      if (javaScriptEnabled) {
+        await context.addInitScript((source) => {
+          addEventListener("DOMContentLoaded", async () => {
+            if (!document.querySelector("[data-woge-region]")) return;
+            const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+            try {
+              const client = await import(url);
+              const epoch = document.querySelector('meta[name="woge-page-epoch"]').content;
+              const response = await fetch("/woge-tck/deferred/native-fallback", {
+                headers: { "Woge-Page-Epoch": epoch },
+              });
+              await client.createWogePatchRuntime(document).applyPatchStream(response.body);
+            } finally {
+              URL.revokeObjectURL(url);
+            }
+          }, { once: true });
+        }, source);
+      }
+      const page = await context.newPage();
+      const requests = [];
+      page.on("request", (request) => requests.push(request));
+      const shell = `${origin}/woge-tck/pages/deferred-shell`;
+      const complete = `${origin}/woge-tck/pages/deferred-complete`;
+      await page.goto(shell);
+      const link = page.getByRole("link", { name: "View the complete forecast" });
+      if (javaScriptEnabled) {
+        await page.waitForFunction(() => document.querySelector("section")?.textContent.includes("Saturday: sunny"));
+        assert.equal(await link.count(), 0);
+        assert.equal(page.url(), shell);
+      } else {
+        assert.equal(await link.getAttribute("href"), "/woge-tck/pages/deferred-complete");
+        assert.equal(requests.some((request) => request.url().includes("/deferred/native-fallback")), false);
+        const [response] = await Promise.all([page.waitForNavigation(), link.click()]);
+        assert.equal(response.status(), 200);
+        assert.equal(response.request().method(), "GET");
+        assert.equal(page.url(), complete);
+        assert.ok((await page.textContent("body")).includes("Sunday: light rain"));
+        assert.equal((await page.textContent("body")).includes("Loading"), false);
+        await page.reload();
+        assert.ok((await page.textContent("body")).includes("Saturday: sunny"));
+      }
+      await context.setExtraHTTPHeaders({ "X-Tck-Subject": "other-user" });
+      const denied = await page.goto(complete);
+      assert.equal(denied.status(), 403);
+      assert.equal((await page.textContent("body")).includes("Saturday"), false);
+    } finally {
+      await context.close();
+    }
   }
 }
