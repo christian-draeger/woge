@@ -146,3 +146,4 @@ indexes and assembles these decisions rather than adding one.
 | [0097](0097-opt-in-kotlin-js-island-assets.md) | Accepted | Register opt-in Kotlin/JS island assets from production output |
 | [0098](0098-source-owned-component-registry.md) | Accepted | Install source-owned components from an offline versioned registry |
 | [0099](0099-native-form-components-and-validation.md) | Accepted | Compose source-owned native forms with the existing validation model |
+| [0100](0100-native-navigation-overlay-and-feedback-components.md) | Accepted | Compose native navigation, overlay and feedback components |

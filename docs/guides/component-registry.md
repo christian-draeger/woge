@@ -47,9 +47,15 @@ license/provenance and readable pristine snapshots for later comparisons. Do not
 | `disclosure-card` | `css`, `tailwind` | `details` / `summary`, `disclosure` |
 | `status-message` | `css` | `div role="status"` or `role="alert"`, `liveRegion` |
 | `form-components` | `css`, `tailwind` | Native fields/choices/buttons/forms, `formField`, `formErrorSummary`, `actionForm`, `liveRegion` |
+| `navigation-components` | `css`, `tailwind` | Native links, URL tabs, breadcrumb, pagination and disclosure dropdown |
+| `overlay-components` | `css`, `tailwind` | Native dialog/drawer, popover and explicit tooltip help |
+| `feedback-components` | `css`, `tailwind` | Native progress, skeleton, static alert/toast and stable `liveRegion` |
 
 The [form components guide](form-components.md) starts with simple composition before states and
 validation. This cohesive bundle also requires `dev.woge:woge-host-spi`; the installer reports it.
+
+The [navigation, overlay and feedback guide](navigation-overlay-feedback.md) explains native navigation,
+opt-in modal behavior and stable announcement regions.
 
 The [canonical recipes](../../registry) and [contract tests](../../testing/woge-component-registry)
 are compile-verified. Import the installed extension functions from your package and call them

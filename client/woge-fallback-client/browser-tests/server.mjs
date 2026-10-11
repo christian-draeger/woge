@@ -4,6 +4,13 @@ import { STRICT_CSP } from "../test-support/strict-policy.mjs";
 import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
+  ["/component-css", { path: new URL("../../../testing/woge-component-registry/build/generated/browser-components/css.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/component-tailwind", { path: new URL("../../../testing/woge-component-registry/build/generated/browser-components/tailwind.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/component-navigation.css", { path: new URL("../../../registry/navigation-components/css/navigation-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-overlay.css", { path: new URL("../../../registry/overlay-components/css/overlay-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-feedback.css", { path: new URL("../../../registry/feedback-components/css/feedback-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-tailwind.css", { path: new URL("../../../testing/woge-component-registry/build/generated/browser-component-styles/tailwind.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/dialog.js", { path: new URL("../../../modules/woge-ui-headless/src/main/resources/static/assets/woge-ui/dialog.js", import.meta.url), type: "text/javascript; charset=utf-8" }],
   ["/signals", { path: new URL("./signals-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ...["signals-bootstrap", "signals-island"].map((name) =>
     [`/${name}.js`, { path: new URL(`./${name}.mjs`, import.meta.url), type: "text/javascript; charset=utf-8" }]),
