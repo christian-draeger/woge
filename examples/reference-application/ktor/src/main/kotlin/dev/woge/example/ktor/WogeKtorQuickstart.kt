@@ -7,12 +7,15 @@ import dev.woge.example.project.BoardRegionRoute
 import dev.woge.example.project.ProjectPage
 import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
+import dev.woge.example.project.REFERENCE_CONTENT_SECURITY_POLICY
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
 import dev.woge.example.project.boardTaskForm
 import dev.woge.ktor.WogeKtorHandlers
 import dev.woge.ktor.ktorInput
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
@@ -23,6 +26,9 @@ import io.ktor.server.routing.routing
 
 /** Installs the Ktor routes around the same portable page used by both Spring Boot examples. */
 public fun Application.wogeReferenceModule() {
+    intercept(ApplicationCallPipeline.Setup) {
+        call.response.headers.append("Content-Security-Policy", REFERENCE_CONTENT_SECURITY_POLICY)
+    }
     val projectPage = ProjectPage()
     val handlers = WogeKtorHandlers()
     val page = handlers.page(projectPage, ProjectPageRoute)

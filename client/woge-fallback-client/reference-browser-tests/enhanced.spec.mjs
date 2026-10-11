@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../test-support/strict-csp.mjs";
 
 test("automatic reload recovery remains exhausted after the server allocates a fresh epoch", async ({ page }) => {
   await page.goto("/projects/woge/tasks");
