@@ -72,3 +72,14 @@ public final class dev/woge/spring/mvc/WogeSpringMvcPageHandler : org/springfram
 	public fun handleRequest (Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V
 }
 
+public final class dev/woge/spring/mvc/WogeSpringMvcWebSocket : org/springframework/web/socket/handler/AbstractWebSocketHandler, org/springframework/web/socket/SubProtocolCapable, org/springframework/web/socket/server/HandshakeInterceptor {
+	public fun <init> (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Ldev/woge/host/WebSocketLimits;)V
+	public synthetic fun <init> (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/spring/mvc/SpringMvcRequestContextFactory;Ldev/woge/host/WebSocketLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun afterConnectionClosed (Lorg/springframework/web/socket/WebSocketSession;Lorg/springframework/web/socket/CloseStatus;)V
+	public fun afterConnectionEstablished (Lorg/springframework/web/socket/WebSocketSession;)V
+	public fun afterHandshake (Lorg/springframework/http/server/ServerHttpRequest;Lorg/springframework/http/server/ServerHttpResponse;Lorg/springframework/web/socket/WebSocketHandler;Ljava/lang/Exception;)V
+	public fun beforeHandshake (Lorg/springframework/http/server/ServerHttpRequest;Lorg/springframework/http/server/ServerHttpResponse;Lorg/springframework/web/socket/WebSocketHandler;Ljava/util/Map;)Z
+	public fun getSubProtocols ()Ljava/util/List;
+	public fun handleTransportError (Lorg/springframework/web/socket/WebSocketSession;Ljava/lang/Throwable;)V
+}
+

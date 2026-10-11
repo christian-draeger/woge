@@ -12,6 +12,7 @@ kotlin {
 }
 
 dependencies {
+    api(libs.springWebsocket)
     api(platform(libs.springBootDependencies))
     api(project(":woge-core"))
     api(project(":woge-protocol"))

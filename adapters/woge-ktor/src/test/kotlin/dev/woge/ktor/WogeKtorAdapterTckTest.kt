@@ -20,6 +20,7 @@ import dev.woge.tck.tckActionForm
 import dev.woge.tck.tckUploadForm
 import dev.woge.tck.tckUploadPage
 import dev.woge.tck.tckUploadPolicy
+import io.ktor.server.application.install
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -84,7 +85,9 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
         val uploadPage = WogeKtorHandlers().page(tckUploadPage, KtorPageInput { })
         val server =
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
+                install(io.ktor.server.websocket.WebSockets)
                 routing {
+                    cursorSocket(application)
                     get(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     head(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     get(AdapterTckRoutes.DEFERRED_PATTERN) { deferred.handle(call) }
@@ -101,6 +104,23 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 }
             }.start(wait = false)
         return KtorTckServer(server)
+    }
+
+    private fun io.ktor.server.routing.Route.cursorSocket(application: AdapterTckApplication) {
+        wogeWebSocket(
+            "/woge-tck/socket",
+            dev.woge.tck.cursorWebSocketPolicy(),
+            application.cursorSocket,
+            KtorRequestContextFactory {
+                tckActionContext(
+                    it.request.headers["X-Tck-Subject"]?.takeUnless { subject ->
+                        subject ==
+                            "anonymous"
+                    },
+                    true,
+                )
+            },
+        )
     }
 
     private fun action(application: AdapterTckApplication) =

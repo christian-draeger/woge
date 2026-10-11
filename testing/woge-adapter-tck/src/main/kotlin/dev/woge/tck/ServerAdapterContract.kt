@@ -98,6 +98,7 @@ private class AdapterTckVerification(
     private val client: AdapterTckHttpClient = AdapterTckHttpClient(server.origin)
 
     suspend fun verifyCore() {
+        runContract("websocket-patches") { verifyWebSocketTransport(server) }
         verifyMutationStore()
         verifyDocumentGetAndHead()
         runContract("http-caching") { client.verifyHttpCaching(fixture, ::expect) }

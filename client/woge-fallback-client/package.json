@@ -35,6 +35,10 @@
     "./signals": {
       "types": "./dist/signals.d.ts",
       "import": "./dist/signals.js"
+    },
+    "./websocket": {
+      "types": "./dist/websocket.d.ts",
+      "import": "./dist/websocket.js"
     }
   },
   "publishConfig": {

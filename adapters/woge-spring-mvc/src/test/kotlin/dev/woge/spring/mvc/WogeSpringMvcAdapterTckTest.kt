@@ -126,6 +126,7 @@ private class SpringMvcTimeoutConfiguration {
 
 @SpringBootConfiguration(proxyBeanMethods = false)
 @EnableAutoConfiguration
+@org.springframework.context.annotation.Import(CursorSocketMvcConfiguration::class)
 private class SpringMvcTckConfiguration {
     @Bean
     fun wogeSpringMvcHandlers(application: AdapterTckApplication): WogeSpringMvcHandlers =

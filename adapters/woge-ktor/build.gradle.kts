@@ -13,6 +13,7 @@ kotlin {
 }
 
 dependencies {
+    api(libs.ktorServerWebsockets)
     api(project(":woge-core"))
     api(project(":woge-protocol"))
     api(project(":woge-host-spi"))

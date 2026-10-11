@@ -1615,6 +1615,76 @@ public final class dev/woge/host/UploadedFile {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class dev/woge/host/WebSocketAuthorizer {
+	public abstract fun authorize (Ldev/woge/host/RequestContext;Ljava/lang/String;)Z
+}
+
+public final class dev/woge/host/WebSocketLimits {
+	public synthetic fun <init> (IIIIIJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (IIIIIJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6-UwyO8pc ()J
+	public final fun component7-UwyO8pc ()J
+	public final fun copy-zxTFDJ0 (IIIIIJJ)Ldev/woge/host/WebSocketLimits;
+	public static synthetic fun copy-zxTFDJ0$default (Ldev/woge/host/WebSocketLimits;IIIIIJJILjava/lang/Object;)Ldev/woge/host/WebSocketLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrameBytes ()I
+	public final fun getHeartbeat-UwyO8pc ()J
+	public final fun getIdleTimeout-UwyO8pc ()J
+	public final fun getInboundBytes ()I
+	public final fun getMaxLifetime-UwyO8pc ()J
+	public final fun getMessagesPerSecond ()I
+	public final fun getQueuedFrames ()I
+	public final fun getSubscriptions ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/woge/host/WebSocketPeer {
+	public abstract fun binary ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun close (ILjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun text (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/WebSocketSessionKt {
+	public static final fun serveWebSocket (Ldev/woge/host/WebSocketPeer;Ldev/woge/host/RequestContext;Ldev/woge/host/WebSocketUseCase;Ldev/woge/host/WebSocketLimits;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun serveWebSocket$default (Ldev/woge/host/WebSocketPeer;Ldev/woge/host/RequestContext;Ldev/woge/host/WebSocketUseCase;Ldev/woge/host/WebSocketLimits;Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/WebSocketSubscription {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2-5npnCUI ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy-K6f4lwc (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/woge/host/WebSocketSubscription;
+	public static synthetic fun copy-K6f4lwc$default (Ldev/woge/host/WebSocketSubscription;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/woge/host/WebSocketSubscription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEpoch-5npnCUI ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getRevisions ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/WebSocketTransportKt {
+	public static final field WEB_SOCKET_PROTOCOL Ljava/lang/String;
+}
+
+public final class dev/woge/host/WebSocketUpgradePolicy {
+	public fun <init> (Ljava/lang/String;Ldev/woge/host/WebSocketAuthorizer;)V
+	public final fun accepts (Ldev/woge/host/RequestContext;Ljava/lang/String;Ljava/util/List;)Z
+}
+
+public abstract interface class dev/woge/host/WebSocketUseCase {
+	public abstract fun message (Ldev/woge/host/WebSocketSubscription;Ljava/lang/String;Ldev/woge/host/RequestContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun subscribe (Ldev/woge/host/WebSocketSubscription;Ldev/woge/host/RequestContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface annotation class dev/woge/host/WogeAction : java/lang/annotation/Annotation {
 	public abstract fun id ()Ljava/lang/String;
 }

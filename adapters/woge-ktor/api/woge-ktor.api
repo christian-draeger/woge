@@ -65,3 +65,8 @@ public final class dev/woge/ktor/WogeKtorPageHandler {
 	public final fun handle (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class dev/woge/ktor/WogeKtorWebSocketKt {
+	public static final fun wogeWebSocket (Lio/ktor/server/routing/Route;Ljava/lang/String;Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/ktor/KtorRequestContextFactory;Ldev/woge/host/WebSocketLimits;)V
+	public static synthetic fun wogeWebSocket$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/ktor/KtorRequestContextFactory;Ldev/woge/host/WebSocketLimits;ILjava/lang/Object;)V
+}
+

@@ -22,6 +22,8 @@ for (const name of ["state.js"]) {
   await measure(`navigation-shared/${name}`, new URL(`../dist/${name}`, import.meta.url));
 }
 await bundle("navigation-graph.js", new URL("../src/navigation.js", import.meta.url));
+await measure("websocket-module.js", new URL("../dist/websocket.js", import.meta.url));
+await bundle("websocket-graph.js", new URL("../src/websocket.js", import.meta.url));
 await measure("signals-module.js", new URL("../dist/signals.js", import.meta.url));
 await bundle("signals-graph.js", new URL("../src/signals.js", import.meta.url));
 await measure("islands-module.js", new URL("../dist/islands.js", import.meta.url));
