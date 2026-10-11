@@ -46,6 +46,8 @@ public final class dev/woge/host/ActionRegionUpdatesKt {
 	public static synthetic fun actionRegionUpdates-THqN12c$default (Ljava/lang/String;JLdev/woge/host/ResponseHeaders;Ljava/lang/Iterable;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static final fun actionValidationUpdates-oHLdDAw (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static synthetic fun actionValidationUpdates-oHLdDAw$default (Ldev/woge/host/PageResult$Document;Ljava/lang/String;JLdev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static final fun atomic (Ldev/woge/host/PageResult$RegionUpdates;Z)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun atomic$default (Ldev/woge/host/PageResult$RegionUpdates;ZILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static final fun regionRefresh-ZJeNXe4 (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;)Ldev/woge/host/PageResult$RegionUpdates;
 	public static synthetic fun regionRefresh-ZJeNXe4$default (Ljava/lang/String;Ldev/woge/host/RegionTarget;Ljava/lang/Object;JJLdev/woge/host/PatchStreamLimits;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 }
@@ -1020,12 +1022,13 @@ public final class dev/woge/host/PageResult$Redirect : dev/woge/host/PageResult 
 }
 
 public final class dev/woge/host/PageResult$RegionUpdates : dev/woge/host/PageResult {
-	public synthetic fun <init> (Ljava/util/List;Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/ResponseMetadata;Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/util/List;Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/ResponseMetadata;Ldev/woge/host/PatchStreamLimits;Ldev/woge/protocol/PatchTransaction;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFocusSummary-NWzxd-g ()Ljava/lang/String;
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;
 	public final fun getNativeResult ()Ldev/woge/host/PageResult;
 	public final fun getPatchStreamLimits ()Ldev/woge/host/PatchStreamLimits;
 	public final fun getPatches ()Ljava/util/List;
+	public final fun getTransaction ()Ldev/woge/protocol/PatchTransaction;
 }
 
 public abstract class dev/woge/host/PageRoute {

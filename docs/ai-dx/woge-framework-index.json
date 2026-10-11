@@ -27,7 +27,9 @@
     "patchProtocolVersion": 1,
     "runtimeDependencies": [],
     "optionalNavigation": "@woge/fallback-client/navigation",
-    "navigationAdr": "docs/adr/0090-opt-in-document-navigation.md"
+    "navigationAdr": "docs/adr/0090-opt-in-document-navigation.md",
+    "transactionModule": "transactions.js (lazy, only for atomic patch frames)",
+    "transactionsAdr": "docs/adr/0092-atomic-patch-transactions.md"
   },
   "agentGuidance": {
     "templateVersion": 1,
@@ -60,7 +62,8 @@
     "canonicalPageAndAction": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt",
     "springBindings": "examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt",
     "ktorBindings": "examples/reference-application/ktor/src/main/kotlin/dev/woge/example/ktor/WogeKtorQuickstart.kt",
-    "island": "examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt"
+    "island": "examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt",
+    "atomicRegionUpdates": "docs/guides/typed-actions.md"
   },
   "modules": [
     {
@@ -69,7 +72,14 @@
       "exposure": "public",
       "sourcePath": "modules/woge-core",
       "artifact": "dev.woge:woge-core",
-      "concepts": ["html-dsl", "safe-html-values", "html-sinks", "css-values", "head-assets", "content-hashed-assets"],
+      "concepts": [
+        "html-dsl",
+        "safe-html-values",
+        "html-sinks",
+        "css-values",
+        "head-assets",
+        "content-hashed-assets"
+      ],
       "guide": "docs/guides/html-elements.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HtmlCssAndSinks.kt"
     },
@@ -79,7 +89,13 @@
       "exposure": "public",
       "sourcePath": "modules/woge-ui-headless",
       "artifact": "dev.woge:woge-ui-headless",
-      "concepts": ["unstyled-primitives", "disclosure", "dialog", "popover", "live-region"],
+      "concepts": [
+        "unstyled-primitives",
+        "disclosure",
+        "dialog",
+        "popover",
+        "live-region"
+      ],
       "guide": "docs/guides/ui-primitives.md",
       "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/TaskBoardMarkup.kt"
     },
@@ -89,7 +105,12 @@
       "exposure": "public",
       "sourcePath": "modules/woge-protocol",
       "artifact": "dev.woge:woge-protocol",
-      "concepts": ["patch-ir", "patch-stream-codec", "page-epoch", "target-revision"],
+      "concepts": [
+        "patch-ir",
+        "patch-stream-codec",
+        "page-epoch",
+        "target-revision"
+      ],
       "guide": "docs/guides/patch-ir.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt"
     },
@@ -99,7 +120,15 @@
       "exposure": "public",
       "sourcePath": "modules/woge-host-spi",
       "artifact": "dev.woge:woge-host-spi",
-      "concepts": ["page-use-case", "deferred-regions", "request-context", "semantic-observability", "bounded-form-decoding", "native-multipart-uploads", "application-manifest"],
+      "concepts": [
+        "page-use-case",
+        "deferred-regions",
+        "request-context",
+        "semantic-observability",
+        "bounded-form-decoding",
+        "native-multipart-uploads",
+        "application-manifest"
+      ],
       "guide": "docs/guides/server-host-spi.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt"
     },
@@ -109,7 +138,9 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-server-runtime",
       "artifact": null,
-      "concepts": ["shared-server-execution"],
+      "concepts": [
+        "shared-server-execution"
+      ],
       "guide": "docs/architecture/module-graph.md",
       "example": null
     },
@@ -119,7 +150,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-model",
       "artifact": null,
-      "concepts": ["development-lifecycle", "development-capabilities", "reload-correctness"],
+      "concepts": [
+        "development-lifecycle",
+        "development-capabilities",
+        "reload-correctness"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -129,7 +164,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-orchestrator",
       "artifact": null,
-      "concepts": ["development-orchestrator", "reload-correctness", "development-adapters"],
+      "concepts": [
+        "development-orchestrator",
+        "reload-correctness",
+        "development-adapters"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -139,7 +178,12 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-process-host",
       "artifact": null,
-      "concepts": ["spring-dev-host", "ktor-dev-host", "development-restart", "reload-correctness"],
+      "concepts": [
+        "spring-dev-host",
+        "ktor-dev-host",
+        "development-restart",
+        "reload-correctness"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -149,7 +193,10 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-client",
       "artifact": null,
-      "concepts": ["development-browser-client", "development-head-hook"],
+      "concepts": [
+        "development-browser-client",
+        "development-head-hook"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -159,7 +206,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-spring-child",
       "artifact": null,
-      "concepts": ["spring-dev-host", "development-readiness", "development-csp"],
+      "concepts": [
+        "spring-dev-host",
+        "development-readiness",
+        "development-csp"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -169,7 +220,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-browser",
       "artifact": null,
-      "concepts": ["development-browser-channel", "development-sse", "development-overlay"],
+      "concepts": [
+        "development-browser-channel",
+        "development-sse",
+        "development-overlay"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -179,7 +234,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-mcp",
       "artifact": null,
-      "concepts": ["development-mcp", "development-capabilities", "coding-agents"],
+      "concepts": [
+        "development-mcp",
+        "development-capabilities",
+        "coding-agents"
+      ],
       "guide": "docs/guides/development-mcp.md",
       "example": null
     },
@@ -189,7 +248,11 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-dev-gradle",
       "artifact": null,
-      "concepts": ["woge-dev-command", "development-orchestrator", "development-diagnostics"],
+      "concepts": [
+        "woge-dev-command",
+        "development-orchestrator",
+        "development-diagnostics"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -199,7 +262,10 @@
       "exposure": "internal",
       "sourcePath": "modules/woge-gradle-plugin",
       "artifact": null,
-      "concepts": ["woge-dev-command", "production-isolation"],
+      "concepts": [
+        "woge-dev-command",
+        "production-isolation"
+      ],
       "guide": "docs/architecture/development-lifecycle.md",
       "example": null
     },
@@ -209,7 +275,12 @@
       "exposure": "public",
       "sourcePath": "modules/woge-ksp",
       "artifact": "dev.woge:woge-ksp",
-      "concepts": ["typed-region-descriptors", "typed-page-routes", "typed-action-descriptors", "build-diagnostics"],
+      "concepts": [
+        "typed-region-descriptors",
+        "typed-page-routes",
+        "typed-action-descriptors",
+        "build-diagnostics"
+      ],
       "guide": "docs/guides/deferred-regions.md",
       "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt"
     },
@@ -219,7 +290,9 @@
       "exposure": "public",
       "sourcePath": "integrations/woge-fallback-client-assets",
       "artifact": "dev.woge:woge-fallback-client-assets",
-      "concepts": ["node-free-browser-assets"],
+      "concepts": [
+        "node-free-browser-assets"
+      ],
       "guide": "docs/guides/fallback-client-installation.md",
       "example": "examples/reference-application/shared/build.gradle.kts"
     },
@@ -229,7 +302,9 @@
       "exposure": "support",
       "sourcePath": "testing/woge-adapter-tck",
       "artifact": null,
-      "concepts": ["server-adapter-contract"],
+      "concepts": [
+        "server-adapter-contract"
+      ],
       "guide": "docs/architecture/server-adapter-parity.md",
       "example": "testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/ServerAdapterContract.kt"
     },
@@ -239,7 +314,10 @@
       "exposure": "public",
       "sourcePath": "adapters/woge-spring-mvc",
       "artifact": "dev.woge:woge-spring-mvc",
-      "concepts": ["spring-mvc-page-handler", "spring-mvc-deferred-handler"],
+      "concepts": [
+        "spring-mvc-page-handler",
+        "spring-mvc-deferred-handler"
+      ],
       "guide": "docs/guides/spring-mvc-adapter.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
     },
@@ -249,7 +327,10 @@
       "exposure": "public",
       "sourcePath": "adapters/woge-spring-webflux",
       "artifact": "dev.woge:woge-spring-webflux",
-      "concepts": ["spring-webflux-page-handler", "spring-webflux-deferred-handler"],
+      "concepts": [
+        "spring-webflux-page-handler",
+        "spring-webflux-deferred-handler"
+      ],
       "guide": "docs/guides/spring-webflux-adapter.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
     },
@@ -259,7 +340,10 @@
       "exposure": "public",
       "sourcePath": "adapters/woge-ktor",
       "artifact": "dev.woge:woge-ktor",
-      "concepts": ["ktor-page-handler", "ktor-deferred-handler"],
+      "concepts": [
+        "ktor-page-handler",
+        "ktor-deferred-handler"
+      ],
       "guide": "docs/guides/ktor-adapter.md",
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
     },
@@ -269,7 +353,11 @@
       "exposure": "public",
       "sourcePath": "integrations/woge-vite",
       "artifact": "dev.woge:woge-vite",
-      "concepts": ["vite-entry", "vite-dev-server", "content-hashed-vite-output"],
+      "concepts": [
+        "vite-entry",
+        "vite-dev-server",
+        "content-hashed-vite-output"
+      ],
       "guide": "docs/guides/vite.md",
       "example": "examples/vite-spring-boot/src/main/kotlin/example/vite/ChartPage.kt"
     },
@@ -279,7 +367,10 @@
       "exposure": "public",
       "sourcePath": "integrations/woge-spring-boot-autoconfigure",
       "artifact": "dev.woge:woge-spring-boot-autoconfigure",
-      "concepts": ["spring-boot-auto-configuration", "explicit-adapter-selection"],
+      "concepts": [
+        "spring-boot-auto-configuration",
+        "explicit-adapter-selection"
+      ],
       "guide": "docs/guides/spring-boot-starter.md",
       "example": "examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/WogeQuickstartApplication.kt"
     },
@@ -289,7 +380,9 @@
       "exposure": "public",
       "sourcePath": "integrations/woge-spring-boot-starter",
       "artifact": "dev.woge:woge-spring-boot-starter",
-      "concepts": ["spring-boot-starter"],
+      "concepts": [
+        "spring-boot-starter"
+      ],
       "guide": "docs/guides/quickstart-spring-boot.md",
       "example": "examples/reference-application/spring-webflux/build.gradle.kts"
     }
@@ -298,27 +391,52 @@
     {
       "id": "m1-html-css-sinks",
       "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HtmlCssAndSinks.kt",
-      "concepts": ["html-dsl", "css-values", "buffered-html", "streaming-html"]
+      "concepts": [
+        "html-dsl",
+        "css-values",
+        "buffered-html",
+        "streaming-html"
+      ]
     },
     {
       "id": "m1-protocol-page-deferred",
       "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/ProtocolAndPage.kt",
-      "concepts": ["page-use-case", "deferred-region", "patch-ir", "patch-stream-codec"]
+      "concepts": [
+        "page-use-case",
+        "deferred-region",
+        "patch-ir",
+        "patch-stream-codec"
+      ]
     },
     {
       "id": "m1-host-adapters",
       "source": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt",
-      "concepts": ["spring-webflux", "spring-mvc", "ktor"]
+      "concepts": [
+        "spring-webflux",
+        "spring-mvc",
+        "ktor"
+      ]
     },
     {
       "id": "m1-reference-application",
       "source": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt",
-      "concepts": ["executable-consumer", "host-parity", "browser-smoke"]
+      "concepts": [
+        "executable-consumer",
+        "host-parity",
+        "browser-smoke"
+      ]
     },
     {
       "id": "spring-boot-application-scaffold",
       "source": "scaffolds/spring-boot/src/main/kotlin/example/woge/HomePage.kt",
-      "concepts": ["standalone-consumer", "spring-webflux", "spring-mvc", "html-dsl", "plain-css", "no-javascript"]
+      "concepts": [
+        "standalone-consumer",
+        "spring-webflux",
+        "spring-mvc",
+        "html-dsl",
+        "plain-css",
+        "no-javascript"
+      ]
     },
     {
       "id": "quickstart-page-and-action",
@@ -334,6 +452,10 @@
       ]
     }
   ],
-  "plannedKspDiagnosticIssues": [26, 27, 28],
+  "plannedKspDiagnosticIssues": [
+    26,
+    27,
+    28
+  ],
   "browserSupportPolicy": "docs/architecture/browser-support-policy.md"
 }

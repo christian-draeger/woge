@@ -10,6 +10,7 @@ POST/Redirect/GET and enhanced submission.
 | Region | An ordinary HTML element whose children can change | A generated descriptor for the HTML function and an opaque target |
 | Action | A POST command, with server validation and authorization | A typed decoder and generated action URL; native success uses 303 then GET |
 | Patch | New HTML for a region, not a new page | Checked Replace, Append or Remove operations; the region's outer element stays yours |
+| Transaction | Several region replacements shown together | Explicit `.atomic()` grouping; animation is optional and never correctness |
 | Revision | A region's update counter | Rejects stale/out-of-order updates; **not** an ETag, database version or authorization token |
 | Enhancement | Optional browser behavior over working HTML | Typed form updates, deferred content and SSE-driven refresh |
 | Recovery | Getting back to authoritative server HTML | Bounded safe GET/refetch or full navigation; never automatic POST replay |
@@ -33,7 +34,9 @@ is the canonical example. Complete imports live there, not in a second documenta
   every request. Live regions use SSE notices followed by authorized GETs, not streamed mutations.
 - **Degraded:** if enhancement cannot load, keep native navigation. If a patch fails or is stale,
   do not guess at DOM repairs. Check diagnostics, refetch only safe reads within the recovery budget,
-  or navigate to the page. Some earlier valid patches may already be visible.
+  or navigate to the page. Some earlier valid patches may already be visible. An explicit
+  [atomic unit](typed-actions.md#atomic-visual-updates) validates all members first; a whole stream
+  remains non-atomic.
 
 A POST failure may mean "not committed" or "committed but response lost". Woge cannot infer which.
 The client never retries it; read current state before a deliberate resubmit. See

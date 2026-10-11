@@ -26,3 +26,11 @@ test("runtime graphs cannot hide bundled frameworks or external imports", () => 
   assert.throws(() => verifyGraph({ metafile: { inputs: { "node_modules/react/index.js": {} }, outputs: {} } }), /dependency/);
   assert.throws(() => verifyGraph({ metafile: { inputs: {}, outputs: { "x.js": { imports: [{}] } } } }), /external/);
 });
+
+test("only the explicitly measured lazy transaction import is permitted in the core graph", () => {
+  const graph = (path, kind) => ({ metafile: { inputs: {}, outputs: { "core.js": { imports: [{ path, kind }] } } } });
+  verifyGraph(graph("./transactions.js", "dynamic-import"), ["./transactions.js"]);
+  assert.throws(() => verifyGraph(graph("./transactions.js", "import-statement"), ["./transactions.js"]), /external/);
+  assert.throws(() => verifyGraph(graph("./unmeasured.js", "dynamic-import"), ["./transactions.js"]), /external/);
+  assert.throws(() => verifyGraph(graph("./transactions.js", "dynamic-import")), /external/);
+});

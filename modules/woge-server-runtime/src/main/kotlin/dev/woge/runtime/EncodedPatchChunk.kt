@@ -42,7 +42,12 @@ public class EncodedPatchChunk internal constructor(
 public fun PageResult.RegionUpdates.encodeActionPatchStream(
     observer: WogeObserver = WogeObserver.NONE,
     requestTrace: RequestTrace? = null,
-): Flow<EncodedPatchChunk> = patches.asFlow().encodePatchStream(observer, requestTrace, patchStreamLimits)
+): Flow<EncodedPatchChunk> =
+    (
+        transaction?.let {
+            listOf(it)
+        } ?: patches
+    ).asFlow().encodePatchStream(observer, requestTrace, patchStreamLimits)
 
 /** Maps a page-load deferred update to its single contiguous target-revision step. */
 public fun DeferredRegionUpdate.toReplacePatch(patchId: PatchId): ReplacePatch =

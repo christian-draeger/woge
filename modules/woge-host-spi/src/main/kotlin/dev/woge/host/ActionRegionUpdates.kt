@@ -124,3 +124,13 @@ public fun actionValidationUpdates(
 }
 
 public const val ACTION_VALIDATION_HEADER: String = "Woge-Validation"
+
+/** Groups every prepared replacement into one atomic frame; native HTTP behavior stays unchanged. */
+public fun PageResult.RegionUpdates.atomic(viewTransition: Boolean = false): PageResult.RegionUpdates {
+    val transaction = dev.woge.protocol.PatchTransaction(patches, viewTransition)
+    val budget = PatchStreamBudget(patchStreamLimits)
+    val encoder = PatchStreamV1.encoder(ByteSink { budget.consumeBytes(it.size) })
+    encoder.write(transaction)
+    encoder.complete()
+    return PageResult.RegionUpdates(patches, nativeResult, focusSummary, metadata, patchStreamLimits, transaction)
+}

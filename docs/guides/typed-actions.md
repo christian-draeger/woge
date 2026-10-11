@@ -309,6 +309,47 @@ an additional state-restoration layer. Replace is sufficient for this workflow; 
 and Remove remain available in the semantic Patch IR without adding a second action-builder API. See
 [ADR 0057](../adr/0057-prepared-typed-action-region-updates.md).
 
+### Atomic visual updates
+
+When a list and its total must change together, add `.atomic()` to the prepared result:
+
+```kotlin
+import dev.woge.host.atomic
+
+return context.render.updates(applicationUrl("/tasks")) {
+    replace(TaskSummaryRegion, updatedTasks)
+    replace(TaskStatusRegion, "Task saved")
+}.atomic(viewTransition = true)
+```
+
+The dot calls a function on the result; the braces still declare ordinary typed replacements.
+`atomic()` groups **every** replacement into one bounded unit. The same call works with
+`actionRegionUpdates(...)` and validation updates on MVC, WebFlux and Ktor. Your database transaction
+is separate. Native forms still get the original redirect or validation page, with no JavaScript.
+The [compiled API tests](../../modules/woge-host-spi/src/test/kotlin/dev/woge/host/AtomicRegionUpdatesTest.kt)
+exercise this public API without string-built markup.
+
+The browser validates every target and payload before changing anything, then updates all regions
+in one synchronous task. Targets must be distinct, non-overlapping registered regions, in the same
+page and interaction. Only replacements are supported; the combined unit fits 8 MiB including
+framing, with at most 128 members. A stale member ignores the **whole** unit. Invalid targets or
+browser-state conflicts apply nothing and report `WOGE_TRANSACTION_REJECTED`. Unexpected native
+DOM/focus failures report `WOGE_TRANSACTION_APPLY_FAILED`; recover through the authoritative page,
+never retry the POST. Several units in a response are not one larger transaction.
+
+Animation defaults off. `viewTransition = true` uses the browser's View Transitions API only if
+available and reduced motion is not requested. Otherwise exactly the same HTML applies directly.
+Successful completion means the DOM update ran, not that an animation finished. Focus keeps the
+existing [stable-key rules](browser-owned-state.md): restore the active keyed control and selection
+after all replacements, leave external focus alone, and honor deliberate reset. Before lifecycle
+listeners run before all commits; after listeners see all updated regions.
+
+Ship matching client assets before using this new frame. JVM delivery already includes the lazy
+`/assets/woge/transactions.js` module; no Node build is needed. Static npm deployments must copy
+**all** of `dist`, including `transactions.js`, beside `woge-fallback.js`. A bundler can preserve the
+dynamic import as a split chunk. Ordinary patches do not load this module; it has its own
+[fixed byte budgets](../performance/budgets.md). Missing assets fail closed, not as partial updates.
+
 ## Share accessible field and form errors
 
 Create field descriptors once from your decoder. Reuse the same descriptor when assigning an error

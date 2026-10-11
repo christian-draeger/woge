@@ -10,9 +10,9 @@
   "assets": {
     "core-bundle.js": {
       "measured": {
-        "raw": 35958,
-        "gzip": 11938,
-        "brotli": 10568
+        "raw": 35968,
+        "gzip": 12146,
+        "brotli": 10764
       },
       "ceiling": {
         "raw": 36000,
@@ -22,9 +22,9 @@
     },
     "core-graph.js": {
       "measured": {
-        "raw": 35958,
-        "gzip": 11938,
-        "brotli": 10568
+        "raw": 35968,
+        "gzip": 12146,
+        "brotli": 10764
       },
       "ceiling": {
         "raw": 36000,
@@ -82,9 +82,9 @@
     },
     "classpath/protocol.js": {
       "measured": {
-        "raw": 14546,
-        "gzip": 4052,
-        "brotli": 3500
+        "raw": 14464,
+        "gzip": 4080,
+        "brotli": 3541
       },
       "ceiling": {
         "raw": 19000,
@@ -118,9 +118,9 @@
     },
     "classpath/index.js": {
       "measured": {
-        "raw": 9931,
-        "gzip": 3162,
-        "brotli": 2673
+        "raw": 10221,
+        "gzip": 3261,
+        "brotli": 2757
       },
       "ceiling": {
         "raw": 16000,
@@ -142,9 +142,9 @@
     },
     "classpath/recovery.js": {
       "measured": {
-        "raw": 5513,
-        "gzip": 1952,
-        "brotli": 1567
+        "raw": 5579,
+        "gzip": 1969,
+        "brotli": 1579
       },
       "ceiling": {
         "raw": 16000,
@@ -166,9 +166,9 @@
     },
     "classpath/dom.js": {
       "measured": {
-        "raw": 16712,
-        "gzip": 4264,
-        "brotli": 3656
+        "raw": 16972,
+        "gzip": 4404,
+        "brotli": 3787
       },
       "ceiling": {
         "raw": 21000,
@@ -251,8 +251,8 @@
     "navigation-graph.js": {
       "measured": {
         "raw": 10370,
-        "gzip": 4081,
-        "brotli": 3613
+        "gzip": 4080,
+        "brotli": 3609
       },
       "ceiling": {
         "raw": 11000,
@@ -263,8 +263,44 @@
     "navigation-shared/state.js": {
       "measured": {
         "raw": 5317,
-        "gzip": 2177,
-        "brotli": 1894
+        "gzip": 2176,
+        "brotli": 1891
+      },
+      "ceiling": {
+        "raw": 6000,
+        "gzip": 2500,
+        "brotli": 2200
+      }
+    },
+    "transaction-module.js": {
+      "measured": {
+        "raw": 8853,
+        "gzip": 3595,
+        "brotli": 3145
+      },
+      "ceiling": {
+        "raw": 10000,
+        "gzip": 4500,
+        "brotli": 4000
+      }
+    },
+    "transaction-graph.js": {
+      "measured": {
+        "raw": 8853,
+        "gzip": 3595,
+        "brotli": 3145
+      },
+      "ceiling": {
+        "raw": 10000,
+        "gzip": 4500,
+        "brotli": 4000
+      }
+    },
+    "classpath/transactions.js": {
+      "measured": {
+        "raw": 3893,
+        "gzip": 1533,
+        "brotli": 1271
       },
       "ceiling": {
         "raw": 6000,

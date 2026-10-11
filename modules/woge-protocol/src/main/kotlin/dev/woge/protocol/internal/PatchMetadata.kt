@@ -9,6 +9,7 @@ import dev.woge.protocol.PatchItemId
 import dev.woge.protocol.PatchOperation
 import dev.woge.protocol.PatchProtocolVersion
 import dev.woge.protocol.PatchStreamErrorCode
+import dev.woge.protocol.PatchTransaction
 import dev.woge.protocol.RegionTargetId
 import dev.woge.protocol.RemovePatch
 import dev.woge.protocol.ReplacePatch
@@ -44,6 +45,7 @@ internal fun encodePatchMetadata(patch: Patch): String =
                     is AppendPatch -> patch.item.id
                     is RemovePatch -> patch.itemId
                     is ReplacePatch -> null
+                    is PatchTransaction -> error("Transactions use their own frame")
                 },
             focusTarget = (patch as? RemovePatch)?.focusTarget,
         ),
@@ -128,6 +130,7 @@ private fun encodePatchMetadata(metadata: PatchMetadata): String =
 
 private fun PatchOperation.metadataValue(): String =
     when (this) {
+        PatchOperation.TRANSACTION -> error("Transactions use their own frame")
         PatchOperation.REPLACE -> REPLACE_OPERATION
         PatchOperation.APPEND -> APPEND_OPERATION
         PatchOperation.REMOVE -> REMOVE_OPERATION

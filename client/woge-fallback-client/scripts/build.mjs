@@ -16,11 +16,18 @@ await build({
   entryPoints: [new URL("../src/index.js", import.meta.url).pathname],
   outfile: moduleFile.pathname,
   bundle: true,
+  external: ["./transactions.js"],
   format: "esm",
   target: "es2022",
   minify: true,
   legalComments: "none",
   sourcemap: "external",
+});
+
+await build({
+  entryPoints: [new URL("../src/transactions.js", import.meta.url).pathname],
+  outfile: new URL("transactions.js", distDirectory).pathname,
+  bundle: true, format: "esm", target: "es2022", minify: true, legalComments: "none",
 });
 
 // Navigation is a separate opt-in entry; shared state primitives keep the core graph unchanged.
@@ -46,7 +53,7 @@ for (const [name, url] of [
   ["module", moduleFile],
   ["sourceMap", sourceMapFile],
   ["types", declarationFile],
-  ...["woge-navigation.js", "navigation.d.ts", "state.js"]
+  ...["woge-navigation.js", "navigation.d.ts", "state.js", "transactions.js"]
     .map((name) => [name, new URL(name, distDirectory)]),
 ]) {
   const bytes = await readFile(url);

@@ -128,6 +128,7 @@ private fun PatchOperation.fixtureName(): String =
         PatchOperation.REPLACE -> "replace"
         PatchOperation.APPEND -> "append"
         PatchOperation.REMOVE -> "remove"
+        PatchOperation.TRANSACTION -> "transaction"
     }
 
 private fun String.asJsonString(): String =

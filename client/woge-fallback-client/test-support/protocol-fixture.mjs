@@ -90,3 +90,8 @@ function concatenate(parts) {
   }
   return result;
 }
+
+export function transactionFrame(members, viewTransition = false) {
+  return rawFrame(4, "application/json; charset=utf-8", `{"viewTransition":${viewTransition}}`,
+    encodeStream([...members, completeFrame(members.length)]));
+}
