@@ -197,13 +197,17 @@ private fun AdapterTckHttpClient.openLive(
         listOfNotNull(lastEventId?.let { "Last-Event-ID" to it }).toMap(),
     )
 
-/** Disconnects are noticed at the next heartbeat write, so cleanup takes a few heartbeats at most. */
+/**
+ * Disconnects are noticed at the next heartbeat write, so cleanup takes a few heartbeats at most.
+ * `onStart` runs before the shared flow registers its collector; waiting for the real subscription
+ * count keeps invalidations emitted right afterwards from being dropped.
+ */
 private suspend fun awaitSubscribers(
     fixture: AdapterTckLiveFixture,
     count: Int,
 ) {
     val deadline = System.nanoTime() + LIVE_WAIT.inWholeNanoseconds
-    while (fixture.subscribers.get() != count) {
+    while (fixture.subscribers.get() != count || fixture.invalidations.subscriptionCount.value != count) {
         check(
             System.nanoTime() < deadline,
         ) { "Live subscriptions did not reach $count, saw ${fixture.subscribers.get()}" }
