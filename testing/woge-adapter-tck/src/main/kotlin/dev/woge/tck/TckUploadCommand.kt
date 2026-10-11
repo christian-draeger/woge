@@ -27,6 +27,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import java.net.Socket
 import java.net.URI
+import java.net.http.HttpTimeoutException
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.milliseconds
@@ -106,8 +107,16 @@ internal suspend fun AdapterTckHttpClient.verifyMultipartUploads(
             Triple(headers, valid.replace("name=\"title\"", "name=\"unknown\""), ResponseStatus.BAD_REQUEST.code),
             Triple(headers, uploadBody("fail", "\u0001\u0002\u0003"), ResponseStatus.INTERNAL_SERVER_ERROR.code),
         )
-    cases.forEach { (requestHeaders, body, status) ->
-        val response = open(RequestMethod.POST, TckUploadAction.path, requestHeaders, body)
+    cases.forEachIndexed { index, (requestHeaders, body, status) ->
+        val response =
+            try {
+                open(RequestMethod.POST, TckUploadAction.path, requestHeaders, body)
+            } catch (timeout: HttpTimeoutException) {
+                throw IllegalStateException(
+                    "upload case #$index ($status) timed out; threads:\n${uploadThreadDump()}",
+                    timeout,
+                )
+            }
         response.body().close()
         expect(response.statusCode() == status, contract, "upload security/validation/limit status changed: $status")
         if (status == ResponseStatus.SEE_OTHER.code) {
@@ -154,6 +163,12 @@ private fun uploadBody(
         "--upload\r\nContent-Disposition: form-data; name=\"attachment\"; filename=\"../../unsafe.txt\"\r\n" +
         "Content-Type: application/octet-stream\r\n\r\n$file\r\n--upload--\r\n"
 
+private fun uploadThreadDump(): String =
+    Thread.getAllStackTraces().entries.joinToString("\n") { (thread, frames) ->
+        "${thread.name} ${thread.state}: " + frames.take(UPLOAD_DUMP_FRAMES).joinToString(" <- ")
+    }
+
+private const val UPLOAD_DUMP_FRAMES = 12
 private const val TCK_UPLOAD_FILE_BYTES = 32L
 private const val UPLOAD_TRUNCATION_BYTES = 12
 private val TCK_UPLOAD_CONTENT = "\u0001\u0002\u0003".toByteArray()
