@@ -45,7 +45,7 @@ available by navigation/manual refresh; HTML-only pages do not promise automatic
 
 ## Experimental native DPU
 
-Chrome 150+ can patch a page natively with Declarative Partial Updates (DPU): `<?start name="…">` / `<?end>` marks a range, and a later `<template for="…">` replaces it while the HTML is still loading. Woge contains an experimental internal encoder for this, but no application switch yet.
+Chrome 150+ can patch a page natively with Declarative Partial Updates (DPU): `<?start name="…">` / `<?end>` marks a range, and a later `<template for="…">` replaces it while the HTML is still loading. Woge contains an experimental internal encoder for this, but no application switch yet. Follow-up [#230](https://github.com/christian-draeger/woge/issues/230) tracks integration.
 
 Native DPU only works while the browser is still parsing the original HTML document. Woge's deferred regions are fetched after the page shell, so they always use Woge's normal fallback runtime. You do not need to change anything, and your Kotlin page and component code will stay the same if a native path is added later.
 

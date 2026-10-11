@@ -36,14 +36,21 @@ can change the classpath and watch roots captured when the command starts.
 
 | Term | What happens here |
 | --- | --- |
-| Live Reload | The browser refreshes the document after successful changes. Ordinary CSS swaps in place. |
+| Live Reload | The browser refreshes the document after a successful change. Woge sends the notification over SSE; ordinary CSS can instead swap its stylesheet in place. |
 | Hot Restart | Woge compiles first, then restarts the application. Single-module Spring can use DevTools; a full child restart is the correctness fallback. |
-| HMR | Optional Vite replaces supported frontend modules without refreshing the whole document. It does not replace Kotlin classes. |
+| HMR / Hot Update | Optional Vite replaces supported frontend modules without refreshing the document (HMR). Woge can deliver CSS as an in-place hot update. Neither redefines Kotlin/JVM classes. |
 | True JVM Hot Reload | Class redefinition in a running JVM. **Woge does not provide this.** |
+
+Spring DevTools Hot Restart recreates the application context/classloader; it is not JVM class
+redefinition and does not promise to retain in-memory application state. Woge restarts only after
+successful compilation, then refreshes the browser. [ADR 0041](../adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md)
+records this boundary.
 
 The browser channel uses SSE and monotonic build/generation IDs. Reconnecting tabs receive the latest
 snapshot, not a replay of stale restarts. [State handoff](../../docs/adr/0061-development-full-refresh-state-handoff.md)
 is explicit and bounded, not a promise to preserve every field across every refresh.
+
+For buffering, recovery, version skew and KSP setup, use the [request troubleshooting guide](troubleshooting.md).
 
 ## Troubleshooting
 

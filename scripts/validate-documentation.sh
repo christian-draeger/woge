@@ -42,6 +42,45 @@ done < <(
     "$repository_root/README.md" "$repository_root/CONTRIBUTING.md" "$repository_root/docs" 2>/dev/null || true
 )
 
+# The existing index is also a contract: parse it and check local sources and pinned versions.
+if ! python3 - "$repository_root" <<'PYTHON'
+import json
+import pathlib
+import re
+import sys
+
+root = pathlib.Path(sys.argv[1])
+index = json.loads((root / "docs/ai-dx/woge-framework-index.json").read_text())
+assert index["schemaVersion"] == 1, "unsupported documentation index schema"
+for key in ("startHere", "concepts", "troubleshooting", "canonicalPageAndAction"):
+    assert key in index["documentation"], f"missing documentation entry point: {key}"
+
+def check_paths(value):
+    if isinstance(value, dict):
+        for child in value.values():
+            check_paths(child)
+    elif isinstance(value, list):
+        for child in value:
+            check_paths(child)
+    elif isinstance(value, str) and value.startswith(("docs/", "examples/", "scaffolds/", "scripts/", "modules/", "adapters/", "integrations/", "testing/")):
+        assert (root / value).exists(), f"missing indexed path: {value}"
+
+check_paths(index)
+properties = (root / "gradle.properties").read_text()
+catalog = (root / "gradle/libs.versions.toml").read_text()
+assert index["frameworkVersion"] == re.search(r"^wogeVersion=(.+)$", properties, re.M)[1], "Woge version skew"
+for indexed, name in ((index["language"]["kotlinVersion"], "kotlin"),
+                      (index["hosts"]["springBootVersion"], "springBoot"),
+                      (index["hosts"]["ktorVersion"], "ktor")):
+    assert indexed == re.search(rf'^{name} = "([^"]+)"$', catalog, re.M)[1], f"{name} version skew"
+client = json.loads((root / "client/woge-fallback-client/package.json").read_text())
+assert index["browserClient"]["packageVersion"] == client["version"], "browser package version skew"
+assert index["browserClient"]["patchProtocolVersion"] == index["protocol"]["patchStreamVersion"] == client["woge"]["patchProtocolVersion"], "patch protocol version skew"
+PYTHON
+then
+  fail "invalid machine-readable documentation index"
+fi
+
 for required_path in docs/adr docs/guides docs/snippets examples; do
   if [[ ! -d "$repository_root/$required_path" ]]; then
     fail "missing canonical documentation/example location '$required_path'"

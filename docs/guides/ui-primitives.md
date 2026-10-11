@@ -23,6 +23,30 @@ The reference [task board](../../examples/reference-application/shared/src/main/
 uses all four with plain CSS. The [Tailwind example](../../examples/tailwind-spring-boot/src/main/kotlin/example/tailwind/StatusPage.kt)
 uses the same four with Tailwind classes. Why it works this way: [ADR 0073](../adr/0073-native-first-headless-ui-primitives.md).
 
+## Choose the layer you need
+
+Use plain HTML/CSS for a heading, link, labelled form or layout. A native `details` element may be
+all you need for disclosure. These unstyled primitives are useful when shared accessibility behavior
+would otherwise be repeated; they are not a required visual library.
+
+- **Primitives:** semantic elements and native keyboard/focus behavior.
+- **Plain CSS:** your selectors, classes and design tokens; no Node or Vite required.
+- **Tailwind:** optional utility classes on exactly the same markup.
+- **Source-owned components:** compose these functions in your application and own their markup/styles.
+  The [registry/installer model](../architecture/component-distribution.md) is planned, not a released requirement.
+
+| Pattern | Server interaction | Customization |
+| --- | --- | --- |
+| Disclosure | Opening is browser-local; links/forms inside still use normal HTTP | Summary/body blocks, `open`, outer/summary attributes and CSS |
+| Dialog | The fallback link GET serves the same help content; forms inside need their own action | Title, content, close button, classes and `::backdrop` |
+| Popover | Toggling is browser-local, not a server action | Button/panel content, IDs, attributes and CSS |
+| Live region | A declared patch changes text; ARIA itself does not fetch or subscribe | Choose status versus alert, text and placement; announcements stay application-owned |
+
+The complete imports and interactions are in the compiled [task board source](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/TaskBoardMarkup.kt).
+
+<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/TaskBoardMarkup.kt -->
+<!-- snippet: examples/tailwind-spring-boot/src/main/kotlin/example/tailwind/StatusPage.kt -->
+
 ## Disclosure
 
 ```kotlin

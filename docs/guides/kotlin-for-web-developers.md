@@ -1,108 +1,56 @@
 # Kotlin for this web task
 
-You do not need a Kotlin course before reading the Woge quickstart. This page translates the small
-amount of syntax in the project page into concepts you already know from HTML, JavaScript and server
-routes.
+You do not need a Kotlin course before the [page/form quickstart](quickstart-spring-boot.md).
+Read only the syntax used for the current task. All excerpts here come from the
+[compiled notes source with complete imports](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt).
 
-## Read declarations from left to right
+<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt -->
 
-This request value comes from the compiled
-[`ProjectPage.kt`](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt):
-
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
+## Name the form value
 
 ```kotlin
-public data class ProjectPageInput(
-    public val project: String,
-    public val view: ProjectPageView = ProjectPageView.SHELL,
+@Serializable
+public data class AddNote(
+    val text: String,
 )
 ```
 
-- `data class` is a typed value with named fields.
-- `val` makes a read-only field. Use `var` only when a value must be reassigned.
-- The type follows the name: `project: String`.
-- `= ProjectPageView.SHELL` is a default argument.
-- The trailing comma keeps multiline edits tidy; it does not create another value.
-
-Callers can name arguments, which makes route decoding readable: `ProjectPageInput(project = slug,
-view = ProjectPageView.COMPLETE)`.
+`data class` is a typed value with named fields. `val` is read-only; the type follows the name.
+The trailing comma makes edits tidy. `@Serializable` asks the serialization compiler plugin to
+supply a decoder. It does not publish an endpoint. `@WogeAction` generates a typed action reference;
+the host still binds its POST explicitly.
 
 ## Treat HTML blocks as nested callbacks
 
-Woge tag functions take a Kotlin lambda: a block of code passed to a function. Inside the block, the
-current `HtmlWriter` is implicit, so nested markup stays close to nested HTML.
-
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectDocument.kt -->
-
 ```kotlin
-header(attributes = { classes("site-header") }) {
-    nav(attributes = { aria("label", "Primary") }) {
-        a(attributes = { url("href", applicationUrl("/projects/${project.slug}")) }) {
-            text("Projects")
-        }
-    }
-}
+label(attributes = { attribute("for", "note-text") }) { text("New note") }
 ```
 
-The named `attributes = { ... }` block describes the start tag. The final block describes child
-content. `${project.slug}` is string interpolation, like inserting a value into a JavaScript template
-literal. `applicationUrl(...)` validates the completed relative URL; interpolation itself does not
-percent-encode a path or query component.
+A Kotlin lambda is a block passed to a function. `attributes = { ... }` describes the start tag;
+the last block describes children. Inside an HTML block the current `HtmlWriter` is implicit, so
+nesting follows HTML. `text(value)` escapes data. `element("project-card")` remains available for a
+custom or newly standardized element.
 
-The tag wrappers give completion for common elements. `element("project-card") { ... }` remains the
-escape hatch for a custom or newly standardized element. `text(value)` is explicit because it escapes
-markup characters; raw HTML needs a separate unsafe opt-in.
+## Read a server function
 
-## Let `suspend` mark code that can wait
+`fun` declares a function. `suspend fun` can wait for asynchronous work; it does not make blocking
+I/O non-blocking. `command: AddNote` means the action receives the decoded form value.
+`context: RequestContext` supplies host facts and rendering helpers; leave it out when unused.
 
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
+`PageResult` describes an HTML response, redirect, update or safe failure. `return` finishes the
+function. In the example, a blank/overlong note returns a bad-request result before saving.
+`context.render.updates(...) { replace(...) }` describes updated HTML and a native redirect once.
 
-```kotlin
-override suspend fun open(request: PageRequest<ProjectPageInput>): PageResult {
-    val project = findProject(request.input.project)
-        ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
-    return htmlPage { renderProjectDocument(project, request.input.view) }
-}
-```
+`NotesPage : PageUseCase<NotesInput>` implements the page contract. `override suspend fun open(...)`
+fulfills it; `PageRequest<NotesInput>` carries that typed input. `data object NotesInput` is the one
+input value for a page with no path/query fields. Neither it nor the page needs a Spring/Ktor request.
 
-- `fun` declares a function.
-- `suspend fun` can wait for asynchronous work without claiming one thread while it waits.
-- `override` says the function fulfills an interface contract.
-- `PageRequest<ProjectPageInput>` means a page request carrying that input type.
-- `?: return` means “if the value on the left is absent, return the value on the right”. Kotlin writes
-  an optional value as `ProjectSnapshot?`.
+## Add language detail when the web task needs it
 
-The fixed `PageResult` outcomes let the compiler distinguish an HTML document, redirect and safe
-failure. An unknown project becomes a typed `NOT_FOUND` result that WebFlux maps to status 404.
+- URL fields and default query values: [typed routes](typed-routes.md).
+- Waiting for independent data: [deferred regions](deferred-regions.md).
+- A sequence of change notices (`Flow`): [live regions](live-updates.md).
+- Reusable HTML functions and native behavior: [UI primitives](ui-primitives.md).
 
-## Interfaces form the application port
-
-The colon after `ProjectPage` lists interfaces it implements:
-
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
-
-```kotlin
-public class ProjectPage :
-    PageUseCase<ProjectPageInput>,
-    DeferredRegionsUseCase<ProjectPageInput>
-```
-
-`PageUseCase` opens the immediate page. `DeferredRegionsUseCase` declares later region work. Neither
-contains a Spring request, Reactor type or Ktor call. Spring code translates HTTP at the outside edge,
-which is why another host adapter can call the same class.
-
-## Use the compiler as the first feedback loop
-
-The important boundaries are types rather than naming conventions:
-
-- text and raw HTML are different values;
-- application and external URLs are different values;
-- complete stylesheets and declaration lists are different values;
-- a `PageUseCase<ProjectPageInput>` cannot accidentally receive another page's input type.
-
-Run `./gradlew check` after an edit. It compiles the canonical example, starts its real-server test,
-checks the public ABI, formats Kotlin, runs static analysis and validates documentation links. The
-same deterministic gate is intended for human-written and AI-generated Woge applications.
-
-Return to the [Spring Boot quickstart](quickstart-spring-boot.md) or read
-[Render safe HTML values](safe-html-values.md) for the context-specific output rules.
+Run the affected module's `compileKotlin` to check imports, types and generated references. Fix source
+under `src`, not generated files; [troubleshooting](troubleshooting.md) covers KSP setup and regeneration.

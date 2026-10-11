@@ -43,6 +43,22 @@
       "compilerExamples": "examples/m1-api-corpus"
     }
   },
+  "documentation": {
+    "audience": "humans-and-coding-agents",
+    "publicApiPolicy": "same-public-apis-no-ai-only-api",
+    "startHere": "docs/guides/quickstart-spring-boot.md",
+    "concepts": "docs/guides/mental-model.md",
+    "troubleshooting": "docs/guides/troubleshooting.md",
+    "security": "docs/guides/typed-actions.md",
+    "development": "docs/guides/development-loop.md",
+    "styling": "docs/guides/ui-primitives.md",
+    "compatibility": "docs/guides/compatibility-and-upgrades.md",
+    "nativeDpu": "docs/guides/browser-support.md",
+    "canonicalPageAndAction": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt",
+    "springBindings": "examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt",
+    "ktorBindings": "examples/reference-application/ktor/src/main/kotlin/dev/woge/example/ktor/WogeKtorQuickstart.kt",
+    "island": "examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt"
+  },
   "modules": [
     {
       "name": "woge-core",
@@ -60,9 +76,9 @@
       "exposure": "public",
       "sourcePath": "modules/woge-ui-headless",
       "artifact": "dev.woge:woge-ui-headless",
-      "concepts": [],
-      "guide": "docs/architecture/component-distribution.md",
-      "example": null
+      "concepts": ["unstyled-primitives", "disclosure", "dialog", "popover", "live-region"],
+      "guide": "docs/guides/ui-primitives.md",
+      "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/TaskBoardMarkup.kt"
     },
     {
       "name": "woge-protocol",
@@ -300,6 +316,19 @@
       "id": "spring-boot-application-scaffold",
       "source": "scaffolds/spring-boot/src/main/kotlin/example/woge/HomePage.kt",
       "concepts": ["standalone-consumer", "spring-webflux", "spring-mvc", "html-dsl", "plain-css", "no-javascript"]
+    },
+    {
+      "id": "quickstart-page-and-action",
+      "source": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt",
+      "concepts": [
+        "page",
+        "form",
+        "post-redirect-get",
+        "enhanced-action",
+        "region",
+        "no-javascript",
+        "plain-css"
+      ]
     }
   ],
   "plannedKspDiagnosticIssues": [26, 27, 28],

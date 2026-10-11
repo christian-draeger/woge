@@ -1,5 +1,9 @@
 package dev.woge.example
 
+import dev.woge.example.notes.AddNoteAction
+import dev.woge.example.notes.NotesPage
+import dev.woge.example.notes.NotesRoute
+import dev.woge.example.notes.addNoteForm
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.BoardActivityRoute
 import dev.woge.example.project.BoardLiveRoute
@@ -33,6 +37,16 @@ public class ProjectRoutes {
         return coRouter {
             GET(ProjectPageRoute.path, page::handle)
             GET(ProjectPatchesRoute.path, patches::handle)
+        }
+    }
+
+    @Bean
+    public fun notesRoutes(handlers: WogeWebFluxHandlers): RouterFunction<ServerResponse> {
+        val page = handlers.page(NotesPage(), NotesRoute)
+        val action = handlers.action(AddNoteAction, addNoteForm.webFluxInput())
+        return coRouter {
+            GET(NotesRoute.path, page::handle)
+            POST(AddNoteAction.path, action::handle)
         }
     }
 
