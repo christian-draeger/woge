@@ -71,6 +71,9 @@ Events; the browser reloads each region with its normal, authorized GET.
 The [Ktor adapter guide](ktor-adapter.md) connects the same portable page to ordinary suspending Ktor
 routes while keeping Spring Boot as the primary getting-started path.
 
+The [development loop guide](development-loop.md) documents the one command, beta support,
+troubleshooting and optional feedback benchmark.
+
 The [development MCP guide](development-mcp.md) lets coding agents follow `wogeDev` builds, errors
 and restarts through an experimental, opt-in local endpoint.
 

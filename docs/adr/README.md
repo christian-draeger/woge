@@ -120,3 +120,5 @@ decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canon
 executable spikes are supporting evidence and do not override an accepted ADR. Issue
 [#12](https://github.com/christian-draeger/woge/issues/12) is exempt from a separate ADR because it
 indexes and assembles these decisions rather than adding one.
+
+| [0085](0085-development-loop-beta-evidence.md) | Accepted | Gate development-loop beta claims on repeatable evidence and incubate MCP |

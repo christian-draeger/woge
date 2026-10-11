@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "samples": 3,
+  "toleranceFraction": 0.5,
+  "noiseAllowanceMs": 2000,
+  "ceilingsMs": {
+    "css": {
+      "p50Ms": 30000,
+      "p95Ms": 60000
+    },
+    "frontendAsset": {
+      "p50Ms": 30000,
+      "p95Ms": 60000
+    },
+    "kotlinImplementation": {
+      "p50Ms": 30000,
+      "p95Ms": 60000
+    },
+    "structuralGeneration": {
+      "p50Ms": 30000,
+      "p95Ms": 60000
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "adapter": "mvc",
+  "configurationCacheReused": true,
+  "measurement": "save-to-ready-HTTP",
+  "samplesPerPath": 3,
+  "warmupsPerPath": 1,
+  "results": {
+    "css": {
+      "samples": [
+        {
+          "milliseconds": 531.58,
+          "buildId": 3,
+          "generationId": 1,
+          "previousGenerationId": 1
+        },
+        {
+          "milliseconds": 533.23,
+          "buildId": 4,
+          "generationId": 1,
+          "previousGenerationId": 1
+        },
+        {
+          "milliseconds": 746.72,
+          "buildId": 5,
+          "generationId": 1,
+          "previousGenerationId": 1
+        }
+      ],
+      "p50Ms": 533.23,
+      "p95Ms": 746.72
+    },
+    "frontendAsset": {
+      "samples": [
+        {
+          "milliseconds": 1827.17,
+          "buildId": 7,
+          "generationId": 5,
+          "previousGenerationId": 3
+        },
+        {
+          "milliseconds": 1728.45,
+          "buildId": 8,
+          "generationId": 7,
+          "previousGenerationId": 5
+        },
+        {
+          "milliseconds": 1827.02,
+          "buildId": 9,
+          "generationId": 9,
+          "previousGenerationId": 7
+        }
+      ],
+      "p50Ms": 1827.02,
+      "p95Ms": 1827.17
+    },
+    "kotlinImplementation": {
+      "samples": [
+        {
+          "milliseconds": 1956.29,
+          "buildId": 11,
+          "generationId": 13,
+          "previousGenerationId": 11
+        },
+        {
+          "milliseconds": 1733.72,
+          "buildId": 12,
+          "generationId": 15,
+          "previousGenerationId": 13
+        },
+        {
+          "milliseconds": 1843.68,
+          "buildId": 13,
+          "generationId": 17,
+          "previousGenerationId": 15
+        }
+      ],
+      "p50Ms": 1843.68,
+      "p95Ms": 1956.29
+    },
+    "structuralGeneration": {
+      "samples": [
+        {
+          "milliseconds": 2158.4,
+          "buildId": 15,
+          "generationId": 21,
+          "previousGenerationId": 19
+        },
+        {
+          "milliseconds": 2055.02,
+          "buildId": 16,
+          "generationId": 23,
+          "previousGenerationId": 21
+        },
+        {
+          "milliseconds": 1953.34,
+          "buildId": 17,
+          "generationId": 25,
+          "previousGenerationId": 23
+        }
+      ],
+      "p50Ms": 2055.02,
+      "p95Ms": 2158.4
+    }
+  },
+  "violations": [],
+  "launcherJava": "openjdk version \"22.0.2\" 2024-07-16\nOpenJDK Runtime Environment (build 22.0.2+11)\nOpenJDK 64-Bit Server VM (build 22.0.2+11, mixed mode, sharing)",
+  "childJdk": "21",
+  "jvmTarget": "17",
+  "springBootVersion": "4.1.1"
+}

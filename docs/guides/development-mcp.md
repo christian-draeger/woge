@@ -1,5 +1,9 @@
 # Let coding agents follow `wogeDev` (experimental MCP)
 
+Beta review: **incubating**, not part of the stable beta API. See
+[ADR 0085](../adr/0085-development-loop-beta-evidence.md) and the
+[development loop guide](development-loop.md).
+
 `./gradlew wogeDev` rebuilds and restarts your app on every save. People watch the terminal and the
 browser. A coding agent can do better: with `--mcp`, Woge offers a small local
 [MCP](https://modelcontextprotocol.io) endpoint. It tells the agent when a build finished, which file
