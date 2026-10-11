@@ -45,7 +45,8 @@ internal suspend fun PageResult.toWebFluxResponse(
             if (acceptsActionPatches(actionAccept)) {
                 responseBuilder(metadata)
                     .contentType(MediaType.parseMediaType(PatchStreamV1.MEDIA_TYPE))
-                    .headers { it.set("Cache-Control", "no-store") }
+                    .headers { it.set("Cache-Control", "no-store, no-transform") }
+                    .header("X-Accel-Buffering", "no")
                     .header("Vary", "Accept")
                     .headers { headers -> focusSummary?.let { headers.set(ACTION_VALIDATION_HEADER, it.value) } }
                     .body(patchBody(encodeActionPatchStream(observer, observationContext.requestTrace)))
@@ -83,7 +84,8 @@ internal suspend fun Flow<EncodedPatchChunk>.toWebFluxPatchResponse(): ServerRes
     ServerResponse
         .ok()
         .contentType(MediaType.parseMediaType(PatchStreamV1.MEDIA_TYPE))
-        .header("Cache-Control", "no-store")
+        .header("Cache-Control", "no-store, no-transform")
+        .header("X-Accel-Buffering", "no")
         .body(patchBody(this))
         .awaitSingle()
 

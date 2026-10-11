@@ -69,3 +69,6 @@ or close the HTTP response itself.
 See [ADR 0021](../adr/0021-synchronous-bounded-html-sinks.md) for lifecycle ownership and the
 [first benchmark baseline](../performance/html-sinks-baseline.md) for current allocation/throughput
 evidence.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).

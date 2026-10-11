@@ -131,7 +131,7 @@ internal suspend fun AdapterTckHttpClient.verifyLive(
         contract,
         "stream must use text/event-stream",
     )
-    expect(first.header("cache-control") == "no-store", contract, "stream must not be cached")
+    expect(first.header("cache-control") == "no-store, no-transform", contract, "stream must not be cached")
     expect(first.header("x-accel-buffering") == "no", contract, "stream must disable proxy buffering")
     val stream = first.body()
     expect(stream.readEvent() == "retry: 1500", contract, "stream must start with the retry hint")

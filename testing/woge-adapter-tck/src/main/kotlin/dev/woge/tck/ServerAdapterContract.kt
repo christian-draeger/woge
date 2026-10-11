@@ -116,6 +116,7 @@ private class AdapterTckVerification(
         verifySemanticObservations()
         // Runs last: its probes add observations that earlier contracts count.
         runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }
+        runContract("streaming-deployment") { verifyStreamingDeployment(server, fixture, adapterName) }
     }
 
     private suspend fun verifyActions() {
@@ -466,7 +467,7 @@ private class AdapterTckVerification(
                     "patch media type changed",
                 )
                 expect(
-                    response.header("cache-control") == "no-store",
+                    response.header("cache-control") == "no-store, no-transform",
                     "deferred-completion-order",
                     "unsafe cache policy",
                 )
@@ -851,7 +852,8 @@ private suspend fun AdapterTckHttpClient.verifyActionRegionUpdates(expect: (Bool
                 "patch media type changed",
             )
             expect(
-                response.header("cache-control") == "no-store" && response.header("vary")?.contains("Accept") == true,
+                response.header("cache-control") == "no-store, no-transform" &&
+                    response.header("vary")?.contains("Accept") == true,
                 contract,
                 "patch response lost negotiated no-store semantics",
             )

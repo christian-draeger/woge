@@ -36,6 +36,19 @@ tasks.named("check") {
 }
 
 tasks.test {
+    inputs.property("streamProxyProfile", providers.environmentVariable("WOGE_STREAM_PROXY_PROFILE").orElse("nginx"))
+    inputs.property("streamProxyScript", providers.environmentVariable("WOGE_STREAM_PROXY_SCRIPT").orElse(""))
+    inputs.files(
+        providers
+            .environmentVariable("WOGE_STREAM_PROXY_SCRIPT")
+            .map {
+                listOf(
+                    it,
+                    File(it).parentFile.resolve("nginx.conf").absolutePath,
+                    File(it).parentFile.resolve("Caddyfile").absolutePath,
+                )
+            }.orElse(emptyList()),
+    )
     inputs.property("nativeFormBrowserScript", providers.environmentVariable("WOGE_NATIVE_BROWSER_SCRIPT").orElse(""))
     inputs.files(
         providers

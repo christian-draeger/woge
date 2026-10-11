@@ -1,0 +1,11 @@
+# Run on the host, not in a container. Change WOGE_UPSTREAM to your fixture origin.
+http://127.0.0.1:{$WOGE_PROXY_PORT:9080} {
+    reverse_proxy {$WOGE_UPSTREAM:127.0.0.1:8080} {
+        flush_interval -1
+        transport http {
+            versions 1.1
+            read_timeout 10s
+        }
+    }
+    # Intentionally no encode directive: measure compression separately before enabling it.
+}

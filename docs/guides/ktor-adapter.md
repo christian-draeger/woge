@@ -131,3 +131,6 @@ client script in the page `head`. Spring does this automatically; Ktor has no ho
 
 See [ADR 0033](../adr/0033-suspending-ktor-adapter.md) for the lifecycle and buffering tradeoffs and
 [ADR 0074](../adr/0074-ktor-development-restart-parity.md) for the development loop.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).

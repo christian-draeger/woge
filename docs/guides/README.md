@@ -74,3 +74,6 @@ and restarts through an experimental, opt-in local endpoint.
 
 The [compatibility and upgrades guide](compatibility-and-upgrades.md) defines pre-1.0 version alignment,
 protocol negotiation, rolling deployments and safe behavior when browser assets are out of sync.
+
+The [streaming behind proxies guide](streaming-behind-proxies.md) explains cancellation, bounded queues,
+nginx/Caddy profiles, compression, diagnostic timings and Spring Boot operational defaults.

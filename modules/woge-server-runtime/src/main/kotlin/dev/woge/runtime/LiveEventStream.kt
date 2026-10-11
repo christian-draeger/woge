@@ -30,7 +30,11 @@ public object LiveEventStream {
     public const val LAST_EVENT_ID_HEADER: String = "Last-Event-ID"
 
     /** Response headers besides the content type. `X-Accel-Buffering` stops nginx-style proxy buffering. */
-    public val HEADERS: Map<String, String> = mapOf("Cache-Control" to "no-store", "X-Accel-Buffering" to "no")
+    public val HEADERS: Map<String, String> =
+        mapOf(
+            "Cache-Control" to "no-store, no-transform",
+            "X-Accel-Buffering" to "no",
+        )
 }
 
 /** What a host writes for one live request. */

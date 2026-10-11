@@ -124,3 +124,6 @@ See [the WebFlux adapter guide](spring-webflux-adapter.md) for response and canc
 [the Spring MVC adapter guide](spring-mvc-adapter.md) for Servlet threading and disconnect behavior.
 [ADR 0029](../adr/0029-neutral-spring-boot-starter-and-explicit-adapter-selection.md) records the
 dependency and ambiguity tradeoffs.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).

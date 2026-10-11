@@ -156,7 +156,8 @@ internal suspend fun Flow<EncodedPatchChunk>.writeToServlet(
 ) {
     response.status = status.code
     response.contentType = PatchStreamV1.MEDIA_TYPE
-    response.setHeader("Cache-Control", "no-store")
+    response.setHeader("Cache-Control", "no-store, no-transform")
+    response.setHeader("X-Accel-Buffering", "no")
     val output = response.outputStream
     collect { chunk ->
         kotlinx.coroutines.currentCoroutineContext().ensureActive()

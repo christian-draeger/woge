@@ -31,7 +31,7 @@ data: r-9a07…
   region the stream covers. That replaces anything missed while disconnected.
 - Lines that start with `:` are heartbeats that keep proxies and dead-connection detection working.
 
-Responses use `text/event-stream`, `Cache-Control: no-store` and `X-Accel-Buffering: no`, so caches
+Responses use `text/event-stream`, `Cache-Control: no-store, no-transform` and `X-Accel-Buffering: no`, so caches
 and nginx-style proxies pass events through right away.
 
 ## Server: declare a live route

@@ -237,3 +237,6 @@ on itself and the test hangs.
 See [ADR 0026](../adr/0026-structured-deferred-region-execution.md) for lifecycle and ownership and
 [ADR 0027](../adr/0027-fetch-deferred-patches-after-html-shell.md) for the two-response transport
 contract.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).
