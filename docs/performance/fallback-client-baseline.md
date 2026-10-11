@@ -3,6 +3,9 @@
 Recorded on 2026-09-04 with Node.js 26.3.0, esbuild 0.28.2 and Playwright 1.62.1. Release budgets are
 set separately in issue #46; these numbers make the first production implementation visible.
 
+Current release regression limits and measurement caveats are published in
+[production performance and bundle budgets](budgets.md). The values below remain historical evidence.
+
 ## Transfer size
 
 The ES-module bundle contains frame decoding, canonical metadata parsing, 64-bit counter handling,

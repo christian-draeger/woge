@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "cpuThrottleRate": 4,
+  "latencyMs": 80,
+  "downloadBytesPerSecond": 187500,
+  "uploadBytesPerSecond": 93750,
+  "samples": 3,
+  "ceilingsMs": {
+    "firstShell": 3000,
+    "firstPatch": 4000,
+    "actionRoundTrip": 2000,
+    "patchApply": 200
+  }
+}

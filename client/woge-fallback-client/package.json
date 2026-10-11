@@ -49,11 +49,14 @@
     "measure": "node scripts/measure.mjs",
     "prepack": "npm run build && npm run verify:contract",
     "prepublishOnly": "npm run check",
-    "check": "npm run build && npm run verify:contract && npm run test:unit && npm run test:browser && npm run measure"
+    "check": "npm run build && npm run verify:contract && npm run test:unit && npm run test:browser && npm run measure && node scripts/check-budgets.mjs",
+    "budgets": "npm run build && node scripts/check-budgets.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
     "esbuild": "0.28.2",
-    "@axe-core/playwright": "4.11.1"
+    "@axe-core/playwright": "4.11.1",
+    "@tailwindcss/cli": "4.3.3",
+    "tailwindcss": "4.3.3"
   }
 }

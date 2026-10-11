@@ -1,0 +1,27 @@
+{
+  "totalJarBytes":12371857,
+  "artifacts":[
+    {"artifact":"annotations-23.0.0.jar","bytes":29371},
+    {"artifact":"commons-logging-1.3.6.jar","bytes":74010},
+    {"artifact":"jsoup-1.23.2.jar","bytes":537806},
+    {"artifact":"jspecify-1.0.1.jar","bytes":3064},
+    {"artifact":"kotlin-stdlib-2.4.10.jar","bytes":1841933},
+    {"artifact":"kotlinx-coroutines-core-jvm-1.11.0.jar","bytes":1577052},
+    {"artifact":"kotlinx-serialization-core-jvm-1.11.0.jar","bytes":404509},
+    {"artifact":"kotlinx-serialization-json-jvm-1.11.0.jar","bytes":294166},
+    {"artifact":"micrometer-commons-1.17.1.jar","bytes":51810},
+    {"artifact":"micrometer-observation-1.17.1.jar","bytes":84311},
+    {"artifact":"spring-aop-7.0.9.jar","bytes":426204},
+    {"artifact":"spring-beans-7.0.9.jar","bytes":928155},
+    {"artifact":"spring-boot-4.1.1.jar","bytes":1392217},
+    {"artifact":"spring-boot-autoconfigure-4.1.1.jar","bytes":372740},
+    {"artifact":"spring-context-7.0.9.jar","bytes":1399435},
+    {"artifact":"spring-core-7.0.9.jar","bytes":2035755},
+    {"artifact":"spring-expression-7.0.9.jar","bytes":327140},
+    {"artifact":"woge-core-0.1.0-SNAPSHOT.jar","bytes":85624},
+    {"artifact":"woge-host-spi-0.1.0-SNAPSHOT.jar","bytes":376135},
+    {"artifact":"woge-protocol-0.1.0-SNAPSHOT.jar","bytes":104151},
+    {"artifact":"woge-spring-boot-autoconfigure-0.1.0-SNAPSHOT.jar","bytes":26008},
+    {"artifact":"woge-spring-boot-starter-0.1.0-SNAPSHOT.jar","bytes":261}
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "tolerance": 0.1,
+  "tailwindMaxRatio": 2,
+  "tailwindAllowanceBytes": {
+    "raw": 6000,
+    "gzip": 1600,
+    "brotli": 1400
+  },
+  "assets": {
+    "core-bundle.js": {
+      "measured": {
+        "raw": 34567,
+        "gzip": 11528,
+        "brotli": 10185
+      },
+      "ceiling": {
+        "raw": 36000,
+        "gzip": 12500,
+        "brotli": 11000
+      }
+    },
+    "core-graph.js": {
+      "measured": {
+        "raw": 34567,
+        "gzip": 11528,
+        "brotli": 10185
+      },
+      "ceiling": {
+        "raw": 36000,
+        "gzip": 12500,
+        "brotli": 11000
+      }
+    },
+    "reference-application.css": {
+      "measured": {
+        "raw": 3071,
+        "gzip": 1238,
+        "brotli": 1027
+      },
+      "ceiling": {
+        "raw": 5000,
+        "gzip": 2000,
+        "brotli": 1800
+      }
+    },
+    "plain-card.css": {
+      "measured": {
+        "raw": 424,
+        "gzip": 261,
+        "brotli": 186
+      },
+      "ceiling": {
+        "raw": 1000,
+        "gzip": 500,
+        "brotli": 400
+      }
+    },
+    "optional-theme.css": {
+      "measured": {
+        "raw": 224,
+        "gzip": 162,
+        "brotli": 113
+      },
+      "ceiling": {
+        "raw": 1000,
+        "gzip": 600,
+        "brotli": 500
+      }
+    },
+    "tailwind-card.css": {
+      "measured": {
+        "raw": 6006,
+        "gzip": 2012,
+        "brotli": 1718
+      },
+      "ceiling": {
+        "raw": 10000,
+        "gzip": 3500,
+        "brotli": 3000
+      }
+    },
+    "classpath/protocol.js": {
+      "measured": {
+        "raw": 14546,
+        "gzip": 4052,
+        "brotli": 3500
+      },
+      "ceiling": {
+        "raw": 19000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/state-controls.js": {
+      "measured": {
+        "raw": 2175,
+        "gzip": 707,
+        "brotli": 601
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/actions.js": {
+      "measured": {
+        "raw": 6856,
+        "gzip": 2387,
+        "brotli": 2001
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/index.js": {
+      "measured": {
+        "raw": 8006,
+        "gzip": 2533,
+        "brotli": 2140
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/version.js": {
+      "measured": {
+        "raw": 120,
+        "gzip": 133,
+        "brotli": 84
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/recovery.js": {
+      "measured": {
+        "raw": 5513,
+        "gzip": 1952,
+        "brotli": 1567
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/state.js": {
+      "measured": {
+        "raw": 6066,
+        "gzip": 1847,
+        "brotli": 1555
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/dom.js": {
+      "measured": {
+        "raw": 16712,
+        "gzip": 4264,
+        "brotli": 3656
+      },
+      "ceiling": {
+        "raw": 21000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/trusted-html.js": {
+      "measured": {
+        "raw": 873,
+        "gzip": 470,
+        "brotli": 365
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "classpath/live.js": {
+      "measured": {
+        "raw": 3197,
+        "gzip": 1342,
+        "brotli": 1104
+      },
+      "ceiling": {
+        "raw": 16000,
+        "gzip": 6000,
+        "brotli": 5000
+      }
+    },
+    "woge-ui-headless/static/assets/woge-ui/dialog.js": {
+      "measured": {
+        "raw": 1374,
+        "gzip": 661,
+        "brotli": 549
+      },
+      "ceiling": {
+        "raw": 2000,
+        "gzip": 900,
+        "brotli": 750
+      }
+    },
+    "woge-ui-headless/static/assets/woge-ui/dialog.js:graph": {
+      "measured": {
+        "raw": 649,
+        "gzip": 397,
+        "brotli": 311
+      },
+      "ceiling": {
+        "raw": 2000,
+        "gzip": 900,
+        "brotli": 750
+      }
+    }
+  }
+}
