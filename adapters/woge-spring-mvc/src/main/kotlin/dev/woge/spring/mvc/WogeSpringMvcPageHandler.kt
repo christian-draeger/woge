@@ -45,10 +45,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        if (request.method !in allowedMethods) {
-            response.writeMethodNotAllowed(allowedMethods)
-            return
-        }
+        if (rejectRequest(request, response)) return
         val context = contexts.create(request)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
             val decoded =
@@ -103,6 +100,25 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                 )
         }
     }
+
+    private fun rejectRequest(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): Boolean =
+        when {
+            request.method !in allowedMethods -> {
+                response.writeMethodNotAllowed(allowedMethods)
+                true
+            }
+            allowedMethods == setOf("POST") &&
+                dev.woge.host.requestsUnsupportedActionPatchVersion(request.getHeader("Accept")) -> {
+                response.status = HttpServletResponse.SC_NOT_ACCEPTABLE
+                response.setHeader("Woge-Protocol-Error", "unsupported-version")
+                response.setHeader("Cache-Control", "no-store")
+                true
+            }
+            else -> false
+        }
 
     private fun PageResult.finalizeCache(request: HttpServletRequest): PageResult =
         forHttpRequest(

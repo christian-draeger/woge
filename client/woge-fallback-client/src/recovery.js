@@ -98,6 +98,23 @@ export function createWogeRecoveryBudget({
   });
 }
 
+/** Reloads a document through a safe GET once per URL and tab after an incompatible wire response. */
+export function reloadForIncompatibleVersion(root) {
+  const view = root?.defaultView;
+  if (!view?.location?.href) return false;
+  let storage;
+  try {
+    storage = view.sessionStorage;
+  } catch {
+    return false;
+  }
+  const url = view.location.href;
+  const budget = createWogeRecoveryBudget({ storage, pageUrl: url });
+  if (!budget.tryReload(url)) return false;
+  view.location.assign(url);
+  return true;
+}
+
 function classifyLocalCode(code) {
   if (typeof code !== "string") return result("WOGE_UNKNOWN", "unknown", "fail-closed");
   if (PROTOCOL_CODES.has(code)) return result(code, "protocol", "fail-closed");

@@ -699,6 +699,32 @@ private class AdapterTckVerification(
     ): AdapterTckViolation = AdapterTckViolation(AdapterTckFailureOwner.ADAPTER, adapterName, contract, detail, cause)
 }
 
+private const val NOT_ACCEPTABLE_STATUS = 406
+
+private suspend fun AdapterTckHttpClient.verifyUnsupportedActionProtocol(
+    headers: Map<String, String>,
+    expect: (Boolean, String, String) -> Unit,
+) {
+    val contract = "enhanced-action-navigation"
+    open(
+        RequestMethod.POST,
+        TckSubmitAction.path,
+        headers + ("Accept" to "application/vnd.woge.patch-stream; version=2"),
+        "value=accepted",
+    ).let { response ->
+        response.body().use { body ->
+            expect(
+                response.statusCode() == NOT_ACCEPTABLE_STATUS &&
+                    response.header("woge-protocol-error") == "unsupported-version" &&
+                    response.header("woge-test-identity") == null,
+                contract,
+                "unsupported protocol version was not rejected before action execution",
+            )
+            expect(body.readAllBytes().isEmpty(), contract, "unsupported version exposed a response body")
+        }
+    }
+}
+
 private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boolean, String, String) -> Unit) {
     val contract = "enhanced-action-navigation"
     val mutationIdentity = "4d8e0189-424b-4f7f-b89d-338ac48f6888"
@@ -709,6 +735,7 @@ private suspend fun AdapterTckHttpClient.verifyEnhancedNavigation(expect: (Boole
             "Accept" to PatchStreamV1.MEDIA_TYPE,
             "Woge-Request-Identity" to mutationIdentity,
         )
+    verifyUnsupportedActionProtocol(headers, expect)
     open(RequestMethod.POST, TckSubmitAction.path, headers, "value=accepted").let { response ->
         response.body().use { body ->
             expect(response.statusCode() == ResponseStatus.OK.code, contract, "status changed")

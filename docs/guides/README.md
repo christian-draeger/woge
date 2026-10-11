@@ -68,3 +68,6 @@ routes while keeping Spring Boot as the primary getting-started path.
 
 The [development MCP guide](development-mcp.md) lets coding agents follow `wogeDev` builds, errors
 and restarts through an experimental, opt-in local endpoint.
+
+The [compatibility and upgrades guide](compatibility-and-upgrades.md) defines pre-1.0 version alignment,
+protocol negotiation, rolling deployments and safe behavior when browser assets are out of sync.

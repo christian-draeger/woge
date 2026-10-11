@@ -1,0 +1,5 @@
+id: 42
+event: invalidate
+data: tasks
+data: summary
+

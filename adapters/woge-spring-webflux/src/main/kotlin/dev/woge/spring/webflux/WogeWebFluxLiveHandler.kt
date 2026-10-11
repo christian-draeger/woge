@@ -9,6 +9,7 @@ import dev.woge.host.failure
 import dev.woge.runtime.LiveAdmission
 import dev.woge.runtime.LiveEventStream
 import dev.woge.runtime.LiveResponse
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 
@@ -21,7 +22,22 @@ public class WogeWebFluxLiveHandler<Input : Any> internal constructor(
     private val observer: WogeObserver,
 ) {
     /** Authorizes and admits the stream before the first byte, then flushes every event. */
-    public suspend fun handle(request: ServerRequest): ServerResponse {
+    public suspend fun handle(request: ServerRequest): ServerResponse =
+        if (dev.woge.host.requestsUnsupportedLiveProtocolVersion(
+                request.queryParam("_woge_protocol_version").orElse(null),
+            )
+        ) {
+            ServerResponse
+                .status(org.springframework.http.HttpStatus.NOT_ACCEPTABLE)
+                .header("Woge-Protocol-Error", "unsupported-version")
+                .header("Cache-Control", "no-store")
+                .build()
+                .awaitSingle()
+        } else {
+            handleSupportedVersion(request)
+        }
+
+    private suspend fun handleSupportedVersion(request: ServerRequest): ServerResponse {
         val context = contexts.create(request)
         val observation = WogeObservationContext(requestTrace = context.trace)
         val decoded =

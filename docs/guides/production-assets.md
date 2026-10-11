@@ -65,8 +65,11 @@ its manifest must match the current build, every registered file must exist, fil
 the tree hash, and no stale/unregistered generated files may remain. The same task still rejects
 development tooling. An empty asset directory needs no special configuration.
 
-Keep hashed resources immutable at your proxy/CDN. Do not reuse these cache headers on personalized
-HTML or action responses; see [HTTP caching](http-caching.md).
+Keep hashed resources immutable at your proxy/CDN. During rolling deployments, retain old hashed trees
+until old pages stop requesting them; a node missing a hash returns 404 and the page remains usable
+without JavaScript. See the [compatibility and upgrades guide](compatibility-and-upgrades.md) for the
+version-skew policy. Do not reuse these cache headers on personalized HTML or action responses; see
+[HTTP caching](http-caching.md).
 
 ## Optional frontend tools
 

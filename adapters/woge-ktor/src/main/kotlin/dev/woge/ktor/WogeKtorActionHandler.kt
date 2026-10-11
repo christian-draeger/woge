@@ -11,7 +11,13 @@ public class WogeKtorActionHandler<Command : Any> internal constructor(
     private val delegate: WogeKtorPageHandler<Command>,
 ) {
     public suspend fun handle(call: ApplicationCall) {
-        if (call.request.httpMethod == HttpMethod.Post) {
+        if (call.request.httpMethod == HttpMethod.Post &&
+            dev.woge.host.requestsUnsupportedActionPatchVersion(call.request.headers["Accept"])
+        ) {
+            call.response.headers.append("Woge-Protocol-Error", "unsupported-version")
+            call.response.headers.append("Cache-Control", "no-store")
+            call.respond(HttpStatusCode.NotAcceptable)
+        } else if (call.request.httpMethod == HttpMethod.Post) {
             delegate.handleAction(call)
         } else {
             call.response.headers.append("Allow", "POST")

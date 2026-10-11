@@ -8,6 +8,7 @@ import {
   patchFrame,
   rawFrame,
   readGoldenStream,
+  readGoldenWireFixture,
 } from "../test-support/protocol-fixture.mjs";
 
 test("patch HTTP media types accept parameter whitespace and quoting but require version 1", () => {
@@ -29,6 +30,16 @@ test("patch HTTP media types accept parameter whitespace and quoting but require
   }
 });
 
+test("unknown server preamble and metadata versions fail as incompatible before application", () => {
+  assert.throws(() => new PatchStreamDecoder().push(Uint8Array.of(0x57, 0x4f, 0x47, 0x45, 2)),
+    (problem) => problem.code === "WOGE_UNSUPPORTED_VERSION");
+  const metadata = '{"protocolVersion":2,"operation":"replace","patchId":"patch-1",' +
+    '"epoch":"epoch-a","target":"summary-1","interactionSequence":0,"baseRevision":0,"nextRevision":1}';
+  assert.throws(() => new PatchStreamDecoder().push(encodeStream([
+    rawFrame(1, "text/html; charset=utf-8", metadata, "<p>new</p>"),
+  ])), (problem) => problem.code === "WOGE_UNSUPPORTED_VERSION");
+});
+
 test("the JVM golden stream decodes at every two-chunk boundary", async () => {
   const bytes = await readGoldenStream();
 
@@ -48,6 +59,20 @@ test("the JVM golden stream decodes one byte at a time", async () => {
   decoder.finish();
 
   assertGoldenEvents(events);
+});
+
+
+test("version-one action form encoding and live SSE block match shared golden fixtures", async () => {
+  const fields = new URLSearchParams();
+  fields.append("value", "accepted");
+  fields.append("note", "two words\r\nsecond line");
+  assert.equal(`${fields}`, (await readGoldenWireFixture("action-form-v1.txt")).trim());
+
+  const sse = (await readGoldenWireFixture("live-events-v1.txt")).replace(/\r?\n/g, "\n");
+  assert.equal(sse, "id: 42\nevent: invalidate\ndata: tasks\ndata: summary\n\n");
+  const event = sse.trimEnd().split("\n");
+  assert.equal(event[1], "event: invalidate");
+  assert.deepEqual(event.slice(2).map((line) => line.slice("data: ".length)), ["tasks", "summary"]);
 });
 
 test("stream byte budgets accept the exact threshold and reject incrementally without payload diagnostics", () => {

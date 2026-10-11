@@ -10,7 +10,7 @@ import {
   patchStreamLimits,
   exceedBudget,
 } from "./protocol.js";
-import { classifyWogeFailure, createWogeRecoveryBudget } from "./recovery.js";
+import { classifyWogeFailure, createWogeRecoveryBudget, reloadForIncompatibleVersion } from "./recovery.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 import { installWogeActionForms, ACTION_ERROR_EVENT } from "./actions.js";
 import { captureWogeBrowserState, prepareWogeBrowserState } from "./state.js";
@@ -19,6 +19,7 @@ import { connectWogeLive } from "./live.js";
 /** Owns one active document's region registry and applies validated patch streams to it. */
 class WogePatchRuntime {
   #registry;
+  #root;
   #observer;
   #nextObservationId = 1;
   #refetched = new Map();
@@ -26,6 +27,7 @@ class WogePatchRuntime {
   #activeStreams = 0;
 
   constructor(root = document, { observer, limits } = {}) {
+    this.#root = root;
     if (observer !== undefined && typeof observer !== "function") {
       fail("WOGE_INVALID_OBSERVER", "Patch observer must be a function");
     }
@@ -114,6 +116,7 @@ class WogePatchRuntime {
       if (recovery && recoveryPatches !== 1) fail("WOGE_INVALID_RESYNC", "Region recovery must contain one replacement");
       return stalePatchCount ? Object.freeze({ ...completion, stalePatchCount }) : completion;
     } catch (problem) {
+      if (problem?.code === "WOGE_UNSUPPORTED_VERSION") reloadForIncompatibleVersion(this.#root);
       try {
         await reader.cancel(problem);
       } catch {
