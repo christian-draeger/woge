@@ -182,10 +182,8 @@ async function verifyEnhanced(browser, expectedMutations) {
           (link) => document.activeElement === link,
         ), true);
         await page.keyboard.press("Enter");
-        assert.equal(new URL(page.url()).hash, "#tck-command-value");
-        assert.equal(await page.getByRole("textbox", { name: "Command value" }).evaluate(
-          (input) => document.activeElement === input,
-        ), true);
+        await page.waitForFunction(() => location.hash === "#tck-command-value"
+          && document.activeElement?.id === "tck-command-value");
       } else {
         await page.getByRole("alert").waitFor({ state: "visible" });
       }

@@ -111,3 +111,5 @@ date and multi-select inputs.
 The [themed reference screen walkthrough](themed-reference-screen.md) combines navigation, forms,
 tables, task-detail overlays and live updates with plain CSS or an optional Tailwind brand. Its
 [human-run extension trial](themed-reference-trial.md) records documentation and editor findings.
+
+The [component caching guide](component-caching.md) shows opt-in fragment caching with explicit inputs, security scopes, TTL, revisions and invalidation.

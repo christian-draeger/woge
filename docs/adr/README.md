@@ -150,3 +150,5 @@ indexes and assembles these decisions rather than adding one.
 | [0101](0101-native-data-display-and-complex-input-components.md) | Accepted | Compose native data display and complex inputs with URL-driven sort, filter and paging |
 
 | [0102](0102-themed-reference-operations.md) | Accepted | Prove themes on the shared operations application |
+
+| [0103](0103-safe-component-render-caching.md) | Accepted | Cache typed component output with explicit security scope |
