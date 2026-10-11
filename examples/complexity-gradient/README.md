@@ -11,7 +11,7 @@ page needs.
 | 3 | `form` | A native form, a typed action, redirect and reload |
 | 4 | `validation` | Accessible server-side field and summary errors |
 | 5 | `enhanced-action` | The same action also updates two regions in the browser |
-| 6 | `deferred-region` | A slow region that streams in after the page |
+| 6 | `deferred-region` | A slow region that streams in after the page, with a native full-page link |
 | 7 | `live-update` | Server-sent events that refresh a region |
 | 8 | `custom-javascript` | Your own small script on ordinary HTML |
 | 9 | `island` | A browser-owned island inside a patched region |
@@ -35,6 +35,13 @@ protocol or host internals) and compares the result with `gradient-baseline.json
 session; the live task binds one page route and loads the shipped client without application JavaScript.
 Configure `woge.render-identity.secret` once per deployment (the Spring Boot development default is
 random and process-local).
+
+The deferred task keeps a `noscript` link inside its loading HTML. It navigates to
+`/forecast?complete=true`, waits for the same read-only loader and renders both days as a complete
+page without the patch client. The ordinary `/forecast` route still streams the region with
+JavaScript. Both modes use the same page handler; the demo data is public. The task now measures 145 non-blank
+lines (123 Kotlin, 9 JavaScript, 13 CSS) and 32 concepts, up from 129 lines and 31 concepts. It still
+has four files, three annotations and two route bindings.
 
 ## Update the baseline
 

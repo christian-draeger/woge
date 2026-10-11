@@ -52,6 +52,8 @@ public enum class AdapterTckPageScenario(
     PRE_STREAM_FAILURE("pre-stream-failure"),
     PAGE_BYTE_BUDGET("page-byte-budget"),
     CACHEABLE("cacheable"),
+    DEFERRED_SHELL("deferred-shell"),
+    DEFERRED_COMPLETE("deferred-complete"),
     ;
 
     public companion object {
@@ -72,6 +74,7 @@ public enum class AdapterTckDeferredScenario(
     HEADERS_BEFORE_REGIONS("headers-before-regions"),
     TASK_BUDGET("task-budget"),
     PATCH_BYTE_BUDGET("patch-byte-budget"),
+    NATIVE_FALLBACK("native-fallback"),
     ;
 
     public companion object {
@@ -121,6 +124,7 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
 }
 
 internal class AdapterTckFixtureState {
+    val deferredFallback: DeferredFallbackFixture = DeferredFallbackFixture()
     val performance: PerformanceRenderFixture = PerformanceRenderFixture()
     val uploadDirectory: java.nio.file.Path =
         java.nio.file.Files
@@ -148,6 +152,8 @@ internal class AdapterTckFixtureState {
     suspend fun openPage(request: PageRequest<AdapterTckPageScenario>): PageResult {
         observedContexts += request.context
         return when (request.input) {
+            AdapterTckPageScenario.DEFERRED_SHELL, AdapterTckPageScenario.DEFERRED_COMPLETE ->
+                deferredFallback.page(request)
             AdapterTckPageScenario.DOCUMENT -> document()
             AdapterTckPageScenario.STREAM_DIAGNOSTIC -> streamDiagnosticPage()
             AdapterTckPageScenario.CACHEABLE ->
@@ -180,6 +186,7 @@ internal class AdapterTckFixtureState {
 
     fun deferredRegions(request: PageRequest<AdapterTckDeferredScenario>): Iterable<DeferredRegion> =
         when (request.input) {
+            AdapterTckDeferredScenario.NATIVE_FALLBACK -> deferredFallback.regions(request.context)
             AdapterTckDeferredScenario.TASK_BUDGET ->
                 generateSequence {
                     val number = budgetDeclarations.incrementAndGet()

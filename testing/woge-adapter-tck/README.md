@@ -10,6 +10,13 @@ and pre-stream failures, document flush boundaries, deferred completion order an
 cancellation. Additive `AdapterTckExtension` suites are the hook for actions, CSRF, caching,
 multipart and SSE when those capabilities become executable.
 
+The `deferred-native-fallback` contract is also part of the core suite. The existing page/deferred
+scenario bindings now serve an authorized shell with a `noscript` link, a safe full HTML GET and the
+same result as a patch. Tests verify repeatable native reads and deny unauthorized users even when
+they supply valid render identity. No additional adapter binding is needed. The optional browser
+gate follows the link with `javaScriptEnabled: false` and applies the shipped client with JavaScript
+enabled, on Spring MVC, WebFlux and Ktor.
+
 Native multipart is now part of the shared real-HTTP contract. Bind the generated `TckUploadAction`
 with `application.uploadForm`, `application.uploadLimits` and `application.uploadDirectory`, and
 register `tckUploadPage` at `/woge-tck/upload-complete`. MVC also registers `WogeMultipartResolver`

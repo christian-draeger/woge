@@ -109,6 +109,12 @@ or advanced code, not page code. Configure `woge.render-identity.secret` with Ba
 bytes (at least 32) shared by all deployment instances. The unset development default is random and
 process-local; Spring Boot and the Ktor config constructor warn without logging the secret.
 
+Deferred loading HTML must include an ordinary link (optionally inside `noscript`) to a full HTML
+GET, unless the document already offers the complete result. Use the typed `a` and page route APIs,
+not the patch-stream URL. Shell, complete-page and patch requests share the same access checks and
+read-only loader. Never put render epochs, region IDs, secrets or access tokens in the native link.
+The complete GET renders final content without starting the deferred client and must be safe to reload.
+
 For live data, declare `LiveRegionPage(page, SummaryRegion, load = { ... }, changes = { ... },
 authorize = { ... })`, render `liveRegion(...)`, and bind `handlers.liveRegion(live, PageRoute)` at
 that one page route. Load the shipped fallback module; no application JavaScript is needed.

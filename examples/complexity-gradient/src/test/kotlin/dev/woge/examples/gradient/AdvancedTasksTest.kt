@@ -12,6 +12,7 @@ import dev.woge.examples.gradient.t09island.SketchPage
 import dev.woge.host.LiveResult
 import dev.woge.host.PageRequest
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -21,8 +22,19 @@ class AdvancedTasksTest {
     fun `deferred page shows loading html and streams the region`() =
         runTest {
             val page = ForecastPage()
-            val html = page.open(PageRequest(ForecastInput, getContext)).html()
+            val html = page.open(PageRequest(ForecastInput(), getContext)).html()
             assertTrue(html.contains("Loading the forecast"))
+            assertTrue(
+                html.contains(
+                    "<noscript><a href=\"/forecast?complete=true\">View the complete forecast</a></noscript>",
+                ),
+            )
+            val complete = page.open(PageRequest(ForecastInput(complete = true), getContext)).html()
+            assertTrue(complete.contains("Saturday: sunny"))
+            assertTrue(complete.contains("Sunday: light rain"))
+            assertFalse(complete.contains("Loading"))
+            assertFalse(complete.contains("woge-patch-url"))
+            assertFalse(complete.contains("<script"))
             val region = page.regions(PageRequest(ForecastPatchesInput("page"), getContext)).single()
             assertTrue(region.renderContent().value.contains("Saturday"))
         }

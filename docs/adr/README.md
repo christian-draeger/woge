@@ -127,3 +127,5 @@ indexes and assembles these decisions rather than adding one.
 | [0087](0087-smooth-action-signatures-and-form-values.md) | Accepted | Smooth action signatures without changing public URLs |
 
 | [0088](0088-host-owned-render-sessions-and-live-regions.md) | Accepted | Host-owned render sessions and one-binding live regions |
+
+| [0089](0089-native-deferred-region-navigation.md) | Accepted | Reach deferred results through safe native HTML navigation |

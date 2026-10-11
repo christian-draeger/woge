@@ -15,6 +15,8 @@ public enum class DeferredRegionFailure {
 /**
  * One independently resolved region declared by portable page code.
  *
+ * The document must offer a normal navigation path to the result (for example a `noscript`
+ * link to an authorized full HTML GET), unless the document already contains the complete result.
  * The loading content is ordinary server-rendered HTML. Deferred work starts only when the server
  * runtime collects the region execution flow.
  */
@@ -50,6 +52,8 @@ public fun deferredRegion(
 
 /**
  * Writes the stable region element and its useful loading fallback into the initial page shell.
+ * Include a native link in [deferredRegion] loading HTML, or link to a complete page elsewhere in
+ * the document. This helper cannot invent application routes.
  *
  * The caller chooses a normal HTML element and may add ordinary attributes. Woge reserves only the
  * region and revision data attributes required by the fallback browser runtime.

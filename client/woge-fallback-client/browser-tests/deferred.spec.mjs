@@ -3,9 +3,10 @@ import { expect, test } from "@playwright/test";
 test("applies the first completed region before the deferred stream finishes", async ({ page }) => {
   await page.goto("/deferred");
   await page.waitForFunction(() => globalThis.deferredStarted === true);
+  await expect(page.getByRole("link", { name: "View slow result" })).toHaveCount(0);
 
   await expect(page.locator('[data-woge-region="fast"]')).toHaveText("Fast result");
-  await expect(page.locator('[data-woge-region="slow"]')).toHaveText("Loading slow");
+  await expect(page.locator('[data-woge-region="slow"]')).toHaveText("Loading slow", { useInnerText: true });
 
   const beforeRelease = await page.evaluate(() => ({
     completion: globalThis.deferredCompletion ?? null,
