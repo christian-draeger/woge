@@ -33,6 +33,7 @@ const expectedFiles = [
   "package/dist/index.d.ts",
   "package/dist/manifest.json",
   "package/dist/woge-navigation.js",
+  "package/dist/transactions.js",
   "package/dist/navigation.d.ts",
   "package/dist/state.js",
   "package/dist/woge-fallback.js",

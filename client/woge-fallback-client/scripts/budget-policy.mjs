@@ -31,11 +31,12 @@ export function verifyBudgets(actual, baseline) {
   }
 }
 
-export function verifyGraph(result) {
+export function verifyGraph(result, optionalImports = []) {
   for (const input of Object.keys(result.metafile.inputs)) {
     if (input.includes("node_modules/")) throw new Error(`Application-wide dependency in runtime asset: ${input}`);
   }
   for (const output of Object.values(result.metafile.outputs)) {
-    if (output.imports.length) throw new Error("Runtime assets must be self-contained; external imports are not budgeted");
+    if (output.imports.some((entry) =>
+      entry.kind !== "dynamic-import" || !optionalImports.includes(entry.path))) throw new Error("Runtime assets must be self-contained; external imports are not budgeted");
   }
 }

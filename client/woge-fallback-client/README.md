@@ -27,6 +27,21 @@ opaque region ID and current revision:
 Region IDs are registry keys, never CSS selectors. `data-woge-interaction-sequence` is optional for
 the initial page/deferred-work sequence and defaults to `0`.
 
+## Atomic region updates
+
+The server can explicitly group prepared replacements with `.atomic(viewTransition = false)`.
+One bounded transaction frame declares every member; the browser validates them all before a
+synchronous multi-region commit. Reduced-motion and unsupported View Transitions apply identical
+HTML directly. Animation completion is never a correctness condition. Keyed focus/selection is
+restored after all members; external focus stays external.
+
+`transactions.js` is lazily imported only for transaction frames. Static deployments copy the
+**whole** `dist` directory; bundlers can split its dynamic import. JVM assets include the module
+beside `index.js`, without Node. Its full graph is separately byte-budgeted. Missing delivery,
+validation or unexpected commit failures reject through the existing recovery path, never a
+successful partial completion. A whole patch stream still is not atomic. See
+[atomic visual updates](../../docs/guides/typed-actions.md#atomic-visual-updates).
+
 ## Register latest intent and recover one region
 
 Before starting an enhanced request, call `runtime.beginInteraction(["summary-1"])`. Its frozen

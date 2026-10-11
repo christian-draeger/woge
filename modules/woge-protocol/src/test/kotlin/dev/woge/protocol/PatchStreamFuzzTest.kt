@@ -136,6 +136,7 @@ class PatchStreamFuzzTest {
                         is ReplacePatch -> patch.html.value
                         is AppendPatch -> patch.item.html.value
                         is RemovePatch -> ""
+                        is PatchTransaction -> error("No transaction in this fixture")
                     }
             is PatchStreamEvent.Complete -> "complete:${event.patchCount}"
             is PatchStreamEvent.Error -> "error:${event.failure.code.value}:${event.failure.recovery}"

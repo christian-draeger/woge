@@ -44,7 +44,8 @@ The [typed page routes guide](typed-routes.md) declares a URL once on the page i
 from it and lets every host read the same path and query values.
 
 The [typed action descriptor guide](typed-actions.md) introduces stable form URLs, typed executors
-and explicit registries, with the remaining adapter-dispatch scope called out.
+and explicit registries, plus [atomic visual updates](typed-actions.md#atomic-visual-updates)
+with optional reduced-motion-aware View Transitions.
 
 The [native multipart upload guide](native-multipart-uploads.md) adds ordinary file inputs, bounded
 text and file decoding, request-owned cleanup and the explicit Spring MVC resolver configuration.

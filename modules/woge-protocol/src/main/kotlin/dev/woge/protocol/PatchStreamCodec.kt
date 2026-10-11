@@ -58,12 +58,24 @@ public class PatchStreamEncoder internal constructor(
         if (patchCount == Int.MAX_VALUE) {
             protocolFailure(PatchStreamErrorCode.INVALID_SEQUENCE, "Patch count exceeds the version-1 limit")
         }
+        if (patch is PatchTransaction) {
+            val payload = encodeTransactionMembers(patch.patches)
+            writeFrame(
+                FrameKind.TRANSACTION,
+                COMPLETE_CONTENT_TYPE,
+                transactionMetadata(patch.viewTransition).encodeUtf8(),
+                payload,
+            )
+            patchCount += 1
+            return
+        }
         val metadata = encodePatchMetadata(patch).encodeUtf8()
         val html =
             when (patch) {
                 is ReplacePatch -> patch.html.value
                 is AppendPatch -> patch.item.html.value
                 is RemovePatch -> ""
+                is PatchTransaction -> error("Transactions use their own frame")
             }
         val payload = html.encodeUtf8()
         validateFrameLengths(PATCH_CONTENT_TYPE.length, metadata.size, payload.size)
@@ -108,7 +120,9 @@ public class PatchStreamEncoder internal constructor(
     }
 }
 
-internal class VersionOnePatchStreamDecoder : PatchStreamDecoder {
+internal class VersionOnePatchStreamDecoder(
+    private val allowTransactions: Boolean = true,
+) : PatchStreamDecoder {
     private var buffer: ByteArray = EMPTY_BYTES
     private var preambleRead: Boolean = false
     private var terminalRead: Boolean = false
@@ -168,6 +182,9 @@ internal class VersionOnePatchStreamDecoder : PatchStreamDecoder {
 
         while (!terminalRead && buffer.size >= FRAME_HEADER_BYTES) {
             val kind = FrameKind.fromCode(buffer[0].toInt() and UNSIGNED_BYTE_MASK)
+            if (kind == FrameKind.TRANSACTION && !allowTransactions) {
+                protocolFailure(PatchStreamErrorCode.INVALID_METADATA, "Nested transactions are not supported")
+            }
             val contentTypeLength = buffer[1].toInt() and UNSIGNED_BYTE_MASK
             val metadataLength = readUnsignedInt(buffer, METADATA_LENGTH_OFFSET)
             val payloadLength = readUnsignedInt(buffer, PAYLOAD_LENGTH_OFFSET)
@@ -186,7 +203,7 @@ internal class VersionOnePatchStreamDecoder : PatchStreamDecoder {
             val event = decodeFrame(kind, contentType, metadataBytes, offset, payloadLength.toInt())
             buffer = buffer.copyOfRange(frameLength.toInt(), buffer.size)
             events += event
-            if (kind == FrameKind.PATCH) patchCount += 1
+            if (!kind.terminal) patchCount += 1
             if (kind.terminal) terminalRead = true
         }
 
@@ -222,6 +239,10 @@ internal class VersionOnePatchStreamDecoder : PatchStreamDecoder {
         requireContentType(kind, contentType)
         val metadata = metadataBytes.decodeUtf8()
         return when (kind) {
+            FrameKind.TRANSACTION ->
+                PatchStreamEvent.PatchFrame(
+                    decodeTransaction(metadata, buffer.copyOfRange(payloadOffset, payloadOffset + payloadLength)),
+                )
             FrameKind.PATCH -> decodePatch(metadata, payloadOffset, payloadLength)
             FrameKind.COMPLETE -> decodeComplete(metadata, payloadLength)
             FrameKind.ERROR -> decodeError(metadata, payloadLength)
@@ -297,6 +318,7 @@ internal fun encodePatchStream(patches: Iterable<Patch>): ByteArray {
 
 private fun PatchMetadata.toPatch(html: PatchHtml): Patch =
     when (operation) {
+        PatchOperation.TRANSACTION -> error("Transactions use their own frame")
         PatchOperation.REPLACE ->
             ReplacePatch(
                 protocolVersion = protocolVersion,

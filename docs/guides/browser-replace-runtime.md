@@ -120,7 +120,9 @@ embedded documents and dangerous URL schemes before changing the current region.
 repair or partly apply an invalid Replace patch.
 
 A valid earlier frame may already be visible when a later frame fails. That is intentional streaming
-between atomic patches, not one transaction for the complete response.
+between atomic patches, not one transaction for the complete response. Use an explicit
+[atomic region transaction](typed-actions.md#atomic-visual-updates) when several replacements
+must validate and apply together; a complete stream still is not atomic.
 
 ## What comes from Kotlin?
 

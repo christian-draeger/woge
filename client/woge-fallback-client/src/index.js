@@ -107,7 +107,7 @@ class WogePatchRuntime {
                 fail("WOGE_INVALID_RESYNC", "Region recovery must replace its declared target and context");
               }
             }
-            if (this.#applyObserved(event.patch) === "stale") stalePatchCount++;
+            if (await this.#applyObserved(event.patch, signal) === "stale") stalePatchCount++;
           }
           if (event.type === "complete") completion = Object.freeze({ patchCount: event.patchCount });
           if (event.type === "error") throw new WogeRemotePatchError(event.failure);
@@ -131,7 +131,7 @@ class WogePatchRuntime {
     }
   }
 
-  #applyObserved(patch) {
+  async #applyObserved(patch, signal) {
     const observationId = this.#nextObservationId++;
     const context = Object.freeze({
       pageEpoch: patch.epoch,
@@ -141,7 +141,11 @@ class WogePatchRuntime {
     const started = performance.now();
     this.#emit(Object.freeze({ observationId, phase: "started", operation: "patch.apply", context }));
     try {
-      const outcome = this.#registry.applyPatch(patch);
+      const outcome = patch.operation === "transaction" ?
+        await (await import("./transactions.js").catch(() =>
+          fail("WOGE_TRANSACTION_APPLY_FAILED", "Transaction module unavailable")))
+          .applyTransaction(this.#registry, patch, this.#root, signal) :
+        this.#registry.applyPatch(patch);
       this.#emitFinished(observationId, context, outcome === "stale" ? "stale" : "succeeded", started,
         outcome === "stale" ? "WOGE_STALE_PATCH" : undefined);
       return outcome;

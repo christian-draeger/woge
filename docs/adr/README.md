@@ -133,3 +133,5 @@ indexes and assembles these decisions rather than adding one.
 | [0090](0090-opt-in-document-navigation.md) | Accepted | Keep document navigation native by default; opt into isolated route swaps |
 
 | [0091](0091-spring-mvc-async-handoff.md) | Accepted | Hand the Spring MVC response head back to a container thread |
+
+| [0092](0092-atomic-patch-transactions.md) | Accepted | Apply bounded atomic region transactions independently of optional animation |

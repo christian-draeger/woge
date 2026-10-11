@@ -43,6 +43,14 @@ the same `EncodedPatchChunk` boundaries used by the adapters' existing transport
 preamble is sent first; each patch and the terminal frame have their own flush boundary.
 Remove uses an empty payload; append includes its item ID and one DSL-rendered item root.
 
+`PatchTransaction(listOf(firstReplace, secondReplace), viewTransition = false)` is one semantic
+unit. Frame kind 4 carries canonical `{"viewTransition":false}` (or `true`) metadata and a complete
+inner version-1 stream of 1–128 distinct Replace members. The entire inner stream fits the existing
+8 MiB payload ceiling; nesting and terminal errors are forbidden. Complete counts outer units,
+so that transaction counts once. Existing frames are unchanged. Deploy the matching client first;
+older clients reject the new kind. Prefer the [typed result API](typed-actions.md#atomic-visual-updates)
+in applications; ordinary/deferred streams do not become atomic automatically.
+
 ## Do not treat writes as frames
 
 One `ByteSink.write` call is only an encoder implementation detail. A proxy, compression layer or TCP

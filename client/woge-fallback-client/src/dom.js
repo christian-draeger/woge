@@ -97,7 +97,7 @@ export class PageRegionRegistry {
     };
   }
 
-  applyPatch(patch) {
+  preparePatch(patch) {
     this.#assertRegistryIntegrity();
     if (patch.epoch !== this.epoch) {
       fail("WOGE_STALE_PAGE_EPOCH", "Patch belongs to another page epoch");
@@ -115,8 +115,8 @@ export class PageRegionRegistry {
     if (patch.baseRevision !== entry.revision || patch.nextRevision !== entry.revision + 1n) {
       fail("WOGE_REVISION_MISMATCH", "Patch does not continue the active target revision");
     }
-    if (patch.operation === "append") return this.#append(entry, patch);
-    if (patch.operation === "remove") return this.#remove(entry, patch);
+    if (patch.operation === "append") return { commit: () => this.#append(entry, patch) };
+    if (patch.operation === "remove") return { commit: () => this.#remove(entry, patch) };
     if (patch.operation !== "replace") fail("WOGE_INVALID_METADATA", "Patch operation is unsupported");
 
     const template = parsePatchHtml(this.#document, patch.html);
@@ -124,19 +124,37 @@ export class PageRegionRegistry {
     const registryChange = this.#planRegistryChange(entry.element, template.content);
     const detail = lifecycleDetail(patch);
 
-    dispatchLifecycle(entry.element, BEFORE_REPLACE_EVENT, detail);
-    this.#assertTargetStillActive(entry);
-    const state = prepareWogeBrowserState(captureWogeBrowserState(entry.element), template.content, {
-      reset: entry.element.getAttribute("data-woge-state") === "reset",
-    });
-    state.commit();
-    closeRemovedOverlays(entry.element);
-    entry.element.replaceChildren(template.content);
-    entry.element.setAttribute(REVISION_ATTRIBUTE, patch.nextRevision.toString());
-    entry.revision = patch.nextRevision;
-    this.#commitRegistryChange(registryChange);
-    state.restoreFocus(entry.element);
-    dispatchLifecycle(entry.element, AFTER_REPLACE_EVENT, detail);
+    let state;
+    return {
+      target: entry.element,
+      change: registryChange,
+      before: () => dispatchLifecycle(entry.element, BEFORE_REPLACE_EVENT, detail),
+      check: (prepare = true) => {
+        this.#assertTargetStillActive(entry);
+        if (prepare) state = prepareWogeBrowserState(captureWogeBrowserState(entry.element), template.content, {
+          reset: entry.element.getAttribute("data-woge-state") === "reset",
+        });
+      },
+      commit: () => {
+        state.commit();
+        closeRemovedOverlays(entry.element);
+        entry.element.replaceChildren(template.content);
+        this.#advance(entry, patch);
+        this.#commitRegistryChange(registryChange);
+      },
+      focus: () => state.restoreFocus(entry.element),
+      after: () => dispatchLifecycle(entry.element, AFTER_REPLACE_EVENT, detail),
+    };
+  }
+
+  applyPatch(patch) {
+    const plan = this.preparePatch(patch);
+    if (plan === "stale") return plan;
+    plan.before?.();
+    plan.check?.();
+    plan.commit();
+    plan.focus?.();
+    plan.after?.();
   }
 
   #append(entry, patch) {
@@ -221,7 +239,7 @@ export class PageRegionRegistry {
     for (const element of this.#document.querySelectorAll(REGION_SELECTOR)) {
       const entry = regionEntry(element);
       if (this.#regions.has(entry.id)) {
-        fail("WOGE_DUPLICATE_TARGET", "The active page contains a duplicate region identifier");
+        fail("WOGE_DUPLICATE_TARGET", "Duplicate active region ID");
       }
       this.#regions.set(entry.id, entry);
     }
@@ -230,26 +248,26 @@ export class PageRegionRegistry {
   #assertRegistryIntegrity() {
     const elements = this.#document.querySelectorAll(REGION_SELECTOR);
     if (elements.length !== this.#regions.size) {
-      fail("WOGE_REGION_REGISTRY_CHANGED", "The active page region registry changed outside Woge");
+      fail("WOGE_REGION_REGISTRY_CHANGED", "Region registry changed outside Woge");
     }
     const seen = new Set();
     for (const element of elements) {
       const id = readOpaqueId(element.getAttribute(REGION_ATTRIBUTE), "region identifier");
-      if (seen.has(id)) fail("WOGE_DUPLICATE_TARGET", "The active page contains a duplicate region identifier");
+      if (seen.has(id)) fail("WOGE_DUPLICATE_TARGET", "Duplicate active region ID");
       seen.add(id);
       if (this.#regions.get(id)?.element !== element) {
-        fail("WOGE_REGION_REGISTRY_CHANGED", "The active page region registry changed outside Woge");
+        fail("WOGE_REGION_REGISTRY_CHANGED", "Region registry changed outside Woge");
       }
     }
   }
 
   #assertEntryState(entry) {
     if (readCounter(entry.element.getAttribute(REVISION_ATTRIBUTE), "region revision") !== entry.revision) {
-      fail("WOGE_REGION_STATE_CHANGED", "The active region revision changed outside Woge");
+      fail("WOGE_REGION_STATE_CHANGED", "Region revision changed outside Woge");
     }
     const interaction = entry.element.getAttribute(INTERACTION_ATTRIBUTE) ?? "0";
     if (readCounter(interaction, "interaction sequence") !== entry.interactionSequence) {
-      fail("WOGE_REGION_STATE_CHANGED", "The active interaction sequence changed outside Woge");
+      fail("WOGE_REGION_STATE_CHANGED", "Interaction sequence changed outside Woge");
     }
   }
 
@@ -259,7 +277,7 @@ export class PageRegionRegistry {
       entry.element.ownerDocument !== this.#document ||
       entry.element.getAttribute(REGION_ATTRIBUTE) !== entry.id
     ) {
-      fail("WOGE_TARGET_CHANGED", "The patch target changed during its before-replace lifecycle event");
+      fail("WOGE_TARGET_CHANGED", "Target changed during before lifecycle");
     }
     this.#assertRegistryIntegrity();
     this.#assertEntryState(entry);
@@ -278,7 +296,7 @@ export class PageRegionRegistry {
     for (const element of fragment.querySelectorAll(REGION_SELECTOR)) {
       const entry = regionEntry(element);
       if (occupied.has(entry.id)) {
-        fail("WOGE_DUPLICATE_TARGET", "Patch HTML contains a duplicate region identifier");
+        fail("WOGE_DUPLICATE_TARGET", "Duplicate region ID in patch HTML");
       }
       occupied.add(entry.id);
       addedEntries.push(entry);

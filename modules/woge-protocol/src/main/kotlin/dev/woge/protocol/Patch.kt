@@ -152,6 +152,7 @@ public enum class PatchOperation {
     REPLACE,
     APPEND,
     REMOVE,
+    TRANSACTION,
 }
 
 /** Stable item identity scoped to the direct children of one collection region. */

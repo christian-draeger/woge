@@ -6,7 +6,7 @@ import { completeFrame, encodeStream, patchFrame } from "../test-support/protoco
 const routes = new Map([
   ["/navigation-bootstrap.js", { path: new URL("./navigation-bootstrap.mjs", import.meta.url),
     type: "text/javascript; charset=utf-8" }],
-  ...["woge-navigation.js", "state.js"].map((name) =>
+  ...["woge-navigation.js", "state.js", "transactions.js"].map((name) =>
     [`/${name}`, { path: new URL(`../dist/${name}`, import.meta.url), type: "text/javascript; charset=utf-8" }]),
   ["/strict", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/fixture-bootstrap.js", {

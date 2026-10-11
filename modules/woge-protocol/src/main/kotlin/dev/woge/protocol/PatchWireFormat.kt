@@ -46,7 +46,7 @@ internal fun requireContentType(
     val expected =
         when (kind) {
             FrameKind.PATCH -> PATCH_CONTENT_TYPE
-            FrameKind.COMPLETE -> COMPLETE_CONTENT_TYPE
+            FrameKind.COMPLETE, FrameKind.TRANSACTION -> COMPLETE_CONTENT_TYPE
             FrameKind.ERROR -> ERROR_CONTENT_TYPE
         }
     if (contentType != expected) {
@@ -121,6 +121,7 @@ internal enum class FrameKind(
     val code: Int,
     val terminal: Boolean,
 ) {
+    TRANSACTION(TRANSACTION_FRAME_KIND_CODE, false),
     PATCH(PATCH_FRAME_KIND_CODE, false),
     COMPLETE(COMPLETE_FRAME_KIND_CODE, true),
     ERROR(ERROR_FRAME_KIND_CODE, true),
@@ -146,6 +147,7 @@ private const val BITS_24: Int = 24
 private const val FIRST_BYTE_OFFSET: Int = 1
 private const val SECOND_BYTE_OFFSET: Int = 2
 private const val THIRD_BYTE_OFFSET: Int = 3
+private const val TRANSACTION_FRAME_KIND_CODE: Int = 4
 private const val PATCH_FRAME_KIND_CODE: Int = 1
 private const val COMPLETE_FRAME_KIND_CODE: Int = 2
 private const val ERROR_FRAME_KIND_CODE: Int = 3
