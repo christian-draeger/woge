@@ -220,6 +220,23 @@ class PatchStreamCodecTest {
     }
 
     @Test
+    fun `invalid UTF-8 in an HTML payload fails with a typed error`() {
+        val encoded =
+            rawStream(
+                rawFrame(
+                    kind = PATCH_KIND,
+                    contentType = PATCH_CONTENT_TYPE,
+                    metadata = replaceMetadata().toByteArray(StandardCharsets.UTF_8),
+                    payload = byteArrayOf(0xc3.toByte(), 0x28),
+                ),
+            )
+
+        assertProtocolFailure(PatchStreamErrorCode.INVALID_UTF8) {
+            PatchStreamV1.decoder().feed(encoded)
+        }
+    }
+
+    @Test
     fun `terminal error frame round trips only safe diagnostics`() {
         val failure =
             RemotePatchFailure(

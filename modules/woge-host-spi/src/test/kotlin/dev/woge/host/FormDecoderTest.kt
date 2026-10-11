@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class FormDecoderTest {
     private val decoder = FormDecoder(Command.serializer())
@@ -113,6 +116,34 @@ class FormDecoderTest {
         val bytewise = decoder.body()
         bytes.forEach { assertTrue(bytewise.accept(byteArrayOf(it))) }
         assertEquals(expected, decoder.decode(bytewise))
+    }
+
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    fun `seeded form chunking preserves decoding and malformed input rejection`() {
+        val iterations =
+            (System.getProperty("woge.fuzz.iterations") ?: System.getenv("WOGE_FUZZ_ITERATIONS"))
+                ?.toIntOrNull()
+                ?.coerceIn(1, 100_000)
+                ?: 128
+        val random = Random(0x574f4745)
+        repeat(iterations) {
+            val title = "sample-${random.nextInt(1_000_000)}"
+            val bytes = "title=$title&tags=one&tags=two".toByteArray()
+            val expected = decoder.decode(bytes)
+            val body = decoder.body()
+            var offset = 0
+            while (offset < bytes.size) {
+                val end = minOf(bytes.size, offset + random.nextInt(1, 8))
+                assertTrue(body.accept(bytes, offset, end - offset))
+                offset = end
+            }
+            assertEquals(expected, decoder.decode(body))
+
+            val malformed = decoder.body()
+            assertTrue(malformed.accept("title=sample%".toByteArray()))
+            assertEquals(FormResult.Rejected(FormProblem.MalformedEncoding), decoder.decode(malformed))
+        }
     }
 
     @Test

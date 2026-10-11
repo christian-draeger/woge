@@ -54,6 +54,14 @@ export function encodeStream(frames) {
   return concatenate([Uint8Array.of(0x57, 0x4f, 0x47, 0x45, 0x01), ...frames]);
 }
 
+export async function readFuzzRegression(name) {
+  const value = await readFile(
+    new URL(`../../../modules/woge-protocol/src/test/resources/fuzz-regressions/${name}.hex`, import.meta.url),
+    "utf8",
+  );
+  return Uint8Array.from(value.replace(/\s/g, "").match(/.{2}/g), (pair) => Number.parseInt(pair, 16));
+}
+
 export async function readGoldenWireFixture(name) {
   return readFile(
     new URL(`../../../modules/woge-protocol/src/test/resources/fixtures/${name}`, import.meta.url),

@@ -2,6 +2,7 @@ import { WogePatchError } from "./protocol.js";
 import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 
 const MAX_TARGETS_PER_EVENT = 128;
+const MAX_LIVE_EVENT_CHARACTERS = 64 * 1024;
 
 /**
  * Opens one EventSource and refreshes each region the server reports as changed, using the
@@ -43,7 +44,11 @@ export function connectWogeLive(runtime, url, { load, onError, EventSource: Sour
     })();
   };
   const receive = (event) => {
-    const targets = new Set(String(event.data).split("\n").filter(Boolean));
+    if (typeof event?.data !== "string" || event.data.length > MAX_LIVE_EVENT_CHARACTERS) {
+      report(new WogePatchError("WOGE_INVALID_LIVE_EVENT", "Live event exceeds its bounded size"));
+      return;
+    }
+    const targets = new Set(event.data.split("\n").filter(Boolean));
     if (targets.size > MAX_TARGETS_PER_EVENT) {
       report(new WogePatchError("WOGE_INVALID_LIVE_EVENT", "Live event lists too many regions"));
       return;

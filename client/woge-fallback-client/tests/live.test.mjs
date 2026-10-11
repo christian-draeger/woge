@@ -89,7 +89,7 @@ test("failed refreshes are reported and later events still refresh", async () =>
   assert.deepEqual(problems, ["offline"]);
 });
 
-test("oversized events and missing configuration are rejected", () => {
+test("oversized events and missing configuration are rejected", { timeout: 5_000 }, () => {
   const runtime = fakeRuntime();
   const problems = [];
   connectWogeLive(runtime, "/live", {
@@ -98,8 +98,10 @@ test("oversized events and missing configuration are rejected", () => {
     onError: (problem) => problems.push(problem.code),
   });
   FakeSource.last.emit("invalidate", Array.from({ length: 129 }, (_, index) => `r${index}`).join("\n"));
+  FakeSource.last.emit("invalidate", "x".repeat(65 * 1024));
+  FakeSource.last.emit("invalidate", { toString() { assert.fail("event data must not be coerced"); } });
   assert.deepEqual(runtime.calls, []);
-  assert.deepEqual(problems, ["WOGE_INVALID_LIVE_EVENT"]);
+  assert.deepEqual(problems, ["WOGE_INVALID_LIVE_EVENT", "WOGE_INVALID_LIVE_EVENT", "WOGE_INVALID_LIVE_EVENT"]);
   assert.throws(() => connectWogeLive(runtime, "/live", { EventSource: FakeSource }), {
     code: "WOGE_INVALID_LIVE_CONFIGURATION",
   });
