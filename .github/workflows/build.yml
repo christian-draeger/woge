@@ -78,6 +78,44 @@ jobs:
           WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
             ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
             --tests '*AdapterTckTest' --stacktrace
+      - name: Upload reference-browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reference-browser-evidence
+          if-no-files-found: warn
+          path: |
+            client/woge-fallback-client/build/browser-budget-*.json
+            client/woge-fallback-client/playwright-report/**
+            client/woge-fallback-client/test-results/**
+
+  example-browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            client/woge-fallback-client/package-lock.json
+            scaffolds/spring-boot/package-lock.json
+            examples/tailwind-spring-boot/package-lock.json
+            examples/vite-spring-boot/package-lock.json
+      - name: Install and build the browser-test client
+        working-directory: client/woge-fallback-client
+        run: |
+          npm ci
+          npm run build
+      - name: Install pinned browser engines
+        working-directory: client/woge-fallback-client
+        run: npx playwright install --with-deps chromium firefox webkit
       - name: Run source-owned component browser contracts
         run: ./gradlew :woge-component-registry:componentBrowserTest --stacktrace
       - name: Run the external Spring Boot scaffold browser gate
@@ -89,14 +127,13 @@ jobs:
       - name: Run the development SSE and overlay browser gate
         working-directory: client/woge-fallback-client
         run: npx playwright test --config=playwright.development.config.mjs
-      - name: Upload reference-browser evidence
+      - name: Upload example-browser evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: reference-browser-evidence
+          name: example-browser-evidence
           if-no-files-found: warn
           path: |
-            client/woge-fallback-client/build/browser-budget-*.json
             client/woge-fallback-client/playwright-report/**
             client/woge-fallback-client/test-results/**
             build/reports/scaffold-browser/**

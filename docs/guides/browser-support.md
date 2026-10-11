@@ -37,7 +37,7 @@ The existing jobs are reused; no per-browser job matrix is required.
 
 All rows run in Chromium, Firefox and WebKit. The adapter TCK's `test-native-forms.mjs` additionally
 checks multipart, validation and authorization in Chromium; it is not the three-engine conformance
-suite. Development SSE/overlay checks also run in all three engines in the reference-browser job.
+suite. Development SSE/overlay checks and the component recipe contracts run in all three engines in the parallel `example-browser-smoke` job.
 
 “No JavaScript” means the Playwright project sets `javaScriptEnabled: false`, not that a test happens
 to avoid calling JavaScript. Native forms still validate and navigate normally. Live data remains
@@ -94,7 +94,7 @@ reference enhanced projects are named `chromium-enhanced` and `webkit-enhanced`.
 Every Playwright configuration retains traces on failure and screenshots only on failure. Reports
 and evidence are written under `playwright-report/` and `test-results/`; reference runs are separated
 by host and development runs have their own directory. The existing artifact upload steps run even
-when a test fails: `fallback-client-evidence` and `reference-browser-evidence` include these paths.
+when a test fails: `fallback-client-evidence`, `reference-browser-evidence` and `example-browser-evidence` include these paths.
 Download the failing run's artifact, then use `npx playwright show-trace path/to/trace.zip` or
 `npx playwright show-report path/to/report`. Keep the pinned tool/browser versions with bug reports.
 
