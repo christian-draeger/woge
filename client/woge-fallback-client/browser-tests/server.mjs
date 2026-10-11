@@ -59,6 +59,24 @@ const server = createServer(async (request, response) => {
     ])));
     return;
   }
+  if (url.pathname === "/native-dpu") {
+    const mode = url.searchParams.get("mode");
+    if (!["native", "fallback"].includes(mode)) {
+      response.writeHead(400).end();
+      return;
+    }
+    response.writeHead(200, {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "vary": "Cookie",
+    });
+    if (mode === "native") {
+      response.end(`<!doctype html><html lang="en"><head><title>Native DPU fixture</title></head><body><main><h1>Projects</h1><?start name="woge-fixture-range"><section aria-label="Project results"><p>Loading projects</p></section><?end><template for="woge-fixture-range"><section aria-label="Project results"><ul><li>Alpha</li><li>Beta</li><li>Gamma</li></ul></section></template></main></body></html>`);
+    } else {
+      response.end(`<!doctype html><html lang="en"><head><title>Fallback fixture</title></head><body><main><h1>Projects</h1><section aria-label="Project results" id="project-results"><p>Loading projects</p></section><script>document.getElementById("project-results").innerHTML = "<ul><li>Alpha</li><li>Beta</li><li>Gamma</li></ul>";</script></main></body></html>`);
+    }
+    return;
+  }
   if (url.pathname === "/deferred-patches") {
     startDeferredResponse(url.searchParams.get("run"), response);
     return;

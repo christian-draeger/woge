@@ -5,7 +5,7 @@ import dev.woge.html.BufferedHtmlSink
 import dev.woge.html.HtmlByteBudget
 import dev.woge.html.HtmlSink
 import dev.woge.html.HtmlWriter
-import dev.woge.html.streamHtml
+import dev.woge.html.writeHtmlWithUnsafeTracking
 import java.nio.charset.StandardCharsets
 
 /** Version of the semantic Woge patch contract. */
@@ -119,10 +119,13 @@ public data class TargetRevisionStep(
  */
 public class PatchHtml internal constructor(
     public val value: String,
+    /** Whether the producer explicitly emitted raw markup through the unsafe HTML escape hatch. */
+    public val containsUnsafeHtml: Boolean = false,
 ) {
-    override fun equals(other: Any?): Boolean = other is PatchHtml && value == other.value
+    override fun equals(other: Any?): Boolean =
+        other is PatchHtml && value == other.value && containsUnsafeHtml == other.containsUnsafeHtml
 
-    override fun hashCode(): Int = value.hashCode()
+    override fun hashCode(): Int = 31 * value.hashCode() + containsUnsafeHtml.hashCode()
 
     override fun toString(): String = "PatchHtml(length=${value.length}, content=<redacted>)"
 }
@@ -131,14 +134,17 @@ public class PatchHtml internal constructor(
 public fun patchHtml(content: HtmlWriter.() -> Unit): PatchHtml {
     val budget = HtmlByteBudget(PatchStreamV1.MAX_PAYLOAD_BYTES.toLong())
     val output = BufferedHtmlSink()
-    streamHtml(
-        HtmlSink { chunk ->
-            budget.consume(chunk.toByteArray(StandardCharsets.UTF_8).size)
-            output.write(chunk)
-        },
+    var containsUnsafeHtml = false
+    writeHtmlWithUnsafeTracking(
+        sink =
+            HtmlSink { chunk ->
+                budget.consume(chunk.toByteArray(StandardCharsets.UTF_8).size)
+                output.write(chunk)
+            },
         block = content,
+        onUnsafeHtml = { containsUnsafeHtml = true },
     )
-    return PatchHtml(output.content())
+    return PatchHtml(output.content(), containsUnsafeHtml)
 }
 
 /** Semantic patch operation. Only operations with implemented behavior are present. */

@@ -8,6 +8,7 @@ import dev.woge.html.internal.escapeHtmlText
 @WogeHtmlDsl
 public class HtmlWriter internal constructor(
     private val sink: HtmlSink,
+    private val onUnsafeHtml: (() -> Unit)? = null,
 ) {
     /** The CSP nonce this document already used for a head asset; development tooling reuses it. */
     internal var documentNonce: CspNonce? = null
@@ -25,6 +26,7 @@ public class HtmlWriter internal constructor(
     /** Writes deliberately unescaped HTML. Ordinary strings cannot cross this boundary. */
     @UnsafeWogeHtmlApi
     public fun raw(value: UnsafeHtml) {
+        onUnsafeHtml?.invoke()
         sink.write(value.value)
     }
 
@@ -107,6 +109,15 @@ public fun writeHtml(
     block: HtmlWriter.() -> Unit,
 ) {
     HtmlWriter(sink).block()
+}
+
+/** Writes HTML while reporting whether an explicit [UnsafeHtml] value was emitted. */
+public fun writeHtmlWithUnsafeTracking(
+    sink: HtmlSink,
+    block: HtmlWriter.() -> Unit,
+    onUnsafeHtml: () -> Unit,
+) {
+    HtmlWriter(sink, onUnsafeHtml).block()
 }
 
 /** Renders a small HTML fragment to a deterministic in-memory string. */

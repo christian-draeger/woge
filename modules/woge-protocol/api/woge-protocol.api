@@ -70,6 +70,7 @@ public abstract interface class dev/woge/protocol/Patch {
 
 public final class dev/woge/protocol/PatchHtml {
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContainsUnsafeHtml ()Z
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

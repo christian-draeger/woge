@@ -122,3 +122,4 @@ executable spikes are supporting evidence and do not override an accepted ADR. I
 indexes and assembles these decisions rather than adding one.
 
 | [0085](0085-development-loop-beta-evidence.md) | Accepted | Gate development-loop beta claims on repeatable evidence and incubate MCP |
+| [0086](0086-experimental-native-dpu-encoder.md) | Accepted | Keep native DPU an explicit initial-document encoder |
