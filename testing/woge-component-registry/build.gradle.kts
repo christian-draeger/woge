@@ -3,12 +3,14 @@ import org.gradle.api.tasks.PathSensitivity
 
 plugins {
     id("dev.woge.kotlin-jvm-library")
+    alias(libs.plugins.kotlinSerialization)
 }
 
 description = "Compile and semantic contract tests for every published component variant."
 
 dependencies {
     implementation(project(":woge-ui-headless"))
+    implementation(project(":woge-host-spi"))
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }

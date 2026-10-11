@@ -38,6 +38,7 @@ class FormErrorsTest {
         assertTrue(html.contains("""name="task-title""""))
         assertTrue(html.contains("""data-woge-state-key="title""""))
         assertTrue(html.contains("""aria-describedby="title-help title-error""""))
+        assertTrue(html.contains("""aria-errormessage="title-error""""))
         assertTrue(html.contains("""value="&lt;private&gt;""""))
         assertTrue(html.contains("""href="#title""""))
         assertTrue(html.contains("Invalid &lt;title&gt;"))
@@ -49,6 +50,28 @@ class FormErrorsTest {
                 .toString()
                 .contains("Invalid"),
         )
+    }
+
+    @Test
+    fun `individual radio IDs share field errors and summaries accept native autofocus`() {
+        val errors = FormErrors(FormValues.EMPTY, listOf(FormError(field, "Choose a title")))
+        val html =
+            renderHtml {
+                input(attributes = {
+                    formField(field, errors, emptyList(), FormElementId.of("title-choice"))
+                    attribute("type", "radio")
+                })
+                formErrorSummary(errors, FormElementId.of("errors"), "Errors", attributes = {
+                    boolean("autofocus")
+                    classes("error-summary")
+                })
+            }
+        assertTrue(html.contains("id=\"title-choice\""))
+        assertTrue(html.contains("data-woge-state-key=\"title-choice\""))
+        assertTrue(html.contains("aria-errormessage=\"title-error\""))
+        assertTrue(html.contains(" autofocus"))
+        assertTrue(html.contains("class=\"error-summary\""))
+        assertTrue(html.contains("href=\"#title\""))
     }
 
     @Test

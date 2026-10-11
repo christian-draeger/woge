@@ -67,11 +67,24 @@ public fun <Command : Any> Attributes.formField(
     errors: FormErrors<Command>,
     describedBy: List<FormElementId> = emptyList(),
 ) {
+    formField(field, errors, describedBy, field.id)
+}
+
+/** Associates each native radio with the same field errors while keeping its own document ID. */
+public fun <Command : Any> Attributes.formField(
+    field: FormField<Command>,
+    errors: FormErrors<Command>,
+    describedBy: List<FormElementId>,
+    controlId: FormElementId,
+) {
     attribute("name", field.name)
-    attribute("id", field.id.value)
-    data("woge-state-key", field.id.value)
+    attribute("id", controlId.value)
+    data("woge-state-key", controlId.value)
     val invalid = errors.messages(field).isNotEmpty()
-    if (invalid) attribute("aria-invalid", "true")
+    if (invalid) {
+        attribute("aria-invalid", "true")
+        attribute("aria-errormessage", field.errorId.value)
+    }
     val descriptions = describedBy + if (invalid) listOf(field.errorId) else emptyList()
     if (descriptions.isNotEmpty()) attribute("aria-describedby", descriptions.joinToString(" ") { it.value })
 }
@@ -92,8 +105,19 @@ public fun <Command : Any> HtmlWriter.formErrorSummary(
     id: FormElementId,
     title: String,
 ) {
+    formErrorSummary(errors, id, title, attributes = {})
+}
+
+/** Allows native autofocus on validation pages without changing enhanced focus-summary identity. */
+public fun <Command : Any> HtmlWriter.formErrorSummary(
+    errors: FormErrors<Command>,
+    id: FormElementId,
+    title: String,
+    attributes: Attributes.() -> Unit,
+) {
     if (errors.errors.isNotEmpty()) {
         section(attributes = {
+            attributes()
             attribute("id", id.value)
             attribute("tabindex", "-1")
             attribute("aria-label", title)
