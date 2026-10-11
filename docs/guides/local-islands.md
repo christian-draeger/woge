@@ -119,18 +119,76 @@ an optimistic counter is never proof of a successful save. The module is opt-in,
 
 ## Kotlin/JS authoring
 
-Use a **separate opt-in Kotlin Multiplatform/JS IR module** with `js(IR)`, `useEsModules()`, a browser
-target and production DCE/minification. Export an entry with `@JsExport` (or a small JS wrapper) whose
-actual named ES export implements `mount(root, props, context)` and returns synchronous `update` /
-`dispose` functions. Use `kotlinx.browser` DOM bindings where helpful. Decode the public versioned
-string-field props into a browser-only type; do not share server persistence/authentication types.
-Share only pure common validation/state logic if needed. Keep DOM/server adapters separate.
+Use a **separate opt-in Kotlin Multiplatform/JS IR module** with `js(IR)`, `useEsModules()` and
+`binaries.executable()`. Export a named entry whose actual ES export implements
+`mount(root, props, context)` and returns synchronous `update` / `dispose` functions. Use
+`kotlinx.browser` DOM bindings where helpful. Decode the public versioned string-field props into a
+browser-only type; do not share server persistence/authentication types. Share only pure common
+validation/state logic if needed. Keep DOM/server adapters separate.
 
-Deploy the production module and any chunks at your registered same-origin path. Inspect its actual
-ES export name, retain it during minification, and bump `assetVersion`. Measure all app-owned chunks,
-not just the entry. Framework budgets exclude application islands: Kotlin stdlib/serialization can
-be substantial for a trivial counter. No framework Gradle Kotlin/JS asset integration is provided; the reference has an example-owned copy task. [ADR 0093](../adr/0093-kotlin-js-local-islands.md) explains the target and
-[ADR 0094](../adr/0094-lazy-local-island-lifecycle.md) the lifecycle/trust decisions.
+A minimal island module (`note-islands/build.gradle.kts` and its `jsMain` source):
+
+```kotlin
+plugins { kotlin("multiplatform") }
+
+kotlin {
+    js(IR) {
+        browser()
+        useEsModules()
+        binaries.executable()
+    }
+}
+```
+
+```kotlin
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+fun mount(root: HTMLElement, props: dynamic, context: dynamic): dynamic {
+    val output = root.querySelector("output")
+    val render = { next: dynamic -> output?.textContent = "Up to ${next.maxLength} characters" }
+    render(props)
+    val handle: dynamic = js("({})")
+    handle.update = render
+    handle.dispose = { output?.textContent = "" }
+    return handle
+}
+```
+
+Apply the asset plugin only to the JVM application that serves the island. Configure each emitted
+entry file and export name; no URL or hash is handwritten:
+
+```kotlin
+plugins {
+    id("dev.woge.kotlin-js-islands")
+}
+
+wogeIslands {
+    kotlinJs(project(":note-islands")) {
+        island("noteCounter", "note-islands.mjs", "mount")
+    }
+}
+```
+
+The referenced project must build Kotlin/JS IR production ES modules. The task depends on its
+`jsProductionExecutableCompileSync` task, copies its complete `.js`/`.mjs` graph under a content-hashed
+same-origin path, and generates `dev.woge.generated.WogeIslandModules`. Use the generated factory
+when creating your registry:
+
+```kotlin
+val noteCounter = IslandType<Int>("note-counter", 1) { maximum ->
+    IslandProps(mapOf("maxLength" to maximum.toString()))
+}
+val islands = IslandRegistry(WogeIslandModules.noteCounter(noteCounter))
+```
+
+Set the module filename to the actual production output filename and keep the configured mount export
+in the final ES module. Kotlin/JS applications already need Node to compile; the task also uses Node's
+Brotli compressor and writes `build/generated/woge-islands/island-module-sizes.json` with raw, gzip
+and Brotli bytes per JavaScript module. This plugin is opt-in: JVM-only apps and plain HTML/CSS apps
+do not apply it, compile JS, or need Node. Framework budgets exclude application islands; Kotlin
+stdlib/serialization can be substantial for a trivial counter. [ADR 0093](../adr/0093-kotlin-js-local-islands.md)
+explains the target and [ADR 0094](../adr/0094-lazy-local-island-lifecycle.md) the lifecycle/trust
+decisions.
 
 ## Sharing rules: a practical note draft, not another application framework
 

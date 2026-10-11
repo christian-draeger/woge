@@ -51,6 +51,12 @@ gradlePlugin {
             displayName = "Woge Vite adapter"
             description = "Builds an optional Vite frontend and runs the Vite dev server during wogeDev."
         }
+        register("wogeKotlinJsIslands") {
+            id = "dev.woge.kotlin-js-islands"
+            implementationClass = "dev.woge.gradle.WogeKotlinJsIslandsPlugin"
+            displayName = "Woge Kotlin/JS islands"
+            description = "Packages optional Kotlin/JS IR production modules as versioned island assets."
+        }
     }
 }
 
