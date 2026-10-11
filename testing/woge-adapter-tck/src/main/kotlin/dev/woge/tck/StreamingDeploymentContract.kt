@@ -9,6 +9,7 @@ import dev.woge.protocol.htmlFrame
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.Socket
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -147,12 +148,22 @@ private suspend fun verifyActiveDisconnect(
         check(prefix.toString().lowercase().contains("x-accel-buffering: no"))
         check(prefix.toString().lowercase().contains("no-transform"))
         check(input.read() >= 0)
-        withTimeout(5.seconds) { fixture.disconnectStarted.await() }
+        withTimeoutOrNull(5.seconds) { fixture.disconnectStarted.await() }
+            ?: error("Disconnect region did not start; worker threads:\n${workerThreadDump()}")
     }
     // Servlet notices RST on the next pulse write; Reactor/Netty may notice immediately.
     withTimeout(RELEASE_TIMEOUT) { fixture.disconnectReleased.await() }
 }
 
+private fun workerThreadDump(): String =
+    Thread
+        .getAllStackTraces()
+        .entries
+        .joinToString("\n") { (thread, frames) ->
+            "${thread.name} ${thread.state}: " + frames.take(DUMP_FRAMES).joinToString(" <- ")
+        }
+
+private const val DUMP_FRAMES = 6
 private val RELEASE_TIMEOUT = 10.seconds
 private const val STREAM_CHUNKS = 4
 private const val LAST_STREAM_CHUNK = STREAM_CHUNKS - 1
