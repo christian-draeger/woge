@@ -18,7 +18,7 @@ public class MultipartBody<Command : Any> internal constructor(
     private val decoder: FormDecoder<Command>,
     contentType: String?,
     private val limits: UploadLimits,
-    temporaryDirectory: Path?,
+    private val policy: UploadPolicy,
 ) : AutoCloseable {
     private val boundary = multipartBoundary(contentType)
     private val opening = "--$boundary".toByteArray(Charsets.US_ASCII)
@@ -26,7 +26,7 @@ public class MultipartBody<Command : Any> internal constructor(
     private val pending = ByteArray(delimiter.size + 2)
     private var pendingCount = 0
     private val headers = ByteArrayOutputStream()
-    private val storage = UploadStorage(temporaryDirectory)
+    private val storage = UploadStorage(policy.temporaryFiles())
     private val files = mutableListOf<UploadedFile>()
     private val fields = linkedMapOf<String, MutableList<String>>()
     private var state = MultipartState.OPENING
@@ -162,6 +162,9 @@ public class MultipartBody<Command : Any> internal constructor(
             return MultipartPart(parsed, ByteArrayOutputStream(), null)
         }
         if (files.size == limits.fileCount) reject(UploadLimit.FILE_COUNT, limits.fileCount.toLong())
+        if (!policy.authorize(UploadMetadata(parsed.name, parsed.filename, parsed.mediaType))) {
+            fail(UploadDecodingException(FailureCategory.FORBIDDEN))
+        }
         val path = storage.create()
         return MultipartPart(parsed, BufferedOutputStream(Files.newOutputStream(path)), path)
     }
@@ -224,7 +227,19 @@ public fun <Command : Any> FormDecoder<Command>.multipartBody(
     contentType: String?,
     limits: UploadLimits = UploadLimits(),
     temporaryDirectory: Path? = null,
-): MultipartBody<Command> = MultipartBody(this, contentType, limits, temporaryDirectory)
+): MultipartBody<Command> =
+    MultipartBody(
+        this,
+        contentType,
+        limits,
+        UploadPolicy(limits, { DirectoryUploadTemporaryFiles(temporaryDirectory) }),
+    )
+
+/** Opt-in storage and part authorization with the same incremental native multipart transport. */
+public fun <Command : Any> FormDecoder<Command>.multipartBody(
+    contentType: String?,
+    policy: UploadPolicy,
+): MultipartBody<Command> = MultipartBody(this, contentType, policy.limits, policy)
 
 private enum class MultipartState { OPENING, HEADERS, CONTENT, SUFFIX, END, END_LF, END_CRLF }
 

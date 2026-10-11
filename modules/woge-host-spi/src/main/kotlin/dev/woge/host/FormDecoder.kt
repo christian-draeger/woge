@@ -8,10 +8,8 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.util.Locale
 import kotlin.reflect.KProperty1
@@ -24,14 +22,27 @@ public class FormDecoder<Command : Any>(
     private val unknownFields: UnknownFormFields = UnknownFormFields.REJECT,
 ) {
     private val descriptor = serializer.descriptor
+    private var localization: FormLocalization? = null
+
+    /** Localized fields are opt-in and require a configured locale and date pattern. */
+    public constructor(
+        serializer: KSerializer<Command>,
+        localization: FormLocalization,
+        limits: FormLimits = FormLimits(),
+        unknownFields: UnknownFormFields = UnknownFormFields.REJECT,
+    ) : this(serializer, limits, unknownFields) {
+        localization.validate(descriptor)
+        this.localization = localization
+    }
+
+    public fun <Value> path(
+        property: KProperty1<Command, Value>,
+        serializedName: String = property.name,
+    ): FormPath<Command, Value> = FormPath(serializedName, descriptor.formChild(serializedName))
 
     init {
         require(descriptor.kind == StructureKind.CLASS && !descriptor.isInline) { "Form command must be a class" }
-        repeat(descriptor.elementsCount) { index ->
-            val field = descriptor.getElementDescriptor(index)
-            val scalar = if (field.kind == StructureKind.LIST) field.getElementDescriptor(0) else field
-            require(scalar.formScalar()) { "Unsupported form field '${descriptor.getElementName(index)}'" }
-        }
+        require(descriptor.formStructure()) { "Unsupported or recursively nested form command" }
     }
 
     public fun body(): FormBody = FormBody(limits)
@@ -64,31 +75,12 @@ public class FormDecoder<Command : Any>(
         FormSubmission(decodeFields(fields), FormValues(fields))
 
     private fun decodeFields(fields: Map<String, List<String>>): FormResult<Command> {
-        val errors = mutableListOf<FormFieldError>()
-        val values = linkedMapOf<String, JsonElement>()
-        val known = (0 until descriptor.elementsCount).map(descriptor::getElementName).toSet()
-        if (unknownFields == UnknownFormFields.REJECT) {
-            fields.keys.filterNot { it in known }.forEach {
-                errors.add(
-                    FormFieldError(it, FormErrorCode.UNKNOWN),
-                )
-            }
-        }
-        repeat(descriptor.elementsCount) { index ->
-            val name = descriptor.getElementName(index)
-            val field = descriptor.getElementDescriptor(index)
-            val raw = fields[name]
-            if (raw != null) {
-                fieldValue(field, raw, name, errors)?.let { values[name] = it }
-            } else if (!descriptor.isElementOptional(index)) {
-                missingValue(field)?.let { values[name] = it }
-                    ?: errors.add(FormFieldError(name, FormErrorCode.MISSING))
-            }
-        }
-        return if (errors.isNotEmpty()) {
-            FormResult.Rejected(FormProblem.Fields(errors.toList()))
+        val tree = FormTree(fields, unknownFields, localization)
+        val values = tree.bind(descriptor)
+        return if (tree.errors.isNotEmpty()) {
+            FormResult.Rejected(FormProblem.Fields(tree.errors.toList()))
         } else {
-            FormResult.Decoded(Json.decodeFromJsonElement(serializer, JsonObject(values)))
+            FormResult.Decoded(Json.decodeFromJsonElement(serializer, values))
         }
     }
 
@@ -108,36 +100,7 @@ public class FormDecoder<Command : Any>(
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-private fun missingValue(field: SerialDescriptor): JsonElement? =
-    when {
-        field.isNullable -> JsonNull
-        field.kind == StructureKind.LIST -> JsonArray(emptyList())
-        else -> null
-    }
-
-@OptIn(ExperimentalSerializationApi::class)
-private fun fieldValue(
-    field: SerialDescriptor,
-    raw: List<String>,
-    name: String,
-    errors: MutableList<FormFieldError>,
-): JsonElement? {
-    if (field.kind != StructureKind.LIST && raw.size != 1) {
-        errors.add(FormFieldError(name, FormErrorCode.REPEATED))
-        return null
-    }
-    val scalar = if (field.kind == StructureKind.LIST) field.getElementDescriptor(0) else field
-    val values = raw.map { scalar.formValue(it) }
-    return if (values.any { it == null }) {
-        errors.add(FormFieldError(name, FormErrorCode.MALFORMED))
-        null
-    } else {
-        if (field.kind == StructureKind.LIST) JsonArray(values.filterNotNull()) else values.single()
-    }
-}
-
-@OptIn(ExperimentalSerializationApi::class)
-private fun SerialDescriptor.formScalar(): Boolean =
+internal fun SerialDescriptor.formScalar(): Boolean =
     when {
         isInline -> getElementDescriptor(0).formScalar()
         kind is PrimitiveKind -> true
@@ -150,7 +113,7 @@ private fun SerialDescriptor.formScalar(): Boolean =
 
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("CyclomaticComplexMethod")
-private fun SerialDescriptor.formValue(raw: String): JsonElement? {
+internal fun SerialDescriptor.formValue(raw: String): JsonElement? {
     if (isNullable && raw.isEmpty()) return JsonNull
     return if (isInline) {
         getElementDescriptor(0).formValue(raw)

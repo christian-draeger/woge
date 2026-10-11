@@ -77,18 +77,24 @@ public suspend fun <Input : Any> PageRequest<Input>.withUploadCleanup(block: sus
         block()
     }
 
-internal class UploadStorage(
-    private val parent: Path?,
-) : AutoCloseable {
+/** A request-owned temporary store. Paths are private and must not come from submitted filenames. */
+public interface UploadTemporaryFiles : AutoCloseable {
+    public fun create(): Path
+}
+
+/** Filesystem default. Supply an application-owned directory for explicit placement and crash cleanup. */
+public class DirectoryUploadTemporaryFiles(
+    private val parent: Path? = null,
+) : UploadTemporaryFiles {
     private var directory: Path? = null
     private val paths = mutableListOf<Path>()
     private var closed = false
 
-    fun requireOpen() {
+    private fun requireOpen() {
         check(!closed) { "Upload bytes are no longer available after request completion" }
     }
 
-    fun create(): Path {
+    override fun create(): Path {
         requireOpen()
         val root =
             directory ?: (
@@ -118,3 +124,25 @@ internal class UploadStorage(
 
 private const val DEFAULT_UPLOAD_FILE_BYTES = 8L * 1024 * 1024
 private const val DEFAULT_UPLOAD_REQUEST_BYTES = 16L * 1024 * 1024
+
+internal class UploadStorage(
+    private val files: UploadTemporaryFiles,
+) : AutoCloseable {
+    private var closed = false
+
+    fun requireOpen() {
+        check(!closed) { "Upload bytes are no longer available after request completion" }
+    }
+
+    fun create(): Path {
+        requireOpen()
+        return files.create()
+    }
+
+    override fun close() {
+        if (!closed) {
+            files.close()
+            closed = true
+        }
+    }
+}

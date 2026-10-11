@@ -27,6 +27,9 @@
     "patchProtocolVersion": 1,
     "runtimeDependencies": [],
     "optionalNavigation": "@woge/fallback-client/navigation",
+    "optionalUploads": "/assets/woge-ui/upload.js (woge-ui-headless; native multipart POST/303/GET)",
+    "uploadsAdr": "docs/adr/0104-enhanced-uploads-and-dynamic-forms.md",
+    "uploadsGuide": "docs/guides/enhanced-uploads-and-dynamic-forms.md",
     "navigationAdr": "docs/adr/0090-opt-in-document-navigation.md",
     "transactionModule": "transactions.js (lazy, only for atomic patch frames)",
     "transactionsAdr": "docs/adr/0092-atomic-patch-transactions.md"
@@ -171,6 +174,9 @@
         "semantic-observability",
         "bounded-form-decoding",
         "native-multipart-uploads",
+        "upload-storage-and-authorization-policy",
+        "stable-nested-form-paths",
+        "explicit-form-localization",
         "application-manifest"
       ],
       "guide": "docs/guides/server-host-spi.md",

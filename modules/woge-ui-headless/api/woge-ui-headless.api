@@ -47,3 +47,26 @@ public final class dev/woge/ui/UiId {
 	public final synthetic fun unbox-impl ()Ljava/lang/String;
 }
 
+public final class dev/woge/ui/UploadMessages {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/ui/UploadMessages;
+	public static synthetic fun copy$default (Ldev/woge/ui/UploadMessages;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/ui/UploadMessages;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCancelled ()Ljava/lang/String;
+	public final fun getComplete ()Ljava/lang/String;
+	public final fun getFailed ()Ljava/lang/String;
+	public final fun getStarted ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/ui/UploadProgressKt {
+	public static final field UPLOAD_MODULE_PATH Ljava/lang/String;
+	public static final fun enhancedUpload-BrURsso (Ldev/woge/html/Attributes;Ljava/lang/String;)V
+	public static final fun uploadProgress-KefuIfU (Ldev/woge/html/HtmlWriter;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/woge/ui/UploadMessages;)V
+}
+

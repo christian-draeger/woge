@@ -1,8 +1,10 @@
 package dev.woge.spring.webflux
 
+import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.FormDecoder
 import dev.woge.host.MultipartSubmission
 import dev.woge.host.UploadLimits
+import dev.woge.host.UploadPolicy
 import dev.woge.host.multipartBody
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -19,11 +21,17 @@ public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
     limits: UploadLimits = UploadLimits(),
     temporaryDirectory: Path? = null,
 ): WebFluxPageInput<MultipartSubmission<Command>> =
+    webFluxMultipart(UploadPolicy(limits, { DirectoryUploadTemporaryFiles(temporaryDirectory) }))
+
+/** Explicit request-owned storage and part authorization; host action security runs before decoding. */
+public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
+    policy: UploadPolicy,
+): WebFluxPageInput<MultipartSubmission<Command>> =
     WebFluxPageInput { request ->
         var completed: MultipartSubmission<Command>? = null
         try {
             withContext(Dispatchers.IO) {
-                multipartBody(request.headers().firstHeader("Content-Type"), limits, temporaryDirectory).use { body ->
+                multipartBody(request.headers().firstHeader("Content-Type"), policy).use { body ->
                     val bytes = ByteArray(UPLOAD_READ_BYTES)
                     request
                         .body(BodyExtractors.toDataBuffers())

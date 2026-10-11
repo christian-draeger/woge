@@ -188,8 +188,11 @@ class FormDecoderTest {
     }
 
     @Test
-    fun `unsupported nested command shapes fail at configuration time`() {
-        assertThrows(IllegalArgumentException::class.java) { FormDecoder(Nested.serializer()) }
+    fun `nested commands bind using typed paths while ambiguous shapes fail at configuration time`() {
+        assertEquals(
+            Nested(Command("nested")),
+            FormDecoder(Nested.serializer()).decode("command.title=nested".toByteArray()).getOrThrow(),
+        )
         assertThrows(IllegalArgumentException::class.java) { FormDecoder(Ambiguous.serializer()) }
     }
 

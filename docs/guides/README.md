@@ -113,3 +113,6 @@ tables, task-detail overlays and live updates with plain CSS or an optional Tail
 [human-run extension trial](themed-reference-trial.md) records documentation and editor findings.
 
 The [component caching guide](component-caching.md) shows opt-in fragment caching with explicit inputs, security scopes, TTL, revisions and invalidation.
+
+The [enhanced uploads and dynamic forms guide](enhanced-uploads-and-dynamic-forms.md) adds optional
+upload progress, cancellation, stable nested rows, storage policies and explicitly localized input.

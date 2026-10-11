@@ -1,9 +1,11 @@
 package dev.woge.tck
 
 import dev.woge.host.AuthenticationFacts
+import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
 import dev.woge.host.FormDecodingException
+import dev.woge.host.FormLocalization
 import dev.woge.host.FormResult
 import dev.woge.host.MultipartSubmission
 import dev.woge.host.PageResult
@@ -12,6 +14,7 @@ import dev.woge.host.RequestContext
 import dev.woge.host.RequestMethod
 import dev.woge.host.ResponseStatus
 import dev.woge.host.UploadLimits
+import dev.woge.host.UploadPolicy
 import dev.woge.host.WogeAction
 import dev.woge.host.failure
 import dev.woge.host.getOrThrow
@@ -22,6 +25,12 @@ import dev.woge.html.applicationUrl
 import dev.woge.html.button
 import dev.woge.html.input
 import dev.woge.html.label
+import dev.woge.html.script
+import dev.woge.ui.UPLOAD_MODULE_PATH
+import dev.woge.ui.UiId
+import dev.woge.ui.UploadMessages
+import dev.woge.ui.enhancedUpload
+import dev.woge.ui.uploadProgress
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
@@ -30,15 +39,37 @@ import java.net.URI
 import java.net.http.HttpTimeoutException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 public data class TckUploadCommand(
     public val title: String,
+    public val rows: List<TckUploadRow> = emptyList(),
 )
 
-public val tckUploadForm: FormDecoder<TckUploadCommand> = FormDecoder(TckUploadCommand.serializer())
+@Serializable
+public data class TckUploadRow(
+    public val key: Int,
+    public val title: String,
+    public val amount: Double,
+    public val date: String,
+)
+
+public val tckUploadForm: FormDecoder<TckUploadCommand> =
+    FormDecoder(
+        TckUploadCommand.serializer(),
+        FormLocalization(Locale.GERMANY, "dd.MM.uuuu", setOf("rows[].amount", "rows[].date")),
+    )
+
+public fun tckUploadPolicy(directory: Path): UploadPolicy =
+    UploadPolicy(
+        limits = tckUploadLimits,
+        temporaryFiles = { DirectoryUploadTemporaryFiles(directory) },
+        authorize = { it.field == "attachment" },
+    )
+
 public val tckUploadLimits: UploadLimits = UploadLimits(fileBytes = TCK_UPLOAD_FILE_BYTES)
 
 @WogeAction("tck-upload")
@@ -56,6 +87,9 @@ public suspend fun tckUpload(
     } else {
         val command = submission.form.result.getOrThrow()
         if (command.title == "fail") error("Application failed after upload")
+        if (command.rows.isNotEmpty()) {
+            check(command.rows == listOf(TckUploadRow(TCK_ROW_KEY, "stable", TCK_ROW_AMOUNT, "2026-10-11")))
+        }
         val file = submission.files("attachment").single()
         check(file.read { it.readAllBytes() }.contentEquals(TCK_UPLOAD_CONTENT))
         check(file.size == TCK_UPLOAD_CONTENT.size.toLong())
@@ -67,7 +101,11 @@ public suspend fun tckUpload(
 public val tckUploadPage: PageUseCase<Unit> =
     PageUseCase {
         htmlPage {
-            multipartActionForm(TckUploadAction) {
+            script(attributes = {
+                attribute("type", "module")
+                url("src", applicationUrl(UPLOAD_MODULE_PATH))
+            })
+            multipartActionForm(TckUploadAction, attributes = { enhancedUpload(UiId("upload-progress")) }) {
                 label(attributes = { attribute("for", "upload-title") }) { text("Upload title") }
                 input(attributes = {
                     attribute("id", "upload-title")
@@ -81,6 +119,12 @@ public val tckUploadPage: PageUseCase<Unit> =
                     attribute("type", "file")
                 })
                 button(attributes = { attribute("type", "submit") }) { text("Upload file") }
+                uploadProgress(
+                    UiId("upload-progress"),
+                    "Upload progress",
+                    "Cancel upload",
+                    UploadMessages("Uploading", "Upload cancelled", "Upload failed; submit again natively", "Uploaded"),
+                )
             }
         }
     }
@@ -96,6 +140,17 @@ internal suspend fun AdapterTckHttpClient.verifyMultipartUploads(
     val cases =
         listOf(
             Triple(headers, valid, ResponseStatus.SEE_OTHER.code),
+            Triple(headers, valid.replace("name=\"attachment\"", "name=\"restricted\""), ResponseStatus.FORBIDDEN.code),
+            Triple(
+                headers,
+                valid.replace("--upload--", nestedUploadFields() + "--upload--"),
+                ResponseStatus.SEE_OTHER.code,
+            ),
+            Triple(
+                headers,
+                valid.replace("--upload--", nestedUploadFields().replace("1,5", "1,2,3") + "--upload--"),
+                ResponseStatus.BAD_REQUEST.code,
+            ),
             Triple(headers + ("X-Tck-Subject" to "other-user"), valid, ResponseStatus.FORBIDDEN.code),
             Triple(headers + ("X-Tck-Unverified" to "true"), "bad multipart", ResponseStatus.FORBIDDEN.code),
             Triple(
@@ -173,3 +228,11 @@ private const val TCK_UPLOAD_FILE_BYTES = 32L
 private const val UPLOAD_TRUNCATION_BYTES = 12
 private val TCK_UPLOAD_CONTENT = "\u0001\u0002\u0003".toByteArray()
 private const val HEX_RADIX = 16
+
+private fun nestedUploadFields(): String =
+    listOf("key" to "7", "title" to "stable", "amount" to "1,5", "date" to "11.10.2026").joinToString("") {
+        "--upload\r\nContent-Disposition: form-data; name=\"rows[7].${it.first}\"\r\n\r\n${it.second}\r\n"
+    }
+
+private const val TCK_ROW_KEY = 7
+private const val TCK_ROW_AMOUNT = 1.5
