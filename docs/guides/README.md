@@ -17,6 +17,9 @@ consumer build exists.
 The [HTML element guide](html-elements.md) maps familiar tags, attributes, text-only elements,
 active raw-text boundaries and platform escape hatches to the generated Kotlin DSL.
 
+The [Content Security Policy guide](content-security-policy.md) covers strict production headers,
+Trusted Types patching, nonce/hash choices and development-only allowances.
+
 The [CSS and asset guide](css-and-assets.md) shows external and colocated CSS, declaration lists,
 plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI boundaries. The
 [Tailwind guide](tailwind.md) adds the optional Gradle plugin, with or without Node.js. The

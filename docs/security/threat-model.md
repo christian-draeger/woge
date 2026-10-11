@@ -2,7 +2,7 @@
 
 This living document turns Woge's web-native architecture into concrete security assumptions, defaults and test ownership. It covers the M1 core work and the planned server adapters, generated descriptors, streamed patches and browser runtime. The current implementation is not yet a deployable application stack.
 
-Last review: 2026-10-10.
+Last review: 2026-10-11.
 
 ## Scope and assumptions
 
@@ -93,7 +93,7 @@ Applications still own domain authorization, business replay semantics, safe dat
 
 The maintained [XSS corpus](../../testing/xss-corpus/README.md) is consumed by Kotlin HTML/patch tests and the fallback client's browser tests. It covers text and attribute encoding, URL rejection, CSS-in-attribute parsing, and HTML/SVG/MathML patch boundaries. Raw HTML and explicit unsafe URL/attribute APIs remain trusted-code capabilities: their opt-in annotation records an audit point but cannot sanitize the value. Applications must not pass user-controlled CSS source to `declarations(...)`, trusted markup to `unsafeHtml(...)`, or untrusted destinations to explicit external redirect policies. Woge does not provide a general sanitizer.
 
-HTML patch policy blocks executable elements, event attributes, unsafe URL schemes, base elements and multi-URL attributes. It does not sanitize arbitrary CSS, validate content semantics, prevent every resource fetch from trusted markup, or protect against already-compromised same-origin script. Strict CSP and Trusted Types remain separate defense-in-depth work tracked by [#43](https://github.com/christian-draeger/woge/issues/43).
+HTML patch policy blocks executable elements, event attributes, unsafe URL schemes, base elements and multi-URL attributes. It does not sanitize arbitrary CSS, validate content semantics, prevent every resource fetch from trusted markup, or protect against already-compromised same-origin script. Strict CSP and the private named Trusted Types patch policy provide defense in depth, verified in the reference-browser journeys. See the [CSP guide](../guides/content-security-policy.md) for headers, browser support, nonce/hash choices and development-only allowances. The policy enables inert parsing; it does not sanitize content or authorize other HTML sinks.
 
 [ADR 0063](../adr/0063-mutation-request-identities.md) defines the implemented mutation identity and
 optional reservation port. Action bindings reject unverified authenticity before command decoding.

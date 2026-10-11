@@ -1,3 +1,4 @@
+import { parsePatchHtml } from "./trusted-html.js";
 import { fail } from "./protocol.js";
 import { captureWogeBrowserState, prepareWogeBrowserState } from "./state.js";
 
@@ -118,8 +119,7 @@ export class PageRegionRegistry {
     if (patch.operation === "remove") return this.#remove(entry, patch);
     if (patch.operation !== "replace") fail("WOGE_INVALID_METADATA", "Patch operation is unsupported");
 
-    const template = this.#document.createElement("template");
-    template.innerHTML = patch.html;
+    const template = parsePatchHtml(this.#document, patch.html);
     validateInertFragment(template.content);
     const registryChange = this.#planRegistryChange(entry.element, template.content);
     const detail = lifecycleDetail(patch);
@@ -140,8 +140,7 @@ export class PageRegionRegistry {
   }
 
   #append(entry, patch) {
-    const template = this.#document.createElement("template");
-    template.innerHTML = patch.html;
+    const template = parsePatchHtml(this.#document, patch.html);
     validateInertFragment(template.content);
     const root = template.content.firstElementChild;
     if (template.content.children.length !== 1 || !root ||
