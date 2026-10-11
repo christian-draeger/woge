@@ -6,6 +6,7 @@ import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckLiveRoute
+import dev.woge.tck.AdapterTckManagedRoute
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
@@ -70,23 +71,14 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 },
             )
         val route = WogeKtorHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val managed = WogeKtorHandlers().liveRegion(application.managedLive, AdapterTckManagedRoute)
         val live =
             WogeKtorHandlers(observer = application.observer, liveLimits = application.liveLimits)
                 .live(application.live, AdapterTckLiveRoute)
         val failures =
             WogeKtorHandlers(failurePages = application.failurePages)
                 .page(application.failureRoutePages, AdapterTckFailureRoute)
-        val action =
-            WogeKtorHandlers().action(
-                application.actionSubmissions,
-                tckActionForm.ktorSubmission(),
-                KtorRequestContextFactory { call ->
-                    tckActionContext(
-                        call.request.headers["X-Tck-Subject"],
-                        verified = call.request.headers["X-Tck-Unverified"] != "true",
-                    )
-                },
-            )
+        val action = action(application)
         val complete = WogeKtorHandlers().page(application.actionCompletion, KtorPageInput { })
         val upload = uploadAction(application)
         val uploadPage = WogeKtorHandlers().page(tckUploadPage, KtorPageInput { })
@@ -98,6 +90,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                     get(AdapterTckRoutes.DEFERRED_PATTERN) { deferred.handle(call) }
                     get(AdapterTckRoute.path) { route.handle(call) }
                     get(AdapterTckLiveRoute.path) { live.handle(call) }
+                    get(AdapterTckManagedRoute.path) { managed.handle(call) }
                     get(AdapterTckFailureRoute.path) { failures.handle(call) }
                     head(AdapterTckFailureRoute.path) { failures.handle(call) }
                     post(TckSubmitAction.path) { action.handle(call) }
@@ -109,6 +102,18 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
             }.start(wait = false)
         return KtorTckServer(server)
     }
+
+    private fun action(application: AdapterTckApplication) =
+        WogeKtorHandlers().action(
+            application.actionSubmissions,
+            tckActionForm.ktorSubmission(),
+            KtorRequestContextFactory { call ->
+                tckActionContext(
+                    call.request.headers["X-Tck-Subject"],
+                    verified = call.request.headers["X-Tck-Unverified"] != "true",
+                )
+            },
+        )
 
     private fun uploadAction(application: AdapterTckApplication) =
         WogeKtorHandlers().action(

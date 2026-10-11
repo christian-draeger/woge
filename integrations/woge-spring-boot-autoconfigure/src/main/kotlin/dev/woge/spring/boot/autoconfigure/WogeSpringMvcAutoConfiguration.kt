@@ -1,6 +1,7 @@
 package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.FailurePages
+import dev.woge.host.RenderIdentitySecret
 import dev.woge.host.WogeObserver
 import dev.woge.spring.mvc.SameOriginSpringMvcRequestContextFactory
 import dev.woge.spring.mvc.SpringMvcRequestContextFactory
@@ -49,12 +50,14 @@ internal class WogeSpringMvcAutoConfiguration {
     /** Shared policy factory used from ordinary Spring MVC URL handler mappings. */
     @Bean
     @ConditionalOnMissingBean
+    @Suppress("LongParameterList")
     public fun wogeSpringMvcHandlers(
         properties: WogeProperties,
         contexts: SpringMvcRequestContextFactory,
         runtimeInfo: WogeRuntimeInfo,
         observer: WogeObserver,
         failurePages: FailurePages,
+        renderIdentitySecret: RenderIdentitySecret,
     ): WogeSpringMvcHandlers {
         check(runtimeInfo.adapter == WogeSpringAdapter.MVC) {
             "Servlet Woge configuration requires 'woge.adapter=mvc'."
@@ -66,6 +69,7 @@ internal class WogeSpringMvcAutoConfiguration {
             regionTimeout = properties.deferred.regionTimeout.toKotlinDuration(),
             observer = observer,
             failurePages = failurePages,
+            renderIdentitySecret = renderIdentitySecret,
         )
     }
 }

@@ -3,6 +3,7 @@ import {
   AFTER_REMOVE_EVENT, BEFORE_REMOVE_EVENT, PageRegionRegistry,
 } from "./dom.js";
 import {
+  PATCH_STREAM_MEDIA_TYPE,
   PatchStreamDecoder,
   WogePatchError,
   WogeRemotePatchError,
@@ -182,9 +183,16 @@ function* decodeTransportChunk(decoder, value) {
   }
 }
 
-/** Creates one runtime and active page-local region registry. */
+const managedRuntimes = new WeakMap();
+
+/** Creates a runtime; managed documents share their one active region registry. */
 export function createWogePatchRuntime(root = document, options = {}) {
-  return new WogePatchRuntime(root, options);
+  let runtime = managedRuntimes.get(root);
+  if (!runtime) {
+    runtime = new WogePatchRuntime(root, options);
+    if (root.querySelector?.('meta[name="woge-render-session"]')) managedRuntimes.set(root, runtime);
+  }
+  return runtime;
 }
 
 function patchOutcome(problem) {
@@ -212,3 +220,36 @@ export {
   WogeRemotePatchError,
   WOGE_PATCH_PROTOCOL_VERSION,
 };
+
+// Managed documents use the shipped module directly, without an application bootstrap script.
+if (typeof document !== "undefined") {
+  const start = () => {
+    const root = document;
+    const managed = root.querySelector('meta[name="woge-render-session"]');
+    const region = root.querySelector("[data-woge-live-url]");
+    if (!region && !managed) return;
+    const runtime = createWogePatchRuntime(root);
+    const actions = managed && installWogeActionForms(root, runtime);
+    let live;
+    if (region) {
+      const page = new URL(region.getAttribute("data-woge-live-url"), root.baseURI);
+      if (page.origin !== root.defaultView.location.origin) return;
+      const stream = new URL(page);
+      stream.searchParams.set("_woge_live", region.getAttribute("data-woge-live-epoch"));
+      live = connectWogeLive(runtime, stream.href, {
+        async load(state, { signal }) {
+          const url = new URL(page);
+          const values = { refresh: "1", epoch: state.pageEpoch, target: state.targets[0].target,
+            revision: state.targets[0].baseRevision, interaction: state.interactionSequence };
+          for (const name in values) url.searchParams.set(`_woge_${name}`, values[name]);
+          const response = await fetch(url, { headers: { Accept: PATCH_STREAM_MEDIA_TYPE },
+            redirect: "error", signal });
+          if (!response.ok) throw new WogePatchError("WOGE_LIVE_CONNECTION", "Live region refresh failed");
+          return response.body;
+        },
+      });
+    }
+    root.defaultView.addEventListener("pagehide", () => { live?.close(); if (actions) actions.dispose(); }, { once: true });
+  };
+  start();
+}

@@ -32,6 +32,19 @@ const pendingDeferredResponses = new Map();
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
+  if (url.pathname === "/managed-action" && request.method === "POST") {
+    for await (const _ of request) {}
+    const revisions = new Map(request.headers["woge-region-revisions"].split(",").map((entry) => entry.split(":")));
+    const patches = ["summary-1", "status-1"].map((target) => patchFrame({
+      patchId: target, target, epoch: request.headers["woge-page-epoch"],
+      interactionSequence: Number(request.headers["woge-interaction"]),
+      baseRevision: Number(revisions.get(target)), nextRevision: Number(revisions.get(target)) + 1,
+      html: target === "status-1" ? "Saved" : `Notes: ${Number(revisions.get(target)) + 1}`,
+    }));
+    response.writeHead(200, { "content-type": "application/vnd.woge.patch-stream; version=1" });
+    response.end(Buffer.from(encodeStream([...patches, completeFrame(2)])));
+    return;
+  }
   if (url.pathname === "/strict") response.setHeader("Content-Security-Policy", STRICT_CSP);
   if (["/action", "/preview"].includes(url.pathname) && request.method === "POST") {
     for await (const _ of request) {}

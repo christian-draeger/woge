@@ -4,11 +4,16 @@ import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.LiveLimits
+import dev.woge.host.LiveRegionPage
 import dev.woge.host.LiveUseCase
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.PatchStreamLimits
+import dev.woge.host.RenderIdentitySecret
+import dev.woge.host.RenderSessions
 import dev.woge.host.WogeObserver
+import dev.woge.host.page
+import dev.woge.host.withRenderSession
 import dev.woge.runtime.DeferredRegionPolicy
 import dev.woge.runtime.LiveAdmission
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 /** Creates route-local Woge handlers with one shared Spring MVC execution policy. */
 @Suppress("LongParameterList")
 public class WogeSpringMvcHandlers(
-    private val contexts: SpringMvcRequestContextFactory = SameOriginSpringMvcRequestContextFactory,
+    contexts: SpringMvcRequestContextFactory = SameOriginSpringMvcRequestContextFactory,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val asyncTimeout: Duration = 60.seconds,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
@@ -29,7 +34,14 @@ public class WogeSpringMvcHandlers(
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     liveLimits: LiveLimits = LiveLimits(),
+    renderIdentitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
 ) {
+    private val sessions = RenderSessions(renderIdentitySecret)
+    private val contexts =
+        SpringMvcRequestContextFactory { request ->
+            contexts.create(request).withRenderSession(sessions.create())
+        }
+
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     private val liveAdmission = LiveAdmission(liveLimits)
     private val asyncTimeoutMillis: Long
@@ -53,7 +65,7 @@ public class WogeSpringMvcHandlers(
         securityContexts: SpringMvcRequestContextFactory = SameOriginSpringMvcRequestContextFactory,
     ): WogeSpringMvcPageHandler<Command> =
         WogeSpringMvcPageHandler(
-            PageUseCase { request -> executor.execute(request) },
+            sessions.page(PageUseCase { request -> executor.execute(request) }),
             input,
             securityContexts,
             dispatcher,
@@ -68,7 +80,15 @@ public class WogeSpringMvcHandlers(
         useCase: PageUseCase<Input>,
         input: SpringMvcPageInput<Input>,
     ): WogeSpringMvcPageHandler<Input> =
-        WogeSpringMvcPageHandler(useCase, input, contexts, dispatcher, asyncTimeoutMillis, observer, failurePages)
+        WogeSpringMvcPageHandler(
+            sessions.page(useCase),
+            input,
+            contexts,
+            dispatcher,
+            asyncTimeoutMillis,
+            observer,
+            failurePages,
+        )
 
     /**
      * Creates a handler for a page with a generated route. Map it at the route's own path:
@@ -110,4 +130,10 @@ public class WogeSpringMvcHandlers(
         useCase: LiveUseCase<Input>,
         route: PageRoute<Input>,
     ): WogeSpringMvcLiveHandler<Input> = live(useCase, route.springMvcInput())
+
+    /** Binds document, safe refresh and SSE requests at one generated page route. */
+    public fun <Input : Any, Value> liveRegion(
+        useCase: LiveRegionPage<Input, Value>,
+        route: PageRoute<Input>,
+    ): WogeSpringMvcLiveRegionHandler<Input, Value> = WogeSpringMvcLiveRegionHandler(this, useCase, route)
 }

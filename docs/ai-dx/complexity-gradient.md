@@ -35,16 +35,23 @@ context, so no shared host-specific POST factory contributes to these tasks.
 | component | 3 | 88 | 1 | 20 | 1 | 0 | none |
 | form | 3 | 109 | 2 | 26 | 2 | 0 | none |
 | validation | 3 | 163 | 2 | 39 | 2 | 0 | none |
-| enhanced action | 4 | 188 | 4 | 37 | 2 | 2 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
-| deferred region | 4 | 134 | 3 | 33 | 2 | 9 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `patchHtml` |
-| live update | 4 | 174 | 4 | 31 | 3 | 25 | `InteractionSequence`, `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
+| enhanced action | 3 | 152 | 4 | 32 | 2 | 0 | none |
+| deferred region | 4 | 129 | 3 | 31 | 2 | 9 | none |
+| live update | 3 | 98 | 2 | 21 | 1 | 0 | none |
 | custom JavaScript | 4 | 103 | 1 | 22 | 1 | 8 | none |
-| island | 4 | 109 | 2 | 24 | 1 | 18 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret` |
+| island | 4 | 105 | 2 | 21 | 1 | 18 | none |
 
 
 Issue #214 removes unused action contexts and the validation task's separate draft-text argument.
 The form drops from 114 to 109 lines and 27 to 26 concepts; validation drops from 170 to 163 lines
-and 40 to 39 concepts. Other tasks are unchanged.
+and 40 to 39 concepts.
+
+Issue #215 moves render identity and ordering to host-owned sessions. Enhanced actions drop from
+188 to 152 lines and 37 to 32 concepts; deferred regions from 134 to 129 lines and 33 to 31 concepts;
+live updates from 174 to 98 lines and 31 to 21 concepts; islands from 109 to 105 lines and 24 to 21
+concepts. These tasks have no protocol imports or module-level secrets. The live task has one route
+binding (formerly three) and no application JavaScript (formerly 25 lines). Enhanced actions also
+use the shipped module directly (2 application JavaScript lines removed).
 
 ## Comparison with hand-written HTML
 
@@ -74,13 +81,14 @@ gap is the goal of the follow-up issues below.
   known host-internal gaps.
 - Native and enhanced actions share one action and one outcome model; the enhanced task adds regions,
   not a second handler.
-- Enhanced pages leak protocol plumbing. This is the biggest source of extra concepts.
+- Enhanced pages use host-owned render sessions; identity and revision state no longer leak into
+  commands. Deferred streams still need explicit fetch JavaScript pending #216.
 
 ## Follow-up
 
 - [#213](https://github.com/christian-draeger/woge/issues/213) Built-in same-origin request context for POST actions — done
 - [#214](https://github.com/christian-draeger/woge/issues/214) Optional action context, `FormValues` for business-rule errors, clearer duplicate-ID errors — done
-- [#215](https://github.com/christian-draeger/woge/issues/215) Hide identity, epoch and revision plumbing; simpler live regions
+- [#215](https://github.com/christian-draeger/woge/issues/215) Hide identity, epoch and revision plumbing; simpler live regions — done
 - [#216](https://github.com/christian-draeger/woge/issues/216) No-JavaScript fallback for deferred regions
 
 When another follow-up lands, update the task, regenerate the baseline and update this table.

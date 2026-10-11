@@ -39,18 +39,24 @@ public final class dev/woge/ktor/WogeKtorDeferredHandler {
 }
 
 public final class dev/woge/ktor/WogeKtorHandlers {
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/config/ApplicationConfig;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/ktor/KtorPageInput;Ldev/woge/ktor/KtorRequestContextFactory;)Ldev/woge/ktor/WogeKtorActionHandler;
 	public static synthetic fun action$default (Ldev/woge/ktor/WogeKtorHandlers;Ldev/woge/host/ActionExecutor;Ldev/woge/ktor/KtorPageInput;Ldev/woge/ktor/KtorRequestContextFactory;ILjava/lang/Object;)Ldev/woge/ktor/WogeKtorActionHandler;
 	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorDeferredHandler;
 	public final fun live (Ldev/woge/host/LiveUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/ktor/WogeKtorLiveHandler;
 	public final fun live (Ldev/woge/host/LiveUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorLiveHandler;
+	public final fun liveRegion (Ldev/woge/host/LiveRegionPage;Ldev/woge/host/PageRoute;)Ldev/woge/ktor/WogeKtorLiveRegionHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Ldev/woge/ktor/WogeKtorPageHandler;
 	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/ktor/KtorPageInput;)Ldev/woge/ktor/WogeKtorPageHandler;
 }
 
 public final class dev/woge/ktor/WogeKtorLiveHandler {
+	public final fun handle (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/ktor/WogeKtorLiveRegionHandler {
 	public final fun handle (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

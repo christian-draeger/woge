@@ -4,11 +4,16 @@ import dev.woge.host.ActionExecutor
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.LiveLimits
+import dev.woge.host.LiveRegionPage
 import dev.woge.host.LiveUseCase
 import dev.woge.host.PageRoute
 import dev.woge.host.PageUseCase
 import dev.woge.host.PatchStreamLimits
+import dev.woge.host.RenderIdentitySecret
+import dev.woge.host.RenderSessions
 import dev.woge.host.WogeObserver
+import dev.woge.host.page
+import dev.woge.host.withRenderSession
 import dev.woge.runtime.DeferredRegionPolicy
 import dev.woge.runtime.LiveAdmission
 import kotlin.time.Duration
@@ -17,7 +22,7 @@ import kotlin.time.Duration.Companion.seconds
 /** Creates route-local Woge handlers with one shared WebFlux runtime policy. */
 @Suppress("LongParameterList")
 public class WogeWebFluxHandlers(
-    private val contexts: WebFluxRequestContextFactory = SameOriginWebFluxRequestContextFactory,
+    contexts: WebFluxRequestContextFactory = SameOriginWebFluxRequestContextFactory,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
@@ -25,7 +30,14 @@ public class WogeWebFluxHandlers(
     private val maxRegions: Int = DeferredRegionPolicy.DEFAULT_MAX_REGIONS,
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     liveLimits: LiveLimits = LiveLimits(),
+    renderIdentitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
 ) {
+    private val sessions = RenderSessions(renderIdentitySecret)
+    private val contexts =
+        WebFluxRequestContextFactory { request ->
+            contexts.create(request).withRenderSession(sessions.create())
+        }
+
     private val liveAdmission = LiveAdmission(liveLimits)
 
     init {
@@ -43,7 +55,7 @@ public class WogeWebFluxHandlers(
     ): WogeWebFluxActionHandler<Command> =
         WogeWebFluxActionHandler(
             WogeWebFluxPageHandler(
-                PageUseCase { request -> executor.execute(request) },
+                sessions.page(PageUseCase { request -> executor.execute(request) }),
                 input,
                 securityContexts,
                 observer,
@@ -55,7 +67,8 @@ public class WogeWebFluxHandlers(
     public fun <Input : Any> page(
         useCase: PageUseCase<Input>,
         input: WebFluxPageInput<Input>,
-    ): WogeWebFluxPageHandler<Input> = WogeWebFluxPageHandler(useCase, input, contexts, observer, failurePages)
+    ): WogeWebFluxPageHandler<Input> =
+        WogeWebFluxPageHandler(sessions.page(useCase), input, contexts, observer, failurePages)
 
     /**
      * Creates a handler for a page with a generated route. Register it at the route's own path:
@@ -96,4 +109,10 @@ public class WogeWebFluxHandlers(
         useCase: LiveUseCase<Input>,
         route: PageRoute<Input>,
     ): WogeWebFluxLiveHandler<Input> = live(useCase, route.webFluxInput())
+
+    /** Binds document, safe refresh and SSE requests at one generated page route. */
+    public fun <Input : Any, Value> liveRegion(
+        useCase: LiveRegionPage<Input, Value>,
+        route: PageRoute<Input>,
+    ): WogeWebFluxLiveRegionHandler<Input, Value> = WogeWebFluxLiveRegionHandler(this, useCase, route)
 }

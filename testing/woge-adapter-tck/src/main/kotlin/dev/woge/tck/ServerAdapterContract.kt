@@ -118,6 +118,7 @@ private class AdapterTckVerification(
         ) { client.verifyMultipartUploads(server.origin, fixture.uploadDirectory, ::expect) }
         client.verifyMutationReplay(::expect)
         runContract("live-sse") { client.verifyLive(fixture.live, ::expect) }
+        runContract("managed-live-region") { client.verifyManagedLive(::expect) }
         verifySemanticObservations()
         // Runs last: its probes add observations that earlier contracts count.
         runContract("shared-cache-safety") { client.verifySharedCaching(::expect) }

@@ -10,9 +10,9 @@
   "assets": {
     "core-bundle.js": {
       "measured": {
-        "raw": 34567,
-        "gzip": 11528,
-        "brotli": 10185
+        "raw": 35958,
+        "gzip": 11938,
+        "brotli": 10568
       },
       "ceiling": {
         "raw": 36000,
@@ -22,9 +22,9 @@
     },
     "core-graph.js": {
       "measured": {
-        "raw": 34567,
-        "gzip": 11528,
-        "brotli": 10185
+        "raw": 35958,
+        "gzip": 11938,
+        "brotli": 10568
       },
       "ceiling": {
         "raw": 36000,
@@ -106,9 +106,9 @@
     },
     "classpath/actions.js": {
       "measured": {
-        "raw": 6856,
-        "gzip": 2387,
-        "brotli": 2001
+        "raw": 7438,
+        "gzip": 2590,
+        "brotli": 2169
       },
       "ceiling": {
         "raw": 16000,
@@ -118,9 +118,9 @@
     },
     "classpath/index.js": {
       "measured": {
-        "raw": 8006,
-        "gzip": 2533,
-        "brotli": 2140
+        "raw": 9931,
+        "gzip": 3162,
+        "brotli": 2673
       },
       "ceiling": {
         "raw": 16000,

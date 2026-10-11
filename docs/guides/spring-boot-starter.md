@@ -172,3 +172,12 @@ dependency and ambiguity tradeoffs.
 
 For deployment timing, disconnect cleanup and operational settings, see
 [streaming behind proxies](streaming-behind-proxies.md).
+
+## Render identities for enhanced pages
+
+Boot provides the shared render secret to MVC and WebFlux handler factories. Set
+`woge.render-identity.secret` from your secret store to the Base64 encoding of at least 32 random
+bytes, shared across all instances. An unset value generates a random process-local secret and a
+warning: safe for development, but not for continuity across restarts or multiple instances.
+Configured invalid values fail startup. Woge never logs the secret. See [live regions](live-updates.md)
+for the host-owned render session and one-route live binding.

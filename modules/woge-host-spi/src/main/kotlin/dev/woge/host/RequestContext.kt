@@ -59,6 +59,7 @@ public class RequestContext(
     public val cookies: RequestCookies = RequestCookies.EMPTY,
     public val security: RequestSecurity = RequestSecurity(),
     public val mutationIdentity: MutationRequestIdentity? = null,
+    public val render: RenderSession = RenderSessions().create(),
 ) {
     public val authentication: AuthenticationFacts
         get() = security.authentication

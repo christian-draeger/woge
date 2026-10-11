@@ -106,6 +106,8 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
 
     /** Bind with `handlers(liveLimits = liveLimits).live(live, AdapterTckLiveRoute)`. */
     public val live: LiveUseCase<AdapterTckLiveInput> = state.live.useCase
+    public val managedLive: dev.woge.host.LiveRegionPage<AdapterTckManagedInput, String> = managedLivePage()
+
     public val liveLimits: LiveLimits = TCK_LIVE_LIMITS
     public val uploadDirectory: java.nio.file.Path
         get() = state.uploadDirectory

@@ -5,7 +5,6 @@ import dev.woge.examples.gradient.t06deferredregion.ForecastPage
 import dev.woge.examples.gradient.t06deferredregion.ForecastPatchesInput
 import dev.woge.examples.gradient.t07liveupdate.AnnouncementBoard
 import dev.woge.examples.gradient.t07liveupdate.AnnouncementsInput
-import dev.woge.examples.gradient.t07liveupdate.AnnouncementsLiveInput
 import dev.woge.examples.gradient.t08customjavascript.ComposeInput
 import dev.woge.examples.gradient.t08customjavascript.ComposePage
 import dev.woge.examples.gradient.t09island.SketchInput
@@ -16,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class AdvancedTasksTest {
     @Test
@@ -25,7 +23,7 @@ class AdvancedTasksTest {
             val page = ForecastPage()
             val html = page.open(PageRequest(ForecastInput, getContext)).html()
             assertTrue(html.contains("Loading the forecast"))
-            val region = page.regions(PageRequest(ForecastPatchesInput(UUID.randomUUID()), getContext)).single()
+            val region = page.regions(PageRequest(ForecastPatchesInput("page"), getContext)).single()
             assertTrue(region.renderContent().value.contains("Saturday"))
         }
 
@@ -35,7 +33,7 @@ class AdvancedTasksTest {
             val board = AnnouncementBoard()
             val html = board.page.open(PageRequest(AnnouncementsInput, getContext)).html()
             assertTrue(html.contains("woge-live-url"))
-            val result = board.live.subscribe(PageRequest(AnnouncementsLiveInput("page-1"), getContext))
+            val result = board.live.subscribe(PageRequest(AnnouncementsInput, getContext), "page-1")
             assertInstanceOf(LiveResult.Subscription::class.java, result)
         }
 
