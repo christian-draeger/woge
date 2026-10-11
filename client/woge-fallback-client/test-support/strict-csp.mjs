@@ -6,7 +6,7 @@ export { STRICT_CSP };
 
 // Auto fixture covers every journey, including violations before or across navigation.
 export const test = base.extend({
-  strictCsp: [async ({ page }, use) => {
+  strictCsp: [async ({ page }, use, testInfo) => {
     const policies = [];
     page.on("response", (response) => {
       // Redirects carry no rendered document, so their CSP header is irrelevant.
@@ -29,6 +29,7 @@ export const test = base.extend({
       });
     });
     await use();
+    if (testInfo.status === "skipped") return;
     expect(policies.length, "at least one strict-policy document").toBeGreaterThan(0);
     for (const policy of policies) expect(policy, "document CSP header").toBe(STRICT_CSP);
     expect(violations, "securitypolicyviolation events").toEqual([]);
