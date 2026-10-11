@@ -51,7 +51,11 @@
     ],
     "client": "@woge/fallback-client/islands",
     "props": "Versioned inert JSON object of public string fields, root-scoped",
-    "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/NoteIsland.kt"
+    "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/NoteIsland.kt",
+    "sharedRules": "examples/reference-application/shared-rules/src/commonMain/kotlin/dev/woge/example/rules/NoteDraft.kt",
+    "sharedRulesBuildAdr": "docs/adr/0095-shared-example-rules-build.md",
+    "sharedRulesTests": "JVM and Node commonTest; reference Chromium verifies compiled ES module",
+    "trustBoundary": "Client feedback only; server revalidates and owns authorization and persistence"
   },
   "agentGuidance": {
     "templateVersion": 1,

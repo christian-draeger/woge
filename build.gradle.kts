@@ -5,6 +5,7 @@ import org.gradle.api.tasks.Exec
 plugins {
     base
     alias(libs.plugins.kotlinJvm) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
 }
 
 group = providers.gradleProperty("wogeGroup").get()
@@ -223,7 +224,7 @@ val detekt = registerAggregate("detekt", "Runs Detekt in every production build 
 val ktlintCheck = registerAggregate("ktlintCheck", "Checks Kotlin formatting in every production build project.", "ktlintCheck")
 registerAggregate("ktlintFormat", "Formats Kotlin source in every production build project.", "ktlintFormat")
 
-// Needs Node; CI runs the same budgets in the fallback-client workflow, so `check` stays Node-free.
+// Framework projects stay Node-free; the opt-in reference rules example uses system Node.
 tasks.register<Exec>("performanceBudgets") {
     group = "verification"
     description = "Checks production browser, component and stylesheet byte budgets."
@@ -234,6 +235,7 @@ tasks.register<Exec>("performanceBudgets") {
 
 tasks.named("check") {
     dependsOn(
+        ":woge-reference-shared-rules:check",
         validateAdrs,
         validateModuleBoundaries,
         testModuleBoundaries,
