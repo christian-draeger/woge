@@ -17,94 +17,20 @@ import dev.woge.protocol.PatchStreamV1
 import dev.woge.runtime.EncodedPatchChunk
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
-import dev.woge.runtime.writeByteChunks
-import jakarta.servlet.AsyncEvent
-import jakarta.servlet.AsyncListener
+import dev.woge.runtime.renderByteChunks
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Level
-import java.util.logging.Logger
+import kotlinx.coroutines.flow.map
+import java.io.OutputStream
 import java.time.Duration as JavaDuration
 import org.springframework.http.ResponseCookie as SpringResponseCookie
 
-@Suppress("TooGenericExceptionCaught")
-internal fun HttpServletRequest.launchWogeResponse(
-    response: HttpServletResponse,
-    dispatcher: CoroutineDispatcher,
-    timeoutMillis: Long,
-    block: suspend () -> Unit,
-) {
-    check(isAsyncSupported) {
-        "Woge Spring MVC streaming requires Servlet async support on the servlet and every filter"
-    }
-    val async = startAsync(this, response)
-    async.timeout = timeoutMillis
-    val terminal = AtomicBoolean()
-    lateinit var job: Job
-    job =
-        CoroutineScope(dispatcher).launch(
-            context = CoroutineName("woge-spring-mvc-response"),
-            start = CoroutineStart.LAZY,
-        ) {
-            try {
-                block()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Throwable) {
-                logger.log(Level.SEVERE, "Woge Spring MVC response failed", failure)
-                response.writeSafeServerFailure()
-            } finally {
-                if (terminal.compareAndSet(false, true)) {
-                    runCatching(async::complete)
-                }
-            }
-        }
-    async.addListener(ServletCoroutineListener(job, terminal, response))
-    job.start()
-}
-
-private class ServletCoroutineListener(
-    private val job: Job,
-    private val terminal: AtomicBoolean,
-    private val response: HttpServletResponse,
-) : AsyncListener {
-    override fun onComplete(event: AsyncEvent) {
-        terminal.set(true)
-        job.cancel(CancellationException("Servlet async response completed"))
-    }
-
-    override fun onTimeout(event: AsyncEvent) {
-        response.writeSafeServerFailure()
-        job.cancel(CancellationException("Servlet async response timed out"))
-        if (terminal.compareAndSet(false, true)) {
-            runCatching(event.asyncContext::complete)
-        }
-    }
-
-    override fun onError(event: AsyncEvent) {
-        terminal.set(true)
-        job.cancel(CancellationException("Servlet async response failed", event.throwable))
-    }
-
-    override fun onStartAsync(event: AsyncEvent) {
-        event.asyncContext.addListener(this)
-    }
-}
-
 internal suspend fun PageResult.writeToServlet(
+    handoff: ServletResponseHandoff,
     request: HttpServletRequest,
-    response: HttpServletResponse,
     observer: WogeObserver,
     observationContext: WogeObservationContext,
     actionAccept: String? = null,
@@ -112,71 +38,81 @@ internal suspend fun PageResult.writeToServlet(
     when (this) {
         is PageResult.RegionUpdates -> {
             if (acceptsActionPatches(actionAccept)) {
-                response.applyMetadata(metadata)
-                response.addHeader("Vary", "Accept")
-                focusSummary?.let { response.addHeader(ACTION_VALIDATION_HEADER, it.value) }
-                encodeActionPatchStream(
-                    observer,
-                    observationContext.requestTrace,
-                ).writeToServlet(response, metadata.status)
+                encodeActionPatchStream(observer, observationContext.requestTrace).writeToServlet(
+                    handoff,
+                    metadata.status,
+                ) { response ->
+                    response.applyMetadata(metadata)
+                    response.addHeader("Vary", "Accept")
+                    focusSummary?.let { response.addHeader(ACTION_VALIDATION_HEADER, it.value) }
+                }
             } else {
-                nativeResult.writeToServlet(request, response, observer, observationContext, actionAccept)
+                nativeResult.writeToServlet(handoff, request, observer, observationContext, actionAccept)
             }
         }
         is PageResult.Document -> {
-            response.applyMetadata(metadata)
-            if (actionAccept != null) response.addHeader("Vary", "Accept")
-            if (!request.method.equals("HEAD", ignoreCase = true)) {
-                writeDocument(response, observer, observationContext)
+            val head = { response: HttpServletResponse ->
+                response.applyMetadata(metadata)
+                if (actionAccept != null) response.addHeader("Vary", "Accept")
+            }
+            if (request.method.equals("HEAD", ignoreCase = true)) {
+                handoff.finish(head)
+            } else {
+                val budget = HtmlByteBudget(maxBytes)
+                frames
+                    .observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext)
+                    .map { frame -> frame.renderByteChunks(budget, observer, observationContext) }
+                    .writeBody(handoff, head)
             }
         }
 
-        is PageResult.Redirect -> {
-            response.applyMetadata(metadata)
-            if (actionAccept != null) response.addHeader("Vary", "Accept")
-            val navigation = enhancedActionNavigation(actionAccept)
-            if (navigation == null) {
-                response.setHeader("Location", location.value)
-            } else {
-                response.status = HttpServletResponse.SC_OK
-                response.setHeader(ACTION_NAVIGATION_HEADER, navigation.value)
-                response.setHeader("Cache-Control", "no-store")
+        is PageResult.Redirect ->
+            handoff.finish { response ->
+                response.applyMetadata(metadata)
+                if (actionAccept != null) response.addHeader("Vary", "Accept")
+                val navigation = enhancedActionNavigation(actionAccept)
+                if (navigation == null) {
+                    response.setHeader("Location", location.value)
+                } else {
+                    response.status = HttpServletResponse.SC_OK
+                    response.setHeader(ACTION_NAVIGATION_HEADER, navigation.value)
+                    response.setHeader("Cache-Control", "no-store")
+                }
             }
-        }
 
         is PageResult.NotModified,
         is PageResult.Failure,
-        -> response.applyMetadata(metadata)
+        -> handoff.finish { it.applyMetadata(metadata) }
     }
 }
 
 internal suspend fun Flow<EncodedPatchChunk>.writeToServlet(
-    response: HttpServletResponse,
+    handoff: ServletResponseHandoff,
     status: ResponseStatus = ResponseStatus.OK,
+    head: (HttpServletResponse) -> Unit = {},
 ) {
-    response.status = status.code
-    response.contentType = PatchStreamV1.MEDIA_TYPE
-    response.setHeader("Cache-Control", "no-store, no-transform")
-    response.setHeader("X-Accel-Buffering", "no")
-    val output = response.outputStream
-    collect { chunk ->
-        kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        output.write(chunk.bytes)
-        output.flush()
+    map { listOf(it.bytes) }.writeBody(handoff) { response ->
+        head(response)
+        response.status = status.code
+        response.contentType = PatchStreamV1.MEDIA_TYPE
+        response.setHeader("Cache-Control", "no-store, no-transform")
+        response.setHeader("X-Accel-Buffering", "no")
     }
 }
 
-private suspend fun PageResult.Document.writeDocument(
-    response: HttpServletResponse,
-    observer: WogeObserver,
-    observationContext: WogeObservationContext,
+/** Commits [head] only once the first bytes exist, so a failure before them still becomes a clean 500. */
+internal suspend fun Flow<List<ByteArray>>.writeBody(
+    handoff: ServletResponseHandoff,
+    head: (HttpServletResponse) -> Unit,
 ) {
-    val output = response.outputStream
-    val budget = HtmlByteBudget(maxBytes)
-    frames.observeCollection(observer, WogeOperation.SHELL_RENDER, observationContext).collect { frame ->
-        frame.writeByteChunks(budget, observer, observationContext, output::write)
-        output.flush()
+    var output: OutputStream? = null
+    collect { chunks ->
+        currentCoroutineContext().ensureActive()
+        val target = output ?: handoff.stream(head).outputStream.also { output = it }
+        chunks.forEach(target::write)
+        target.flush()
     }
+    if (output == null) handoff.finish(head)
 }
 
 private fun HttpServletResponse.applyMetadata(metadata: ResponseMetadata) {
@@ -204,18 +140,8 @@ private fun ResponseCookie.toSpringCookie(): SpringResponseCookie {
 private val SameSite.httpValue: String
     get() = name.lowercase().replaceFirstChar(Char::uppercase)
 
-private fun HttpServletResponse.writeSafeServerFailure() {
-    if (!isCommitted) {
-        reset()
-        status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-        setHeader("Cache-Control", "no-store")
-    }
-}
-
 internal fun HttpServletResponse.writeMethodNotAllowed(allowedMethods: Iterable<String>) {
     status = HttpServletResponse.SC_METHOD_NOT_ALLOWED
     setHeader("Allow", allowedMethods.joinToString(", "))
     setHeader("Cache-Control", "no-store")
 }
-
-private val logger: Logger = Logger.getLogger("dev.woge.spring.mvc")

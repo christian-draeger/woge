@@ -80,6 +80,14 @@ Servlet asynchronous processing, releases that thread and runs the page coroutin
 `OutputStream` write are synchronous and may block a worker while the client or proxy applies
 backpressure; this is the expected MVC difference from WebFlux.
 
+The worker never sets status, headers or cookies itself. When the result is ready, Woge hands it
+back to a container thread with an async dispatch. The request passes your filters again with
+dispatcher type `ASYNC`; Woge only applies the prepared response there and does not decode, check
+security or run the page again. Bodyless results (redirects, failures, 304) finish on that thread.
+Streaming bodies commit their headers there, then the worker writes the body. Filters that add
+headers after `chain.doFilter` returns, such as Spring Security, therefore never race with Woge
+([ADR 0091](../adr/0091-spring-mvc-async-handoff.md)).
+
 HTML is retained in at most the shared 8 KiB character buffer between writes. The adapter flushes the
 Servlet output after each `HtmlFrame`. Deferred patches have no page-sized queue: each completed
 region is encoded and flushed before the next result is collected. A servlet container or reverse

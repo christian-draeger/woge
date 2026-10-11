@@ -37,10 +37,17 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        if (request.method !in DEFERRED_METHODS) {
-            response.writeMethodNotAllowed(DEFERRED_METHODS)
-            return
+        when {
+            request.resumeWogeResponse(response) -> Unit
+            request.method !in DEFERRED_METHODS -> response.writeMethodNotAllowed(DEFERRED_METHODS)
+            else -> stream(request, response)
         }
+    }
+
+    private fun stream(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         val context = contexts.create(request)
         val decoded =
             try {
@@ -55,7 +62,8 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
                 try {
                     executor.prepare(regions.regions(pageRequest), context.trace)
                 } catch (_: DeferredRegionLimitException) {
-                    response.status = failure(FailureCategory.UNAVAILABLE, context.correlationId).metadata.status.code
+                    val status = failure(FailureCategory.UNAVAILABLE, context.correlationId).metadata.status.code
+                    finish { it.status = status }
                     return@launchWogeResponse
                 }
             var patchNumber = 0
@@ -69,7 +77,7 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
                     observer = observer,
                     requestTrace = context.trace,
                     limits = patchStreamLimits,
-                ).writeToServlet(response)
+                ).writeToServlet(this)
         }
     }
 

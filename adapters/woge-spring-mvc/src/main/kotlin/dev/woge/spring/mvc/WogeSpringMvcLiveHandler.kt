@@ -11,8 +11,7 @@ import dev.woge.runtime.LiveResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.map
 import org.springframework.web.HttpRequestHandler
 import java.io.IOException
 
@@ -33,7 +32,7 @@ public class WogeSpringMvcLiveHandler<Input : Any> internal constructor(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        if (rejectRequest(request, response)) return
+        if (request.resumeWogeResponse(response) || rejectRequest(request, response)) return
         val context = contexts.create(request)
         val decoded =
             try {
@@ -45,27 +44,23 @@ public class WogeSpringMvcLiveHandler<Input : Any> internal constructor(
         val lastEventId = request.getHeader(LiveEventStream.LAST_EVENT_ID_HEADER)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
             when (val live = admission.open(useCase, PageRequest(decoded, context), lastEventId, observer)) {
-                is LiveResponse.Refused -> {
-                    response.status = live.failure.metadata.status.code
-                    response.setHeader("Cache-Control", "no-store")
-                }
-                is LiveResponse.Stream -> {
-                    response.status = HttpServletResponse.SC_OK
-                    response.contentType = LiveEventStream.MEDIA_TYPE
-                    response.characterEncoding = "UTF-8"
-                    LiveEventStream.HEADERS.forEach(response::setHeader)
-                    val output = response.outputStream
-                    output.flush()
+                is LiveResponse.Refused ->
+                    finish {
+                        it.status = live.failure.metadata.status.code
+                        it.setHeader("Cache-Control", "no-store")
+                    }
+                is LiveResponse.Stream ->
                     try {
-                        live.events.collect { chunk ->
-                            currentCoroutineContext().ensureActive()
-                            output.write(chunk)
-                            output.flush()
+                        // The stream always starts with a retry hint, so the head is committed right away.
+                        live.events.map { listOf(it) }.writeBody(this) {
+                            it.status = HttpServletResponse.SC_OK
+                            it.contentType = LiveEventStream.MEDIA_TYPE
+                            it.characterEncoding = "UTF-8"
+                            LiveEventStream.HEADERS.forEach(it::setHeader)
                         }
                     } catch (_: IOException) {
                         // The browser went away. EventSource reconnects on its own when it is still open.
                     }
-                }
             }
         }
     }

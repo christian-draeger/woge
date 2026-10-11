@@ -131,3 +131,5 @@ indexes and assembles these decisions rather than adding one.
 | [0089](0089-native-deferred-region-navigation.md) | Accepted | Reach deferred results through safe native HTML navigation |
 
 | [0090](0090-opt-in-document-navigation.md) | Accepted | Keep document navigation native by default; opt into isolated route swaps |
+
+| [0091](0091-spring-mvc-async-handoff.md) | Accepted | Hand the Spring MVC response head back to a container thread |
