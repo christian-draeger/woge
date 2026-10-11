@@ -43,7 +43,7 @@ internal suspend fun ApplicationCall.respondWogePage(
     when (result) {
         is PageResult.RegionUpdates -> {
             if (acceptsActionPatches(actionAccept)) {
-                applyMetadata(result.metadata)
+                applyMetadata(result.metadata, patchStream = true)
                 response.headers.append(HttpHeaders.Vary, "Accept")
                 result.focusSummary?.let { response.headers.append(ACTION_VALIDATION_HEADER, it.value) }
                 respondWogePatches(result.encodeActionPatchStream(observer, observationContext.requestTrace))
@@ -79,7 +79,8 @@ internal suspend fun ApplicationCall.respondWogePage(
 }
 
 internal suspend fun ApplicationCall.respondWogePatches(chunks: Flow<EncodedPatchChunk>) {
-    response.headers.append(HttpHeaders.CacheControl, "no-store")
+    response.headers.append(HttpHeaders.CacheControl, "no-store, no-transform")
+    response.headers.append("X-Accel-Buffering", "no")
     respondBytesWriter(contentType = ContentType.parse(PatchStreamV1.MEDIA_TYPE)) {
         chunks.writeAndFlushKtorChunks { bytes ->
             writeFully(bytes)
@@ -137,9 +138,16 @@ private suspend fun ApplicationCall.respondDocument(
     }
 }
 
-private fun ApplicationCall.applyMetadata(metadata: ResponseMetadata) {
+private fun ApplicationCall.applyMetadata(
+    metadata: ResponseMetadata,
+    patchStream: Boolean = false,
+) {
     response.status(HttpStatusCode.fromValue(metadata.status.code))
-    metadata.headers.forEach { header -> response.headers.append(header.name.value, header.value.value) }
+    metadata.headers.forEach { header ->
+        if (!patchStream || header.name.value.lowercase() !in setOf("cache-control", "x-accel-buffering")) {
+            response.headers.append(header.name.value, header.value.value)
+        }
+    }
     metadata.cookies.forEach { cookie -> response.headers.append(HttpHeaders.SetCookie, cookie.render()) }
 }
 

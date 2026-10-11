@@ -82,3 +82,6 @@ then, do not translate a failed unsafe request into an automatic retry.
 
 See [ADR 0028](../adr/0028-functional-spring-webflux-adapter.md) for lifecycle and buffering tradeoffs
 and [the deferred-region guide](deferred-regions.md) for region declaration details.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).

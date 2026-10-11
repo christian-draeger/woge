@@ -198,7 +198,7 @@ class WogeWebFluxAdapterTest {
                         .orElseThrow()
                         .startsWith("application/vnd.woge.patch-stream"),
                 )
-                assertEquals("no-store", response.headers().firstValue("cache-control").orElseThrow())
+                assertEquals("no-store, no-transform", response.headers().firstValue("cache-control").orElseThrow())
 
                 val first = response.body().readThrough("Fast result for woge".toByteArray())
                 assertFalse(first.toString(StandardCharsets.UTF_8).contains("Slow result"))

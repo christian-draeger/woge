@@ -36,6 +36,7 @@ import dev.woge.protocol.htmlFrame
 import dev.woge.protocol.patchHtml
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
@@ -45,6 +46,7 @@ public enum class AdapterTckPageScenario(
     public val pathSegment: String,
 ) {
     DOCUMENT("document"),
+    STREAM_DIAGNOSTIC("stream-diagnostic"),
     REDIRECT("redirect"),
     CONTROLLED_FAILURE("controlled-failure"),
     PRE_STREAM_FAILURE("pre-stream-failure"),
@@ -66,6 +68,7 @@ public enum class AdapterTckDeferredScenario(
 ) {
     COMPLETION_ORDER("completion-order"),
     CLIENT_ABORT("client-abort"),
+    ACTIVE_CLIENT_ABORT("active-client-abort"),
     HEADERS_BEFORE_REGIONS("headers-before-regions"),
     TASK_BUDGET("task-budget"),
     PATCH_BYTE_BUDGET("patch-byte-budget"),
@@ -119,6 +122,8 @@ internal class AdapterTckFixtureState {
     val documentTail: CompletableDeferred<Unit> = CompletableDeferred()
     val slowRegion: CompletableDeferred<PatchHtml> = CompletableDeferred()
     val cancelledRegion: CompletableDeferred<Unit> = CompletableDeferred()
+    val disconnectStarted: CompletableDeferred<Unit> = CompletableDeferred()
+    val disconnectReleased: CompletableDeferred<Unit> = CompletableDeferred()
     val gatedRegions: CompletableDeferred<Unit> = CompletableDeferred()
     val budgetContentCalls: AtomicInteger = AtomicInteger()
     val budgetDeclarations: AtomicInteger = AtomicInteger()
@@ -138,6 +143,7 @@ internal class AdapterTckFixtureState {
         observedContexts += request.context
         return when (request.input) {
             AdapterTckPageScenario.DOCUMENT -> document()
+            AdapterTckPageScenario.STREAM_DIAGNOSTIC -> streamDiagnosticPage()
             AdapterTckPageScenario.CACHEABLE ->
                 if (request.context.headers
                         .values(HeaderName.of("X-Tck-Deny"))
@@ -183,6 +189,24 @@ internal class AdapterTckFixtureState {
                     region("slow") { slowRegion.await() },
                     region("fast") { patch("Fast region") },
                 )
+            AdapterTckDeferredScenario.ACTIVE_CLIENT_ABORT ->
+                listOf(
+                    region("disconnect-resource") {
+                        try {
+                            disconnectStarted.complete(Unit)
+                            awaitCancellation()
+                        } finally {
+                            disconnectReleased.complete(Unit)
+                        }
+                    },
+                ) +
+                    (1..DISCONNECT_PULSES).map { number ->
+                        region("disconnect-pulse-$number") {
+                            disconnectStarted.await()
+                            delay(number * DISCONNECT_PULSE_MILLIS)
+                            patch("Disconnect pulse")
+                        }
+                    }
             AdapterTckDeferredScenario.CLIENT_ABORT ->
                 listOf(
                     region("waiting") {
@@ -244,3 +268,6 @@ internal fun RequestContext.cookie(name: String): String? = cookies.first(Cookie
 internal const val TCK_RESPONSE_HEADER: String = "x-woge-tck"
 internal const val PRE_STREAM_PRIVATE_DETAIL: String = "tck-private-pre-stream-detail"
 internal const val TCK_DOCUMENT_STATUS_CODE: Int = 202
+
+private const val DISCONNECT_PULSES = 8
+private const val DISCONNECT_PULSE_MILLIS = 100L

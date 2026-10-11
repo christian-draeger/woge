@@ -124,3 +124,6 @@ WebFlux application.
 
 See [ADR 0032](../adr/0032-async-servlet-spring-mvc-adapter.md) for the adapter tradeoffs and the
 [server-adapter parity matrix](../architecture/server-adapter-parity.md) for executable coverage.
+
+For deployment timing, disconnect cleanup and operational settings, see
+[streaming behind proxies](streaming-behind-proxies.md).
