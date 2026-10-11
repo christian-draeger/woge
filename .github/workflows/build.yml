@@ -20,6 +20,9 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
       - name: Run clean repository gate without task-output caches
         run: ./gradlew clean check --no-build-cache --stacktrace
       - name: Verify real streaming behind nginx on every host

@@ -14,6 +14,7 @@ serialization = "1.11.0"
 springBoot = "4.1.1"
 
 [plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmhGradle" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

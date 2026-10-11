@@ -1,5 +1,8 @@
 package dev.woge.example.notes
 
+import dev.woge.host.FormElementId
+import dev.woge.host.FormErrors
+import dev.woge.host.formField
 import dev.woge.html.HtmlWriter
 import dev.woge.html.IslandModule
 import dev.woge.html.IslandProps
@@ -16,22 +19,24 @@ private val noteCounter =
     IslandType<Int>("note-counter", 1) { maximum ->
         IslandProps(mapOf("maxLength" to maximum.toString()))
     }
-private val noteIslands = IslandRegistry(IslandModule(noteCounter, "/assets/note-counter.js", "1"))
+private val noteIslands = IslandRegistry(IslandModule(noteCounter, "/assets/note-counter.js", "2"))
 
 internal fun HtmlWriter.noteIslandAssets() {
     islandManifest(noteIslands)
     islandLoader()
 }
 
-internal fun HtmlWriter.noteInput(maximum: Int) {
+internal fun HtmlWriter.noteInput(
+    maximum: Int,
+    errors: FormErrors<AddNote>,
+) {
     island(noteCounter, maximum, key = "note-counter") {
         label(attributes = { attribute("for", "note-text") }) { text("New note") }
         input(attributes = {
-            attribute("id", "note-text")
-            attribute("name", "text")
+            formField(noteTextField, errors, listOf(FormElementId.of("note-count")))
+            errors.value(noteTextField)?.let { attribute("value", it) }
             boolean("required")
             attribute("maxlength", maximum.toString())
-            aria("describedby", "note-count")
         })
         p(attributes = {
             attribute("id", "note-count")

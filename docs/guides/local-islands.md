@@ -4,8 +4,8 @@ An island adds local behavior to **one** useful server-rendered root. Your links
 other page content still work before JavaScript loads or when a module fails. For example, the
 [reference notes form](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/NoteIsland.kt)
 shows native required/maxlength validation and a server hint; a lazily loaded
-[plain JavaScript counter](../../examples/reference-application/shared/src/main/resources/static/assets/note-counter.js)
-adds immediate character feedback. Server validation remains authoritative.
+[DOM adapter](../../examples/reference-application/shared/src/main/resources/static/assets/note-counter.js)
+calls compiled shared Kotlin rules for immediate validation and draft feedback. Server validation remains authoritative.
 
 ## Declare the public data and deployment assets
 
@@ -101,7 +101,8 @@ See [browser-owned state](browser-owned-state.md) and [browser lifecycle](browse
 
 The JVM `woge-fallback-client-assets` artifact serves `/assets/woge/islands.js` alongside existing
 assets for Spring MVC, WebFlux and Ktor. Put your ordinary JS module in your application's static
-assets. The reference uses precisely this path. Plain HTML/CSS/JS applications need no Node build.
+assets. Plain HTML/CSS/JS applications need no Node build. The reference additionally builds its opt-in shared Kotlin rules,
+as described below.
 
 For npm deployment, copy the complete `dist` output; expose its `islands.js` at the loader path, or
 load it using your own external module script. Bundlers can import `installWogeIslands` from
@@ -121,9 +122,89 @@ Share only pure common validation/state logic if needed. Keep DOM/server adapter
 Deploy the production module and any chunks at your registered same-origin path. Inspect its actual
 ES export name, retain it during minification, and bump `assetVersion`. Measure all app-owned chunks,
 not just the entry. Framework budgets exclude application islands: Kotlin stdlib/serialization can
-be substantial for a trivial counter. No root Gradle Kotlin/JS integration is required or provided
-in this first boundary. [ADR 0093](../adr/0093-kotlin-js-local-islands.md) explains the target and
+be substantial for a trivial counter. No framework Gradle Kotlin/JS asset integration is provided; the reference has an example-owned copy task. [ADR 0093](../adr/0093-kotlin-js-local-islands.md) explains the target and
 [ADR 0094](../adr/0094-lazy-local-island-lifecycle.md) the lifecycle/trust decisions.
+
+## Sharing rules: a practical note draft, not another application framework
+
+If you mostly write HTML and JavaScript, think of `commonMain` as a small library compiled twice:
+ordinary JVM code for the server, and JavaScript for the browser. Kotlin Multiplatform does **not**
+share the page, database or DOM. The [note rules](../../examples/reference-application/shared-rules/src/commonMain/kotlin/dev/woge/example/rules/NoteDraft.kt)
+share only required/length validation, safe error messages and a draft state machine:
+`DRAFT → VALIDATING → READY` or `REJECTED`. Editing starts a fresh draft. Only a confirmed server save
+moves its server-owned draft to `SUBMITTED`; local `READY` never means saved or authorized. The island
+leaves the real form POST alone. Optimistic action reconciliation is not implemented here (#56).
+
+The [JavaScript adapter](../../examples/reference-application/shared/src/main/resources/static/assets/note-counter.js)
+imports the generated `reviewNote` ES export. It does not copy Kotlin rules into JavaScript. Every input
+runs the shared transitions immediately, updates `aria-invalid`, and writes errors using `textContent`
+in the existing status element. The [server action](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt)
+creates its **own** draft from decoded text and runs the same validation before any persistence.
+Client state, props and successful local validation are untrusted. A direct or modified POST still
+receives HTTP 400 with the same `MISSING` / `MALFORMED` code and message. The existing `FormErrors` and
+validation-patch helpers produce a focusable summary for native and enhanced responses (ADR 0058).
+Server errors live outside the keyed island; its original input and local controller survive patches.
+
+This is deliberately a public, in-memory demo, not private notes. Host same-origin/CSRF verification
+and the action's explicit CSRF check stay server-only. A real private app must authorize the current
+principal and resource **on every request** before validation rendering and saving; add transaction,
+rate-limit and concurrency policy there too. No authorization, trusted pricing, secrets, data access
+or server-state decision belongs in these shared sources. Never ship server credentials or accept a
+client `SUBMITTED` phase as proof of persistence.
+
+### Wire and Unicode rules
+
+Props are exactly version 1 and `{ "maxLength": "120" }`; extra keys, noncanonical numbers and other
+versions fail before mounting. The shared string-field draft codec accepts only `{ "text": "…" }`,
+preserves text literally, and always restores `DRAFT`, never a serialized phase. Woge already safely
+encodes the props JSON; normal form decoding handles URL-encoded text on the server. No extra JSON
+or RPC dependency is needed. Common tests exercise quotes, newlines, HTML characters and emoji;
+server tests additionally exercise the actual form and existing JSON command serializer.
+
+Length is **UTF-16 code units**, matching HTML `maxlength`: an emoji surrogate pair counts as two,
+not one grapheme. Validation uses an explicit Unicode whitespace set, including NBSP and BOM, so JVM
+and JS do not disagree about a blank note. It does not normalize text. Error codes reuse the host's
+vocabulary: blank is `MISSING`, excessive length is `MALFORMED`; length detail is the safe message.
+Native required validation may differ for whitespace, so the server still checks it.
+
+### Build and test this example
+
+The [example build](../../examples/reference-application/shared-rules/build.gradle.kts) selects JVM
+and Kotlin/JS IR ES modules. Pure `commonTest` tests run unchanged with JVM and **Node**, not Karma:
+Node executes the browser-target JavaScript logic without a DOM or browser download. Actual Chromium
+note journeys prove the compiled module loads and runs under CSP, native HTML works without JS,
+failed imports retain useful HTML, and bypassed local rules receive matching server errors.
+The same journeys run for Spring WebFlux, Spring MVC and Ktor in `referenceBrowserSmoke`.
+
+```shell
+./gradlew :woge-reference-shared-rules:jvmTest :woge-reference-shared-rules:jsNodeTest :woge-reference-shared:test
+WOGE_REFERENCE_PORT=18081 ./gradlew referenceBrowserSmoke
+```
+
+Install Node/npm (CI uses Node 24) only when building this example or running the repository gate.
+Framework `modules/*` and `adapters/*` remain JVM-only. Root `check` explicitly includes the example's
+`check`, so both shared test targets run in CI. Kotlin reuses system Node/npm, does not download Node
+or Yarn, and records npm resolution in `kotlin-js-store/package-lock.json` for reproducibility.
+Gradle/npm caches and up-to-date checks avoid repeated compilation and installs.
+
+`noteRulesAssets` depends on `jsProductionExecutableCompileSync` and copies **all** production ES
+modules into generated reference resources under `/assets/note-rules/`. They are packaged in the
+shared JVM jar, served by the existing host wiring; generated JS/maps are not checked into source.
+The production compiler performs DCE and shortened member naming without a webpack/Karma build.
+The wrapper's registry asset version is bumped when its deployment changes. Deploy the wrapper and
+all imported modules together, with revalidation/no immutable caching of unversioned child chunks.
+Automatic hashed asset registration and general application tooling remain #242, not framework work
+hidden in this example. See [ADR 0095](../adr/0095-shared-example-rules-build.md).
+
+### When is sharing worth it?
+
+Share **pure, deterministic, frequently reused rules** when immediate feedback avoids mistakes and
+matching error codes/messages matter. A meaningful draft workflow with several transitions can
+justify the extra Kotlin runtime download and build complexity. Keep the library small and measure
+all module bytes, not only the wrapper. For a counter, one trivial check, rapidly changing UI copy,
+or a JavaScript-only team, ordinary JavaScript plus authoritative server validation is often simpler.
+Do not share authorization, pricing, database lookups, secrets, or rules needing current server state.
+Those must run on the server regardless of how attractive a client preview looks.
 
 ## Diagnostics
 

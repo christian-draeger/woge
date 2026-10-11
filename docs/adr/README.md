@@ -139,3 +139,4 @@ indexes and assembles these decisions rather than adding one.
 | [0093](0093-kotlin-js-local-islands.md) | Accepted | Use Kotlin/JS ES modules for opt-in local islands; keep HTML useful without them |
 
 | [0094](0094-lazy-local-island-lifecycle.md) | Accepted | Mount lazy root-local islands through typed manifests and existing patch lifecycle |
+| [0095](0095-shared-example-rules-build.md) | Accepted | Keep shared KMP rules and system-Node tests example-owned |

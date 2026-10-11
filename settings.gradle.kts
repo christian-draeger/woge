@@ -47,3 +47,6 @@ project(":woge-m1-api-corpus").projectDir = file("examples/m1-api-corpus")
 
 include(":woge-complexity-gradient")
 project(":woge-complexity-gradient").projectDir = file("examples/complexity-gradient")
+
+include(":woge-reference-shared-rules")
+project(":woge-reference-shared-rules").projectDir = file("examples/reference-application/shared-rules")
