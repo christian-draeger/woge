@@ -19,13 +19,19 @@ import java.nio.file.Path
  *   `Received:` and `Valid:` lines. The Woge diagnostic ID becomes the diagnostic code.
  *
  * An error inside generated code gets [generatedCode], so the session can regenerate once.
- * Everything else stays in the raw build details.
+ * Summaries keep 'identifiers' but redact string literals, credential assignments, bearer values and HTTP URLs.
+ * Everything else stays in the privileged raw build details.
  */
 @ExperimentalWogeDevelopmentApi
 internal object KotlinDiagnostics {
     private val compilerLine = Regex("""^e: (file://)?(.+?):(\d+):(\d+) (.+)$""")
     private val processorLine = Regex("""^e: \[ksp] (.+?):(\d+): (.+)$""")
     private val wogeCode = Regex("""^WOGE-[A-Z]+-\d+""")
+    private val quotedValue = Regex(""""(?:\\.|[^"\\])*"""")
+    private val credential =
+        Regex("""(?i)\b(password|passwd|secret|token|api[_-]?key|authorization)\s*[:=]\s*[^\s,;]+""")
+    private val bearer = Regex("""(?i)\bBearer\s+[^\s,;]+""")
+    private val remoteUrl = Regex("""https?://[^\s]+""")
     private val continuation = listOf("Received:", "Valid:")
     private const val URI_SCHEME = 1
     private const val PATH = 2
@@ -130,8 +136,14 @@ internal object KotlinDiagnostics {
 
     private fun summary(message: String): DevelopmentDiagnosticSummary =
         DevelopmentDiagnosticSummary.of(
-            message
-                .map { if (it.isISOControl()) ' ' else it }
+            remoteUrl
+                .replace(
+                    bearer.replace(
+                        credential.replace(quotedValue.replace(message, "<redacted>"), "$1=<redacted>"),
+                        "Bearer <redacted>",
+                    ),
+                    "<redacted-url>",
+                ).map { if (it.isISOControl()) ' ' else it }
                 .joinToString("")
                 .trim()
                 .take(MAX_SUMMARY)

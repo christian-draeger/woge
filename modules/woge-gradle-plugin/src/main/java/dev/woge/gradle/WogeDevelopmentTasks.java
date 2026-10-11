@@ -73,8 +73,7 @@ final class WogeDevelopmentTasks {
         task.getChildJava().set(toolchains
                 .launcherFor(java.getToolchain())
                 .map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
-        task.getWatchRoots().set(project.provider(() -> watchRoots(main, buildDirectory,
-                project.getExtensions().findByType(WogeTailwindExtension.class))));
+        task.getWatchRoots().set(project.provider(() -> projectWatchRoots(project)));
         task.getBuildFiles().set(buildFiles);
         task.getPort().convention("8080");
         task.getMcp().convention(false);
@@ -85,7 +84,8 @@ final class WogeDevelopmentTasks {
         if (host == Host.SPRING_BOOT) {
             task.getMainClassFile().set(buildDirectory.file("resolvedMainClassName"));
             task.getApplicationMainClass().unset();
-            task.getFastRestart().convention(true);
+            // Project dependency JARs live outside DevTools' restart classloader. Use the correctness fallback.
+            task.getFastRestart().convention(project.getRootProject().getAllprojects().size() == 1);
         } else {
             // Ktor has no Spring Boot-style development classpath, so the client is added only here.
             childClasspath = childClasspath.plus(configuration(project, RUNTIME_CONFIGURATION,
@@ -145,7 +145,7 @@ final class WogeDevelopmentTasks {
 
     private static List<String> buildFiles(Project project) {
         List<String> files = new ArrayList<>();
-        for (Project candidate : List.of(project, project.getRootProject())) {
+        for (Project candidate : project.getRootProject().getAllprojects()) {
             for (String name : List.of("build.gradle.kts", "build.gradle", "settings.gradle.kts",
                     "settings.gradle", "gradle.properties", "gradle/libs.versions.toml")) {
                 String path = candidate.file(name).getAbsolutePath();
@@ -155,6 +155,25 @@ final class WogeDevelopmentTasks {
             }
         }
         return files;
+    }
+
+    private static List<String> projectWatchRoots(Project project) {
+        List<String> roots = new ArrayList<>();
+        for (Project candidate : project.getRootProject().getAllprojects()) {
+            SourceSetContainer sources = candidate.getExtensions().findByType(SourceSetContainer.class);
+            if (sources != null) {
+                SourceSet main = sources.findByName("main");
+                if (main != null) {
+                    for (String root : watchRoots(main, candidate.getLayout().getBuildDirectory().get(),
+                            candidate.getExtensions().findByType(WogeTailwindExtension.class))) {
+                        if (!roots.contains(root)) {
+                            roots.add(root);
+                        }
+                    }
+                }
+            }
+        }
+        return roots;
     }
 
     private static List<String> watchRoots(SourceSet main, Directory buildDirectory, WogeTailwindExtension tailwind) {

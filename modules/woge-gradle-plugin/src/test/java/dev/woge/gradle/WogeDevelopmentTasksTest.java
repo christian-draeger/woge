@@ -40,6 +40,22 @@ class WogeDevelopmentTasksTest {
     }
 
     @Test
+    void multiModuleApplicationsWatchSiblingSourcesAndBuildFiles() {
+        Project project = ProjectBuilder.builder().withProjectDir(root.toFile()).build();
+        Project shared = ProjectBuilder.builder().withName("shared").withParent(project)
+                .withProjectDir(root.resolve("shared").toFile()).build();
+        shared.getPluginManager().apply("java");
+        project.getPluginManager().apply(WogeApplicationPlugin.class);
+        project.getPluginManager().apply("application");
+
+        WogeDevTask task = (WogeDevTask) project.getTasks().getByName(WogeSpringBootPlugin.DEV_TASK);
+
+        assertTrue(task.getWatchRoots().get().contains(root.resolve("shared/src/main/java").toString()));
+        assertTrue(task.getBuildFiles().get().contains(root.resolve("shared/build.gradle.kts").toString()));
+        assertFalse(task.getWatchRoots().get().stream().anyMatch(path -> path.contains("/build/")));
+    }
+
+    @Test
     void applicationsWithoutTheApplicationPluginGetNoWogeDev() {
         Project project = ProjectBuilder.builder().withProjectDir(root.toFile()).build();
         project.getPluginManager().apply(WogeApplicationPlugin.class);

@@ -24,3 +24,4 @@ out/
 /spikes/*/gradle/
 /spikes/*/gradlew
 /spikes/*/gradlew.bat
+__pycache__/

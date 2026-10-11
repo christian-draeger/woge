@@ -97,6 +97,31 @@ class KotlinDiagnosticsTest {
     }
 
     @Test
+    fun `structured compiler and processor summaries redact literals credentials and URLs`() {
+        val file = project.resolve("src/main/kotlin/app/Home.kt")
+        val secrets = listOf("literal-secret", "password-secret", "bearer-secret", "url-secret")
+        val diagnostics =
+            KotlinDiagnostics.parse(
+                listOf(
+                    "e: $file:3:1 Invalid \"literal-secret\" password=password-secret " +
+                        "Bearer bearer-secret https://user:url-secret@example.test/private",
+                    "e: [ksp] $file:4: WOGE-REF-002 Invalid declaration",
+                    "Received: token=password-secret",
+                    "Valid: use \"literal-secret\"",
+                ),
+                project,
+            )
+        assertEquals(2, diagnostics.size)
+        diagnostics.forEach { diagnostic ->
+            secrets.forEach { secret ->
+                org.junit.jupiter.api.Assertions
+                    .assertFalse(diagnostic.summary.value.contains(secret))
+            }
+            assertEquals(DevelopmentSourcePath.of("src/main/kotlin/app/Home.kt"), diagnostic.location?.path)
+        }
+    }
+
+    @Test
     fun `unknown failures fall back to one generic diagnostic`() {
         val diagnostics =
             KotlinDiagnostics.parse(

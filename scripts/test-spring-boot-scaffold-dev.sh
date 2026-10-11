@@ -21,12 +21,14 @@ adapter=${2:-webflux}
   exit 2
 }
 
-scratch_root=$(mktemp -d)
+scratch_root="$repository_root/build/dev-loop-fixture-$$"
+mkdir -p "$scratch_root"
 fixture_root="$scratch_root/app"
 log_file="$scratch_root/woge-dev.log"
 page_file="$fixture_root/src/main/kotlin/example/woge/HomePage.kt"
 region_file="$fixture_root/src/main/kotlin/example/woge/Status.kt"
 gradle_pid=""
+production_pid=""
 
 stop_session() {
   local pids
@@ -45,6 +47,10 @@ stop_session() {
 
 cleanup() {
   stop_session
+  if [[ -n "$production_pid" ]]; then
+    kill "$production_pid" 2>/dev/null || true
+    wait "$production_pid" 2>/dev/null || true
+  fi
   rm -rf "$scratch_root"
 }
 trap cleanup EXIT
@@ -155,6 +161,27 @@ public class StrictPolicy : WebFilter {
 KOTLIN
 fi
 
+if [[ -n "${WOGE_DEV_BENCHMARK_REPORT:-}" ]]; then
+  printf '\ninclude(":shared")\n' >>"$fixture_root/settings.gradle.kts"
+  mkdir -p "$fixture_root/shared/src/main/kotlin/example/shared"
+  cat >"$fixture_root/shared/build.gradle.kts" <<'GRADLE'
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+plugins { id("org.jetbrains.kotlin.jvm") }
+val buildJdk: String by rootProject
+val jvmTarget: String by rootProject
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(buildJdk)
+    sourceCompatibility = JavaVersion.toVersion(jvmTarget)
+    targetCompatibility = JavaVersion.toVersion(jvmTarget)
+}
+kotlin { compilerOptions.jvmTarget = JvmTarget.fromTarget(jvmTarget) }
+GRADLE
+  printf 'package example.shared\npublic fun feedbackHeading(): String = "Hello from Woge"\n' \
+    >"$fixture_root/shared/src/main/kotlin/example/shared/Heading.kt"
+  printf '\ndependencies { implementation(project(":shared")) }\n' >>"$fixture_root/build.gradle.kts"
+  sed -i.bak 's/h1 { text("Hello from Woge") }/h1 { text(example.shared.feedbackHeading()) }/' "$page_file"
+fi
+
 "$fixture_root/gradlew" \
   --project-dir "$fixture_root" \
   --no-daemon \
@@ -174,6 +201,40 @@ policy=$(curl --silent --max-time 10 --dump-header - --output /dev/null "http://
   tr -d '\r' | grep -i '^content-security-policy:' || true)
 grep -Fq "connect-src 'self' $client_origin" <<<"$policy" ||
   fail "strict CSP does not allow the development client: $policy"
+
+if [[ -n "${WOGE_DEV_BENCHMARK_REPORT:-}" ]]; then
+  python3 "$repository_root/scripts/benchmark-development-loop.py" \
+    "$fixture_root" "$port" "$WOGE_DEV_BENCHMARK_REPORT" ${WOGE_DEV_BENCHMARK_OPTIONS:-}
+  stop_session
+  if curl --silent --max-time 2 "http://127.0.0.1:$port/" >/dev/null; then
+    fail 'benchmark application still answers after shutdown'
+  fi
+  [[ ! -f "$mcp_file" ]] || fail 'benchmark MCP connection survived shutdown'
+  if curl --silent --max-time 2 "$client_origin/client.js" >/dev/null; then
+    fail 'benchmark browser channel survived shutdown'
+  fi
+  "$fixture_root/gradlew" --project-dir "$fixture_root" --console=plain --quiet \
+    "-PwogeRepository=$published_repository" bootJar verifyWogeProductionArtifact >>"$log_file" 2>&1
+  boot_jar=$(find "$fixture_root/build/libs" -name '*.jar' ! -name '*-plain.jar' | head -1)
+  java -jar "$boot_jar" "--server.port=$port" >>"$log_file" 2>&1 &
+  production_pid=$!
+  wait_for_page 'benchmark-structuralGeneration-' 120
+  html=$(page)
+  if grep -Eq 'woge-development|/client.js|/overlay.css|/events\?token=|/details\?token=' <<<"$html"; then
+    fail 'development markup survived in production'
+  fi
+  policy=$(curl --silent --max-time 10 --dump-header - --output /dev/null "http://127.0.0.1:$port/" |
+    tr -d '\r' | grep -i '^content-security-policy:' || true)
+  [[ "$policy" == "Content-Security-Policy: default-src 'self'" ||
+     "$policy" == "content-security-policy: default-src 'self'" ]] || fail "production CSP was relaxed: $policy"
+  for endpoint in client.js overlay.css events details mcp; do
+    code=$(curl --silent --max-time 10 --output /dev/null --write-out '%{http_code}' \
+      "http://127.0.0.1:$port/$endpoint")
+    [[ "$code" == 404 ]] || fail "production exposes /$endpoint ($code)"
+  done
+  printf 'Production artifact, responses, CSP and development-channel cleanup passed.\n'
+  exit 0
+fi
 
 # MCP: owner-only connection file, structured status and the compiler-generated manifest.
 [[ -f "$mcp_file" ]] || fail 'wogeDev --mcp did not write build/woge-dev/mcp.json'
