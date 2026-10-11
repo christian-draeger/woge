@@ -189,6 +189,13 @@ tasks.register<Exec>("testViteExample") {
         scaffoldMavenRepository.get().asFile.absolutePath,
     )
 }
+val buildReferenceTheme = tasks.register<Exec>("buildReferenceTheme") {
+    group = "verification"
+    description = "Builds the optional reference theme with the browser job's pinned Tailwind CLI."
+    workingDir(layout.projectDirectory.dir("client/woge-fallback-client"))
+    commandLine("node", "scripts/build-reference-theme.mjs")
+}
+
 fun registerReferenceBrowserSmoke(
     name: String,
     host: String,
@@ -197,6 +204,7 @@ fun registerReferenceBrowserSmoke(
     group = "verification"
     description = "Runs the $host reference application in the supported Playwright engines."
     workingDir(layout.projectDirectory.dir("client/woge-fallback-client"))
+    dependsOn(buildReferenceTheme)
     environment("WOGE_REFERENCE_HOST", host)
     commandLine("npm", "run", "test:reference")
     configuration()

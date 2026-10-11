@@ -237,7 +237,7 @@ test("a task from another visitor shows one silent live notice without moving fo
 
   const notice = page.locator("#board-activity");
   await expect(notice).not.toHaveAttribute("role");
-  await expect(notice).toHaveText("1 new task was added. Show the latest board");
+  await expect(notice).toHaveText("1 task changed. Show the latest board");
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("Draft stays");
   await expect(other.locator("#board-activity")).toHaveText("");

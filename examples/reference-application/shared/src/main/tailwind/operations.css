@@ -1,0 +1,20 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "../kotlin";
+
+@layer theme {
+  [data-theme="tailwind"] {
+    --surface: light-dark(#f0fdfa, #042f2e);
+    --panel: light-dark(#fff, #134e4a);
+    --text: light-dark(#134e4a, #f0fdfa);
+    --muted: light-dark(#115e59, #99f6e4);
+    --accent: light-dark(#0f766e, #5eead4);
+    --line: light-dark(#5eead4, #0f766e);
+  }
+}
+@layer utilities {
+  [data-theme="tailwind"] .board-header { @apply border-b-4 rounded-xl; border-color: var(--accent); }
+  [data-theme="tailwind"] .project-region { @apply shadow-sm rounded-xl; }
+  [data-theme="tailwind"] .eyebrow { @apply tracking-widest font-bold; }
+}

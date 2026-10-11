@@ -49,6 +49,10 @@ for (const module of (await readdir(new URL("modules/", root))).filter((name) =>
   await assets(new URL(`modules/${module}/src/main/resources/`, root), `${module}/`);
 }
 await bundle("reference-application.css", new URL("examples/reference-application/shared/src/main/resources/static/assets/application.css", root));
+await bundle("reference-operations.css", new URL("examples/reference-application/shared/src/main/resources/static/assets/operations.css", root));
+await bundle("reference-disclosure.css", new URL("examples/reference-application/shared/src/main/resources/static/assets/components/disclosure-card.css", root));
+await import("./build-reference-theme.mjs");
+await measure("reference-tailwind.css", new URL("examples/reference-application/shared/build/generated/theme-assets/static/assets/operations-tailwind.css", root));
 await bundle("plain-card.css", new URL("testing/performance/assets/plain.css", root));
 await bundle("optional-theme.css", new URL("testing/performance/assets/theme.css", root));
 const input = new URL("tailwind.css", directory);

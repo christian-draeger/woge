@@ -123,7 +123,7 @@ class TaskBoardTest {
                     board.action.execute(PageRequest(command, boardActionContext())),
                 )
             assertEquals(FailureCategory.CONFLICT, replay.failure.category)
-            assertEquals(1, Regex("A new task").findAll(document(board)).count())
+            assertEquals(1, Regex("<li>A new task").findAll(document(board)).count())
         }
 
     @Test
@@ -158,9 +158,9 @@ class TaskBoardTest {
                 ).patches
                     .single()
                     .html.value
-            assertEquals(true, notice(0).contains("1 new task was added."))
-            assertEquals(false, notice(1).contains("new task"))
-            assertEquals(false, notice(null).contains("new task"))
+            assertEquals(true, notice(0).contains("1 task changed."))
+            assertEquals(false, notice(1).contains("task changed"))
+            assertEquals(false, notice(null).contains("task changed"))
             val invalid = board.activity.open(PageRequest(BoardActivityInput(epoch, target, 0, 1, -1), context))
             assertEquals(FailureCategory.BAD_REQUEST, (invalid as PageResult.Failure).failure.category)
             val unknown = board.activity.open(PageRequest(BoardActivityInput(epoch, "unknown", 0, 1), context))

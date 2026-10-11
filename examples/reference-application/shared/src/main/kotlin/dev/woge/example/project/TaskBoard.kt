@@ -38,6 +38,11 @@ public enum class TaskBoardView {
 @WogeRoute("/projects/woge/tasks")
 public data class TaskBoardInput(
     public val view: TaskBoardView? = null,
+    public val theme: BoardTheme? = null,
+    public val query: String? = null,
+    public val descending: Boolean? = null,
+    public val page: Int? = null,
+    public val edit: String? = null,
 )
 
 @WogeRoute("/projects/woge/tasks/regions/{epoch}/{target}/{revision}/{interaction}")
@@ -72,6 +77,14 @@ public data class AddBoardTask(
     public val version: Long,
     public val revision: Long,
     public val interaction: Long = 0,
+    public val edit: String = "",
+    public val owner: String = "Team",
+    public val priority: String = "Normal",
+    public val status: String = "Open",
+    public val theme: BoardTheme? = null,
+    public val query: String? = null,
+    public val descending: Boolean? = null,
+    public val page: Int? = null,
 )
 
 public val boardTaskForm: FormDecoder<AddBoardTask> = FormDecoder(AddBoardTask.serializer())
@@ -84,13 +97,13 @@ public suspend fun addBoardTask(
 ): PageResult =
     if (context.csrf != CsrfVerification.VERIFIED) {
         failure(FailureCategory.FORBIDDEN, context.correlationId)
-    } else if (!validBoardTitle(command.title) ||
+    } else if (!validBoardContent(command) ||
         !validBoardOrdering(command.revision, command.interaction) ||
         !validBoardEpoch(command.epoch)
     ) {
         failure(FailureCategory.BAD_REQUEST, context.correlationId)
     } else {
-        redirect(TaskBoardRoute.url(TaskBoardInput()))
+        redirect(TaskBoardRoute.url(command.presentation()))
     }
 
 private fun validBoardEpoch(value: String): Boolean =
@@ -101,7 +114,11 @@ private fun validBoardEpoch(value: String): Boolean =
         false
     }
 
-private fun validBoardTitle(value: String): Boolean = value.isNotBlank() && value.length <= MAX_TASK_TITLE_LENGTH
+private fun validBoardContent(command: AddBoardTask): Boolean =
+    command.title.isNotBlank() &&
+        command.title.length <= MAX_TASK_TITLE_LENGTH &&
+        validBoardDetails(command) &&
+        validBoardInput(command.presentation())
 
 private fun validBoardOrdering(
     revision: Long,
@@ -115,12 +132,15 @@ internal data class TaskBoardSnapshot(
     val version: Long,
     val revision: Long,
     val page: PageIdentity,
+    val details: Map<String, BoardTaskDetails> = emptyMap(),
+    val edit: String = "",
 )
 
 /** In-memory reference workflow; one lock protects the mutation and its authoritative render inputs. */
 public class TaskBoard {
     private val secret = RenderIdentitySecret.random()
     private var titles = listOf("Review the project")
+    private var details = emptyMap<String, BoardTaskDetails>()
     private var version = 0L
     private val changes =
         MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -128,7 +148,19 @@ public class TaskBoard {
     public val page: PageUseCase<TaskBoardInput> =
         PageUseCase { request ->
             val snapshot = synchronized(this) { snapshot(0) }
-            htmlPage { renderTaskBoard(snapshot, request.input.view) }
+            if (!validBoardInput(request.input)) {
+                failure(FailureCategory.BAD_REQUEST, request.context.correlationId)
+            } else if (request.input.edit != null && request.input.edit !in snapshot.titles) {
+                failure(FailureCategory.NOT_FOUND, request.context.correlationId)
+            } else {
+                htmlPage {
+                    renderTaskBoard(
+                        snapshot.copy(edit = request.input.edit.orEmpty()),
+                        request.input.view,
+                        request.input,
+                    )
+                }
+            }
         }
 
     public val action: ActionExecutor<AddBoardTask> =
@@ -156,7 +188,10 @@ public class TaskBoard {
                         regionRefresh(
                             TaskBoardRoute.url(TaskBoardInput()),
                             target,
-                            titles.filter { it.contains(input.query.orEmpty(), ignoreCase = true) },
+                            BoardTaskRows(
+                                titles.filter { it.contains(input.query.orEmpty(), ignoreCase = true) },
+                                details,
+                            ),
                             TargetRevision.of(input.revision),
                             InteractionSequence.of(input.interaction),
                         )
@@ -214,28 +249,60 @@ public class TaskBoard {
             if (command.version != version || command.revision == Long.MAX_VALUE || version == Long.MAX_VALUE) {
                 return@synchronized failure(FailureCategory.CONFLICT, request.context.correlationId)
             }
-            val newTitles = titles + command.title.trim()
+            val original = command.edit.takeIf { it.isNotEmpty() }
+            if (original != null && original !in titles) {
+                return@synchronized failure(FailureCategory.NOT_FOUND, request.context.correlationId)
+            }
+            val title = command.title.trim()
+            if (title in titles && title != original) {
+                return@synchronized failure(FailureCategory.CONFLICT, request.context.correlationId)
+            }
+            val newTitles = if (original == null) titles + title else titles.map { if (it == original) title else it }
+            val newDetails =
+                (details - command.edit) +
+                    (title to BoardTaskDetails(command.owner.trim(), command.priority, command.status))
             val next =
                 TaskBoardSnapshot(
                     newTitles,
                     version + 1,
                     command.revision + 1,
                     PageIdentity(PageEpoch.of(command.epoch), secret),
+                    newDetails,
+                    if (original == null) "" else title,
                 )
             val revision = TargetRevision.of(command.revision)
+            val destination = command.presentation(original?.let { title })
             val result =
-                actionRegionUpdates(TaskBoardRoute.url(TaskBoardInput()), InteractionSequence.of(command.interaction)) {
+                actionRegionUpdates(
+                    TaskBoardRoute.url(destination),
+                    InteractionSequence.of(command.interaction),
+                ) {
                     replace(BoardSummaryRegion.target(next.page), next.titles.size, revision)
-                    replace(BoardTasksRegion.target(next.page), next.titles, revision)
+                    replace(
+                        BoardTasksRegion.target(next.page),
+                        BoardTaskRows(next.titles, newDetails, destination),
+                        revision,
+                    )
                     replace(BoardStateRegion.target(next.page), next, revision)
-                    replace(BoardStatusRegion.target(next.page), "Task added", revision)
+                    replace(
+                        BoardStatusRegion.target(next.page),
+                        if (original == null) "Task added" else "Task updated",
+                        revision,
+                    )
                 }
             titles = newTitles
+            details = newDetails
             version = next.version
             changes.tryEmit(Unit)
             result
         }
 
     private fun snapshot(revision: Long): TaskBoardSnapshot =
-        TaskBoardSnapshot(titles, version, revision, PageIdentity(PageEpoch.of("board-${UUID.randomUUID()}"), secret))
+        TaskBoardSnapshot(
+            titles,
+            version,
+            revision,
+            PageIdentity(PageEpoch.of("board-${UUID.randomUUID()}"), secret),
+            details,
+        )
 }

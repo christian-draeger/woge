@@ -379,6 +379,42 @@
         "gzip": 2300,
         "brotli": 2000
       }
+    },
+    "reference-operations.css": {
+      "measured": {
+        "raw": 1908,
+        "gzip": 776,
+        "brotli": 638
+      },
+      "ceiling": {
+        "raw": 3300,
+        "gzip": 1200,
+        "brotli": 1000
+      }
+    },
+    "reference-disclosure.css": {
+      "measured": {
+        "raw": 282,
+        "gzip": 187,
+        "brotli": 137
+      },
+      "ceiling": {
+        "raw": 600,
+        "gzip": 400,
+        "brotli": 350
+      }
+    },
+    "reference-tailwind.css": {
+      "measured": {
+        "raw": 4274,
+        "gzip": 1094,
+        "brotli": 930
+      },
+      "ceiling": {
+        "raw": 6000,
+        "gzip": 2000,
+        "brotli": 1800
+      }
     }
   }
 }
