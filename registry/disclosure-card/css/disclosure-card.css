@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.disclosure-card {
+    :where([data-woge-scope="woge-disclosure-card"]) {
+        border: 1px solid var(--woge-card-border, #cbd5e1);
+        border-radius: var(--woge-card-radius, 0.5rem);
+        padding: 1rem;
+    }
+
+    :where([data-woge-scope="woge-disclosure-card"]) > summary {
+        cursor: pointer;
+        font-weight: 600;
+    }
+}

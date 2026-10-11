@@ -60,7 +60,7 @@ role_allows() {
     ui:foundation) return 0 ;;
     protocol:foundation|port:foundation|port:protocol|runtime:foundation|runtime:protocol|runtime:port) return 0 ;;
     adapter:foundation|adapter:protocol|adapter:port|adapter:runtime) return 0 ;;
-    test-support:foundation|test-support:protocol|test-support:port|test-support:runtime) return 0 ;;
+    test-support:ui|test-support:foundation|test-support:protocol|test-support:port|test-support:runtime) return 0 ;;
     integration:foundation|integration:protocol|integration:port|integration:runtime|integration:adapter|integration:integration) return 0 ;;
     tooling:foundation|tooling:ui|tooling:protocol|tooling:port|tooling:runtime|tooling:adapter|tooling:integration|tooling:tooling-model|tooling:tooling) return 0 ;;
     *) return 1 ;;

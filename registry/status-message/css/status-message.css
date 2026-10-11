@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.status-message {
+    :where([data-woge-scope="woge-status-message"]) {
+        color: var(--woge-status-color, #334155);
+        padding-block: 0.5rem;
+    }
+
+    :where([data-woge-scope="woge-status-message"]):empty {
+        padding: 0;
+    }
+}

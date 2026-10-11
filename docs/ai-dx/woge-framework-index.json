@@ -95,6 +95,7 @@
     "security": "docs/guides/typed-actions.md",
     "development": "docs/guides/development-loop.md",
     "styling": "docs/guides/ui-primitives.md",
+    "components": "docs/guides/component-registry.md",
     "compatibility": "docs/guides/compatibility-and-upgrades.md",
     "enhancedNavigation": "docs/guides/enhanced-navigation.md",
     "nativeDpu": "docs/guides/browser-support.md",
@@ -346,6 +347,19 @@
       ],
       "guide": "docs/architecture/server-adapter-parity.md",
       "example": "testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/ServerAdapterContract.kt"
+    },
+    {
+      "name": "woge-component-registry",
+      "role": "test-support",
+      "exposure": "support",
+      "sourcePath": "testing/woge-component-registry",
+      "artifact": null,
+      "concepts": [
+        "source-owned-components",
+        "component-registry-validation"
+      ],
+      "guide": "docs/guides/component-registry.md",
+      "example": "registry/disclosure-card/css/DisclosureCard.kt"
     },
     {
       "name": "woge-spring-mvc",

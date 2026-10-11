@@ -29,6 +29,8 @@ plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI bo
 
 The [UI primitives guide](ui-primitives.md) shows the accessible disclosure, dialog, popover and
 live-region building blocks, with plain-CSS and Tailwind recipes. The
+[component registry guide](component-registry.md) installs editable recipes with provenance and safe
+three-way updates. The
 [accessibility guide](accessibility.md) gives the shared keyboard, focus, announcement and semantic
 HTML contract, automated evidence and a manual audit checklist.
 

@@ -22,5 +22,17 @@ dependencies {
 }
 
 tasks.test {
-    systemProperty("woge.repository.root", rootProject.layout.projectDirectory.asFile.absolutePath)
+    val root = rootProject.layout.projectDirectory
+    systemProperty("woge.repository.root", root.asFile.absolutePath)
+    // The index tests read these repository files directly; changes must rerun them.
+    inputs
+        .files(
+            root.file("docs/ai-dx/woge-framework-index.json"),
+            root.file("config/architecture/module-boundaries.tsv"),
+            root.file("gradle.properties"),
+            root.file("gradle/libs.versions.toml"),
+            root.file("client/woge-fallback-client/package.json"),
+            root.dir("scaffolds/spring-boot"),
+        ).withPathSensitivity(PathSensitivity.RELATIVE)
+        .withPropertyName("repositoryIndexFiles")
 }
