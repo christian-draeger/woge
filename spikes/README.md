@@ -38,6 +38,8 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 | Retired | [`spring-boot-reload-topology`](https://github.com/christian-draeger/woge/tree/8f9f92e22fab2ecaa1e7a205466949f2bea11a1b/spikes/spring-boot-reload-topology) | Woge-owned orchestration, Spring DevTools trigger adapter, SSE lifecycle channel and no initial proxy in ADR [0041](../docs/adr/0041-orchestrator-owned-spring-reload-and-sse-channel.md) | Orchestrator [#147](https://github.com/christian-draeger/woge/issues/147), Spring restart [#144](https://github.com/christian-draeger/woge/issues/144) and browser channel [#145](https://github.com/christian-draeger/woge/issues/145) |
 | Frozen | [`vite-frontend`](vite-frontend/) | Optional, directly invoked Vite adapter; Kotlin sources stay outside Vite in ADR [0070](../docs/adr/0070-optional-direct-vite-frontend-adapter.md) | Vite adapter [#205](https://github.com/christian-draeger/woge/issues/205) |
 
+| Frozen | [`local-island-target`](local-island-target/) | Kotlin/JS for opt-in DOM islands in ADR [0093](../docs/adr/0093-kotlin-js-local-islands.md) | Lazy lifecycle [#54](https://github.com/christian-draeger/woge/issues/54), shared validation [#55](https://github.com/christian-draeger/woge/issues/55), local signals [#56](https://github.com/christian-draeger/woge/issues/56) |
+
 ## Repository rules
 
 - Production modules, adapters, integrations and maintained examples must never depend on a spike project or import a spike package.

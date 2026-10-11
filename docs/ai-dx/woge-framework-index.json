@@ -31,6 +31,13 @@
     "transactionModule": "transactions.js (lazy, only for atomic patch frames)",
     "transactionsAdr": "docs/adr/0092-atomic-patch-transactions.md"
   },
+  "localIslands": {
+    "optional": true,
+    "supportedKotlinTarget": "Kotlin/JS IR ES modules",
+    "adr": "docs/adr/0093-kotlin-js-local-islands.md",
+    "evidence": "spikes/local-island-target/evidence.md",
+    "fallback": "Useful server HTML; no mandatory hydration"
+  },
   "agentGuidance": {
     "templateVersion": 1,
     "template": "docs/ai-dx/application-agents.template.md",
