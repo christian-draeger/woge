@@ -1,11 +1,16 @@
 package dev.woge.example.project
 
+import dev.woge.example.components.disclosureCard
 import dev.woge.host.WogeRegion
 import dev.woge.host.region
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
+import dev.woge.html.dd
+import dev.woge.html.div
+import dev.woge.html.dl
+import dev.woge.html.dt
 import dev.woge.html.h1
 import dev.woge.html.h2
 import dev.woge.html.head
@@ -26,7 +31,6 @@ import dev.woge.ui.LiveRegion
 import dev.woge.ui.UiId
 import dev.woge.ui.dialogCloseButton
 import dev.woge.ui.dialogLink
-import dev.woge.ui.disclosure
 import dev.woge.ui.liveRegion
 import dev.woge.ui.modalDialog
 import dev.woge.ui.popoverButton
@@ -38,6 +42,7 @@ private val liveUpdatesPopover = UiId("live-updates")
 internal fun HtmlWriter.renderTaskBoard(
     snapshot: TaskBoardSnapshot,
     view: TaskBoardView? = null,
+    input: TaskBoardInput = TaskBoardInput(),
 ) {
     doctype()
     html(attributes = { attribute("lang", "en") }) {
@@ -48,18 +53,26 @@ internal fun HtmlWriter.renderTaskBoard(
             metadata("woge-live-url", BoardLiveRoute.url(BoardLiveInput(snapshot.page.epoch.value)).value)
             title("Task board · Woge")
             stylesheet(applicationUrl("/assets/application.css"))
+            stylesheet(applicationUrl("/assets/components/disclosure-card.css"))
+            stylesheet(applicationUrl("/assets/operations.css"))
+            if (input.theme == BoardTheme.TAILWIND) stylesheet(applicationUrl("/assets/operations-tailwind.css"))
             moduleScript(applicationUrl("/assets/application.js"))
         }
-        body(attributes = { classes("task-board") }) {
+        body(attributes = {
+            classes("task-board")
+            data("theme", if (input.theme == BoardTheme.TAILWIND) "tailwind" else "css")
+        }) {
             a(attributes = {
                 classes("skip-link")
                 url("href", applicationUrl("#board-main"))
             }) { text("Skip to board content") }
+            boardNavigation(input)
             header(attributes = { classes("board-header site-header") }) {
                 h1 { text("Task board") }
-                boardTools()
+                boardTools(input.theme)
+                boardThemeLinks(input)
             }
-            boardContent(snapshot, view)
+            boardContent(snapshot, view, input)
             modalDialog(boardHelpDialog, title = "Board help", attributes = { classes("board-dialog") }) {
                 boardHelp()
                 dialogCloseButton { text("Close") }
@@ -71,6 +84,7 @@ internal fun HtmlWriter.renderTaskBoard(
 private fun HtmlWriter.boardContent(
     snapshot: TaskBoardSnapshot,
     view: TaskBoardView?,
+    input: TaskBoardInput,
 ) {
     main(attributes = {
         attribute("id", "board-main")
@@ -86,14 +100,28 @@ private fun HtmlWriter.boardContent(
                 boardHelp()
             }
         }
-        region(BoardSummaryRegion.target(snapshot.page), snapshot.titles.size, elementName = "section")
-        region(BoardTasksRegion.target(snapshot.page), snapshot.titles, elementName = "section")
+        p(attributes = { classes("eyebrow") }) { text("Northstar · Project operations") }
+        p(attributes = { classes("lede") }) { text("Plan delivery, assign owners and track changes across the team.") }
+        region(BoardSummaryRegion.target(snapshot.page), snapshot.titles.size, elementName = "section", attributes = {
+            classes("project-region")
+        })
+        boardFilters(input)
+        region(
+            BoardTasksRegion.target(snapshot.page),
+            BoardTaskRows(snapshot.titles, snapshot.details, input),
+            elementName = "section",
+        )
         region(BoardStateRegion.target(snapshot.page), snapshot, elementName = "div")
-        boardForm()
-        disclosure(
-            summary = { text("What happens when I add a task?") },
-            attributes = { classes("board-faq") },
-        ) {
+        if (input.edit != null) {
+            section(attributes = { classes("notice") }) {
+                h2 { text("Task details") }
+                a(attributes = { url("href", TaskBoardRoute.url(TaskBoardInput(theme = input.theme))) }) {
+                    text("Return to all tasks")
+                }
+            }
+        }
+        boardForm(snapshot, input)
+        disclosureCard("What happens when I add a task?") {
             p {
                 text("With JavaScript, only the task list, the count and the status line change. ")
                 text("Without it, the browser posts the form and loads the board again.")
@@ -113,16 +141,22 @@ private fun HtmlWriter.boardContent(
     }
 }
 
-private fun HtmlWriter.boardTools() {
+private fun HtmlWriter.boardTools(theme: BoardTheme?) {
     nav(attributes = {
         classes("board-tools")
         aria("label", "Board tools")
     }) {
         popoverButton(liveUpdatesPopover) { text("Live updates") }
         popoverPanel(liveUpdatesPopover, attributes = { classes("board-popover") }) {
-            p { text("When another visitor adds a task, a notice appears below the form. Nothing moves on its own.") }
+            p {
+                text(
+                    "When another visitor changes a task, a notice appears below the form. Nothing moves on its own.",
+                )
+            }
         }
-        dialogLink(boardHelpDialog, TaskBoardRoute.url(TaskBoardInput(TaskBoardView.HELP))) { text("Board help") }
+        dialogLink(boardHelpDialog, TaskBoardRoute.url(TaskBoardInput(TaskBoardView.HELP, theme = theme))) {
+            text("Board help")
+        }
     }
 }
 
@@ -136,22 +170,30 @@ private fun HtmlWriter.boardHelp() {
 
 @WogeRegion
 internal fun HtmlWriter.boardSummary(count: Int) {
+    h2 { text("Delivery overview") }
     p(attributes = { attribute("id", "task-count") }) { text("$count tasks") }
-}
-
-@WogeRegion
-internal fun HtmlWriter.boardTasks(titles: List<String>) {
-    ul(attributes = { attribute("id", "board-tasks") }) {
-        titles.forEach { title -> li { text(title) } }
+    dl(attributes = { classes("summary-grid") }) {
+        div {
+            dt { text("Workspace") }
+            dd { text("Northstar") }
+        }
+        div {
+            dt { text("Ownership") }
+            dd { text("Shared team") }
+        }
+        div {
+            dt { text("Activity") }
+            dd { text("Live notices") }
+        }
     }
 }
 
-/** Live notice; empty until another visitor adds a task. A plain link keeps the update in the user's hands. */
+/** Live notice; empty until another visitor changes a task. A plain link keeps the update in the user's hands. */
 @WogeRegion
 internal fun HtmlWriter.boardActivity(newTasks: Long) {
     if (newTasks > 0) {
         p {
-            text(if (newTasks == 1L) "1 new task was added. " else "$newTasks new tasks were added. ")
+            text(if (newTasks == 1L) "1 task changed. " else "$newTasks tasks changed. ")
             a(attributes = { url("href", TaskBoardRoute.url(TaskBoardInput())) }) { text("Show the latest board") }
         }
     }

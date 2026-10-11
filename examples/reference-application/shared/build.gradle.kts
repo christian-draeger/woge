@@ -34,3 +34,6 @@ val noteRulesAssets =
     }
 sourceSets.main { resources.srcDir(layout.buildDirectory.dir("generated/note-assets")) }
 tasks.processResources { dependsOn(noteRulesAssets) }
+
+// Optional theme is built explicitly; ordinary JVM resources never invoke Node.
+sourceSets.main { resources.srcDir(layout.buildDirectory.dir("generated/theme-assets")) }

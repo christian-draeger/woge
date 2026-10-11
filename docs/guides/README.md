@@ -107,3 +107,7 @@ dialogs and popovers, progress, skeletons, persistent toasts and patch-safe anno
 The [data display and complex inputs guide](data-display-and-complex-inputs.md) covers cards, badges,
 avatars, sortable tables, paging with typed URLs, loading/stale/error states, and native combobox,
 date and multi-select inputs.
+
+The [themed reference screen walkthrough](themed-reference-screen.md) combines navigation, forms,
+tables, task-detail overlays and live updates with plain CSS or an optional Tailwind brand. Its
+[human-run extension trial](themed-reference-trial.md) records documentation and editor findings.

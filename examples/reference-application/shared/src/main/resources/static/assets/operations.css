@@ -1,0 +1,58 @@
+@layer theme, operations, utilities, overrides;
+
+@layer operations {
+  .task-board { background: var(--surface); color: var(--text); }
+  .operations-nav, .theme-switch, .board-filter, .board-paging {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+  .operations-nav {
+    padding: 1rem;
+    background: var(--panel);
+    border-block-end: 1px solid var(--line);
+    & details a { display: block; margin-block: 0.5rem; }
+  }
+  .theme-switch { font-size: 0.875rem; }
+  #board-form {
+    max-inline-size: none;
+    container-type: inline-size;
+    & fieldset { min-inline-size: 0; border: 1px solid var(--line); border-radius: 0.5rem; }
+    & legend { font-weight: 700; }
+    & label { display: block; margin-block: 0.5rem; }
+    & select, & input { background: var(--panel); color: var(--text); padding: 0.65rem; border: 1px solid var(--line); }
+    & select { inline-size: 100%; }
+  }
+  .board-filter input { min-inline-size: 0; max-inline-size: 100%; }
+  .task-cards { padding: 0; list-style: none; }
+  .task-cards li { padding-block: 0.75rem; border-block-end: 1px solid var(--line); }
+  .task-cards dl { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
+  .task-cards dt { font-weight: 600; }
+  .task-cards dd { margin: 0; }
+  .operations-table { display: none; }
+  .handbook-label { color: var(--muted); font-size: 0.875rem; }
+  .board-header h1 { font-size: clamp(2rem, 6vw, 3.5rem); }
+  @media (width >= 48rem) {
+    .task-cards { display: none; }
+    .operations-table { display: block; }
+    #board-form { grid-template-columns: 1fr 1fr; }
+    #board-form > p, #board-form > button { grid-column: 1 / -1; }
+  }
+  @media (prefers-color-scheme: dark) { .operations-nav { border-block-end-width: 2px; } }
+  @media (prefers-contrast: more) {
+    :root { --muted: var(--text); }
+    .task-board button, #board-form fieldset { border-width: 2px; }
+  }
+  @media (forced-colors: active) {
+    .task-board { --accent: LinkText; --line: CanvasText; --surface: Canvas; --panel: Canvas; --text: CanvasText; }
+    button { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  }
+  @media (prefers-reduced-motion: reduce) { .task-board .project-region { transition: none; } }
+}
+
+/* Application-owned global override of the installed, zero-specificity scoped recipe. */
+@layer overrides {
+  .task-board .woge-disclosure-card { --woge-card-border: var(--accent); --woge-card-radius: 0.85rem; }
+  .task-board .woge-disclosure-card > summary { border-inline-start: 0.25rem solid var(--accent); padding-inline-start: 0.75rem; }
+}

@@ -516,5 +516,14 @@
     27,
     28
   ],
-  "browserSupportPolicy": "docs/architecture/browser-support-policy.md"
+  "browserSupportPolicy": "docs/architecture/browser-support-policy.md",
+  "themedReferenceApplication": {
+    "guide": "docs/guides/themed-reference-screen.md",
+    "trialProtocol": "docs/guides/themed-reference-trial.md",
+    "decision": "docs/adr/0102-themed-reference-operations.md",
+    "source": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/TaskBoard.kt",
+    "themeBuild": "./gradlew buildReferenceTheme",
+    "browserGate": "./gradlew referenceBrowserSmoke",
+    "liveModelTrials": "Human-run follow-up in #93; never PR CI"
+  }
 }

@@ -248,3 +248,14 @@ took median 535.307 ms without batching (10,001 effect runs), versus 0.202 ms in
 after one warm-up and five samples. Setup/disposal are excluded. The script checks correctness, not
 a noisy timing threshold. This high-fan-in workload is illustrative, not a general latency promise.
 See [ADR 0096](../adr/0096-local-signals-and-optimistic-actions.md).
+
+## Themed reference operations
+
+Issue #85 adds separately measured `reference-operations.css`, `reference-disclosure.css` and
+`reference-tailwind.css`. Their raw/gzip/Brotli ceilings are 3300/1200/1000, 600/400/350 and
+6000/2000/1800 bytes respectively, with the existing +10% drift rule. Ordinary reference CSS follows
+its existing minified measurement convention; Tailwind is already minified and measured as shipped.
+The asset gate rebuilds the optional brand with the locked CLI, even without running a Gradle host.
+The plain theme does not invoke that compiler during JVM resource processing. Core bytes and all
+existing ceilings are unchanged. Browser tasks time the expanded application under the existing
+constraints; the [walkthrough](../guides/themed-reference-screen.md) explains packaging and commands.

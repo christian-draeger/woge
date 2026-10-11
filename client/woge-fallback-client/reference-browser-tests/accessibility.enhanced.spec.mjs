@@ -14,6 +14,12 @@ test("the board journey is keyboard-only, including skip link, mutation and nati
   const title = `Keyboard ${test.info().project.name}`;
   await page.keyboard.type(title);
   await pressTab(page);
+  await expect(page.getByLabel("Owner", { exact: true })).toBeFocused();
+  await pressTab(page);
+  await expect(page.getByLabel("Priority", { exact: true })).toBeFocused();
+  await pressTab(page);
+  await expect(page.getByLabel("Status", { exact: true })).toBeFocused();
+  await pressTab(page);
   const submit = page.getByRole("button", { name: "Add task" });
   await expect(submit).toBeFocused();
   await startAnnouncementAudit(page);
@@ -23,10 +29,10 @@ test("the board journey is keyboard-only, including skip link, mutation and nati
   await expect.poll(() => announcementChanges(page)).toEqual([{ id: "board-status", text: "Task added", writes: 1 }]);
   await expect(submit).toBeFocused();
   await pressTab(page);
-  const summary = page.locator("details > summary");
+  const summary = page.locator("details.board-faq > summary");
   await expect(summary).toBeFocused();
   await page.keyboard.press("Space");
-  await expect(page.locator("details")).toHaveAttribute("open", "");
+  await expect(page.locator("details.board-faq")).toHaveAttribute("open", "");
   const help = page.getByRole("link", { name: "Board help" });
   await tabTo(page, help, { backwards: true });
   await page.keyboard.press("Enter");
@@ -138,7 +144,7 @@ test("background invalidation is silent even when the notice changes", async ({ 
     await other.getByLabel("Task title").fill(`Quiet ${test.info().project.name}`);
     await other.getByLabel("Task title").press("Enter");
     await expect(other.locator("#board-status")).toHaveText("Task added");
-    await expect(page.locator("#board-activity")).toContainText("1 new task was added.");
+    await expect(page.locator("#board-activity")).toContainText("1 task changed.");
     expect(await announcementChanges(page)).toEqual([]);
     await expect(page.getByLabel("Task title")).toBeFocused();
     await expect(page.getByLabel("Task title")).toHaveValue("Draft stays");

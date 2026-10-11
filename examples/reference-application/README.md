@@ -115,3 +115,5 @@ live in the [M1 baseline](../../docs/performance/m1-multi-host-baseline.md).
 
 The [accessibility guide](../../docs/guides/accessibility.md) maps the shared automated contract,
 keyboard-only reference journeys, dashboard stress checks and the manual audit checklist.
+
+For the complete operations journey and optional Tailwind brand, see the [themed screen walkthrough](../../docs/guides/themed-reference-screen.md).

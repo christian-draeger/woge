@@ -148,3 +148,5 @@ indexes and assembles these decisions rather than adding one.
 | [0099](0099-native-form-components-and-validation.md) | Accepted | Compose source-owned native forms with the existing validation model |
 | [0100](0100-native-navigation-overlay-and-feedback-components.md) | Accepted | Compose native navigation, overlay and feedback components |
 | [0101](0101-native-data-display-and-complex-input-components.md) | Accepted | Compose native data display and complex inputs with URL-driven sort, filter and paging |
+
+| [0102](0102-themed-reference-operations.md) | Accepted | Prove themes on the shared operations application |
