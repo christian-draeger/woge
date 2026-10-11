@@ -410,6 +410,7 @@ public final class dev/woge/html/HtmlWriterKt {
 	public static final fun renderHtml (Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
 	public static final fun srcdoc-mHIzVm8 (Ldev/woge/html/Attributes;Ljava/lang/String;)V
 	public static final fun writeHtml (Ldev/woge/html/HtmlSink;Lkotlin/jvm/functions/Function1;)V
+	public static final fun writeHtmlWithUnsafeTracking (Ldev/woge/html/HtmlSink;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
 }
 
 public final class dev/woge/html/StreamingHtmlSink : dev/woge/html/HtmlSink {

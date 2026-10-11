@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":woge-protocol"))
     implementation(project(":woge-host-spi"))
     implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.jsoup)
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)
