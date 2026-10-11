@@ -28,8 +28,15 @@ internal class ActionReader(
 ) {
     fun action(function: KSFunctionDeclaration): ActionModel? = logger.readOrReport { read(function) }
 
-    fun reportCollision(action: ActionModel) {
-        logger.error(Rule.ACTION_COLLISION.message("${action.functionName} with ID '${action.id}'"), action.symbol)
+    fun reportCollision(
+        action: ActionModel,
+        others: List<ActionModel>,
+    ) {
+        val declarations =
+            (listOf(action) + others)
+                .sortedBy { it.symbol.declarationLocation() }
+                .joinToString { "${it.symbol.declarationLocation()} with ID '${it.id}'" }
+        logger.error(Rule.ACTION_COLLISION.message(declarations), action.symbol)
     }
 
     private fun read(function: KSFunctionDeclaration): ActionModel {
@@ -74,7 +81,7 @@ internal class ActionReader(
         ) {
             reject(Rule.ACTION_SHAPE, name, function)
         }
-        if (function.parameters.size != 2 ||
+        if (function.parameters.size !in 1..2 ||
             function.typeParameters.isNotEmpty() ||
             !Regex("[A-Za-z][A-Za-z0-9_]*").matches(name)
         ) {
@@ -84,9 +91,16 @@ internal class ActionReader(
     }
 
     private fun validateBoundary(function: KSFunctionDeclaration) {
-        val context = function.parameters[1].type.resolve()
-        if (context.isMarkedNullable ||
-            context.declaration.qualifiedName?.asString() != "dev.woge.host.RequestContext"
+        val context =
+            function.parameters
+                .getOrNull(1)
+                ?.type
+                ?.resolve()
+        if (context != null &&
+            (
+                context.isMarkedNullable ||
+                    context.declaration.qualifiedName?.asString() != "dev.woge.host.RequestContext"
+            )
         ) {
             reject(Rule.ACTION_CONTEXT, context.shortName(), function)
         }

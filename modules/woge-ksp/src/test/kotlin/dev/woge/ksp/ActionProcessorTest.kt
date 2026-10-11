@@ -73,6 +73,14 @@ class ActionProcessorTest {
     }
 
     @Test
+    fun `command only action generates a direct call without context`() {
+        val result = runKsp(mapOf("Actions.kt" to source(VALID.replace(", context: RequestContext", ""))))
+        assertEquals(emptyList<String>(), result.errors)
+        assertTrue(result.generated.getValue("CreateTaskAction.kt").contains("shop.createTask(request.input)"))
+        assertTrue(result.generated.getValue("CreateTaskAction.kt").contains("ActionId.of(\"create-task\")"))
+    }
+
+    @Test
     fun `rejects unsupported action shapes with located rules`() {
         INVALID.forEach { (rule, action) ->
             val result = runKsp(mapOf("Actions.kt" to source(action)))
@@ -93,6 +101,11 @@ class ActionProcessorTest {
                 ),
             )
         assertEquals(2, result.errors.count { it.contains("WOGE-ACTION-007") })
+        result.errors.forEach { error ->
+            assertTrue(error.contains("shop.createTask (") && error.contains("other.createTask ("), error)
+            assertTrue(Regex("Actions\\.kt:\\d+\\)").containsMatchIn(error), error)
+            assertTrue(Regex("Other\\.kt:\\d+\\)").containsMatchIn(error), error)
+        }
         assertEquals(emptyMap<String, String>(), result.generated)
     }
 
@@ -191,6 +204,8 @@ class ActionProcessorTest {
         val INVALID =
             listOf(
                 "WOGE-ACTION-001" to VALID.replace("suspend ", ""),
+                "WOGE-ACTION-001" to VALID.replace("command: CreateTask, context: RequestContext", ""),
+                "WOGE-ACTION-001" to VALID.replace("context: RequestContext", "context: RequestContext, extra: String"),
                 "WOGE-ACTION-002" to VALID.replace("create-task", "java.lang.Runtime.exec"),
                 "WOGE-ACTION-003" to VALID.replace("command: CreateTask", "command: Any"),
                 "WOGE-ACTION-004" to VALID.replace("context: RequestContext", "context: String"),

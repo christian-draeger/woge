@@ -11,8 +11,8 @@ Declaring an action does not install an endpoint or a security policy.
 data class CreateTask(val title: String, val urgent: Boolean = false)
 
 @WogeAction("create-task")
-suspend fun createTask(command: CreateTask, context: RequestContext): PageResult {
-    // Authorize and save the task in your application.
+suspend fun createTask(command: CreateTask): PageResult {
+    // Save the task in your application.
     return redirect(applicationUrl("/tasks"))
 }
 ```
@@ -35,6 +35,11 @@ This form still needs an explicitly registered POST endpoint and the host's CSRF
 After decoding and security checks, the server calls
 `CreateTaskAction.execute(PageRequest(command, context))`. The command type must match. The context
 contains copied host authentication facts; the action still makes its own domain authorization decision.
+
+If the action needs authentication facts or a correlation ID, add `context: RequestContext` as
+its second parameter. Leave it out when unused; the generated descriptor still receives the request
+context and the host still applies the same security checks. An action that makes a domain
+permission decision should keep the context parameter.
 
 ## Register a POST endpoint
 
@@ -327,7 +332,24 @@ val errors = FormErrors(
 For `@SerialName("task-title")`, pass `serializedName = "task-title"` to `field`. A wrong command
 property does not type-check; an unknown submitted name fails when the descriptor is created.
 Translate decoder error codes into your application's safe messages. Business-rule errors use the
-same model. Always authorize the renderer and run server validation for every submission.
+same model. Build a snapshot from the selected submitted fields, before trimming or normalizing text:
+
+```kotlin
+// Inside an action receiving command: CreateTask.
+val values = FormValues.of(mapOf(title.name to listOf(command.title)))
+val errors = FormErrors(values, listOf(FormError(title, "This title is already taken")))
+// Pass errors to the same form renderer used for decoder errors.
+```
+
+`FormValues.of` copies a map of HTML field names to lists of text values; repeated fields keep their
+order. Use the field descriptor's `name` when a property has `@SerialName`. For decoder-rejected
+input, reuse `request.input.values` from `FormValidation` instead: it preserves even text that cannot
+be converted to a number or another command type. A snapshot built from a decoded command only
+preserves the text you provide; it does not reconstruct raw numeric formatting or missing fields.
+The factory never reads properties through reflection or automatically populates HTML inputs.
+Select only display-safe fields, and never include passwords or CSRF tokens. Snapshots are immutable
+and their `toString()` hides values. Always authorize the renderer and run server validation for
+every submission.
 
 The form stays ordinary HTML:
 
@@ -405,11 +427,27 @@ Kotlin numeric types, booleans, UUIDs, enums, value classes wrapping these value
 Nullable fields are supported. Parsing policies and size limits belong to the form decoder, not
 the descriptor.
 
-The function must be top-level, suspend, non-generic, and take exactly `(command, RequestContext)`.
+The function must be top-level, suspend, non-generic, and take `(command)` or `(command, RequestContext)`.
 Its declared return type is `PageResult`: normal HTML, a redirect, prepared typed region updates
 or a controlled failure.
 Woge reports unsupported declarations with `WOGE-ACTION-001` through `WOGE-ACTION-007`, including
 duplicate IDs and generated names.
+
+| Diagnostic | Meaning |
+| --- | --- |
+| `WOGE-ACTION-001` | Use a top-level suspend function with one command and an optional context |
+| `WOGE-ACTION-002` | Use a lowercase, dash-separated action ID of at most 128 characters |
+| `WOGE-ACTION-003` | Use a supported command type and fields |
+| `WOGE-ACTION-004` | The optional second parameter must be a non-null `RequestContext` |
+| `WOGE-ACTION-005` | Return `PageResult` |
+| `WOGE-ACTION-006` | Make the action and command internal or public |
+| `WOGE-ACTION-007` | Give actions unique IDs per module and generated names per package |
+
+Packages organize Kotlin code, not public URLs. Action IDs and route path patterns must be unique
+within a module. Collision diagnostics name both fully qualified declarations and their source
+files and lines (`WOGE-ACTION-007`, `WOGE-ROUTE-007` or `WOGE-ROUTE-008`). Choose feature-specific
+IDs such as `notes-create` and `projects-create`. Changing packages does not change existing URLs.
+See [ADR 0087](../adr/0087-smooth-action-signatures-and-form-values.md).
 
 The existing `scaffoldDevSmoke` gate runs both Spring adapters and checks incremental action addition,
 ID changes, duplicate-ID diagnostics, recovery and removal of obsolete registry output.

@@ -33,14 +33,18 @@ context, so no shared host-specific POST factory contributes to these tasks.
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | static page | 3 | 68 | 1 | 17 | 1 | 0 | none |
 | component | 3 | 88 | 1 | 20 | 1 | 0 | none |
-| form | 3 | 114 | 2 | 27 | 2 | 0 | none |
-| validation | 3 | 170 | 2 | 40 | 2 | 0 | none |
+| form | 3 | 109 | 2 | 26 | 2 | 0 | none |
+| validation | 3 | 163 | 2 | 39 | 2 | 0 | none |
 | enhanced action | 4 | 188 | 4 | 37 | 2 | 2 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
 | deferred region | 4 | 134 | 3 | 33 | 2 | 9 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `patchHtml` |
 | live update | 4 | 174 | 4 | 31 | 3 | 25 | `InteractionSequence`, `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
 | custom JavaScript | 4 | 103 | 1 | 22 | 1 | 8 | none |
 | island | 4 | 109 | 2 | 24 | 1 | 18 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret` |
 
+
+Issue #214 removes unused action contexts and the validation task's separate draft-text argument.
+The form drops from 114 to 109 lines and 27 to 26 concepts; validation drops from 170 to 163 lines
+and 40 to 39 concepts. Other tasks are unchanged.
 
 ## Comparison with hand-written HTML
 
@@ -75,7 +79,7 @@ gap is the goal of the follow-up issues below.
 ## Follow-up
 
 - [#213](https://github.com/christian-draeger/woge/issues/213) Built-in same-origin request context for POST actions — done
-- [#214](https://github.com/christian-draeger/woge/issues/214) Optional action context, `FormValues` for business-rule errors, clearer duplicate-ID errors
+- [#214](https://github.com/christian-draeger/woge/issues/214) Optional action context, `FormValues` for business-rule errors, clearer duplicate-ID errors — done
 - [#215](https://github.com/christian-draeger/woge/issues/215) Hide identity, epoch and revision plumbing; simpler live regions
 - [#216](https://github.com/christian-draeger/woge/issues/216) No-JavaScript fallback for deferred regions
 

@@ -16,7 +16,14 @@ published_repository=$1
 }
 
 scratch_root=$(mktemp -d)
-trap 'rm -rf "$scratch_root"' EXIT
+# Fixture daemons use a private registry so they can be stopped instead of outliving the check.
+daemon_registry="-Dorg.gradle.daemon.registry.base=$scratch_root/daemons"
+cleanup() {
+  "$scratch_root/mvc/gradlew" "$daemon_registry" --stop >/dev/null 2>&1 || true
+  # A stopping daemon may still write its log; leftover temp files must not fail the check.
+  rm -rf "$scratch_root" 2>/dev/null || true
+}
+trap cleanup EXIT
 
 "$repository_root/scripts/validate-spring-boot-scaffold.sh"
 
@@ -51,34 +58,34 @@ package example.woge.temporary
 import dev.woge.host.WogeRoute
 @WogeRoute("/temporary") data object TemporaryInput
 KOTLIN
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeManifest "-PwogeRepository=$published_repository"
 grep -Fq 'TemporaryRoute' "$manifest"
 rm "$fixture_root/src/main/kotlin/example/woge/TemporaryInput.kt"
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeManifest "-PwogeRepository=$published_repository"
 cmp "$scratch_root/manifest.json" "$manifest"
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   clean "-PwogeRepository=$published_repository"
 [[ ! -e "$manifest" ]]
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeManifest "-PwogeRepository=$published_repository"
 cmp "$scratch_root/manifest.json" "$manifest"
 # A failed compile must remove the previous success-shaped manifest, rather than silently keep it.
 printf 'package example.woge\nthis is not Kotlin\n' > "$fixture_root/src/main/kotlin/example/woge/Broken.kt"
-if "$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+if "$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeManifest "-PwogeRepository=$published_repository" > "$scratch_root/expected-error.log" 2>&1; then
   printf 'The intentionally broken scaffold unexpectedly compiled.\n' >&2
   exit 1
 fi
 [[ ! -e "$manifest" ]]
 rm "$fixture_root/src/main/kotlin/example/woge/Broken.kt"
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeManifest "-PwogeRepository=$published_repository"
 cmp "$scratch_root/manifest.json" "$manifest"
 
 # Human and machine-readable workflow help come from the same list in the Gradle plugin.
-workflow=$("$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+workflow=$("$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeTasks --format=json "-PwogeRepository=$published_repository")
 python3 -c '
 import json, sys
@@ -86,7 +93,7 @@ tasks = {entry["task"] for entry in json.loads(sys.argv[1])["tasks"]}
 missing = {"wogeDev", "check", "verifyWogeProductionArtifact", "bootJar", "wogeManifest"} - tasks
 sys.exit(f"wogeTasks is missing {missing}" if missing else 0)
 ' "$workflow"
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   wogeTasks "-PwogeRepository=$published_repository" | grep -Fq './gradlew wogeDev'
 
 # Consumers add the browser runtime as an ordinary dependency; it must resolve and contain the module.
@@ -96,7 +103,7 @@ dependencies {
     runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion")
 }
 GRADLE
-"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain \
+"$fixture_root/gradlew" --project-dir "$fixture_root" --quiet --console=plain "$daemon_registry" \
   bootJar "-PwogeRepository=$published_repository"
 boot_jar=$(ls "$fixture_root"/build/libs/*.jar | grep -v -- '-plain\.jar$')
 if unzip -Z1 "$boot_jar" | grep -E '(^|/)(\.woge/manifest\.json|META-INF/woge/manifest\.json)$'; then

@@ -132,6 +132,7 @@ val testSpringBootScaffold =
         group = "verification"
         description = "Materializes and compiles the external Spring Boot scaffold with WebFlux and MVC."
         dependsOn(publishScaffoldArtifacts)
+        timeout.set(java.time.Duration.ofMinutes(5))
         commandLine(
             "bash",
             layout.projectDirectory.file("scripts/test-spring-boot-scaffold.sh").asFile.absolutePath,

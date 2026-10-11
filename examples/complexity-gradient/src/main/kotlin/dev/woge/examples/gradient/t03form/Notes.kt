@@ -4,7 +4,6 @@ import dev.woge.host.FormDecoder
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
-import dev.woge.host.RequestContext
 import dev.woge.host.WogeAction
 import dev.woge.host.WogeRoute
 import dev.woge.host.actionForm
@@ -51,11 +50,7 @@ public val addNoteForm: FormDecoder<AddNote> = FormDecoder(AddNote.serializer())
 
 /** Post, redirect, get: the browser reloads the list after the note is stored. */
 @WogeAction("add-note")
-@Suppress("UnusedParameter")
-public suspend fun addNote(
-    command: AddNote,
-    context: RequestContext,
-): PageResult {
+public suspend fun addNote(command: AddNote): PageResult {
     noteStore.add(command.text)
     return redirect(NotesRoute.url(NotesInput))
 }

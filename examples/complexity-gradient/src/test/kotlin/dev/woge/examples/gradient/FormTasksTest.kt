@@ -55,8 +55,9 @@ class FormTasksTest {
     fun `blank and long notes return 400 and are not stored`() =
         runTest {
             for (text in listOf("  ", "x".repeat(81))) {
-                val result = addValidatedNote(ValidatedNote(text), postContext)
+                val result = addValidatedNote(ValidatedNote(text))
                 assertEquals(ResponseStatus.BAD_REQUEST, result.metadata.status)
+                assertTrue(result.html().contains("value=\"$text\""))
                 assertTrue(result.html().contains("role=\"alert\"") || result.html().contains("aria-invalid"))
             }
             val page = ValidatedNotesPage().open(PageRequest(ValidatedNotesInput, getContext)).html()

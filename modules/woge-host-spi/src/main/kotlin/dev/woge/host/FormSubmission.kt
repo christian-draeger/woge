@@ -22,6 +22,9 @@ public class FormValues internal constructor(
 
     public companion object {
         public val EMPTY: FormValues = FormValues(emptyMap())
+
+        /** Copies explicitly selected form field names and text; omit passwords and security tokens. */
+        public fun of(values: Map<String, List<String>>): FormValues = FormValues(values)
     }
 }
 
