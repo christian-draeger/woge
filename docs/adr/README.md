@@ -107,6 +107,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0078](0078-xss-corpus-and-html-base-boundary.md) | Accepted | Verify XSS boundaries with a shared corpus and reject generic base elements |
 | [0079](0079-private-trusted-types-patch-policy.md) | Accepted | Parse inert patches through one private named Trusted Types policy and verify strict CSP on all reference hosts |
 | [0080](0080-streaming-deployment-contract.md) | Accepted | Verify bounded streaming, disconnect cleanup and proxy delivery across hosts |
+| [0081](0081-cross-engine-fallback-conformance.md) | Accepted | Reuse three-engine fallback gates with explicit HTML-only projects and failure evidence |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

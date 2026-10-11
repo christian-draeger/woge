@@ -302,21 +302,3 @@ test("stale interaction response remains silent", async ({ page }) => {
   await expect(page.getByRole("status")).toBeEmpty();
   expect(await page.evaluate(() => actionErrors)).toEqual([]);
 });
-
-test("with JavaScript disabled the marked form submits normally", async ({ browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  try {
-    const page = await context.newPage();
-    await page.route("**/action", async (route) => {
-      expect(route.request().method()).toBe("POST");
-      expect(new URLSearchParams(route.request().postData()).get("intent")).toBe("save");
-      expect(route.request().headers().accept).not.toBe(mediaType);
-      await route.fulfill({ contentType: "text/html", body: "<h1>Native result</h1>" });
-    });
-    await page.goto("http://127.0.0.1:4173/action-forms");
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByRole("heading")).toHaveText("Native result");
-  } finally {
-    await context.close();
-  }
-});

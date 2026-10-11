@@ -77,3 +77,6 @@ protocol negotiation, rolling deployments and safe behavior when browser assets 
 
 The [streaming behind proxies guide](streaming-behind-proxies.md) explains cancellation, bounded queues,
 nginx/Caddy profiles, compression, diagnostic timings and Spring Boot operational defaults.
+
+The [browser support guide](browser-support.md) explains stable browser versions, three-engine
+conformance, explicit fallback testing, JavaScript-disabled journeys and failure artifacts.

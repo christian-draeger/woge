@@ -1,8 +1,10 @@
 # Browser support and progressive enhancement
 
-This is the living compatibility matrix for Woge. It describes the intended contract before a usable Woge runtime exists; rows gain links to executable fixtures as the corresponding milestone lands.
+This is the living compatibility matrix for Woge. The implemented fallback and reference browser
+suites verify core workflows in three engines; the [browser conformance guide](../guides/browser-support.md)
+links the evidence and explains the remaining branded/mobile release checks.
 
-Last policy review: 2026-09-03.
+Last policy review: 2026-10-11 (support window unchanged).
 
 ## Support tiers
 
