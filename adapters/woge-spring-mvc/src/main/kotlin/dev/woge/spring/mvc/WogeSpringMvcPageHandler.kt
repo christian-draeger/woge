@@ -45,6 +45,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
+        if (request.resumeWogeResponse(response)) return
         if (rejectRequest(request, response)) return
         val context = contexts.create(request)
         request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
@@ -92,8 +93,8 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
                 .withFailurePages(failurePages)
                 .finalizeCache(request)
                 .writeToServlet(
+                    this,
                     request,
-                    response,
                     observer,
                     observationContext,
                     actionAccept = actionAccept(request, result),
