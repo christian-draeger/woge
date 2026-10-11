@@ -103,3 +103,7 @@ server-outcome reconciliation, not a DOM renderer or an alternative to server-re
 
 The [navigation, overlay and feedback guide](navigation-overlay-feedback.md) covers URL links, native
 dialogs and popovers, progress, skeletons, persistent toasts and patch-safe announcements.
+
+The [data display and complex inputs guide](data-display-and-complex-inputs.md) covers cards, badges,
+avatars, sortable tables, paging with typed URLs, loading/stale/error states, and native combobox,
+date and multi-select inputs.

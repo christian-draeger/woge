@@ -44,6 +44,7 @@ public fun main(args: Array<String>) {
     File(args.single()).apply { mkdirs() }.also { output ->
         output.resolve("css.html").writeText(cssExamples())
         output.resolve("tailwind.html").writeText(tailwindExamples())
+        writeDataFixtures(output)
     }
 }
 

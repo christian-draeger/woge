@@ -645,6 +645,240 @@
           ]
         }
       }
+    },
+    {
+      "name": "data-display-components",
+      "version": "1.0.0",
+      "description": "Cards, badges, avatars, tables with URL sorting, filters, pagination windows and explicit data states.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [],
+      "designTokens": [
+        "--woge-ink",
+        "--woge-line",
+        "--woge-surface",
+        "--woge-focus",
+        "--woge-ok",
+        "--woge-danger"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "013f4e11274cc7c9dedd8de819b37a18af55026398e7bc744ccadbe87ac7c7da",
+        "path": "registry/data-display-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "data-display-components/css/DataDisplay.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataDisplay.kt",
+              "kind": "kotlin",
+              "sha256": "76fc7e7f8720a78a35bd57b2497fc7ea3c8f2eaec8a1d0a5aaf9e5dfff20bbba"
+            },
+            {
+              "source": "data-display-components/css/DataRegion.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataRegion.kt",
+              "kind": "kotlin",
+              "sha256": "4db4c5d255307c8d105a3c9656c51738c2062eb43c79776a062e5f4f8887f3a5"
+            },
+            {
+              "source": "data-display-components/css/DataTable.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataTable.kt",
+              "kind": "kotlin",
+              "sha256": "fcc0b9af2a8ec3af08c155158dec1f570721900fdadc62717b5e80914f1f86bb"
+            },
+            {
+              "source": "data-display-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/data-display-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "data-display-components/css/data-display-components.css",
+              "target": "src/main/resources/static/assets/components/data-display-components.css",
+              "kind": "css",
+              "sha256": "b831b73200bd70d7cd775c596a5408a1791efc122e0fead8329bbae591262892"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "data-display-components/css/data-display-components.css",
+              "scope": "woge-data-display-components",
+              "layer": "woge.components.data-display-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "data-display-components/css/DataDisplayComponentsTest.kt",
+              "sha256": "ad81a2f12bdcccbf3ac68c0cc3e63898875297c779842a8434b9afe0ad630904"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "data-display-components/tailwind/DataDisplay.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataDisplay.kt",
+              "kind": "kotlin",
+              "sha256": "76fc7e7f8720a78a35bd57b2497fc7ea3c8f2eaec8a1d0a5aaf9e5dfff20bbba"
+            },
+            {
+              "source": "data-display-components/tailwind/DataRegion.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataRegion.kt",
+              "kind": "kotlin",
+              "sha256": "2a0b5560ab98c80eca4600ad0d328f9a48f18866fa44a2cc536167c46fc81813"
+            },
+            {
+              "source": "data-display-components/tailwind/DataTable.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/DataTable.kt",
+              "kind": "kotlin",
+              "sha256": "fcc0b9af2a8ec3af08c155158dec1f570721900fdadc62717b5e80914f1f86bb"
+            },
+            {
+              "source": "data-display-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/data-display-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "data-display-components/tailwind/DataRegion.kt",
+              "scope": "woge-data-display-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "data-display-components/tailwind/DataDisplayComponentsTest.kt",
+              "sha256": "ad81a2f12bdcccbf3ac68c0cc3e63898875297c779842a8434b9afe0ad630904"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "complex-input-components",
+      "version": "1.0.0",
+      "description": "Native combobox (datalist), date input and checkbox-group multi-choice on the form components.",
+      "dependencies": {
+        "items": [
+          "form-components"
+        ],
+        "modules": [
+          "dev.woge:woge-host-spi",
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "formField",
+        "formFieldErrors"
+      ],
+      "designTokens": [
+        "--woge-ink",
+        "--woge-line",
+        "--woge-danger",
+        "--woge-focus"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "7ed3cd2f4c6b78154cbf38f483d4039b9ead2722cff5dcedfba45b8d5e006c0a",
+        "path": "registry/complex-input-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "complex-input-components/css/ComplexInputs.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/ComplexInputs.kt",
+              "kind": "kotlin",
+              "sha256": "5183ffde4936743682fe92820f9aae53487d8b6d1d6b9c350f616412fd00dbdd"
+            },
+            {
+              "source": "complex-input-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/complex-input-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "complex-input-components/css/complex-input-components.css",
+              "target": "src/main/resources/static/assets/components/complex-input-components.css",
+              "kind": "css",
+              "sha256": "c2323bf6522873046b3016c4f290f5bab1d2012a0e27b7f03cbd9073a2e9b7cf"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "complex-input-components/css/complex-input-components.css",
+              "scope": "woge-complex-input-components",
+              "layer": "woge.components.complex-input-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "complex-input-components/css/ComplexInputComponentsTest.kt",
+              "sha256": "1b420333706c37fe5727588e59b08f34650d45c335bb21986cb65f6bbc32b850"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "complex-input-components/tailwind/ComplexInputs.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/ComplexInputs.kt",
+              "kind": "kotlin",
+              "sha256": "123183cf5318f2e16109a4f2c885ad8164877e5165c6a4dba951dd9d88221ebe"
+            },
+            {
+              "source": "complex-input-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/complex-input-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "complex-input-components/tailwind/ComplexInputs.kt",
+              "scope": "woge-complex-input-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "complex-input-components/tailwind/ComplexInputComponentsTest.kt",
+              "sha256": "1b420333706c37fe5727588e59b08f34650d45c335bb21986cb65f6bbc32b850"
+            }
+          ]
+        }
+      }
     }
   ]
 }

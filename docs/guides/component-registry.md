@@ -50,12 +50,17 @@ license/provenance and readable pristine snapshots for later comparisons. Do not
 | `navigation-components` | `css`, `tailwind` | Native links, URL tabs, breadcrumb, pagination and disclosure dropdown |
 | `overlay-components` | `css`, `tailwind` | Native dialog/drawer, popover and explicit tooltip help |
 | `feedback-components` | `css`, `tailwind` | Native progress, skeleton, static alert/toast and stable `liveRegion` |
+| `data-display-components` | `css`, `tailwind` | Native article/span/img, table in a scroll region, GET filter form, links for sort and paging |
+| `complex-input-components` | `css`, `tailwind` | Native `input` + `datalist`, `input type="date"`, checkbox group (requires `form-components`) |
 
 The [form components guide](form-components.md) starts with simple composition before states and
 validation. This cohesive bundle also requires `dev.woge:woge-host-spi`; the installer reports it.
 
 The [navigation, overlay and feedback guide](navigation-overlay-feedback.md) explains native navigation,
 opt-in modal behavior and stable announcement regions.
+
+The [data display and complex inputs guide](data-display-and-complex-inputs.md) explains tables, paging,
+state semantics and the native-control choices for combobox, date and multi-select inputs.
 
 The [canonical recipes](../../registry) and [contract tests](../../testing/woge-component-registry)
 are compile-verified. Import the installed extension functions from your package and call them

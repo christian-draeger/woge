@@ -9,6 +9,9 @@ const routes = new Map([
   ["/component-navigation.css", { path: new URL("../../../registry/navigation-components/css/navigation-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
   ["/component-overlay.css", { path: new URL("../../../registry/overlay-components/css/overlay-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
   ["/component-feedback.css", { path: new URL("../../../registry/feedback-components/css/feedback-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-form.css", { path: new URL("../../../registry/form-components/css/form-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-data.css", { path: new URL("../../../registry/data-display-components/css/data-display-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
+  ["/component-complex.css", { path: new URL("../../../registry/complex-input-components/css/complex-input-components.css", import.meta.url), type: "text/css; charset=utf-8" }],
   ["/component-tailwind.css", { path: new URL("../../../testing/woge-component-registry/build/generated/browser-component-styles/tailwind.css", import.meta.url), type: "text/css; charset=utf-8" }],
   ["/dialog.js", { path: new URL("../../../modules/woge-ui-headless/src/main/resources/static/assets/woge-ui/dialog.js", import.meta.url), type: "text/javascript; charset=utf-8" }],
   ["/signals", { path: new URL("./signals-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
@@ -108,6 +111,11 @@ const server = createServer(async (request, response) => {
     response.end(Buffer.from(encodeStream([...patches, completeFrame(2)])));
     return;
   }
+  if (url.pathname.startsWith("/data/") || url.pathname.startsWith("/data-fragment/") ||
+    url.pathname.startsWith("/data-state/") || url.pathname.startsWith("/data-extra/")) {
+    await serveDataFixture(url, response);
+    return;
+  }
   if (url.pathname === "/strict") response.setHeader("Content-Security-Policy", STRICT_CSP);
   if (["/action", "/preview"].includes(url.pathname) && request.method === "POST") {
     for await (const _ of request) {}
@@ -177,6 +185,35 @@ const server = createServer(async (request, response) => {
 
 server.listen(4173, "127.0.0.1");
 process.on("SIGTERM", () => server.close());
+
+// Static fixtures stand in for the server: the query picks the file the Kotlin generator wrote for it.
+async function serveDataFixture(url, response) {
+  const [, kind, variant] = url.pathname.split("/");
+  const fixtures = new URL("../../../testing/woge-component-registry/build/generated/browser-components/", import.meta.url);
+  const query = url.searchParams;
+  const q = (query.get("q") ?? "").trim().toLowerCase();
+  let name;
+  if (!["css", "tailwind"].includes(variant)) {
+    name = undefined;
+  } else if (kind === "data-state") {
+    name = `data-${variant}-state-${query.get("state")}-region`;
+  } else if (kind === "data-extra") {
+    name = `${query.get("kind")}-${variant}`;
+  } else {
+    const sort = query.get("sort") === "role" ? "role" : "name";
+    const dir = query.get("dir") === "desc" ? "desc" : "asc";
+    const page = Number(query.get("page")) === 2 ? 2 : 1;
+    name = `data-${variant}-${q === "" ? "all" : q}-${sort}-${dir}-${page}${kind === "data-fragment" ? "-region" : ""}`;
+  }
+  try {
+    if (!name || !/^[a-z0-9-]+$/.test(name)) throw new Error("unknown fixture");
+    const html = await readFile(new URL(`${name}.html`, fixtures));
+    response.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+    response.end(html);
+  } catch {
+    response.writeHead(404).end();
+  }
+}
 
 function startDeferredResponse(runId, response) {
   if (!runId || pendingDeferredResponses.has(runId)) {
