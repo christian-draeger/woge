@@ -1,0 +1,16 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.complex-input-components {
+    :where([data-woge-scope="woge-complex-input-components"]) { color: var(--woge-ink, #1f2933); }
+    :where([data-woge-scope="woge-complex-input-components"][data-part="group"]) {
+        display: grid; gap: 0.5rem; margin: 0; border: 1px solid var(--woge-line, #d9e2ec); padding: 0.75rem 1rem;
+    }
+    :where([data-woge-scope="woge-complex-input-components"][data-part="group"][data-invalid="true"]) {
+        border-color: var(--woge-danger, #b42318);
+    }
+    :where([data-woge-scope="woge-complex-input-components"][data-part="choice"]) {
+        display: flex; align-items: center; gap: 0.5rem; min-block-size: 2.75rem;
+    }
+    :where([data-woge-scope="woge-complex-input-components"][data-part="choice"] input) {
+        inline-size: 1.25rem; block-size: 1.25rem; accent-color: var(--woge-focus, #005fcc);
+    }
+}

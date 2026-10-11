@@ -4,6 +4,7 @@ import org.gradle.api.tasks.PathSensitivity
 plugins {
     id("dev.woge.kotlin-jvm-library")
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
 }
 
 description = "Compile and semantic contract tests for every published component variant."
@@ -11,6 +12,7 @@ description = "Compile and semantic contract tests for every published component
 dependencies {
     implementation(project(":woge-ui-headless"))
     implementation(project(":woge-host-spi"))
+    ksp(project(":woge-ksp"))
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
@@ -105,12 +107,16 @@ val compileComponentTailwind =
         inputs.dir(rootProject.file("registry/navigation-components/tailwind"))
         inputs.dir(rootProject.file("registry/overlay-components/tailwind"))
         inputs.dir(rootProject.file("registry/feedback-components/tailwind"))
+        inputs.dir(rootProject.file("registry/form-components/tailwind"))
+        inputs.dir(rootProject.file("registry/data-display-components/tailwind"))
+        inputs.dir(rootProject.file("registry/complex-input-components/tailwind"))
         outputs.file(stylesheet)
     }
 
 tasks.register<Exec>("componentBrowserTest") {
     group = "verification"
-    description = "Tests source-owned navigation, overlay and feedback contracts in native browsers."
+    description =
+        "Tests source-owned navigation, overlay, feedback, data-display and complex-input contracts in native browsers."
     dependsOn(generateBrowserComponents, compileComponentTailwind)
     workingDir(rootProject.file("client/woge-fallback-client"))
     commandLine(

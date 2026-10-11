@@ -105,7 +105,8 @@
     "island": "examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt",
     "atomicRegionUpdates": "docs/guides/typed-actions.md",
     "formComponents": "docs/guides/form-components.md",
-    "navigationOverlayFeedback": "docs/guides/navigation-overlay-feedback.md"
+    "navigationOverlayFeedback": "docs/guides/navigation-overlay-feedback.md",
+    "dataDisplayAndComplexInputs": "docs/guides/data-display-and-complex-inputs.md"
   },
   "modules": [
     {
@@ -360,7 +361,8 @@
         "source-owned-components",
         "component-registry-validation",
         "accessible-native-form-components",
-        "accessible-native-navigation-overlay-feedback-components"
+        "accessible-native-navigation-overlay-feedback-components",
+        "native-data-display-and-complex-input-components"
       ],
       "guide": "docs/guides/component-registry.md",
       "example": "registry/disclosure-card/css/DisclosureCard.kt"
