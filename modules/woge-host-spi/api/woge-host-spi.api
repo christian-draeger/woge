@@ -31,6 +31,8 @@ public final class dev/woge/host/ActionNavigationKt {
 	public static final field ACTION_NAVIGATION_HEADER Ljava/lang/String;
 	public static final fun acceptsActionPatches (Ljava/lang/String;)Z
 	public static final fun enhancedActionNavigation (Ldev/woge/host/PageResult$Redirect;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun requestsUnsupportedActionPatchVersion (Ljava/lang/String;)Z
+	public static final fun requestsUnsupportedLiveProtocolVersion (Ljava/lang/String;)Z
 }
 
 public final class dev/woge/host/ActionRegionUpdates {

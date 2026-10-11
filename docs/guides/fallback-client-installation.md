@@ -171,3 +171,6 @@ fail closed; stale or cancelled responses stay silent. The summary must not be a
 
 The policies are recorded in [ADR 0056](../adr/0056-explicit-action-form-enhancement.md) and
 [ADR 0058](../adr/0058-shared-accessible-form-errors.md).
+
+For rolling deployments, align the npm client with the server release and retain both versions of
+fingerprinted assets during the rollout. See the [compatibility and upgrades guide](compatibility-and-upgrades.md).

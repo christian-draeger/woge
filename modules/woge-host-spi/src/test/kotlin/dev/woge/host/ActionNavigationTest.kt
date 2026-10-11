@@ -4,7 +4,9 @@ import dev.woge.html.applicationUrl
 import dev.woge.html.externalUrl
 import dev.woge.protocol.PatchStreamV1
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ActionNavigationTest {
@@ -35,5 +37,14 @@ class ActionNavigationTest {
         }
         val external = externalRedirect(externalUrl("https://example.com/tasks"), ExternalRedirectPolicy { true })
         assertNull(external.enhancedActionNavigation(PatchStreamV1.MEDIA_TYPE))
+    }
+
+    @Test
+    fun `unsupported explicit patch versions can be rejected without treating native forms as protocol requests`() {
+        assertTrue(requestsUnsupportedActionPatchVersion("application/vnd.woge.patch-stream; version=2"))
+        assertTrue(requestsUnsupportedActionPatchVersion("application/vnd.woge.patch-stream; version=\"2\""))
+        assertFalse(requestsUnsupportedActionPatchVersion("application/vnd.woge.patch-stream; version=1"))
+        assertFalse(requestsUnsupportedActionPatchVersion("*/*"))
+        assertFalse(requestsUnsupportedActionPatchVersion("text/html"))
     }
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PatchStreamDecoder, WogePatchError, WogeRemotePatchError } from "../src/protocol.js";
-import { classifyWogeFailure, createWogeRecoveryBudget } from "../src/recovery.js";
+import { classifyWogeFailure, createWogeRecoveryBudget, reloadForIncompatibleVersion } from "../src/recovery.js";
 import { encodeStream, patchFrame, rawFrame } from "../test-support/protocol-fixture.mjs";
 
 function decodeFailure(bytes) {
@@ -141,4 +141,21 @@ test("without storage the budget never reloads", () => {
   assert.equal(createWogeRecoveryBudget({ storage: null }).tryReload("epoch"), false);
   const throwing = { getItem: () => { throw new Error("denied"); }, setItem: () => {} };
   assert.equal(createWogeRecoveryBudget({ storage: throwing }).tryReload("epoch"), false);
+});
+
+
+test("incompatible versions trigger one safe document navigation per URL", () => {
+  const values = new Map();
+  const assigned = [];
+  const root = { defaultView: {
+    location: { href: "https://example.test/page", assign: (url) => assigned.push(url) },
+    sessionStorage: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+    },
+  } };
+  assert.equal(reloadForIncompatibleVersion(root), true);
+  assert.deepEqual(assigned, ["https://example.test/page"]);
+  assert.equal(reloadForIncompatibleVersion(root), false);
+  assert.equal(assigned.length, 1);
 });

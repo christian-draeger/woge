@@ -10,6 +10,7 @@ import dev.woge.runtime.LiveAdmission
 import dev.woge.runtime.LiveEventStream
 import dev.woge.runtime.LiveResponse
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.response.respond
 
 /** Streams live region invalidations as Server-Sent Events through a Ktor route. */
 public class WogeKtorLiveHandler<Input : Any> internal constructor(
@@ -21,6 +22,15 @@ public class WogeKtorLiveHandler<Input : Any> internal constructor(
 ) {
     /** Authorizes and admits the stream before the first byte, then flushes every event. */
     public suspend fun handle(call: ApplicationCall) {
+        if (dev.woge.host.requestsUnsupportedLiveProtocolVersion(
+                call.request.queryParameters["_woge_protocol_version"],
+            )
+        ) {
+            call.response.headers.append("Woge-Protocol-Error", "unsupported-version")
+            call.response.headers.append("Cache-Control", "no-store")
+            call.respond(io.ktor.http.HttpStatusCode.NotAcceptable)
+            return
+        }
         val context = contexts.create(call)
         val observation = WogeObservationContext(requestTrace = context.trace)
         val decoded =

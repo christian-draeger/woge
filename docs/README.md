@@ -36,6 +36,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Build and test Woge](development/build-and-test.md)
 - [Maintain the Spring Boot application scaffold](development/spring-boot-application-scaffold.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
+- [Compatibility and upgrades](guides/compatibility-and-upgrades.md)
 - [Repository scaffold provenance](development/scaffold-provenance.md)
 
 ## Implemented API guides
@@ -51,6 +52,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Encode and decode fallback patch streams](guides/patch-stream-codec.md)
 - [Apply a patch stream in the browser](guides/browser-replace-runtime.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
+- [Compatibility and upgrades](guides/compatibility-and-upgrades.md)
 - [Render independent page regions](guides/deferred-regions.md)
 - [Run a Woge page with Spring WebFlux](guides/spring-webflux-adapter.md)
 - [Run a Woge page with Spring MVC](guides/spring-mvc-adapter.md)

@@ -11,7 +11,16 @@ public class WogeWebFluxActionHandler<Command : Any> internal constructor(
     private val delegate: WogeWebFluxPageHandler<Command>,
 ) {
     public suspend fun handle(request: ServerRequest): ServerResponse =
-        if (request.method() == HttpMethod.POST) {
+        if (request.method() == HttpMethod.POST &&
+            dev.woge.host.requestsUnsupportedActionPatchVersion(request.headers().firstHeader("Accept"))
+        ) {
+            ServerResponse
+                .status(HttpStatus.NOT_ACCEPTABLE)
+                .header("Woge-Protocol-Error", "unsupported-version")
+                .header("Cache-Control", "no-store")
+                .build()
+                .awaitSingle()
+        } else if (request.method() == HttpMethod.POST) {
             delegate.handleAction(request)
         } else {
             ServerResponse

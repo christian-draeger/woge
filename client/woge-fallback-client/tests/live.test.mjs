@@ -43,7 +43,7 @@ test("invalidations refresh each region once at a time with one follow-up", asyn
   const runtime = fakeRuntime();
   const live = connectWogeLive(runtime, "/live", { load: async () => {}, EventSource: FakeSource });
   const source = FakeSource.last;
-  assert.equal(source.url, "/live");
+  assert.equal(source.url, "/live?_woge_protocol_version=1");
   source.emit("invalidate", "a\nb");
   source.emit("invalidate", "a");
   source.emit("invalidate", "a");
@@ -60,6 +60,17 @@ test("invalidations refresh each region once at a time with one follow-up", asyn
   live.close();
   assert.equal(source.closed, true);
   assert.equal(runtime.pending[0].signal.aborted, true);
+});
+
+test("live URLs announce the protocol version and connection errors are reported safely", () => {
+  const runtime = fakeRuntime();
+  const problems = [];
+  connectWogeLive(runtime, "/live?session=a", {
+    load: async () => {}, EventSource: FakeSource, onError: (problem) => problems.push(problem.code),
+  });
+  assert.equal(FakeSource.last.url, "/live?session=a&_woge_protocol_version=1");
+  FakeSource.last.emit("error");
+  assert.deepEqual(problems, ["WOGE_LIVE_CONNECTION"]);
 });
 
 test("failed refreshes are reported and later events still refresh", async () => {

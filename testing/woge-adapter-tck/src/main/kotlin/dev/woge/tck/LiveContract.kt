@@ -108,6 +108,22 @@ internal suspend fun AdapterTckHttpClient.verifyLive(
     denied.body().close()
     expect(denied.statusCode() == FORBIDDEN, contract, "refused subscription must keep the application status")
 
+    val incompatible =
+        open(
+            RequestMethod.GET,
+            "${AdapterTckLiveRoute.url(AdapterTckLiveInput("unsupported")).value}?_woge_protocol_version=2",
+        )
+    incompatible.body().use { body ->
+        expect(
+            incompatible.statusCode() == UNSUPPORTED_LIVE_STATUS &&
+                incompatible.header("woge-protocol-error") == "unsupported-version" &&
+                fixture.subscribers.get() == 0,
+            contract,
+            "unsupported live protocol version was not rejected before subscription",
+        )
+        expect(body.readAllBytes().isEmpty(), contract, "unsupported live version exposed a body")
+    }
+
     val first = openLive("a")
     expect(first.statusCode() == OK, contract, "expected HTTP 200 for an admitted stream")
     expect(
@@ -168,6 +184,8 @@ internal suspend fun AdapterTckHttpClient.verifyLive(
     reopened.body().close()
     awaitSubscribers(fixture, 0)
 }
+
+private const val UNSUPPORTED_LIVE_STATUS = 406
 
 private fun AdapterTckHttpClient.openLive(
     session: String,

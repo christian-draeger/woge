@@ -1,4 +1,5 @@
 import { WogePatchError } from "./protocol.js";
+import { WOGE_PATCH_PROTOCOL_VERSION } from "./version.js";
 
 const MAX_TARGETS_PER_EVENT = 128;
 
@@ -49,7 +50,10 @@ export function connectWogeLive(runtime, url, { load, onError, EventSource: Sour
     }
     targets.forEach(refresh);
   };
-  const source = new Source(url, { withCredentials: false });
+  const source = new Source(versionedLiveUrl(url), { withCredentials: false });
+  source.addEventListener("error", () => {
+    report(new WogePatchError("WOGE_LIVE_CONNECTION", "Live updates are unavailable"));
+  });
   source.addEventListener("invalidate", receive);
   source.addEventListener("resync", receive);
   return Object.freeze({
@@ -60,4 +64,16 @@ export function connectWogeLive(runtime, url, { load, onError, EventSource: Sour
       controller.abort();
     },
   });
+}
+
+
+function versionedLiveUrl(value) {
+  const absolute = /^[a-z][a-z\d+.-]*:/i.test(value);
+  const protocolRelative = value.startsWith("//");
+  const base = globalThis.location?.href ?? "http://localhost/";
+  const address = new URL(value, base);
+  address.searchParams.set("_woge_protocol_version", String(WOGE_PATCH_PROTOCOL_VERSION));
+  if (absolute) return address.href;
+  if (protocolRelative) return `//${address.host}${address.pathname}${address.search}${address.hash}`;
+  return `${address.pathname}${address.search}${address.hash}`;
 }

@@ -47,6 +47,27 @@ class PatchStreamCodecTest {
     }
 
     @Test
+    fun `version-one action and live wire fixtures stay stable`() {
+        val actionForm =
+            checkNotNull(javaClass.getResourceAsStream("/fixtures/action-form-v1.txt"))
+                .bufferedReader()
+                .use { it.readText().trim() }
+        val encodedForm =
+            listOf("value" to "accepted", "note" to "two words\r\nsecond line")
+                .joinToString("&") { (name, value) ->
+                    "${java.net.URLEncoder.encode(name, StandardCharsets.UTF_8.name())}=" +
+                        java.net.URLEncoder.encode(value, StandardCharsets.UTF_8.name())
+                }
+        assertEquals(encodedForm, actionForm)
+        assertEquals(
+            "id: 42\nevent: invalidate\ndata: tasks\ndata: summary\n\n",
+            checkNotNull(javaClass.getResourceAsStream("/fixtures/live-events-v1.txt"))
+                .bufferedReader()
+                .use { it.readText().replace("\r\n", "\n") },
+        )
+    }
+
+    @Test
     fun `metadata is rejected before an active HTML payload is inspected`() {
         val unsupportedMetadata =
             "{" +

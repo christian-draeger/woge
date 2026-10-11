@@ -54,6 +54,13 @@ export function encodeStream(frames) {
   return concatenate([Uint8Array.of(0x57, 0x4f, 0x47, 0x45, 0x01), ...frames]);
 }
 
+export async function readGoldenWireFixture(name) {
+  return readFile(
+    new URL(`../../../modules/woge-protocol/src/test/resources/fixtures/${name}`, import.meta.url),
+    "utf8",
+  );
+}
+
 export async function readGoldenStream(name = "patch-stream-v1") {
   const value = await readFile(
     new URL(`../../../modules/woge-protocol/src/test/resources/fixtures/${name}.hex`, import.meta.url),

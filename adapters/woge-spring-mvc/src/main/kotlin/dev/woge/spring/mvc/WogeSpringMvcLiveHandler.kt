@@ -33,10 +33,7 @@ public class WogeSpringMvcLiveHandler<Input : Any> internal constructor(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        if (request.method != "GET") {
-            response.writeMethodNotAllowed(setOf("GET"))
-            return
-        }
+        if (rejectRequest(request, response)) return
         val context = contexts.create(request)
         val decoded =
             try {
@@ -72,4 +69,22 @@ public class WogeSpringMvcLiveHandler<Input : Any> internal constructor(
             }
         }
     }
+
+    private fun rejectRequest(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): Boolean =
+        when {
+            request.method != "GET" -> {
+                response.writeMethodNotAllowed(setOf("GET"))
+                true
+            }
+            dev.woge.host.requestsUnsupportedLiveProtocolVersion(request.getParameter("_woge_protocol_version")) -> {
+                response.status = HttpServletResponse.SC_NOT_ACCEPTABLE
+                response.setHeader("Woge-Protocol-Error", "unsupported-version")
+                response.setHeader("Cache-Control", "no-store")
+                true
+            }
+            else -> false
+        }
 }

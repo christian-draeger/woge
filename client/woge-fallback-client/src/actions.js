@@ -1,5 +1,5 @@
 import { isPatchStreamMediaType, PATCH_STREAM_MEDIA_TYPE, WogePatchError } from "./protocol.js";
-import { classifyWogeFailure } from "./recovery.js";
+import { classifyWogeFailure, reloadForIncompatibleVersion } from "./recovery.js";
 
 export const ACTION_ERROR_EVENT = "woge:action-error";
 
@@ -25,6 +25,8 @@ export function installWogeActionForms(root, runtime) {
     void submit(root, runtime, submission, controller.signal)
       .catch((problem) => {
         const failure = classifyWogeFailure(problem);
+        if (!controller.signal.aborted && failure.outcome === "reload-page" &&
+            reloadForIncompatibleVersion(root)) return;
         if (!controller.signal.aborted && failure.outcome !== "ignore-stale") {
           submission.alert.textContent = form.getAttribute("data-woge-failure-message");
           form.dispatchEvent(new root.defaultView.CustomEvent(ACTION_ERROR_EVENT, {
@@ -105,6 +107,10 @@ async function submit(root, runtime, submission, signal) {
     }
     if (!signal.aborted) root.defaultView.location.assign(url.href);
     return;
+  }
+  if (response.status === 406 && response.headers.get("Woge-Protocol-Error") === "unsupported-version") {
+    await response.body?.cancel();
+    throw new WogePatchError("WOGE_UNSUPPORTED_VERSION", "The server does not support this patch protocol version");
   }
   const validation = response.status === 400 && response.headers.get("Woge-Validation");
   if ((!response.ok && !validation) || !isPatchStreamMediaType(response.headers.get("Content-Type")) ||
