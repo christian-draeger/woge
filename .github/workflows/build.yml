@@ -32,8 +32,6 @@ jobs:
           WOGE_STREAM_PROXY_SCRIPT="$PWD/testing/proxies/stream-probe.py" \
             ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
             --tests '*AdapterTckTest' --console=plain
-      - name: Run the wogeDev edit loop in the external Spring Boot scaffold
-        run: ./gradlew scaffoldDevSmoke --stacktrace
       - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -120,6 +118,8 @@ jobs:
         run: ./gradlew :woge-component-registry:componentBrowserTest --stacktrace
       - name: Run the external Spring Boot scaffold browser gate
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
+      - name: Run the wogeDev edit loop in the external Spring Boot scaffold
+        run: ./gradlew scaffoldDevSmoke --stacktrace
       - name: Build the Tailwind example with npm
         run: ./gradlew testTailwindExample --stacktrace
       - name: Build and develop the Vite example with npm
@@ -137,3 +137,5 @@ jobs:
             client/woge-fallback-client/playwright-report/**
             client/woge-fallback-client/test-results/**
             build/reports/scaffold-browser/**
+            **/build/reports/**
+            **/build/test-results/**
