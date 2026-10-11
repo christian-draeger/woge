@@ -141,3 +141,6 @@ indexes and assembles these decisions rather than adding one.
 | [0094](0094-lazy-local-island-lifecycle.md) | Accepted | Mount lazy root-local islands through typed manifests and existing patch lifecycle |
 | [0095](0095-shared-example-rules-build.md) | Accepted | Keep shared KMP rules and system-Node tests example-owned |
 | [0096](0096-local-signals-and-optimistic-actions.md) | Accepted | Keep signals local and optimistic reconciliation driven by authoritative latest-intent outcomes |
+
+| [0097](0097-opt-in-kotlin-js-island-assets.md) | Accepted | Register opt-in Kotlin/JS island assets from production output |
+| [0097](0097-opt-in-kotlin-js-island-assets.md) | Accepted | Register opt-in Kotlin/JS island assets from production output |
