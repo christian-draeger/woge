@@ -54,8 +54,8 @@ Browser side:
   follow-up, which is the browser's latest-only bound.
 - Live refresh is not recovery: it does not use the once-per-revision recovery budget, but it uses
   the same Replace validation, ordering and stale-revision checks.
-- Updates are silent and keep focus (ADR 0048). A page that wants an announcement renders its own
-  `role="status"` summary inside the refreshed region.
+- Updates are silent and keep focus (ADR 0048). Only after a user explicitly chooses to follow
+  updates does the page render its own `role="status"` summary inside the refreshed region.
 - If the server refuses the connection (403, 429, 503), `EventSource` stops. The page keeps working
   without live updates; normal navigation still shows current data.
 

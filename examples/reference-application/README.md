@@ -82,8 +82,9 @@ When another visitor adds a task, open boards show a live notice: "1 new task wa
 latest board". The page opens `GET /projects/woge/tasks/live/{epoch}` with `EventSource`. That stream
 names only the activity region; the browser then loads the notice with the safe
 `GET /projects/woge/tasks/activity/{epoch}/{target}/{revision}/{interaction}?since=<version>`.
-The notice sits in `role="status"`, never moves focus and links to the normal board instead of
-changing the list under the user's cursor. Without JavaScript or the stream, the board works as before.
+The notice is ordinary, non-live HTML: it stays silent, never moves focus and links to the normal
+board instead of changing the list under the user's cursor. A polite live summary is appropriate only
+after the user explicitly chooses to follow updates. Without JavaScript or the stream, the board works as before.
 
 [`shared`](shared) contains the host-neutral `ProjectPage`, semantic HTML, region work and web assets.
 [`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and [`ktor`](ktor) contain only their
@@ -111,3 +112,6 @@ The [Spring Boot quickstart](../../docs/guides/quickstart-spring-boot.md) introd
 Kotlin syntax just in time. The [Ktor guide](../../docs/guides/ktor-adapter.md) explains the secondary
 bootstrap. Reproducible source measurements and comparison with the hand-written M0 Spring fixture
 live in the [M1 baseline](../../docs/performance/m1-multi-host-baseline.md).
+
+The [accessibility guide](../../docs/guides/accessibility.md) maps the shared automated contract,
+keyboard-only reference journeys, dashboard stress checks and the manual audit checklist.

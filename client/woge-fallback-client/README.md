@@ -198,6 +198,9 @@ before it can publish.
 See the [browser runtime guide](../../docs/guides/browser-replace-runtime.md) and
 [ADR 0025](../../docs/adr/0025-browser-replace-runtime-and-lifecycle.md) for the complete boundary.
 
+The [accessibility guide](../../docs/guides/accessibility.md) maps keyboard, independent focus and
+announcement checks, the shared component contract and the manual audit checklist.
+
 ## Strict Content Security Policy
 
 Load the client as an external module. Patching supports `require-trusted-types-for 'script'`

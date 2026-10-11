@@ -1,0 +1,47 @@
+import { expect, test } from "../test-support/strict-csp.mjs";
+import { assertAccessibilityContract, assertPageReflow, pressTab, tabTo } from "../test-support/accessibility-contract.mjs";
+
+test("native keyboard journeys reach equivalent board and project outcomes", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/projects/woge/tasks");
+  await assertPageReflow(page);
+  await assertAccessibilityContract(page, { javaScriptEnabled: false });
+  await pressTab(page);
+  await expect(page.getByRole("link", { name: "Skip to board content" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  const input = page.getByLabel("Task title");
+  await tabTo(page, input);
+  const title = `Native keyboard ${test.info().project.name}`;
+  await page.keyboard.type(title);
+  await pressTab(page);
+  await expect(page.getByRole("button", { name: "Add task" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#board-tasks li", { hasText: title })).toHaveCount(1);
+  await assertAccessibilityContract(page, { javaScriptEnabled: false });
+  await tabTo(page, page.locator("details > summary"));
+  await page.keyboard.press("Space");
+  await expect(page.locator("details")).toHaveAttribute("open", "");
+  const popover = page.getByRole("button", { name: "Live updates" });
+  await tabTo(page, popover);
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#live-updates")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#live-updates")).toBeHidden();
+  await expect(popover).toBeFocused();
+  await tabTo(page, page.getByRole("link", { name: "Board help" }));
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/view=help$/);
+  await expect(page.getByRole("heading", { name: "Board help", exact: true })).toBeVisible();
+  await assertPageReflow(page);
+  await assertAccessibilityContract(page, { javaScriptEnabled: false });
+
+  await page.goto("/projects/woge");
+  await tabTo(page, page.getByRole("link", { name: "Load all project data as one complete page." }));
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/view=complete$/);
+  await expect(page.getByRole("table", { name: "Current tasks for Woge" })).toBeVisible();
+  await expect(page.locator('[aria-live], [role="status"], [role="alert"]')).toHaveCount(0);
+  await assertPageReflow(page);
+  await assertAccessibilityContract(page, { javaScriptEnabled: false });
+});

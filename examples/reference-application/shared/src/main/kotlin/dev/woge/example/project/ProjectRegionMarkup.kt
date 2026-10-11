@@ -56,21 +56,28 @@ internal fun HtmlWriter.projectSummary(project: ProjectSnapshot) {
 @WogeRegion
 internal fun HtmlWriter.projectTasks(project: ProjectSnapshot) {
     h2(attributes = { attribute("id", "tasks-heading") }) { text("Tasks") }
-    table {
-        caption { text("Current tasks for ${project.name}") }
-        thead {
-            tr {
-                tableHeading("Task")
-                tableHeading("Owner")
-                tableHeading("Status")
-            }
-        }
-        tbody {
-            project.tasks.forEach { task ->
+    div(attributes = {
+        classes("table-scroll")
+        attribute("tabindex", "0")
+        attribute("role", "region")
+        aria("label", "Tasks table")
+    }) {
+        table {
+            caption { text("Current tasks for ${project.name}") }
+            thead {
                 tr {
-                    th(attributes = { attribute("scope", "row") }) { text(task.title) }
-                    td { text(task.owner) }
-                    td { text(task.status) }
+                    tableHeading("Task")
+                    tableHeading("Owner")
+                    tableHeading("Status")
+                }
+            }
+            tbody {
+                project.tasks.forEach { task ->
+                    tr {
+                        th(attributes = { attribute("scope", "row") }) { text(task.title) }
+                        td { text(task.owner) }
+                        td { text(task.status) }
+                    }
                 }
             }
         }

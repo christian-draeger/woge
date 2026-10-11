@@ -92,9 +92,8 @@ never reaches a live region. One action writes at most one announcement.
 - `client/woge-fallback-client/browser-tests/accessibility.spec.mjs` proves in Chromium, Firefox and
   WebKit that deferred loading, completion and superseded patches keep focus and create no live
   region or busy state.
-- Validation ([#35](https://github.com/christian-draeger/woge/issues/35)), successful enhanced
-  actions ([#31](https://github.com/christian-draeger/woge/issues/31)) and live updates
-  ([#38](https://github.com/christian-draeger/woge/issues/38)) add their browser tests for rules 3–6
-  when those features exist.
-- Typed action outcomes in M2 decide which live region an action writes to; no Patch IR change is
-  needed for that.
+- Validation, successful enhanced actions and live updates now have browser coverage. The
+  [accessibility guide](../guides/accessibility.md) maps the independent focus assertions,
+  live-region write counters, native/enhanced reference journeys and manual screen-reader checklist.
+- [ADR 0082](0082-shared-web-accessibility-contract.md) applies this policy to the shared component
+  contract and corrects the reference board's unrequested live notice to ordinary, silent HTML.

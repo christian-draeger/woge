@@ -26,7 +26,9 @@ plain/CSS-Module/Tailwind class composition, head assets and explicit CSP/SRI bo
 [Vite guide](vite.md) adds an optional Vite build and dev server for TypeScript and npm packages.
 
 The [UI primitives guide](ui-primitives.md) shows the accessible disclosure, dialog, popover and
-live-region building blocks, with plain-CSS and Tailwind recipes.
+live-region building blocks, with plain-CSS and Tailwind recipes. The
+[accessibility guide](accessibility.md) gives the shared keyboard, focus, announcement and semantic
+HTML contract, automated evidence and a manual audit checklist.
 
 The [HTML sink guide](stream-html.md) explains when to buffer or stream the same component functions.
 
