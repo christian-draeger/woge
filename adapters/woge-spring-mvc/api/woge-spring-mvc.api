@@ -15,6 +15,7 @@ public final class dev/woge/spring/mvc/SpringMvcFormInputKt {
 
 public final class dev/woge/spring/mvc/SpringMvcMultipartInputKt {
 	public static final fun springMvcMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/spring/mvc/SpringMvcPageInput;
+	public static final fun springMvcMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadPolicy;)Ldev/woge/spring/mvc/SpringMvcPageInput;
 	public static synthetic fun springMvcMultipart$default (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/spring/mvc/SpringMvcPageInput;
 }
 

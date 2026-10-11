@@ -147,7 +147,7 @@ class ActionProcessorTest {
 
     @Test
     fun `unsupported command fields and duplicate descriptor names fail the build`() {
-        listOf("Any", "Map<String, String>", "List<List<String>>").forEach { type ->
+        listOf("Any", "Map<String, String>").forEach { type ->
             val result = runKsp(mapOf("Actions.kt" to source(VALID).replace("val title: String", "val title: $type")))
             assertTrue(result.errors.any { it.contains("WOGE-ACTION-003") }, result.errors.toString())
         }

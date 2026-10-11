@@ -1,8 +1,11 @@
 package dev.woge.spring.webflux
 
+import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.FormDecoder
 import dev.woge.host.MultipartSubmission
+import dev.woge.host.UploadDecodingException
 import dev.woge.host.UploadLimits
+import dev.woge.host.UploadPolicy
 import dev.woge.host.multipartBody
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -14,17 +17,29 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.web.reactive.function.BodyExtractors
 import java.nio.file.Path
 
-/** Uses bounded raw buffers and offloads temporary-file writes from the Reactor event loop. */
+/**
+ * Uses bounded raw buffers and offloads temporary-file writes from the Reactor event loop.
+ * A rejected upload drains at most [MAX_SWALLOW_BYTES] more before failing, so the response is not
+ * raced against cancelling a request body that is still arriving.
+ */
 public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
     limits: UploadLimits = UploadLimits(),
     temporaryDirectory: Path? = null,
+): WebFluxPageInput<MultipartSubmission<Command>> =
+    webFluxMultipart(UploadPolicy(limits, { DirectoryUploadTemporaryFiles(temporaryDirectory) }))
+
+/** Explicit request-owned storage and part authorization; host action security runs before decoding. */
+public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
+    policy: UploadPolicy,
 ): WebFluxPageInput<MultipartSubmission<Command>> =
     WebFluxPageInput { request ->
         var completed: MultipartSubmission<Command>? = null
         try {
             withContext(Dispatchers.IO) {
-                multipartBody(request.headers().firstHeader("Content-Type"), limits, temporaryDirectory).use { body ->
+                multipartBody(request.headers().firstHeader("Content-Type"), policy).use { body ->
                     val bytes = ByteArray(UPLOAD_READ_BYTES)
+                    var rejected: UploadDecodingException? = null
+                    var swallowed = 0L
                     request
                         .body(BodyExtractors.toDataBuffers())
                         .doOnDiscard(DataBuffer::class.java, DataBufferUtils::release)
@@ -32,15 +47,25 @@ public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
                         .buffer(0)
                         .collect { buffer ->
                             try {
-                                while (buffer.readableByteCount() > 0) {
-                                    val count = minOf(buffer.readableByteCount(), bytes.size)
-                                    buffer.read(bytes, 0, count)
-                                    body.accept(bytes, length = count)
+                                if (rejected == null) {
+                                    try {
+                                        while (buffer.readableByteCount() > 0) {
+                                            val count = minOf(buffer.readableByteCount(), bytes.size)
+                                            buffer.read(bytes, 0, count)
+                                            body.accept(bytes, length = count)
+                                        }
+                                    } catch (failure: UploadDecodingException) {
+                                        rejected = failure
+                                    }
+                                } else {
+                                    swallowed += buffer.readableByteCount()
+                                    if (swallowed > MAX_SWALLOW_BYTES) throw checkNotNull(rejected)
                                 }
                             } finally {
                                 DataBufferUtils.release(buffer)
                             }
                         }
+                    rejected?.let { throw it }
                     body.finish().also { completed = it }
                 }
             }
@@ -51,3 +76,4 @@ public fun <Command : Any> FormDecoder<Command>.webFluxMultipart(
     }
 
 private const val UPLOAD_READ_BYTES = 4096
+private const val MAX_SWALLOW_BYTES = 2L * 1024 * 1024

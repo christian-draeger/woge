@@ -415,6 +415,30 @@
         "gzip": 2000,
         "brotli": 1800
       }
+    },
+    "woge-ui-headless/static/assets/woge-ui/upload.js": {
+      "measured": {
+        "raw": 3831,
+        "gzip": 1452,
+        "brotli": 1176
+      },
+      "ceiling": {
+        "raw": 4500,
+        "gzip": 2000,
+        "brotli": 1800
+      }
+    },
+    "woge-ui-headless/static/assets/woge-ui/upload.js:graph": {
+      "measured": {
+        "raw": 2344,
+        "gzip": 1107,
+        "brotli": 934
+      },
+      "ceiling": {
+        "raw": 4500,
+        "gzip": 2000,
+        "brotli": 1800
+      }
     }
   }
 }

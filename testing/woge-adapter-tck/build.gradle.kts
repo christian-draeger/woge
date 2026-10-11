@@ -10,6 +10,7 @@ dependencies {
     api(project(":woge-core"))
     api(project(":woge-protocol"))
     api(project(":woge-host-spi"))
+    implementation(project(":woge-ui-headless"))
     implementation(project(":woge-server-runtime"))
     implementation(libs.kotlinxCoroutinesCore)
     implementation(libs.kotlinxSerializationJson)

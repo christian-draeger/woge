@@ -18,8 +18,8 @@ import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
 import dev.woge.tck.tckUploadForm
-import dev.woge.tck.tckUploadLimits
 import dev.woge.tck.tckUploadPage
+import dev.woge.tck.tckUploadPolicy
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -118,7 +118,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
     private fun uploadAction(application: AdapterTckApplication) =
         WogeKtorHandlers().action(
             TckUploadAction,
-            tckUploadForm.ktorMultipart(tckUploadLimits, application.uploadDirectory),
+            tckUploadForm.ktorMultipart(tckUploadPolicy(application.uploadDirectory)),
             KtorRequestContextFactory { call ->
                 tckActionContext(
                     call.request.headers["X-Tck-Subject"],

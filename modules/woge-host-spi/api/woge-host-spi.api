@@ -353,6 +353,14 @@ public final class dev/woge/host/DescriptorMetadata$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/woge/host/DirectoryUploadTemporaryFiles : dev/woge/host/UploadTemporaryFiles {
+	public fun <init> ()V
+	public fun <init> (Ljava/nio/file/Path;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun create ()Ljava/nio/file/Path;
+}
+
 public final class dev/woge/host/DuplicateIdentityException : java/lang/IllegalStateException {
 }
 
@@ -403,12 +411,16 @@ public final class dev/woge/host/FormBody {
 public final class dev/woge/host/FormDecoder {
 	public fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;)V
 	public synthetic fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLocalization;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;)V
+	public synthetic fun <init> (Lkotlinx/serialization/KSerializer;Ldev/woge/host/FormLocalization;Ldev/woge/host/FormLimits;Ldev/woge/host/UnknownFormFields;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun body ()Ldev/woge/host/FormBody;
 	public final fun decode (Ldev/woge/host/FormBody;)Ldev/woge/host/FormResult;
 	public final fun decode ([B)Ldev/woge/host/FormResult;
 	public final fun field-HRBFrZE (Lkotlin/reflect/KProperty1;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/FormField;
 	public static synthetic fun field-HRBFrZE$default (Ldev/woge/host/FormDecoder;Lkotlin/reflect/KProperty1;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/FormField;
 	public final fun getLimits ()Ldev/woge/host/FormLimits;
+	public final fun path (Lkotlin/reflect/KProperty1;Ljava/lang/String;)Ldev/woge/host/FormPath;
+	public static synthetic fun path$default (Ldev/woge/host/FormDecoder;Lkotlin/reflect/KProperty1;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/FormPath;
 	public final fun requireContentType (Ljava/lang/String;)V
 	public final fun submission (Ldev/woge/host/FormBody;)Ldev/woge/host/FormSubmission;
 }
@@ -520,6 +532,21 @@ public final class dev/woge/host/FormLimits {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/woge/host/FormLocalization {
+	public fun <init> (Ljava/util/Locale;Ljava/lang/String;Ljava/util/Set;)V
+}
+
+public final class dev/woge/host/FormPath {
+	public final fun field-UIZ0vew (Ljava/lang/String;)Ldev/woge/host/FormField;
+	public final fun getName ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/FormPathKt {
+	public static final fun child (Ldev/woge/host/FormPath;Lkotlin/reflect/KProperty1;Ljava/lang/String;)Ldev/woge/host/FormPath;
+	public static synthetic fun child$default (Ldev/woge/host/FormPath;Lkotlin/reflect/KProperty1;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/FormPath;
+	public static final fun row-JbRE1sA (Ldev/woge/host/FormPath;I)Ldev/woge/host/FormPath;
+}
+
 public abstract interface class dev/woge/host/FormProblem {
 }
 
@@ -588,6 +615,24 @@ public final class dev/woge/host/FormResult$Rejected : dev/woge/host/FormResult 
 
 public final class dev/woge/host/FormResultKt {
 	public static final fun getOrThrow (Ldev/woge/host/FormResult;)Ljava/lang/Object;
+}
+
+public final class dev/woge/host/FormRowKey {
+	public static final field Companion Ldev/woge/host/FormRowKey$Companion;
+	public static final synthetic fun box-impl (I)Ldev/woge/host/FormRowKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class dev/woge/host/FormRowKey$Companion {
+	public final fun of-Yxp1T8k (I)I
 }
 
 public final class dev/woge/host/FormSubmission {
@@ -864,6 +909,7 @@ public final class dev/woge/host/MultipartBody : java/lang/AutoCloseable {
 
 public final class dev/woge/host/MultipartBodyKt {
 	public static final fun multipartBody (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;)Ldev/woge/host/MultipartBody;
+	public static final fun multipartBody (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadPolicy;)Ldev/woge/host/MultipartBody;
 	public static synthetic fun multipartBody$default (Ldev/woge/host/FormDecoder;Ljava/lang/String;Ldev/woge/host/UploadLimits;Ljava/nio/file/Path;ILjava/lang/Object;)Ldev/woge/host/MultipartBody;
 }
 
@@ -1530,6 +1576,34 @@ public final class dev/woge/host/UploadLimits {
 	public final fun getTemporaryBytes ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/UploadMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/woge/host/UploadMetadata;
+	public static synthetic fun copy$default (Ldev/woge/host/UploadMetadata;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/woge/host/UploadMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getField ()Ljava/lang/String;
+	public final fun getFilename ()Ljava/lang/String;
+	public final fun getMediaType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/host/UploadPolicy {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/host/UploadLimits;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ldev/woge/host/UploadLimits;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorize ()Lkotlin/jvm/functions/Function1;
+	public final fun getLimits ()Ldev/woge/host/UploadLimits;
+	public final fun getTemporaryFiles ()Lkotlin/jvm/functions/Function0;
+}
+
+public abstract interface class dev/woge/host/UploadTemporaryFiles : java/lang/AutoCloseable {
+	public abstract fun create ()Ljava/nio/file/Path;
 }
 
 public final class dev/woge/host/UploadedFile {

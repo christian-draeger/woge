@@ -11,7 +11,7 @@ It is a transport test fixture, not a production authentication configuration.
 ## Declare an upload action and form
 
 An upload action takes `MultipartSubmission<YourCommand>` and `RequestContext`. Annotate it with
-`@WogeAction` as in [typed actions](typed-actions.md). The command is the same flat `@Serializable`
+`@WogeAction` as in [typed actions](typed-actions.md). The command is the same `@Serializable`
 data class used for text-only forms; do not put file bytes or host framework types in it.
 
 KSP generates the typed descriptor. Render `multipartActionForm(YourUploadAction) { ... }` with
@@ -104,3 +104,9 @@ temporary-file cleanup. See [resource budgets](resource-budgets.md) for remainin
 
 Enhanced progress/cancellation, resumable uploads and advanced dynamic forms belong to
 [#119](https://github.com/christian-draeger/woge/issues/119), not this native API.
+
+## Optional progress and dynamic rows
+
+The [enhanced uploads and dynamic forms guide](enhanced-uploads-and-dynamic-forms.md) adds a separate
+opt-in asset, cancel button, storage/authorization hooks and typed nested rows. Native multipart remains
+the fallback. Existing limits and adapter bindings do not change.

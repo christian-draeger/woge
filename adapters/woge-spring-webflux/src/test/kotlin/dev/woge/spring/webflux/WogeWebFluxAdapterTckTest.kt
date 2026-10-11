@@ -18,8 +18,8 @@ import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
 import dev.woge.tck.tckUploadForm
-import dev.woge.tck.tckUploadLimits
 import dev.woge.tck.tckUploadPage
+import dev.woge.tck.tckUploadPolicy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
@@ -119,7 +119,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
     private fun uploadAction(application: AdapterTckApplication) =
         WogeWebFluxHandlers().action(
             TckUploadAction,
-            tckUploadForm.webFluxMultipart(tckUploadLimits, application.uploadDirectory),
+            tckUploadForm.webFluxMultipart(tckUploadPolicy(application.uploadDirectory)),
             WebFluxRequestContextFactory { request ->
                 tckActionContext(
                     request.headers().firstHeader("X-Tck-Subject"),

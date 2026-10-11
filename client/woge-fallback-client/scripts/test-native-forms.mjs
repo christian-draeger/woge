@@ -14,6 +14,7 @@ try {
       extraHTTPHeaders: { "X-Tck-Subject": "tck-user" },
     });
     try {
+      await context.route("**/assets/woge-ui/upload.js", (route) => route.abort());
       const page = await context.newPage();
       const complete = `${origin}/woge-tck/action-complete`;
       await page.goto(complete);
@@ -99,6 +100,7 @@ try {
   }
   await verifyEnhanced(browser, expectedMutations);
   await verifyDeferred(browser);
+  await verifyUploads(browser);
 } finally {
   await browser.close();
 }
@@ -261,5 +263,88 @@ async function verifyDeferred(browser) {
     } finally {
       await context.close();
     }
+  }
+}
+
+async function verifyUploads(browser) {
+  const context = await browser.newContext({ extraHTTPHeaders: { "X-Tck-Subject": "tck-user" } });
+  try {
+    const source = await readFile(new URL(
+      "../../../modules/woge-ui-headless/src/main/resources/static/assets/woge-ui/upload.js", import.meta.url,
+    ), "utf8");
+    await context.route("**/assets/woge-ui/upload.js", (route) => route.fulfill({
+      contentType: "text/javascript", body: source,
+    }));
+    await context.addInitScript(() => {
+      const send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (...args) {
+        this.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) sessionStorage.setItem("tck-upload-progress", String(event.loaded));
+        });
+        return send.apply(this, args);
+      };
+    });
+    const page = await context.newPage();
+    const complete = `${origin}/woge-tck/upload-complete`;
+    await page.goto(complete);
+    await page.waitForFunction(() => performance.getEntriesByType("resource").some(
+      (entry) => entry.name.endsWith("/assets/woge-ui/upload.js") && entry.responseEnd > 0,
+    ));
+    await page.getByLabel("Attachment").setInputFiles({
+      name: "enhanced.bin", mimeType: "application/octet-stream", buffer: Buffer.from([1, 2, 3]),
+    });
+    const requests = [];
+    page.on("request", (request) => { if (request.method() === "POST") requests.push(request); });
+    let release;
+    let entered;
+    const blocked = new Promise((resolve) => { entered = resolve; });
+    const gate = new Promise((resolve) => { release = resolve; });
+    const hold = async (route) => {
+      entered();
+      await gate;
+      await route.abort().catch(() => {});
+    };
+    await page.route("**/woge-actions/tck-upload", hold);
+    await page.getByRole("button", { name: "Upload file" }).click();
+    await blocked;
+    await page.waitForFunction(() => document.querySelector("form").getAttribute("aria-busy") === "true");
+    assert.equal(await page.getByLabel("Upload progress").getAttribute("max"), "100");
+    assert.equal(await page.getByLabel("Upload progress").getAttribute("value"), null);
+    assert.equal(await page.getByRole("status").textContent(), "Uploading");
+    await page.getByRole("button", { name: "Cancel upload" }).click();
+    await page.waitForFunction(() => document.querySelector('[role="status"]').textContent === "Upload cancelled");
+    assert.equal(await page.locator("form").getAttribute("aria-busy"), null);
+    await page.waitForFunction(() => document.activeElement?.textContent === "Upload file");
+    assert.equal(await page.locator("form").getAttribute("data-woge-upload"), null);
+    assert.equal(await page.locator("form").getAttribute("enctype"), "multipart/form-data");
+    assert.equal(await page.getByLabel("Attachment").evaluate((input) => input.files.length), 1);
+    release();
+    await page.unroute("**/woge-actions/tck-upload", hold);
+    // Cancellation opts out. Retrying is an intentional native POST, never an automatic replay.
+    const [retried] = await Promise.all([
+      page.waitForNavigation(), page.getByRole("button", { name: "Upload file" }).click(),
+    ]);
+    assert.equal((await retried.request().redirectedFrom().response()).status(), 303);
+    await page.goto(complete);
+    await page.waitForFunction(() => performance.getEntriesByType("resource").some(
+      (entry) => entry.name.endsWith("/assets/woge-ui/upload.js") && entry.responseEnd > 0,
+    ));
+    await page.getByLabel("Attachment").setInputFiles({
+      name: "progress.bin", mimeType: "application/octet-stream", buffer: Buffer.from([1, 2, 3]),
+    });
+    const posted = page.waitForResponse((response) => response.request().method() === "POST");
+    const navigated = page.waitForNavigation();
+    await page.getByRole("button", { name: "Upload file" }).click();
+    const response = await posted;
+    assert.equal(response.status(), 303);
+    const navigation = await navigated;
+    assert.equal(navigation.request().redirectedFrom(), null);
+    assert.equal(page.url(), complete);
+    assert.ok(await page.evaluate(() => Number(sessionStorage.getItem("tck-upload-progress")) > 0));
+    assert.ok(requests.every((request) => request.headers()["content-type"].startsWith("multipart/form-data;")));
+    assert.ok(requests.every((request) => request.headers().accept === "text/html" ||
+      request.headers().accept.includes("text/html")));
+  } finally {
+    await context.close();
   }
 }

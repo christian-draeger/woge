@@ -132,16 +132,7 @@ internal class ActionReader(
         declaration.primaryConstructor?.parameters.orEmpty().forEach { parameter ->
             val field = parameter.type.resolve()
             field.render(referenced)
-            val scalar =
-                if (field.declaration.qualifiedName?.asString() == "kotlin.collections.List") {
-                    field.arguments
-                        .singleOrNull()
-                        ?.type
-                        ?.resolve()
-                } else {
-                    field
-                }
-            val supported = scalar?.makeNotNullable()?.actionScalar() == true
+            val supported = field.actionStructure(referenced)
             if (!parameter.isVal || !supported) {
                 reject(Rule.ACTION_COMMAND, field.shortName(), parameter)
             }
@@ -185,6 +176,32 @@ private fun KSType.actionScalar(): Boolean {
     return accessible && wrapped?.takeUnless { it.isMarkedNullable }?.actionScalar() == true
 }
 
+private fun KSType.actionStructure(
+    referenced: MutableList<KSDeclaration>,
+    depth: Int = 0,
+): Boolean {
+    if (depth > MAX_ACTION_FORM_DEPTH) return false
+    render(referenced)
+    val nested = declaration as? KSClassDeclaration
+    return when {
+        makeNotNullable().actionScalar() -> true
+        declaration.qualifiedName?.asString() == "kotlin.collections.List" ->
+            arguments
+                .singleOrNull()
+                ?.type
+                ?.resolve()
+                ?.actionStructure(referenced, depth + 1) == true
+        nested != null ->
+            Modifier.DATA in nested.modifiers &&
+                arguments.isEmpty() &&
+                nested.primaryConstructor?.parameters?.all {
+                    it.isVal && it.type.resolve().actionStructure(referenced, depth + 1)
+                } == true
+        else -> false
+    }
+}
+
+private const val MAX_ACTION_FORM_DEPTH = 7
 private const val MAX_ACTION_ID_LENGTH = 128
 private val ACTION_ID = Regex("[a-z][a-z0-9-]*")
 internal const val WOGE_ACTION = "dev.woge.host.WogeAction"

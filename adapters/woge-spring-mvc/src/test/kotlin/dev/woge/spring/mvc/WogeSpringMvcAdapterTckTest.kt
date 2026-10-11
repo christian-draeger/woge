@@ -19,8 +19,8 @@ import dev.woge.tck.TckUploadAction
 import dev.woge.tck.tckActionContext
 import dev.woge.tck.tckActionForm
 import dev.woge.tck.tckUploadForm
-import dev.woge.tck.tckUploadLimits
 import dev.woge.tck.tckUploadPage
+import dev.woge.tck.tckUploadPolicy
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
@@ -182,7 +182,7 @@ private class SpringMvcTckConfiguration {
                 TckUploadAction.path to
                     handlers.action(
                         TckUploadAction,
-                        tckUploadForm.springMvcMultipart(tckUploadLimits, application.uploadDirectory),
+                        tckUploadForm.springMvcMultipart(tckUploadPolicy(application.uploadDirectory)),
                         SpringMvcRequestContextFactory { request ->
                             tckActionContext(
                                 request.getHeader("X-Tck-Subject"),

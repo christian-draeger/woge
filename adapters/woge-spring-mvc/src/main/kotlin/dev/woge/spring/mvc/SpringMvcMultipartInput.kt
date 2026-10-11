@@ -1,8 +1,10 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.FormDecoder
 import dev.woge.host.MultipartSubmission
 import dev.woge.host.UploadLimits
+import dev.woge.host.UploadPolicy
 import dev.woge.host.multipartBody
 import org.springframework.web.multipart.MultipartHttpServletRequest
 import java.nio.file.Path
@@ -12,11 +14,17 @@ public fun <Command : Any> FormDecoder<Command>.springMvcMultipart(
     limits: UploadLimits = UploadLimits(),
     temporaryDirectory: Path? = null,
 ): SpringMvcPageInput<MultipartSubmission<Command>> =
+    springMvcMultipart(UploadPolicy(limits, { DirectoryUploadTemporaryFiles(temporaryDirectory) }))
+
+/** Explicit request-owned storage and part authorization; host action security runs before decoding. */
+public fun <Command : Any> FormDecoder<Command>.springMvcMultipart(
+    policy: UploadPolicy,
+): SpringMvcPageInput<MultipartSubmission<Command>> =
     SpringMvcPageInput { request ->
         check(request !is MultipartHttpServletRequest) {
             "Woge uploads need WogeMultipartResolver for this action path; Spring already consumed the multipart body"
         }
-        multipartBody(request.contentType, limits, temporaryDirectory).use { body ->
+        multipartBody(request.contentType, policy).use { body ->
             val bytes = ByteArray(UPLOAD_READ_BYTES)
             val stream = request.inputStream
             var count = stream.read(bytes)
