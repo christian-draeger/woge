@@ -23,6 +23,21 @@ await build({
   sourcemap: "external",
 });
 
+// Navigation is a separate opt-in entry; shared state primitives keep the core graph unchanged.
+await build({
+  entryPoints: [new URL("../src/navigation.js", import.meta.url).pathname],
+  outfile: new URL("woge-navigation.js", distDirectory).pathname,
+  bundle: true, external: ["./state.js"], format: "esm", target: "es2022",
+  minify: true, legalComments: "none",
+});
+await build({
+  entryPoints: [new URL("../src/state.js", import.meta.url).pathname],
+  outfile: new URL("state.js", distDirectory).pathname,
+  bundle: true, format: "esm", target: "es2022", minify: true, legalComments: "none",
+});
+for (const name of ["navigation.d.ts"]) {
+  await copyFile(new URL(`../src/${name}`, import.meta.url), new URL(name, distDirectory));
+}
 await copyFile(new URL("../src/index.d.ts", import.meta.url), declarationFile);
 await copyFile(new URL("../../../LICENSE", import.meta.url), new URL("LICENSE", distDirectory));
 
@@ -31,6 +46,8 @@ for (const [name, url] of [
   ["module", moduleFile],
   ["sourceMap", sourceMapFile],
   ["types", declarationFile],
+  ...["woge-navigation.js", "navigation.d.ts", "state.js"]
+    .map((name) => [name, new URL(name, distDirectory)]),
 ]) {
   const bytes = await readFile(url);
   files[name] = Object.freeze({

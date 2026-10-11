@@ -4,6 +4,10 @@ import { STRICT_CSP } from "../test-support/strict-policy.mjs";
 import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
+  ["/navigation-bootstrap.js", { path: new URL("./navigation-bootstrap.mjs", import.meta.url),
+    type: "text/javascript; charset=utf-8" }],
+  ...["woge-navigation.js", "state.js"].map((name) =>
+    [`/${name}`, { path: new URL(`../dist/${name}`, import.meta.url), type: "text/javascript; charset=utf-8" }]),
   ["/strict", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/fixture-bootstrap.js", {
     path: new URL("./fixture-bootstrap.mjs", import.meta.url), type: "text/javascript; charset=utf-8",
@@ -33,6 +37,29 @@ const pendingDeferredResponses = new Map();
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
+  if (url.pathname.startsWith("/navigation/")) {
+    response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'unsafe-inline'");
+    if (url.pathname === "/navigation/cross-origin") {
+      response.writeHead(302, { location: "http://localhost:4173/navigation/b" }).end();
+      return;
+    }
+    if (url.pathname === "/navigation/redirect") {
+      response.writeHead(302, { location: "/navigation/b" }).end();
+      return;
+    }
+    let html = await readFile(new URL(url.pathname === "/navigation/a" ?
+      "./navigation-a.html" : "./navigation-b.html", import.meta.url), "utf8");
+    if (url.pathname === "/navigation/skew") html = html.replace('content="1"', 'content="2"');
+    if (url.pathname === "/navigation/assets") html = html.replace("</head>", "<style>h1{color:red}</style></head>");
+    if (url.pathname === "/navigation/managed") html = html.replace("</head>",
+      '<meta name="woge-render-session" content="new-session"></head>');
+    response.writeHead(url.pathname === "/navigation/error" ? 500 : 200, {
+      "content-type": url.pathname === "/navigation/non-html" ? "text/plain" : "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    response.end(html);
+    return;
+  }
   if (url.pathname === "/managed-action" && request.method === "POST") {
     for await (const _ of request) {}
     const revisions = new Map(request.headers["woge-region-revisions"].split(",").map((entry) => entry.split(":")));

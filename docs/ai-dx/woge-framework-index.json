@@ -25,7 +25,9 @@
     "jvmAssetArtifact": "dev.woge:woge-fallback-client-assets",
     "packageVersion": "0.1.0",
     "patchProtocolVersion": 1,
-    "runtimeDependencies": []
+    "runtimeDependencies": [],
+    "optionalNavigation": "@woge/fallback-client/navigation",
+    "navigationAdr": "docs/adr/0090-opt-in-document-navigation.md"
   },
   "agentGuidance": {
     "templateVersion": 1,
@@ -53,6 +55,7 @@
     "development": "docs/guides/development-loop.md",
     "styling": "docs/guides/ui-primitives.md",
     "compatibility": "docs/guides/compatibility-and-upgrades.md",
+    "enhancedNavigation": "docs/guides/enhanced-navigation.md",
     "nativeDpu": "docs/guides/browser-support.md",
     "canonicalPageAndAction": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt",
     "springBindings": "examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt",

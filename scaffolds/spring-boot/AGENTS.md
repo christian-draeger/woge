@@ -39,6 +39,8 @@ Woge repository.
   remain compatible with plain CSS, CSS Modules and an optional later Tailwind pipeline.
 - Deliver a useful native-navigation path before adding progressive enhancement. JavaScript may make a
   path faster; it must not become the only way to complete the core task.
+- Prefer plain MPA navigation, optionally with native View Transitions/Speculation Rules. The separate
+  enhanced-navigation helper is opt-in, not a router; managed action/live/deferred pages stay native.
 - Keep domain and markup functions host-neutral. Spring request, response, Reactor and Servlet types
   belong only in the selected host adapter source set.
 

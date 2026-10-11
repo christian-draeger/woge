@@ -14,6 +14,12 @@ POST/Redirect/GET and enhanced submission.
 | Enhancement | Optional browser behavior over working HTML | Typed form updates, deferred content and SSE-driven refresh |
 | Recovery | Getting back to authoritative server HTML | Bounded safe GET/refetch or full navigation; never automatic POST replay |
 
+Document navigation stays a GET to a real server route. Plain MPA navigation with native
+View Transitions and Speculation Rules is the recommended default. The separate
+[enhanced navigation helper](enhanced-navigation.md) can swap an explicitly declared route region;
+it is not an action patch or a client-side router. Managed action/live/deferred documents keep
+the complete native navigation path.
+
 A simple page needs no region. A simple native form needs no patch protocol or revision handling.
 For enhanced forms, `request.context.render` supplies the render session; `metadata`, `target` and
 `updates` keep identity bookkeeping out of application code. The [compiled notes page](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt)

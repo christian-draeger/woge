@@ -23,7 +23,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/woge-fallback.js"
     },
-    "./manifest.json": "./dist/manifest.json"
+    "./manifest.json": "./dist/manifest.json",
+    "./navigation": {
+      "types": "./dist/navigation.d.ts",
+      "import": "./dist/woge-navigation.js"
+    }
   },
   "publishConfig": {
     "access": "public"
