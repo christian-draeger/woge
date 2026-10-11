@@ -181,10 +181,10 @@ private class ServletCoroutineListener(
     }
 
     override fun onTimeout(event: AsyncEvent) {
+        // End before cancelling: otherwise the cancelled worker may finish the request without the 500.
+        val first = handoff.end { response.writeSafeServerFailure() }
         job.cancel(CancellationException("Servlet async response timed out"))
-        if (handoff.end { response.writeSafeServerFailure() }) {
-            runCatching(event.asyncContext::complete)
-        }
+        if (first) runCatching(event.asyncContext::complete)
     }
 
     override fun onError(event: AsyncEvent) {
