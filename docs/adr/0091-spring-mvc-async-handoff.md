@@ -33,6 +33,13 @@ request attribute and only applies it: no decoding, security check or use case r
 The head is handed over only when the first body bytes are ready. A failure before that point still
 becomes a clean, bodyless 500. HTML frames are rendered into chunks before being written, as in Ktor.
 
+Body writes stop when the request ends (#246). Tomcat reuses the response object for the next request
+on the same connection right after the async request completes. A worker that was still writing, for
+example a live SSE stream after the tab closed, could then write into another page's response and
+leave it empty. So every body write and the async listeners (`onComplete`, `onError`, `onTimeout`)
+share one lock: the listener marks the request as ended and waits for an in-flight write, and later
+writes are refused. A closed connection while writing counts as a normal disconnect, not an error log.
+
 ## Alternatives considered
 
 - **Spring's `WebAsyncManager` / `DeferredResult`:** also re-dispatches, but needs Spring's

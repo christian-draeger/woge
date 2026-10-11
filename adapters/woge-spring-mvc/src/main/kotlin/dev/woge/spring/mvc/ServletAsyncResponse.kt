@@ -24,7 +24,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.io.OutputStream
 import java.time.Duration as JavaDuration
 import org.springframework.http.ResponseCookie as SpringResponseCookie
 
@@ -105,14 +104,16 @@ internal suspend fun Flow<List<ByteArray>>.writeBody(
     handoff: ServletResponseHandoff,
     head: (HttpServletResponse) -> Unit,
 ) {
-    var output: OutputStream? = null
+    var streaming = false
     collect { chunks ->
         currentCoroutineContext().ensureActive()
-        val target = output ?: handoff.stream(head).outputStream.also { output = it }
-        chunks.forEach(target::write)
-        target.flush()
+        if (!streaming) {
+            handoff.stream(head)
+            streaming = true
+        }
+        handoff.write(chunks)
     }
-    if (output == null) handoff.finish(head)
+    if (!streaming) handoff.finish(head)
 }
 
 private fun HttpServletResponse.applyMetadata(metadata: ResponseMetadata) {
