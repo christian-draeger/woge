@@ -6,7 +6,13 @@ request.
 
 ## Install one observer
 
-With Spring Boot, declare a normal bean:
+Spring Boot automatically maps events to its `ObservationRegistry` when a registry bean and
+Micrometer are present. Its configured Micrometer metrics and tracing handlers receive
+`woge.operation` observations. An OpenTelemetry export uses Boot's Micrometer tracing bridge;
+Woge needs no direct OpenTelemetry dependency. Without a registry, the default is a no-op.
+See [the starter guide](spring-boot-starter.md#connect-metrics-traces-or-development-tools).
+
+To use your own mapping or record the exact event duration, declare a normal bean:
 
 ```kotlin
 @Bean
@@ -22,7 +28,7 @@ fun wogeObserver(meterRegistry: MeterRegistry): WogeObserver =
     }
 ```
 
-Boot replaces its no-op default and supplies this observer to the selected MVC or WebFlux handler
+Boot replaces its default observer and supplies this observer to the selected MVC or WebFlux handler
 factory. Ktor applications pass the same value to `WogeKtorHandlers(observer = observer)`.
 
 The snippet shows the important Micrometer mapping rule: only `operation` and `outcome` are metric

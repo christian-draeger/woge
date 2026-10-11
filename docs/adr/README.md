@@ -113,6 +113,8 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 
 | [0083](0083-production-performance-and-bundle-budgets.md) | Proposed | Gate production performance and bundle growth separately from safety and development feedback |
 
+| [0084](0084-optional-spring-boot-observation-bridge.md) | Accepted | Bridge semantic observations through Spring Boot's optional Micrometer registry |
+
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;
 executable spikes are supporting evidence and do not override an accepted ADR. Issue

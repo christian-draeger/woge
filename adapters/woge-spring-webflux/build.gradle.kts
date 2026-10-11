@@ -20,6 +20,7 @@ dependencies {
     api(libs.springWebflux)
 
     implementation(project(":woge-server-runtime"))
+    implementation(libs.springContext)
     implementation(libs.kotlinxCoroutinesReactor)
 
     testImplementation(project(":woge-adapter-tck"))

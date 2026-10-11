@@ -23,6 +23,7 @@ import kotlin.time.toKotlinDuration
 @ConditionalOnClass(name = ["dev.woge.spring.mvc.WogeSpringMvcHandlers"])
 internal class WogeSpringMvcAutoConfiguration {
     @Bean
+    @ConditionalOnMissingBean(name = ["wogeSpringMvcAssets"])
     @ConditionalOnResource(resources = ["classpath:META-INF/woge/assets.properties"])
     public fun wogeSpringMvcAssets(): WebMvcConfigurer =
         object : WebMvcConfigurer {

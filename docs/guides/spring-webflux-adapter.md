@@ -70,6 +70,16 @@ decision. Domain authorization remains application-owned. Behind a TLS-terminati
 `server.forward-headers-strategy=framework` so the observed scheme and host match the browser URL;
 trust forwarded headers only from a trusted proxy.
 
+## Locale and sessions
+
+The default request snapshot uses Spring's resolved locale. In MVC this respects `LocaleResolver`;
+in WebFlux it respects `LocaleContextResolver` on the exchange. Authentication and verified token
+CSRF facts remain explicit through a request-context factory; Woge does not infer domain permissions.
+
+Spring owns the session. Read it in the input/context factory and copy only application facts into
+portable inputs. Do not pass a mutable session or host request into page code. See the
+[starter guide](spring-boot-starter.md#use-spring-locale-identity-and-sessions) for the host APIs.
+
 ## What failures mean today
 
 A controlled `PageResult.Failure` maps to its Woge status before the response starts. A Spring

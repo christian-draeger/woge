@@ -1,9 +1,14 @@
 package dev.woge.spring.boot.autoconfigure
 
+import dev.woge.spring.mvc.WogeSpringMvcHandlers
+import dev.woge.spring.webflux.WogeWebFluxHandlers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.springframework.boot.autoconfigure.AutoConfigurations
+import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner
+import org.springframework.boot.test.context.runner.WebApplicationContextRunner
 import org.springframework.context.support.StaticApplicationContext
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -14,8 +19,10 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockServletContext
 import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.web.reactive.HandlerMapping
+import org.springframework.web.reactive.config.WebFluxConfigurer
 import org.springframework.web.reactive.resource.ResourceWebHandler
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler
 import java.net.URLClassLoader
@@ -75,6 +82,67 @@ class WogeAssetHandlersTest {
             }
         }
     }
+
+    @Test
+    fun `asset configurers back off for their named application override`() {
+        val loader = assetMarkerLoader()
+        run {
+            val mvc = object : WebMvcConfigurer { }
+            WebApplicationContextRunner()
+                .withClassLoader(loader)
+                .withConfiguration(AutoConfigurations.of(WogeSpringMvcAutoConfiguration::class.java))
+                .withBean("wogeSpringMvcAssets", WebMvcConfigurer::class.java, { mvc })
+                .withBean(WogeSpringMvcHandlers::class.java, { WogeSpringMvcHandlers() })
+                .run { context ->
+                    assertEquals(
+                        mapOf("wogeSpringMvcAssets" to mvc),
+                        context.getBeansOfType(WebMvcConfigurer::class.java),
+                    )
+                }
+            val webFlux = object : WebFluxConfigurer { }
+            ReactiveWebApplicationContextRunner()
+                .withClassLoader(loader)
+                .withConfiguration(AutoConfigurations.of(WogeWebFluxAutoConfiguration::class.java))
+                .withBean("wogeWebFluxAssets", WebFluxConfigurer::class.java, { webFlux })
+                .withBean(WogeWebFluxHandlers::class.java, { WogeWebFluxHandlers() })
+                .run { context ->
+                    assertEquals(
+                        mapOf("wogeWebFluxAssets" to webFlux),
+                        context.getBeansOfType(WebFluxConfigurer::class.java),
+                    )
+                }
+        }
+    }
+
+    @Test
+    fun `unrelated Spring configurers do not disable Woge assets`() {
+        WebApplicationContextRunner()
+            .withClassLoader(assetMarkerLoader())
+            .withConfiguration(AutoConfigurations.of(WogeSpringMvcAutoConfiguration::class.java))
+            .withBean("otherMvcConfigurer", WebMvcConfigurer::class.java, { object : WebMvcConfigurer { } })
+            .withBean(WogeSpringMvcHandlers::class.java, { WogeSpringMvcHandlers() })
+            .run { context ->
+                assertEquals(2, context.getBeansOfType(WebMvcConfigurer::class.java).size)
+            }
+        ReactiveWebApplicationContextRunner()
+            .withClassLoader(assetMarkerLoader())
+            .withConfiguration(AutoConfigurations.of(WogeWebFluxAutoConfiguration::class.java))
+            .withBean("otherWebFluxConfigurer", WebFluxConfigurer::class.java, { object : WebFluxConfigurer { } })
+            .withBean(WogeWebFluxHandlers::class.java, { WogeWebFluxHandlers() })
+            .run { context ->
+                assertEquals(2, context.getBeansOfType(WebFluxConfigurer::class.java).size)
+            }
+    }
+
+    private fun assetMarkerLoader(): ClassLoader =
+        object : ClassLoader(javaClass.classLoader) {
+            override fun getResource(name: String): java.net.URL? =
+                if (name == "META-INF/woge/assets.properties") {
+                    WogeAssetHandlersTest::class.java.getResource("WogeAssetHandlersTest.class")
+                } else {
+                    super.getResource(name)
+                }
+        }
 
     private fun exchange(path: String): MockServerWebExchange =
         MockServerWebExchange.from(MockServerHttpRequest.get("/_woge/assets/$path")).apply {

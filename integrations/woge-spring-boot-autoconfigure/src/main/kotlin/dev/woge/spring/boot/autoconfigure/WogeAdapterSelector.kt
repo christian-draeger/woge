@@ -52,7 +52,7 @@ internal object WogeAdapterSelector {
         webFluxAdapter: Boolean,
         mvcAdapter: Boolean,
     ): WogeSpringAdapter {
-        check(!(webFluxFramework && mvcFramework)) {
+        requireWogeConfiguration(!(webFluxFramework && mvcFramework)) {
             "Woge found both Spring MVC and WebFlux. Set 'woge.adapter=webflux' or " +
                 "'woge.adapter=mvc' and include only the matching Woge adapter dependency."
         }
@@ -69,7 +69,7 @@ internal object WogeAdapterSelector {
             }
 
             else ->
-                error(
+                throw WogeConfigurationException(
                     "Woge requires a Spring web application. Add Spring Boot WebFlux plus " +
                         "'woge-spring-webflux', or Spring MVC plus 'woge-spring-mvc'.",
                 )
@@ -83,10 +83,10 @@ internal object WogeAdapterSelector {
     ) {
         val displayName = if (selected == WogeSpringAdapter.WEBFLUX) "WebFlux" else "MVC"
         val artifact = if (selected == WogeSpringAdapter.WEBFLUX) "woge-spring-webflux" else "woge-spring-mvc"
-        check(frameworkAvailable) {
+        requireWogeConfiguration(frameworkAvailable) {
             "Woge adapter '$displayName' was selected but the Spring $displayName web stack is missing."
         }
-        check(adapterAvailable) {
+        requireWogeConfiguration(adapterAvailable) {
             "Woge adapter '$displayName' was selected but '$artifact' is missing from the runtime classpath."
         }
     }

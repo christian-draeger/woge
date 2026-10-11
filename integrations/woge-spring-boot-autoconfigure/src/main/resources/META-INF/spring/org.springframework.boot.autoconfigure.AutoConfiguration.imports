@@ -1,1 +1,2 @@
 dev.woge.spring.boot.autoconfigure.WogeAutoConfiguration
+dev.woge.spring.boot.autoconfigure.WogeObservationAutoConfiguration
