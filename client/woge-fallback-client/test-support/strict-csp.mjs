@@ -9,7 +9,9 @@ export const test = base.extend({
   strictCsp: [async ({ page }, use) => {
     const policies = [];
     page.on("response", (response) => {
-      if (response.request().resourceType() === "document" && response.status() >= 200) {
+      // Redirects carry no rendered document, so their CSP header is irrelevant.
+      const status = response.status();
+      if (response.request().resourceType() === "document" && status >= 200 && (status < 300 || status >= 400)) {
         policies.push(response.headers()["content-security-policy"]);
       }
     });
