@@ -104,7 +104,8 @@
     "ktorBindings": "examples/reference-application/ktor/src/main/kotlin/dev/woge/example/ktor/WogeKtorQuickstart.kt",
     "island": "examples/complexity-gradient/src/main/kotlin/dev/woge/examples/gradient/t09island/SketchPage.kt",
     "atomicRegionUpdates": "docs/guides/typed-actions.md",
-    "formComponents": "docs/guides/form-components.md"
+    "formComponents": "docs/guides/form-components.md",
+    "navigationOverlayFeedback": "docs/guides/navigation-overlay-feedback.md"
   },
   "modules": [
     {
@@ -358,7 +359,8 @@
       "concepts": [
         "source-owned-components",
         "component-registry-validation",
-        "accessible-native-form-components"
+        "accessible-native-form-components",
+        "accessible-native-navigation-overlay-feedback-components"
       ],
       "guide": "docs/guides/component-registry.md",
       "example": "registry/disclosure-card/css/DisclosureCard.kt"

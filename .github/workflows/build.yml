@@ -78,6 +78,8 @@ jobs:
           WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
             ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
             --tests '*AdapterTckTest' --stacktrace
+      - name: Run source-owned component browser contracts
+        run: ./gradlew :woge-component-registry:componentBrowserTest --stacktrace
       - name: Run the external Spring Boot scaffold browser gate
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
       - name: Build the Tailwind example with npm

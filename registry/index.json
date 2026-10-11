@@ -332,6 +332,319 @@
           ]
         }
       }
+    },
+    {
+      "name": "navigation-components",
+      "version": "1.0.0",
+      "description": "Native breadcrumb, pagination, URL tabs, navigation menu and dropdown.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "disclosure"
+      ],
+      "designTokens": [
+        "--woge-ink",
+        "--woge-line",
+        "--woge-surface",
+        "--woge-focus"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "d890e3ba63496bc633fcf2495e7d062aca1ed2a1b6ae8d6a88c954b021b4dec9",
+        "path": "registry/navigation-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "navigation-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/navigation-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "navigation-components/css/NavigationComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/NavigationComponents.kt",
+              "kind": "kotlin",
+              "sha256": "fc808531b4bd3aa14134269c0149ae292a9a50398f1528c552bc36757b8b6046"
+            },
+            {
+              "source": "navigation-components/css/navigation-components.css",
+              "target": "src/main/resources/static/assets/components/navigation-components.css",
+              "kind": "css",
+              "sha256": "74ca0de484d1726eda21a5afef7cce6ce13973b76e038254b1aea7e302f7f0d8"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "navigation-components/css/navigation-components.css",
+              "scope": "woge-navigation-components",
+              "layer": "woge.components.navigation-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "navigation-components/css/NavigationComponentsTest.kt",
+              "sha256": "82eb360146a894a925605346133e4a4429bf28a0133a6af694bb643fb4ea077a"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "navigation-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/navigation-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "navigation-components/tailwind/NavigationComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/NavigationComponents.kt",
+              "kind": "kotlin",
+              "sha256": "d03b8e8d6ab38397f2f9633eac5b1f2bc4c5483863f8d58e0d46ab3c2e5bac2c"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "navigation-components/tailwind/NavigationComponents.kt",
+              "scope": "woge-navigation-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "navigation-components/tailwind/NavigationComponentsTest.kt",
+              "sha256": "82eb360146a894a925605346133e4a4429bf28a0133a6af694bb643fb4ea077a"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "overlay-components",
+      "version": "1.0.0",
+      "description": "Native dialogs, drawers, popovers and explicit help tooltips.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "modalDialog",
+        "dialogLink",
+        "dialogCloseButton",
+        "popoverButton",
+        "popoverPanel"
+      ],
+      "designTokens": [
+        "--woge-ink",
+        "--woge-line",
+        "--woge-surface",
+        "--woge-focus"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "5da3ab0beff59e370c18f789ce5e403e33bc6b9d202bc6f1703353d8ba23400c",
+        "path": "registry/overlay-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "overlay-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/overlay-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "overlay-components/css/OverlayComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/OverlayComponents.kt",
+              "kind": "kotlin",
+              "sha256": "b0321852d49b9b7d59cb148cfaac7018d595f41804234339b037f5db0f372dfb"
+            },
+            {
+              "source": "overlay-components/css/overlay-components.css",
+              "target": "src/main/resources/static/assets/components/overlay-components.css",
+              "kind": "css",
+              "sha256": "24e3901048a3b95161716bcd621f987ec1d27f81ac6b3f1e79c3c78bf1fb27db"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "overlay-components/css/overlay-components.css",
+              "scope": "woge-overlay-components",
+              "layer": "woge.components.overlay-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "overlay-components/css/OverlayComponentsTest.kt",
+              "sha256": "e2861b2200216f624007545ccf56d8707df1a2efe6b0ce037401d5434334af60"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "overlay-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/overlay-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "overlay-components/tailwind/OverlayComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/OverlayComponents.kt",
+              "kind": "kotlin",
+              "sha256": "962c5ba052252c8945ddcc76290d674e758caa32e3427b32be579e0317ce46f9"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "overlay-components/tailwind/OverlayComponents.kt",
+              "scope": "woge-overlay-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "overlay-components/tailwind/OverlayComponentsTest.kt",
+              "sha256": "e2861b2200216f624007545ccf56d8707df1a2efe6b0ce037401d5434334af60"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "feedback-components",
+      "version": "1.0.0",
+      "description": "Static alerts, progress, skeletons, persistent toasts and stable announcements.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "liveRegion"
+      ],
+      "designTokens": [
+        "--woge-ink",
+        "--woge-line",
+        "--woge-surface",
+        "--woge-focus"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "8f6ba3c91479fc1b0823973cb8f7e2fb5422472324a970cedc15a79864e3011b",
+        "path": "registry/feedback-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "feedback-components/css/FeedbackComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FeedbackComponents.kt",
+              "kind": "kotlin",
+              "sha256": "2dad1b7f8558e4a3e4840395e7e820c5f440f90fb804190dff2b3a33cc674ff8"
+            },
+            {
+              "source": "feedback-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/feedback-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "feedback-components/css/feedback-components.css",
+              "target": "src/main/resources/static/assets/components/feedback-components.css",
+              "kind": "css",
+              "sha256": "808c8767393dd787fdb3d5f8b7076c63e00fa31450d3e0eccfce5c055cb719e0"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "feedback-components/css/feedback-components.css",
+              "scope": "woge-feedback-components",
+              "layer": "woge.components.feedback-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "feedback-components/css/FeedbackComponentsTest.kt",
+              "sha256": "5b224ee08589f700372d91e4aa664e01e4535bbb42ff0601216b6d161121388a"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "feedback-components/tailwind/FeedbackComponents.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FeedbackComponents.kt",
+              "kind": "kotlin",
+              "sha256": "d0fdedbbd6b2c145dfe6ffae364b4caa6909a246125571f8ad59c81b9329b8e9"
+            },
+            {
+              "source": "feedback-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/feedback-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "feedback-components/tailwind/FeedbackComponents.kt",
+              "scope": "woge-feedback-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "feedback-components/tailwind/FeedbackComponentsTest.kt",
+              "sha256": "5b224ee08589f700372d91e4aa664e01e4535bbb42ff0601216b6d161121388a"
+            }
+          ]
+        }
+      }
     }
   ]
 }

@@ -20,7 +20,7 @@ export default defineConfig({
   projects: ["chromium", "firefox", "webkit"].flatMap((browserName) => [
     {
       name: browserName,
-      testIgnore: /no-javascript\.spec\.mjs/,
+      testIgnore: [/no-javascript\.spec\.mjs/, /navigation-overlay-feedback\.spec\.mjs/],
       use: { browserName },
     },
     {

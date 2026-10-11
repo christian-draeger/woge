@@ -1,0 +1,22 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.feedback-components {
+    :where([data-woge-scope="woge-feedback-components"]) { color: var(--woge-ink, #1f2933); }
+    :where([data-woge-scope="woge-feedback-components"][data-part="alert"]) {
+        border-inline-start: 0.25rem solid currentColor; padding-inline-start: 1rem;
+    }
+    :where([data-woge-scope="woge-feedback-components"][data-part="toast"]) {
+        border: 1px solid var(--woge-line, #d9e2ec); padding: 1rem;
+    }
+    :where([data-woge-scope="woge-feedback-components"][data-part="skeleton"]) {
+        min-block-size: 1.5rem; background: var(--woge-line, #d9e2ec);
+        animation: woge-feedback-pulse 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes woge-feedback-pulse { to { opacity: 0.5; } }
+    :where([data-woge-scope="woge-feedback-components"] :focus-visible,
+           [data-woge-scope="woge-feedback-components"]:focus-visible) {
+        outline: 2px solid var(--woge-focus, #005fcc); outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        :where([data-woge-scope="woge-feedback-components"]) { animation: none; transition: none; }
+    }
+}

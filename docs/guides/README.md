@@ -100,3 +100,6 @@ server HTML through a typed, versioned manifest, without hydrating the page.
 
 [Island signals and optimistic actions](island-signals.md) add opt-in local reactions and explicit
 server-outcome reconciliation, not a DOM renderer or an alternative to server-rendered forms.
+
+The [navigation, overlay and feedback guide](navigation-overlay-feedback.md) covers URL links, native
+dialogs and popovers, progress, skeletons, persistent toasts and patch-safe announcements.

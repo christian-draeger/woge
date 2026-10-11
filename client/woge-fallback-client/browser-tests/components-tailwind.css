@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@source "../../../registry/navigation-components/tailwind";
+@source "../../../registry/overlay-components/tailwind";
+@source "../../../registry/feedback-components/tailwind";

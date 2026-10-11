@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.navigation-components {
+    :where([data-woge-scope="woge-navigation-components"]) { color: var(--woge-ink, #1f2933); }
+    :where([data-woge-scope="woge-navigation-components"] ul,
+           [data-woge-scope="woge-navigation-components"] ol) {
+        display: flex; flex-wrap: wrap; gap: 0.75rem; padding-inline-start: 1.5rem;
+    }
+    :where([data-woge-scope="woge-navigation-components"] a) { text-decoration: underline; }
+    :where([data-woge-scope="woge-navigation-components"] [aria-current]) { font-weight: 700; }
+    :where([data-woge-scope="woge-navigation-components"] :focus-visible,
+           [data-woge-scope="woge-navigation-components"]:focus-visible) {
+        outline: 2px solid var(--woge-focus, #005fcc); outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        :where([data-woge-scope="woge-navigation-components"]) { animation: none; transition: none; }
+    }
+}

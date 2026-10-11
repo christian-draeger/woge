@@ -1,0 +1,20 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+@layer woge.components.overlay-components {
+    :where([data-woge-scope="woge-overlay-components"]:not([data-part="trigger"])) {
+        color: var(--woge-ink, #1f2933); background: var(--woge-surface, #fff);
+        border: 1px solid var(--woge-line, #d9e2ec); border-radius: 0.5rem;
+        padding: 1rem; max-inline-size: calc(100% - 2rem);
+    }
+    :where([data-woge-scope="woge-overlay-components"][data-part="drawer"]) {
+        margin-inline-start: auto; margin-inline-end: 0; margin-block: 0;
+        inline-size: 20rem; min-block-size: 100dvh; border-radius: 0;
+    }
+    :where([data-woge-scope="woge-overlay-components"])::backdrop { background: rgb(0 0 0 / 40%); }
+    :where([data-woge-scope="woge-overlay-components"] :focus-visible,
+           [data-woge-scope="woge-overlay-components"]:focus-visible) {
+        outline: 2px solid var(--woge-focus, #005fcc); outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        :where([data-woge-scope="woge-overlay-components"]) { animation: none; transition: none; }
+    }
+}

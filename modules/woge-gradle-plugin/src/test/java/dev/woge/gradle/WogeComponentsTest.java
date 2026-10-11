@@ -27,7 +27,9 @@ class WogeComponentsTest {
     @Test
     void registryValidatesEverySourceAndExplicitStyleVariant() throws IOException {
         ComponentRegistry registry = new ComponentRegistry(null);
-        assertEquals(List.of("disclosure-card", "form-components", "status-message"), new ArrayList<>(registry.items().keySet()));
+        assertEquals(List.of("disclosure-card", "feedback-components", "form-components",
+                "navigation-components", "overlay-components", "status-message"),
+                new ArrayList<>(registry.items().keySet()));
         for (String name : registry.items().keySet()) {
             for (String variant : ComponentJson.object(registry.item(name).get("variants")).keySet()) {
                 Map<String, String> sources = registry.materialize(name, variant, PACKAGE);
