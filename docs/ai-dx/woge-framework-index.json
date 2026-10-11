@@ -36,7 +36,22 @@
     "supportedKotlinTarget": "Kotlin/JS IR ES modules",
     "adr": "docs/adr/0093-kotlin-js-local-islands.md",
     "evidence": "spikes/local-island-target/evidence.md",
-    "fallback": "Useful server HTML; no mandatory hydration"
+    "fallback": "Useful server HTML; no mandatory hydration",
+    "lifecycleAdr": "docs/adr/0094-lazy-local-island-lifecycle.md",
+    "guide": "docs/guides/local-islands.md",
+    "api": [
+      "IslandType",
+      "IslandProps",
+      "IslandModule",
+      "IslandRegistry",
+      "island",
+      "islandManifest",
+      "islandLoader",
+      "islandLoading"
+    ],
+    "client": "@woge/fallback-client/islands",
+    "props": "Versioned inert JSON object of public string fields, root-scoped",
+    "example": "examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/NoteIsland.kt"
   },
   "agentGuidance": {
     "templateVersion": 1,

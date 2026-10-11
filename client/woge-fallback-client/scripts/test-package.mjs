@@ -35,6 +35,8 @@ const expectedFiles = [
   "package/dist/woge-navigation.js",
   "package/dist/transactions.js",
   "package/dist/navigation.d.ts",
+  "package/dist/islands.js",
+  "package/dist/islands.d.ts",
   "package/dist/state.js",
   "package/dist/woge-fallback.js",
   "package/dist/woge-fallback.js.map",

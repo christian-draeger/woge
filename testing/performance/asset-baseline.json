@@ -307,6 +307,42 @@
         "gzip": 2500,
         "brotli": 2200
       }
+    },
+    "islands-module.js": {
+      "measured": {
+        "raw": 4386,
+        "gzip": 1899,
+        "brotli": 1671
+      },
+      "ceiling": {
+        "raw": 5000,
+        "gzip": 2200,
+        "brotli": 2000
+      }
+    },
+    "islands-graph.js": {
+      "measured": {
+        "raw": 4386,
+        "gzip": 1899,
+        "brotli": 1671
+      },
+      "ceiling": {
+        "raw": 5000,
+        "gzip": 2200,
+        "brotli": 2000
+      }
+    },
+    "classpath/islands.js": {
+      "measured": {
+        "raw": 7619,
+        "gzip": 2498,
+        "brotli": 2136
+      },
+      "ceiling": {
+        "raw": 9000,
+        "gzip": 3000,
+        "brotli": 2600
+      }
     }
   }
 }

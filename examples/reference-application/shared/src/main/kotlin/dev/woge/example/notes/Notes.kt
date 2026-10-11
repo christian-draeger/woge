@@ -20,8 +20,6 @@ import dev.woge.html.button
 import dev.woge.html.h1
 import dev.woge.html.head
 import dev.woge.html.html
-import dev.woge.html.input
-import dev.woge.html.label
 import dev.woge.html.li
 import dev.woge.html.main
 import dev.woge.html.meta
@@ -87,6 +85,7 @@ public class NotesPage : PageUseCase<NotesInput> {
                     title("Notes · Woge quickstart")
                     stylesheet(applicationUrl("/assets/notes.css"))
                     moduleScript(applicationUrl("/assets/woge/index.js"))
+                    noteIslandAssets()
                 }
                 body {
                     main {
@@ -119,13 +118,7 @@ private fun HtmlWriter.noteForm() {
             "Could not confirm the result. Reload to check your notes before submitting again.",
         )
     }) {
-        label(attributes = { attribute("for", "note-text") }) { text("New note") }
-        input(attributes = {
-            attribute("id", "note-text")
-            attribute("name", "text")
-            boolean("required")
-            attribute("maxlength", MAX_NOTE_LENGTH.toString())
-        })
+        noteInput(MAX_NOTE_LENGTH)
         button { text("Add note") }
     }
 }

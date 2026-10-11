@@ -4,6 +4,10 @@ import { STRICT_CSP } from "../test-support/strict-policy.mjs";
 import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
+  ["/islands", { path: new URL("./islands-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/islands-bootstrap.js", { path: new URL("./islands-bootstrap.mjs", import.meta.url), type: "text/javascript; charset=utf-8" }],
+  ["/island-counter.js", { path: new URL("./island-counter.mjs", import.meta.url), type: "text/javascript; charset=utf-8" }],
+  ["/islands.js", { path: new URL("../dist/islands.js", import.meta.url), type: "text/javascript; charset=utf-8" }],
   ["/navigation-bootstrap.js", { path: new URL("./navigation-bootstrap.mjs", import.meta.url),
     type: "text/javascript; charset=utf-8" }],
   ...["woge-navigation.js", "state.js", "transactions.js"].map((name) =>
