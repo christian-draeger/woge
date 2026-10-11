@@ -7,6 +7,8 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Start here
 
 - [Spring Boot WebFlux quickstart](guides/quickstart-spring-boot.md)
+- [HTML/HTTP mental model and DX doctrine](guides/mental-model.md)
+- [Troubleshooting](guides/troubleshooting.md)
 - [Versioned Spring Boot application scaffold](../scaffolds/spring-boot/README.md)
 - [Kotlin for this web task](guides/kotlin-for-web-developers.md)
 - [Project direction](../README.md)
@@ -84,7 +86,7 @@ The spikes below justify accepted decisions. Their code is evidence, not a produ
 - [Tailwind with Kotlin templates spike](../spikes/tailwind-kotlin/evidence.md)
 - [Component distribution spike](../spikes/component-distribution/evidence.md)
 
-## Planned documentation layers
+## Documentation layers
 
 1. **Quick start:** build one useful page with Spring Boot.
 2. **Mental model:** relate Woge pages, regions, actions and patches to HTML and HTTP.
@@ -93,5 +95,6 @@ The spikes below justify accepted decisions. Their code is evidence, not a produ
 5. **Internals:** explain protocols, generated code and adapter implementation.
 
 The Spring Boot WebFlux, Spring MVC and Ktor launchers are executable vertical slices over one shared
-application. Cross-host browser journeys, typed interactions and the broader component system remain
-later milestones.
+application. Cross-host browser journeys and typed interactions are tested. A broader source-component registry
+remains planned. Human tutorial usability testing is still pending; use the
+[facilitator checklist](documentation/quickstart-usability-test.md).

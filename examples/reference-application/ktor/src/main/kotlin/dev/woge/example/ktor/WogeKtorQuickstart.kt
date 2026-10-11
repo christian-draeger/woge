@@ -1,5 +1,9 @@
 package dev.woge.example.ktor
 
+import dev.woge.example.notes.AddNoteAction
+import dev.woge.example.notes.NotesPage
+import dev.woge.example.notes.NotesRoute
+import dev.woge.example.notes.addNoteForm
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.BoardActivityRoute
 import dev.woge.example.project.BoardLiveRoute
@@ -33,6 +37,8 @@ public fun Application.wogeReferenceModule() {
     val handlers = WogeKtorHandlers()
     val page = handlers.page(projectPage, ProjectPageRoute)
     val patches = handlers.deferred(projectPage, ProjectPatchesRoute.ktorInput())
+    val notes = handlers.page(NotesPage(), NotesRoute)
+    val addNote = handlers.action(AddNoteAction, addNoteForm.ktorInput())
     val board = TaskBoard()
     val boardPage = handlers.page(board.page, TaskBoardRoute)
     val boardRefresh = handlers.page(board.refresh, BoardRegionRoute)
@@ -42,6 +48,9 @@ public fun Application.wogeReferenceModule() {
         handlers.action(board.action, boardTaskForm.ktorInput())
 
     routing {
+        get(NotesRoute.path) { notes.handle(call) }
+        head(NotesRoute.path) { notes.handle(call) }
+        post(AddNoteAction.path) { addNote.handle(call) }
         get(ProjectPageRoute.path) { page.handle(call) }
         head(ProjectPageRoute.path) { page.handle(call) }
         get(ProjectPatchesRoute.path) { patches.handle(call) }

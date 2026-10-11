@@ -1,5 +1,9 @@
 package dev.woge.example.mvc
 
+import dev.woge.example.notes.AddNoteAction
+import dev.woge.example.notes.NotesPage
+import dev.woge.example.notes.NotesRoute
+import dev.woge.example.notes.addNoteForm
 import dev.woge.example.project.AddBoardTaskAction
 import dev.woge.example.project.BoardActivityRoute
 import dev.woge.example.project.BoardLiveRoute
@@ -30,6 +34,16 @@ public class ProjectMvcRoutes {
                 ProjectPageRoute.path to handlers.page(projectPage, ProjectPageRoute),
                 ProjectPatchesRoute.path to
                     handlers.deferred(projectPage, ProjectPatchesRoute.springMvcInput()),
+            ),
+            0,
+        )
+
+    @Bean
+    public fun notesRoutes(handlers: WogeSpringMvcHandlers): SimpleUrlHandlerMapping =
+        SimpleUrlHandlerMapping(
+            mapOf(
+                NotesRoute.path to handlers.page(NotesPage(), NotesRoute),
+                AddNoteAction.path to handlers.action(AddNoteAction, addNoteForm.springMvcInput()),
             ),
             0,
         )

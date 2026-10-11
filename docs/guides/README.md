@@ -2,7 +2,9 @@
 
 Task-oriented, web-first guides live here. Start with the executable
 [Spring Boot WebFlux quickstart](quickstart-spring-boot.md), then use its focused
-[Kotlin bridge](kotlin-for-web-developers.md) when unfamiliar syntax appears.
+[Kotlin bridge](kotlin-for-web-developers.md) when unfamiliar syntax appears. Read the short
+[mental model and DX doctrine](mental-model.md) before adding regions or live updates.
+[Request troubleshooting](troubleshooting.md) covers buffering, recovery and version skew.
 
 To begin from a small standalone repository rather than the multi-host framework example, use the
 [versioned Spring Boot application scaffold](../../scaffolds/spring-boot/README.md). It defaults to

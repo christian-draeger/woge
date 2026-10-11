@@ -1,157 +1,176 @@
-# Build the first Woge page with Spring Boot
+# Build a page and form in five minutes
 
-This quickstart runs a real Spring Boot WebFlux application. The browser receives useful HTML first,
-then three independent project regions. Normal CSS styles the page and a small ES module applies the
-updates. A complete page remains available through an ordinary GET form when JavaScript is disabled.
+Run a Spring Boot page that lists notes and accepts one form. Start with ordinary
+POST/Redirect/GET, then enable JavaScript to update the same page. Both paths execute **the same
+server action**. Woge is pronounced "VOH-guh" (`/ˈvoːɡə/`); the API uses ordinary web names.
 
-Woge is pre-release. This repository currently uses Woge `0.1.0-SNAPSHOT`, Spring Boot `4.1.1` and a
-JDK 21 toolchain while producing Java 17-compatible JVM bytecode.
+## Run it
 
-## Run one command
+From this repository, with JDK 21:
 
-From the repository root, run:
-
-```shell
+```sh
 ./gradlew :woge-reference-spring-webflux:bootRun
 ```
 
-Open `http://localhost:8080/projects/woge`. Stop the server with <kbd>Ctrl</kbd>+<kbd>C</kbd>.
+Open `http://localhost:8080/notes`. Stop with Ctrl+C. First-time dependency downloads may take longer
+than five minutes. No Node, Vite or Tailwind is needed. Woge is pre-release: this checkout uses
+`0.1.0-SNAPSHOT`, Kotlin `2.4.10`, Spring Boot `4.1.1` and Java 17-compatible bytecode.
 
-The command needs no Node.js installation. The example consumes the versioned
-`dev.woge:woge-fallback-client-assets` JVM artifact, whose ES modules Spring Boot serves from
-`/assets/woge/`. Applications with a frontend build will be able to install `@woge/fallback-client` from
-npm once it is published. Both paths contain the same runtime and protocol version; see the
-[installation guide](fallback-client-installation.md).
+For your own project, start from the [Spring Boot scaffold](../../scaffolds/spring-boot/README.md).
+Its idiomatic configuration is the neutral Woge starter plus **one** host: `woge-spring-webflux` and
+Spring Boot's WebFlux starter, or `woge-spring-mvc` and its web starter. Boot supplies the handlers.
+The scaffold applies KSP and the matching Woge processor; commands also need Kotlin's serialization
+plugin. Add the version-matched `woge-fallback-client-assets` dependency for enhancement. This
+[example build](../../examples/reference-application/shared/build.gradle.kts) already includes it.
+Until artifacts are published, use the scaffold's documented local repository setup.
 
-## Read the page as normal web traffic
+## First, submit without JavaScript
 
-The browser-visible flow uses ordinary requests and responses:
+Disable JavaScript in browser developer tools, reload, type a note and press **Add note**:
 
-1. `GET /projects/woge` returns status 200 and a standards-mode HTML document immediately.
-2. The head loads `/assets/application.css` and `/assets/application.js` through normal `link` and
-   `script type="module"` elements.
-3. The HTML already contains navigation, the project heading, three semantic loading sections and a
-   GET form for the complete page.
-4. The ES module reads the document's declared URL, fetches
-   `GET /projects/woge/woge-patches/{epoch}` and passes its byte stream to Woge's small browser adapter.
-   Each new page has a fresh random epoch; a deferred GET returns that same epoch.
-5. Summary, activity and task markup replace their matching section contents as server work finishes.
+1. `GET /notes` returns a complete HTML document with the current list and a labelled form.
+2. The browser sends `POST /woge-actions/add-note` with an ordinary URL-encoded `text` field.
+3. The host verifies same-origin evidence and decodes bounded form input. The action validates and
+   saves the note, then the native response is **303 See Other**, pointing to `/notes`.
+4. The browser follows with `GET /notes`. Refreshing this GET does not repeat the POST.
 
-Open the browser Network panel to inspect all of this. Region IDs are opaque registry keys rather than
-CSS selectors. Woge leaves each outer `section`, its classes and its accessibility attributes in place
-while replacing the children.
+The demo is a public, shared, in-memory notebook. Restarting clears it; it is not a persistence or
+private-account example.
 
-The real-server test in
-[`WogeQuickstartApplicationTest.kt`](../../examples/reference-application/spring-webflux/src/test/kotlin/dev/woge/example/WogeQuickstartApplicationTest.kt)
-starts the same application on a random port and verifies the HTML, status codes, decoded patch frames,
-full navigation and static assets in `./gradlew check`.
+## Read the action
 
-## Write familiar HTML
+The [complete compiled source, including imports](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt)
+contains the page, form, decoder and region functions. Excerpts below are not standalone files.
 
-The canonical page uses tag functions named after HTML elements. This excerpt is compiled from the
-shared example; the [complete document source](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectDocument.kt)
-contains its imports and surrounding functions.
-
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectDocument.kt -->
+<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt -->
 
 ```kotlin
-internal fun HtmlWriter.renderProjectDocument(
-    project: ProjectSnapshot,
-    view: ProjectPageView,
-    regions: List<ProjectRegion>,
-    epoch: UUID,
-) {
-    doctype()
-    html(attributes = { attribute("lang", "en") }) {
-        renderHead(project, view, epoch)
-        renderBody(project, view, regions, epoch)
-    }
-}
+private const val MAX_NOTE_LENGTH = 120
 
-private fun HtmlWriter.renderHead(
-    project: ProjectSnapshot,
-    view: ProjectPageView,
-    epoch: UUID,
-) {
-    head {
-        meta { attribute("charset", "utf-8") }
-        metadata("viewport", "width=device-width, initial-scale=1")
-        metadata("description", "A web-native Woge project page")
-        metadata("woge-page-epoch", epoch.toString())
-        title("${project.name} project · Woge quickstart")
-        stylesheet(applicationUrl("/assets/application.css"))
-        if (view == ProjectPageView.SHELL) {
-            moduleScript(applicationUrl("/assets/application.js"))
-        }
+@Serializable
+public data class AddNote(
+    val text: String,
+)
+
+public val addNoteForm: FormDecoder<AddNote> = FormDecoder(AddNote.serializer())
+
+@WogeAction("add-note")
+public suspend fun addNote(
+    command: AddNote,
+    context: RequestContext,
+): PageResult {
+    if (command.text.isBlank() ||
+        command.text.length > MAX_NOTE_LENGTH
+    ) {
+        return failure(FailureCategory.BAD_REQUEST, context.correlationId)
+    }
+    noteStore.add(command.text.trim())
+    return context.render.updates(NotesRoute.url(NotesInput)) {
+        replace(NoteListRegion, noteStore.all())
+        replace(NoteStatusRegion, "Note added")
     }
 }
 ```
 
-`text(...)` escapes data. `url("href", applicationUrl(...))` keeps URL handling explicit. Attributes,
-classes, `data-*`, `aria-*`, custom elements and unknown future tags still use the generic writer where
-needed. There is no virtual DOM or mobile-style widget vocabulary.
+`data class` names the form fields. `@Serializable` supplies the decoder; `@WogeAction` generates
+`AddNoteAction`, a typed reference and URL. `suspend fun` can wait for server work. The action uses
+`context` here to prepare updates; leave that parameter out when an action does not need it.
+`updates` describes success once: native requests receive the redirect, enhanced requests receive
+region HTML. There is no second mutation implementation.
 
-## Keep application code outside Spring
-
-[`ProjectPage.kt`](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt)
-depends on Woge's host-neutral interfaces, not Spring, Reactor or a server request. It returns the first
-HTML document and declares the independently completing regions.
-
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
+## Write a normal form and bind its POST
 
 ```kotlin
-public class ProjectPage :
-    PageUseCase<ProjectPageInput>,
-    DeferredRegionsUseCase<ProjectPageInput> {
-    override suspend fun open(request: PageRequest<ProjectPageInput>): PageResult {
-        val project = findProject(request.input.project)
-            ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
-        return htmlPage { renderProjectDocument(project, request.input.view) }
-    }
-
-    override suspend fun regions(request: PageRequest<ProjectPageInput>): Iterable<DeferredRegion> {
-        val project = findProject(request.input.project) ?: return emptyList()
-        return deferredRegions(project)
-    }
+actionForm(AddNoteAction, attributes = {
+    attribute("id", "note-form")
+    data("woge-action", "")
+    data("woge-status", "note-status")
+    data("woge-alert", "note-alert")
+    data("woge-failure-message", "Could not confirm the result. Reload to check your notes before submitting again.")
+}) {
+    label(attributes = { attribute("for", "note-text") }) { text("New note") }
+    input(attributes = {
+        attribute("id", "note-text")
+        attribute("name", "text")
+        boolean("required")
+        attribute("maxlength", MAX_NOTE_LENGTH.toString())
+    })
+    button { text("Add note") }
 }
 ```
 
-This is the application-side port in a ports-and-adapters architecture. The same class already runs
-through the [Spring MVC](spring-mvc-adapter.md) and [Ktor](ktor-adapter.md) launchers. The shared
-cross-host browser gate verifies all three.
+`actionForm` writes an ordinary `form method="post"` with the generated action URL. The data
+attributes opt it into enhancement; they do not replace native submission. The label, required field
+and maximum length are HTML features. Server validation still runs when clients bypass them.
 
-Spring-specific code stays in
-[`ProjectRoutes.kt`](../../examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt).
-It keeps paths, path variables, query parameters and HTTP methods visible:
+The [compiled Spring routes](../../examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt)
+keep HTTP methods and URLs visible:
 
 <!-- snippet: examples/reference-application/spring-webflux/src/main/kotlin/dev/woge/example/ProjectRoutes.kt -->
 
 ```kotlin
+val page = handlers.page(NotesPage(), NotesRoute)
+val action = handlers.action(AddNoteAction, addNoteForm.webFluxInput())
 return coRouter {
-    GET("/projects/{project}", page::handle)
-    GET("/projects/{project}/woge-patches", patches::handle)
+    GET(NotesRoute.path, page::handle)
+    POST(AddNoteAction.path, action::handle)
 }
 ```
 
-The neutral Woge starter selects and configures the WebFlux adapter. It does not make Spring a core
-dependency and does not bundle MVC and WebFlux together.
+## Now enhance the same form
 
-## See progressive enhancement fail safely
+Enable JavaScript and reload. The page loads `/assets/woge/index.js` as an external ES module. Its
+host-owned render metadata activates the shipped form client; no application JavaScript is needed.
+Submit again and inspect Network: the same POST requests a typed patch response instead of a
+redirect. Two regions change: the list and the empty `role="status"` message. The form remains in
+place; the update does not move focus. Pressing Enter in the field keeps focus there. A failed module load leaves the native form working.
 
-Disable JavaScript and reload `/projects/woge`. The server HTML still exposes the project identity,
-navigation, headings, loading state and a normal form. Submit **Load the complete page instead**. The
-browser navigates to `GET /projects/woge?view=complete`, and the server returns all three sections in
-one HTML response without the patch module.
+The page renders regions with `region(page.target(NoteListRegion), ...)`, where
+`page = request.context.render`. `@WogeRegion` on an HTML function generates its descriptor.
+You do not create protocol IDs, counters or secrets in page code. See the short
+[mental model](mental-model.md) before adding [validation](typed-actions.md#render-native-field-errors),
+[deferred regions](deferred-regions.md) or [live regions](live-updates.md).
 
-An unknown project returns 404. An unknown `view` query value returns 400. The patch endpoint returns
-its versioned media type with `Cache-Control: no-store`. These remain ordinary HTTP outcomes; Woge
-does not hide them behind a client state machine.
+## Safe defaults you can see
 
-The example's [`application.js`](../../examples/reference-application/shared/src/main/resources/static/assets/application.js)
-uses standard `fetch`, `ReadableStream` and ES modules. Its
-[`application.css`](../../examples/reference-application/shared/src/main/resources/static/assets/application.css)
-uses cascade layers, nesting, logical properties and a container query. Replace either with your normal
-frontend toolchain; Woge does not require a CSS or JavaScript replacement.
+- `text(...)` escapes submitted text; URLs use `applicationUrl(...)`. Do not turn user input into raw
+  markup. The example's strict [CSP](content-security-policy.md) allows same-origin external scripts
+  and CSS, not inline scripts or event handlers.
+- The default action binding rejects cross-origin or unverifiable POSTs with 403 **before decoding**.
+  This is CSRF protection, not authentication. Private notes need host authentication and domain
+  authorization on every request. See [token-based policies and trusted proxies](typed-actions.md#register-a-post-endpoint).
+- An invalid command gets 400 and makes no change. HTML `required` catches the common empty-field
+  case; [field-error rendering](typed-actions.md#render-native-field-errors) adds a useful native
+  error page when a richer form needs one.
+- The document has `lang`, a heading, a label, visible keyboard focus and initially empty status/alert
+  elements. Enhancement announces success or failure without moving focus. Test keyboard and
+  screen-reader behavior using the [accessibility checklist](accessibility.md).
+- A lost POST response may hide a committed mutation. The client **never retries a POST**. Reload the
+  safe GET to check the result before deliberately submitting again.
+- Pages and action responses default to `Cache-Control: no-store`. Opt into ordinary ETag,
+  Last-Modified and conditional GET/HEAD only when appropriate; [304 is standard HTTP](http-caching.md),
+  not a Woge revision mechanism.
 
-Next, read [Kotlin for this web task](kotlin-for-web-developers.md). It explains only the syntax used
-above. The [Spring Boot integration guide](spring-boot-starter.md) covers adapter selection and limits.
+## Use your web stack
+
+The [example stylesheet](../../examples/reference-application/shared/src/main/resources/static/assets/notes.css)
+is plain CSS. Use normal classes, `data-*`, `aria-*`, custom elements, external scripts and your own
+ES modules. [HTML escape hatches](html-elements.md) and [CSS/assets](css-and-assets.md) remain explicit.
+[Tailwind](tailwind.md), [unstyled primitives](ui-primitives.md) and [islands](mental-model.md#optional-layers)
+are separate, optional layers.
+
+WebFlux suits suspending I/O; do not block its event loop. MVC is an equal Spring choice for Servlet
+integrations or blocking libraries. See the [support constraints and evidence](../architecture/spring-support-model.md)
+and [measured baseline](../performance/m1-multi-host-baseline.md), not a blanket speed claim.
+
+Ktor is a first-class alternative with the **same NotesPage and AddNoteAction**:
+`./gradlew :woge-reference-ktor:run`, then open `/notes`. MVC uses
+`./gradlew :woge-reference-spring-mvc:bootRun`. Stop one host before starting another on port 8080.
+The [Ktor guide](ktor-adapter.md) shows its route bindings.
+
+The [cross-host browser tests](../../client/woge-fallback-client/reference-browser-tests)
+verify this tutorial in Chromium, Firefox and WebKit, with and without JavaScript, including 303/GET,
+no POST replay on refresh, focus, strict CSP and rejected commands. Sources compile in `./gradlew check`;
+`./gradlew referenceBrowserSmoke` runs those browser journeys.
+
+Next: [develop with wogeDev](development-loop.md), or [troubleshoot a request](troubleshooting.md).

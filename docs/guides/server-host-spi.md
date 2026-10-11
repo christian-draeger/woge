@@ -7,6 +7,10 @@ If you know controllers or route handlers, `PageUseCase<Input>` has the same job
 input and returns a response. The difference is that its types belong to Woge, so the same application
 code can run on Spring MVC, Spring WebFlux and Ktor.
 
+For application tasks, start with the [page/form quickstart](quickstart-spring-boot.md) and
+[mental model](mental-model.md). The interfaces below explain adapter boundaries, not extra steps
+required for a simple page or form.
+
 ## Start with one HTML page
 
 ```kotlin
@@ -30,8 +34,8 @@ Kotlin reads this much like modern server-side template code:
 - `text(...)` escapes application data for HTML;
 - `htmlPage` returns `text/html; charset=UTF-8`.
 
-Generated typed routes will create and connect the input in a later M1 issue. Until then, tests or
-hand-written adapter code can construct `PageRequest` directly.
+Use [generated typed routes](typed-routes.md) to connect inputs with the handler factory.
+Direct `PageRequest` construction is useful in unit tests or adapter implementations.
 
 ## Stream meaningful page parts
 

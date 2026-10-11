@@ -3,36 +3,19 @@
 Woge keeps your page independent from Ktor. A small Ktor bootstrap connects it to normal routes. If
 you already know HTTP and Ktor routing, those concepts remain the application model.
 
-Spring Boot is the primary Woge quickstart. Use this adapter when Ktor is your host or when you want
-to verify that application code stays independent from either server framework.
+Spring Boot is the primary Woge quickstart; Ktor is a first-class alternative, not a different
+application model. Run `./gradlew :woge-reference-ktor:run` and open `/notes` for the same
+[page and native/enhanced form](quickstart-spring-boot.md). Its compiled bindings use
+`handlers.page(NotesPage(), NotesRoute)` and `handlers.action(AddNoteAction, addNoteForm.ktorInput())`.
+The same cross-host browser tests verify both paths.
 
 ## Keep page code portable
 
-The maintained `ProjectPage` implements both the initial document and deferred work against Woge's
-typed host boundary:
+The maintained [NotesPage and AddNoteAction](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt)
+use Woge HTML and host types. They have no `ApplicationCall`, server engine or Ktor plugin import.
+The compiler keeps accidental host coupling visible. Complete imports are in that compiled source.
 
-<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/project/ProjectPage.kt -->
-
-```kotlin
-public class ProjectPage :
-    PageUseCase<ProjectPageInput>,
-    DeferredRegionsUseCase<ProjectPageInput> {
-    override suspend fun open(request: PageRequest<ProjectPageInput>): PageResult {
-        val project =
-            findProject(request.input.project)
-                ?: return failure(FailureCategory.NOT_FOUND, request.context.correlationId)
-        return htmlPage { renderProjectDocument(project, request.input.view) }
-    }
-
-    override suspend fun regions(request: PageRequest<ProjectPageInput>): Iterable<DeferredRegion> {
-        val project = findProject(request.input.project) ?: return emptyList()
-        return deferredRegions(project)
-    }
-}
-```
-
-This class has no `ApplicationCall`, server engine or Ktor plugin import. The compiler therefore
-keeps accidental host coupling visible.
+<!-- snippet: examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/Notes.kt -->
 
 ## Connect ordinary Ktor routes
 
@@ -42,28 +25,18 @@ the integration and browser tests:
 <!-- snippet: examples/reference-application/ktor/src/main/kotlin/dev/woge/example/ktor/WogeKtorQuickstart.kt -->
 
 ```kotlin
-public fun Application.wogeReferenceModule() {
-    val projectPage = ProjectPage()
-    val handlers = WogeKtorHandlers()
-    val page = handlers.page(projectPage, ProjectPageRoute)
-    val patches = handlers.deferred(projectPage, ProjectPageRoute.ktorInput())
-
-    routing {
-        get(ProjectPageRoute.path) { page.handle(call) }
-        head(ProjectPageRoute.path) { page.handle(call) }
-        get("${ProjectPageRoute.path}/woge-patches") { patches.handle(call) }
-        staticResources("/assets", "static/assets")
-    }
-}
+val notes = handlers.page(NotesPage(), NotesRoute)
+val addNote = handlers.action(AddNoteAction, addNoteForm.ktorInput())
 ```
 
-`ProjectPageRoute` is generated from `@WogeRoute("/projects/{project}")` on the page input; see
-[Typed page routes](typed-routes.md). Ktor still owns the routing table. The handler maps the portable result to status,
-headers, cookies and `text/html; charset=UTF-8`. Each Woge HTML frame is flushed before the next one
-is requested.
+Inside `routing`, bind `get(NotesRoute.path) { notes.handle(call) }` and
+`post(AddNoteAction.path) { addNote.handle(call) }`. Ktor still owns the routing table.
+The compiled launcher includes HEAD and normal static-resource serving. The handler maps results
+to status, headers, cookies and HTML; no Ktor serialization format replaces HTTP.
 
-The browser receives the same versioned patch stream as it does from either Spring adapter. No RPC
-layer or Ktor serialization format sits between the browser and the web-native page contract.
+The same application can add [deferred regions](deferred-regions.md) or
+[one-route live regions](live-updates.md). The versioned browser patch stream is the same on Ktor
+and both Spring hosts.
 
 ## Protect form actions and add authentication
 
@@ -95,7 +68,7 @@ Run the maintained example with:
 ./gradlew :woge-reference-ktor:run
 ```
 
-Then open `http://localhost:8080/projects/woge`. The same `ProjectPage`, HTML, CSS and JavaScript are
+Then open `http://localhost:8080/notes`. The same notes page, action, HTML and CSS are
 also exercised by both Spring Boot launchers.
 
 ## Develop with live reload

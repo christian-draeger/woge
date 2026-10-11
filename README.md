@@ -18,8 +18,9 @@ slice is executable on Spring Boot WebFlux, Spring MVC and Ktor; Woge is not rea
 yet.
 
 Run the maintained example with `./gradlew :woge-reference-spring-webflux:bootRun`, then open
-`http://localhost:8080/projects/woge`. The [web-first quickstart](docs/guides/quickstart-spring-boot.md)
-explains the page, its full-navigation fallback and the small amount of Kotlin it uses.
+`http://localhost:8080/notes`. The [web-first quickstart](docs/guides/quickstart-spring-boot.md)
+explains one page and form, its POST/Redirect/GET fallback and its enhanced action.
+The [mental model and DX doctrine](docs/guides/mental-model.md) introduce the next layers.
 The same portable page runs on MVC with `./gradlew :woge-reference-spring-mvc:bootRun` and on Ktor
 with `./gradlew :woge-reference-ktor:run`.
 `./gradlew referenceBrowserSmoke` runs the same enhanced and no-JavaScript journeys through all three
