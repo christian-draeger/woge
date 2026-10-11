@@ -40,6 +40,8 @@ const expectedFiles = [
   "package/dist/signals.js",
   "package/dist/signals.d.ts",
   "package/dist/state.js",
+  "package/dist/websocket.d.ts",
+  "package/dist/websocket.js",
   "package/dist/woge-fallback.js",
   "package/dist/woge-fallback.js.map",
   "package/package.json",
