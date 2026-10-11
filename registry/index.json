@@ -171,6 +171,167 @@
           ]
         }
       }
+    },
+    {
+      "name": "form-components",
+      "version": "1.0.0",
+      "description": "Native typed-action forms, fields, choices, validation summaries and success feedback.",
+      "dependencies": {
+        "items": [],
+        "modules": [
+          "dev.woge:woge-host-spi",
+          "dev.woge:woge-ui-headless"
+        ]
+      },
+      "primitives": [
+        "formField",
+        "formFieldErrors",
+        "formErrorSummary",
+        "actionForm",
+        "liveRegion"
+      ],
+      "designTokens": [
+        "--woge-form-gap",
+        "--woge-form-radius",
+        "--woge-form-focus",
+        "--woge-surface",
+        "--woge-ink",
+        "--woge-muted",
+        "--woge-line",
+        "--woge-danger",
+        "--woge-ok"
+      ],
+      "compatibility": {
+        "woge": {
+          "minimum": "0.1.0",
+          "maximumExclusive": "0.2.0"
+        },
+        "kotlinMinimum": "2.4.10",
+        "hydration": "none"
+      },
+      "license": "Apache-2.0",
+      "provenance": {
+        "repository": "https://github.com/christian-draeger/woge",
+        "revision": "91db65dce9bc7a791faf13fce0c2a0b85625c7b6cb36d9beadbd29919ccb751b",
+        "path": "registry/form-components",
+        "revisionKind": "source-tree-sha256"
+      },
+      "variants": {
+        "css": {
+          "files": [
+            {
+              "source": "form-components/css/FormButton.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormButton.kt",
+              "kind": "kotlin",
+              "sha256": "30e75d06f907fe26a8954225dc4e9658716c1ef86fa2f305844e7aa27d6dd585"
+            },
+            {
+              "source": "form-components/css/FormChoiceControls.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormChoiceControls.kt",
+              "kind": "kotlin",
+              "sha256": "61e57b585089a15af2167bf61f0ccad4ef215721dc01295ec5725c28e4d635b1"
+            },
+            {
+              "source": "form-components/css/FormControl.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormControl.kt",
+              "kind": "kotlin",
+              "sha256": "a01cd829f5f4fc8a79a3d4c49d0ad098c90b11262849ed0f1fa49eda07e63483"
+            },
+            {
+              "source": "form-components/css/FormFieldLayout.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormFieldLayout.kt",
+              "kind": "kotlin",
+              "sha256": "e2ee09a8abb382fbe75cdb971065a5e0730ee16750c8ed40db2006b8fe27a38a"
+            },
+            {
+              "source": "form-components/css/FormTextControls.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormTextControls.kt",
+              "kind": "kotlin",
+              "sha256": "3dfcdb1a47cc080a920a4c8ad13b2bd1702cc275de616d380d9a77aa2b54315a"
+            },
+            {
+              "source": "form-components/css/LICENSE.txt",
+              "target": "woge-components/licenses/form-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "source": "form-components/css/form-components.css",
+              "target": "src/main/resources/static/assets/components/form-components.css",
+              "kind": "css",
+              "sha256": "ba3b6928b81d43819bf300fbcfb173029ad7c4ad79b22a90b60c7f62923a5fbb"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "scoped",
+              "file": "form-components/css/form-components.css",
+              "scope": "woge-form-components",
+              "layer": "woge.components.form-components"
+            }
+          ],
+          "tests": [
+            {
+              "source": "form-components/css/FormComponentsTest.kt",
+              "sha256": "7f663f32c261d91bb2f0aabf27a99f73217b2bb00c202fe93354e2f4e43b6b85"
+            }
+          ]
+        },
+        "tailwind": {
+          "files": [
+            {
+              "source": "form-components/tailwind/FormButton.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormButton.kt",
+              "kind": "kotlin",
+              "sha256": "30e75d06f907fe26a8954225dc4e9658716c1ef86fa2f305844e7aa27d6dd585"
+            },
+            {
+              "source": "form-components/tailwind/FormChoiceControls.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormChoiceControls.kt",
+              "kind": "kotlin",
+              "sha256": "61e57b585089a15af2167bf61f0ccad4ef215721dc01295ec5725c28e4d635b1"
+            },
+            {
+              "source": "form-components/tailwind/FormControl.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormControl.kt",
+              "kind": "kotlin",
+              "sha256": "3c14d3b6fb33a4d2f8d89a496607a7cc89c54e1fae3db67fe30f5d8e932a5e25"
+            },
+            {
+              "source": "form-components/tailwind/FormFieldLayout.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormFieldLayout.kt",
+              "kind": "kotlin",
+              "sha256": "e2ee09a8abb382fbe75cdb971065a5e0730ee16750c8ed40db2006b8fe27a38a"
+            },
+            {
+              "source": "form-components/tailwind/FormTextControls.kt",
+              "target": "src/main/kotlin/__PACKAGE_PATH__/FormTextControls.kt",
+              "kind": "kotlin",
+              "sha256": "3dfcdb1a47cc080a920a4c8ad13b2bd1702cc275de616d380d9a77aa2b54315a"
+            },
+            {
+              "source": "form-components/tailwind/LICENSE.txt",
+              "target": "woge-components/licenses/form-components.txt",
+              "kind": "license",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            }
+          ],
+          "styleAssets": [
+            {
+              "kind": "tailwind",
+              "file": "form-components/tailwind/FormControl.kt",
+              "scope": "woge-form-components",
+              "layer": "utilities"
+            }
+          ],
+          "tests": [
+            {
+              "source": "form-components/tailwind/FormComponentsTest.kt",
+              "sha256": "7f663f32c261d91bb2f0aabf27a99f73217b2bb00c202fe93354e2f4e43b6b85"
+            }
+          ]
+        }
+      }
     }
   ]
 }

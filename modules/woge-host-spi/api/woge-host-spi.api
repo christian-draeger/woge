@@ -464,9 +464,11 @@ public final class dev/woge/host/FormErrors {
 }
 
 public final class dev/woge/host/FormErrorsKt {
+	public static final fun formErrorSummary-6F8QR5Q (Ldev/woge/html/HtmlWriter;Ldev/woge/host/FormErrors;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun formErrorSummary-N98y3xE (Ldev/woge/html/HtmlWriter;Ldev/woge/host/FormErrors;Ljava/lang/String;Ljava/lang/String;)V
 	public static final fun formField (Ldev/woge/html/Attributes;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;Ljava/util/List;)V
 	public static synthetic fun formField$default (Ldev/woge/html/Attributes;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;Ljava/util/List;ILjava/lang/Object;)V
+	public static final fun formField-vugP6JU (Ldev/woge/html/Attributes;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;Ljava/util/List;Ljava/lang/String;)V
 	public static final fun formFieldErrors (Ldev/woge/html/HtmlWriter;Ldev/woge/host/FormField;Ldev/woge/host/FormErrors;)V
 }
 
