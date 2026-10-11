@@ -40,6 +40,54 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 
 | Frozen | [`local-island-target`](local-island-target/) | Kotlin/JS for opt-in DOM islands in ADR [0093](../docs/adr/0093-kotlin-js-local-islands.md) | Lazy lifecycle [#54](https://github.com/christian-draeger/woge/issues/54), shared validation [#55](https://github.com/christian-draeger/woge/issues/55), local signals [#56](https://github.com/christian-draeger/woge/issues/56) |
 
+## Pre-1.0 audit (2026-10-11)
+
+The audit retains the eight remaining investigations as **Frozen**, not Active. Having a production
+successor does not mean every comparison against a rejected alternative belongs in production CI.
+No prototype is removed in this audit; historical measurements, negative fixtures and relative ADR
+links therefore remain intact. The four already Retired entries above retain their immutable links.
+
+| Frozen evidence | Maintained successor and durable checks | Reason to retain executable evidence |
+| --- | --- | --- |
+| Typed references | `woge-host-spi` identity tests, `woge-ksp` route/action/region diagnostics and `examples/m1-api-corpus` negative compiler fixtures | The old nominal component-owner API differs from the current page-region API. Keep the original compiler diagnostics reproducible; do not copy the obsolete API into production. |
+| Patch framing | `woge-protocol` codec, golden-wire and seeded fuzz tests; `PatchStreamCompressionTest` carries the gzip/one-byte case | The rejected multipart codec and its overhead comparison have no production counterpart. Keep comparison code, but never use it as a second supported codec. |
+| Fallback runtime | `client/woge-fallback-client` unit and three-engine browser contracts; shared hostile-markup fixtures and protocol tests | The small classic-script implementation records the original size and library comparison. It is not a published client or a source for current fixes. |
+| Native DPU | `woge-server-runtime` encoder tests; original-document conformance on MVC, WebFlux and Ktor from #230 | Nested/parent/shadow scope, repeated markers, active-parser execution and the experimental streaming API remain external platform evidence. The production path intentionally supports a narrower passive range replacement. |
+| Tailwind | Gradle Tailwind build adapter and `testTailwindExample` in the parallel example CI job | The standalone/npm parity measurement and historical watcher/output hashes describe exact external tool versions. Keep them reproducible separately from supported application builds. |
+| Component distribution | `woge-ui-headless`, `woge-component-registry`, compiled recipes and component browser contracts | Styled-binary versus source-only versus hybrid artifact measurements are a rejected-alternative comparison, not three production component systems. |
+| Vite | `woge-vite` tests, `ViteDevServerTest` and `testViteExample` in the example CI job | The OpenSavvy plugin probe and original HMR timings explain why direct invocation was chosen. Do not bring that plugin into the maintained build. |
+| Local-island target | `woge-core` island declarations, the maintained Kotlin/JS example and client island lifecycle tests | Wasm/dual payload, fallback and source-map comparisons are intentionally outside the supported Kotlin/JS island target. |
+
+Production security, protocol and browser contracts belong to the successors, not these prototypes.
+The added gzip regression exercises the current wire format rather than importing the spike codec.
+Experimental original-document conformance remains separate from the normal three-engine fallback
+gate. Its new CI wiring must pass before any related historical workflow is disabled.
+
+The remaining spike workflows stay path-scoped: they reproduce the external comparisons above
+when their own evidence changes, not on ordinary product changes. No workflow is disabled and no
+fixture is deleted on the strength of a local check alone. A later **Superseded** decision must name
+the green production CI run and account for the remaining comparison-specific cases first.
+
+### Generated-file cleanup
+
+Generated files are disposable, but evidence reports and lockfiles are not. First inspect the ignored
+outputs for one exact spike, for example:
+
+```sh
+git status --ignored --short -- spikes/patch-framing
+git clean -ndX -- spikes/patch-framing
+```
+
+For Gradle outputs, prefer `./gradlew -p spikes/patch-framing clean`. This does not remove installed
+dependencies or all tool caches. If those also need removal, review the dry-run list above and then
+use `git clean -fdX -- spikes/patch-framing` for that exact spike only. This deletes **all ignored
+files in that spike**, including local measurement output; preserve anything needed first. Repeat
+with one explicitly named spike, never the repository or a wildcard. Do not clear shared Gradle/npm
+caches or the shared Playwright browser installation as part of spike cleanup.
+
+Downloaded tools, local wrappers, `node_modules`, `build`, `.gradle` and `.kotlin` stay ignored.
+`git ls-files -- spikes` is the source inventory; installed tools must not be added to it.
+
 ## Repository rules
 
 - Production modules, adapters, integrations and maintained examples must never depend on a spike project or import a spike package.
