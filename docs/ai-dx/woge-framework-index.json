@@ -349,6 +349,19 @@
       "example": "testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/ServerAdapterContract.kt"
     },
     {
+      "name": "woge-component-registry",
+      "role": "test-support",
+      "exposure": "support",
+      "sourcePath": "testing/woge-component-registry",
+      "artifact": null,
+      "concepts": [
+        "source-owned-components",
+        "component-registry-validation"
+      ],
+      "guide": "docs/guides/component-registry.md",
+      "example": "registry/disclosure-card/css/DisclosureCard.kt"
+    },
+    {
       "name": "woge-spring-mvc",
       "role": "adapter",
       "exposure": "public",
