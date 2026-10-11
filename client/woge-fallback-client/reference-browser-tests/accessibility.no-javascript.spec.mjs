@@ -23,7 +23,7 @@ test("native keyboard journeys reach equivalent board and project outcomes", asy
   await page.keyboard.press("Space");
   await expect(page.locator("details")).toHaveAttribute("open", "");
   const popover = page.getByRole("button", { name: "Live updates" });
-  await tabTo(page, popover);
+  await tabTo(page, popover, { backwards: true });
   await page.keyboard.press("Enter");
   await expect(page.locator("#live-updates")).toBeVisible();
   await page.keyboard.press("Escape");

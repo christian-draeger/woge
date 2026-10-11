@@ -28,7 +28,7 @@ test("the board journey is keyboard-only, including skip link, mutation and nati
   await page.keyboard.press("Space");
   await expect(page.locator("details")).toHaveAttribute("open", "");
   const help = page.getByRole("link", { name: "Board help" });
-  await tabTo(page, help);
+  await tabTo(page, help, { backwards: true });
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Board help" });
   await expect(dialog).toBeVisible();

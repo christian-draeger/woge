@@ -47,9 +47,10 @@ export async function pressTab(page, backwards = false) {
   await page.keyboard.press(`${backwards ? "Shift+" : ""}${prefix}Tab`);
 }
 
-export async function tabTo(page, locator, limit = 30) {
+// Firefox leaves the document after the last stop instead of wrapping; tab backwards to earlier controls.
+export async function tabTo(page, locator, { backwards = false, limit = 30 } = {}) {
   for (let index = 0; index < limit; index++) {
-    await pressTab(page);
+    await pressTab(page, backwards);
     if (await locator.evaluate((element) => element === document.activeElement)) return;
   }
   throw new Error(`Not keyboard reachable after ${limit} Tab presses: ${locator}`);
