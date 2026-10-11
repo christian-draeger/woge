@@ -51,6 +51,8 @@ package metadata and test tools: none of these are loaded by the browser at runt
 | Lazy classpath transaction source, reusing existing protocol module | 3,893 | 1,533 | 1,271 |
 | Opt-in islands module and complete graph | 4,386 | 1,899 | 1,671 |
 | Opt-in classpath islands source | 7,619 | 2,498 | 2,136 |
+| Opt-in signals module and complete graph | 2,417 | 1,151 | 1,056 |
+| Opt-in classpath signals source | 5,417 | 1,839 | 1,554 |
 | Reference application's generated/minified plain CSS | 3,071 | 1,238 | 1,027 |
 | Equivalent plain-CSS service card | 424 | 261 | 186 |
 | Optional dark/high-contrast card theme | 224 | 162 | 113 |
@@ -233,3 +235,16 @@ classpath source has 9,000 / 3,000 / 2,600 ceilings. The +10% drift rule also ap
 ceiling or core bytes change. Dynamic app imports resolve only through the original page allowlist;
 application-owned island modules and chunks report their own cost outside framework budgets. See
 [local islands](../guides/local-islands.md).
+
+## Local signals runtime cost
+
+Issue #56 adds `signals.js` without changing core. Its minified module and full graph have independent
+4,000 / 1,800 / 1,600 raw/gzip/Brotli ceilings; classpath source has 6,500 / 2,300 / 2,000 ceilings.
+Existing ceilings are unchanged and the normal +10% drift rule applies.
+
+Run `cd client/woge-fallback-client && npm run build && npm run benchmark:signals` outside normal CI.
+On the recorded macOS/Node environment, 1,000 signals and 10,000 updates feeding one computed sum
+took median 535.307 ms without batching (10,001 effect runs), versus 0.202 ms in one batch (2 runs),
+after one warm-up and five samples. Setup/disposal are excluded. The script checks correctness, not
+a noisy timing threshold. This high-fan-in workload is illustrative, not a general latency promise.
+See [ADR 0096](../adr/0096-local-signals-and-optimistic-actions.md).

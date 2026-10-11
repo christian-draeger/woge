@@ -240,3 +240,13 @@ Load `@woge/fallback-client/islands` (or serve `dist/islands.js` as an external 
 with an initial `woge-islands` JSON manifest. It auto-installs after parsing;
 `installWogeIslands()` is idempotent and exposes `scan`, explicit `update` and `dispose`. Imports are
 lazy, manifest-only and root-scoped. See [the public guide](../../docs/guides/local-islands.md).
+
+## Optional local signals
+
+Import `signal`, `computed`, `effect`, `batch`, and `createOptimisticAction` from
+`@woge/fallback-client/signals` (types included). Static deployments copy `dist/signals.js`;
+Node-free classpath deployments serve `/assets/woge/signals.js`. Core never imports this module.
+Bind effects to the island mount AbortSignal and resolve optimistic handles only from explicitly
+supplied authoritative server outcomes. No implicit props merging, DOM diffing or POST replay.
+See [the guide](../../docs/guides/island-signals.md). Run `npm run benchmark:signals` after building
+for an informational benchmark outside normal CI.

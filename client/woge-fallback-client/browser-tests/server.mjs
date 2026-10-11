@@ -4,6 +4,10 @@ import { STRICT_CSP } from "../test-support/strict-policy.mjs";
 import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
+  ["/signals", { path: new URL("./signals-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ...["signals-bootstrap", "signals-island"].map((name) =>
+    [`/${name}.js`, { path: new URL(`./${name}.mjs`, import.meta.url), type: "text/javascript; charset=utf-8" }]),
+  ["/signals.js", { path: new URL("../dist/signals.js", import.meta.url), type: "text/javascript; charset=utf-8" }],
   ["/islands", { path: new URL("./islands-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/islands-bootstrap.js", { path: new URL("./islands-bootstrap.mjs", import.meta.url), type: "text/javascript; charset=utf-8" }],
   ["/island-counter.js", { path: new URL("./island-counter.mjs", import.meta.url), type: "text/javascript; charset=utf-8" }],
@@ -41,6 +45,26 @@ const pendingDeferredResponses = new Map();
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
+  if (url.pathname === "/signals-action" && request.method === "POST") {
+    let body = "";
+    for await (const chunk of request) body += chunk;
+    const note = new URLSearchParams(body).get("note");
+    const validation = note === "reject";
+    const count = note === "second" ? 2 : 1;
+    const revision = Number(request.headers["woge-region-revisions"].split(":")[1]);
+    response.writeHead(validation ? 400 : 200, {
+      "content-type": "application/vnd.woge.patch-stream; version=1",
+      ...(validation ? { "woge-validation": "errors" } : {}),
+    });
+    response.end(Buffer.from(encodeStream([patchFrame({
+      target: "saved", epoch: request.headers["woge-page-epoch"],
+      interactionSequence: Number(request.headers["woge-interaction"]),
+      baseRevision: revision, nextRevision: revision + 1,
+      html: `<output data-authoritative-count="${count}">${count} saved notes</output>` +
+        (validation ? '<p id="errors" tabindex="-1">The server rejected this note</p>' : ""),
+    }), completeFrame()])));
+    return;
+  }
   if (url.pathname.startsWith("/navigation/")) {
     response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'unsafe-inline'");
     if (url.pathname === "/navigation/cross-origin") {

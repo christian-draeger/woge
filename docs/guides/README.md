@@ -94,3 +94,6 @@ conformance, explicit fallback testing, JavaScript-disabled journeys and failure
 
 The [local islands guide](local-islands.md) adds one lazy, lifecycle-managed browser widget to useful
 server HTML through a typed, versioned manifest, without hydrating the page.
+
+[Island signals and optimistic actions](island-signals.md) add opt-in local reactions and explicit
+server-outcome reconciliation, not a DOM renderer or an alternative to server-rendered forms.

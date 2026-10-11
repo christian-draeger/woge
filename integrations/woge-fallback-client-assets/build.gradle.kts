@@ -78,6 +78,9 @@ tasks.named<ProcessResources>("processResources") {
         include("*.js")
         into("static/assets/woge")
     }
+    from(browserSources.file("signals.d.ts")) {
+        into("META-INF/woge/fallback-client")
+    }
     from(browserSources.file("index.d.ts")) {
         into("META-INF/woge/fallback-client")
     }

@@ -55,7 +55,20 @@
     "sharedRules": "examples/reference-application/shared-rules/src/commonMain/kotlin/dev/woge/example/rules/NoteDraft.kt",
     "sharedRulesBuildAdr": "docs/adr/0095-shared-example-rules-build.md",
     "sharedRulesTests": "JVM and Node commonTest; reference Chromium verifies compiled ES module",
-    "trustBoundary": "Client feedback only; server revalidates and owns authorization and persistence"
+    "trustBoundary": "Client feedback only; server revalidates and owns authorization and persistence",
+    "signals": {
+      "client": "@woge/fallback-client/signals",
+      "api": [
+        "signal",
+        "computed",
+        "effect",
+        "batch",
+        "createOptimisticAction"
+      ],
+      "adr": "docs/adr/0096-local-signals-and-optimistic-actions.md",
+      "guide": "docs/guides/island-signals.md",
+      "resolution": "Explicit non-stale authoritative patch completion or rejection; latest-intent scope, no POST replay or DOM diffing"
+    }
   },
   "agentGuidance": {
     "templateVersion": 1,

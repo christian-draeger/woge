@@ -31,6 +31,10 @@
     "./islands": {
       "types": "./dist/islands.d.ts",
       "import": "./dist/islands.js"
+    },
+    "./signals": {
+      "types": "./dist/signals.d.ts",
+      "import": "./dist/signals.js"
     }
   },
   "publishConfig": {
@@ -58,7 +62,8 @@
     "prepack": "npm run build && npm run verify:contract",
     "prepublishOnly": "npm run check",
     "check": "npm run build && npm run verify:contract && npm run test:unit && npm run test:browser && npm run measure && node scripts/check-budgets.mjs",
-    "budgets": "npm run build && node scripts/check-budgets.mjs"
+    "budgets": "npm run build && node scripts/check-budgets.mjs",
+    "benchmark:signals": "node scripts/benchmark-signals.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
