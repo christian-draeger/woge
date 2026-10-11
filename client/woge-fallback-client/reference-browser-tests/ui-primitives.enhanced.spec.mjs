@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../test-support/strict-csp.mjs";
 
 test("disclosure and popover use native keyboard and focus behavior", async ({ page }) => {
   await page.goto("/projects/woge/tasks");
@@ -56,28 +56,10 @@ test("primitives keep their state while board actions patch the page", async ({ 
 });
 
 test("primitives work under a strict Content-Security-Policy", async ({ page }) => {
-  await page.route("**/projects/woge/tasks", async (route) => {
-    const response = await route.fetch();
-    await route.fulfill({
-      response,
-      headers: {
-        ...response.headers(),
-        "content-security-policy":
-          "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'",
-      },
-    });
-  });
-  await page.addInitScript(() => {
-    window.wogeViolations = [];
-    document.addEventListener("securitypolicyviolation", (event) => {
-      window.wogeViolations.push(`${event.violatedDirective} ${event.blockedURI}`);
-    });
-  });
   await page.goto("/projects/woge/tasks");
   await page.getByRole("link", { name: "Board help" }).click();
   await expect(page.getByRole("dialog", { name: "Board help" })).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Live updates" }).click();
   await expect(page.locator("#live-updates")).toBeVisible();
-  expect(await page.evaluate(() => window.wogeViolations)).toEqual([]);
 });

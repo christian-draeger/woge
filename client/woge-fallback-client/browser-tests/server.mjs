@@ -1,8 +1,13 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
+import { STRICT_CSP } from "../test-support/strict-policy.mjs";
 import { completeFrame, encodeStream, patchFrame } from "../test-support/protocol-fixture.mjs";
 
 const routes = new Map([
+  ["/strict", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
+  ["/fixture-bootstrap.js", {
+    path: new URL("./fixture-bootstrap.mjs", import.meta.url), type: "text/javascript; charset=utf-8",
+  }],
   ["/", { path: new URL("./fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/action-forms", { path: new URL("./actions-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
   ["/deferred", { path: new URL("./deferred-fixture.html", import.meta.url), type: "text/html; charset=utf-8" }],
@@ -27,6 +32,7 @@ const pendingDeferredResponses = new Map();
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://127.0.0.1");
+  if (url.pathname === "/strict") response.setHeader("Content-Security-Policy", STRICT_CSP);
   if (["/action", "/preview"].includes(url.pathname) && request.method === "POST") {
     for await (const _ of request) {}
     if (url.searchParams.has("validation")) {

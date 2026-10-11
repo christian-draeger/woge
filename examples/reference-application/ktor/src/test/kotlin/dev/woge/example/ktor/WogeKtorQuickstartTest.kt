@@ -1,5 +1,6 @@
 package dev.woge.example.ktor
 
+import dev.woge.example.project.REFERENCE_CONTENT_SECURITY_POLICY
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.ReplacePatch
@@ -40,6 +41,7 @@ class WogeKtorQuickstartTest {
     private fun verifyApplication(origin: String) {
         val shell = get(origin, "/projects/woge")
         assertEquals(200, shell.statusCode())
+        assertEquals(REFERENCE_CONTENT_SECURITY_POLICY, shell.header("content-security-policy"))
         assertTrue(shell.header("content-type").startsWith("text/html"))
         assertTrue(shell.body().startsWith("<!doctype html><html lang=\"en\">"))
         val shellRegions = REGION_ID.findAll(shell.body()).map { it.groupValues[1] }.toSet()

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../test-support/strict-csp.mjs";
 
 test("uses an ordinary full navigation when JavaScript is unavailable", async ({ page }) => {
   const response = await page.goto("/projects/woge");

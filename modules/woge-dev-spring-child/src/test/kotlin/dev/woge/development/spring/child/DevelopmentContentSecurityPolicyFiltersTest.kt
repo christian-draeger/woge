@@ -79,6 +79,21 @@ class DevelopmentContentSecurityPolicyFiltersTest {
         )
     }
 
+    @Test
+    fun `strict Trusted Types directives remain intact and production gets no relaxation`() {
+        val policy =
+            "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; " +
+                "base-uri 'none'; require-trusted-types-for 'script'; trusted-types woge"
+        val development =
+            "default-src 'self'; script-src 'self' http://127.0.0.1:4100; " +
+                "style-src 'self' http://127.0.0.1:4100; connect-src 'self' http://127.0.0.1:4100; " +
+                "base-uri 'none'; require-trusted-types-for 'script'; trusted-types woge"
+
+        assertEquals(development, rewriter.rewrite(POLICY, policy))
+        assertEquals(development, rewriter.rewrite("Content-Security-Policy-Report-Only", policy))
+        assertEquals(policy, DevelopmentPolicyRewriter(viteOrigin = null) { null }.rewrite(POLICY, policy))
+    }
+
     private companion object {
         const val POLICY = "Content-Security-Policy"
     }

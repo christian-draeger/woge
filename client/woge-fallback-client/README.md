@@ -197,3 +197,11 @@ before it can publish.
 
 See the [browser runtime guide](../../docs/guides/browser-replace-runtime.md) and
 [ADR 0025](../../docs/adr/0025-browser-replace-runtime-and-lifecycle.md) for the complete boundary.
+
+## Strict Content Security Policy
+
+Load the client as an external module. Patching supports `require-trusted-types-for 'script'`
+and `trusted-types woge` through one private, lazy HTML-only policy; inert-content checks remain
+mandatory. No default policy, inline executable handler or nonce is required for same-origin
+external assets. See the [CSP guide](../../docs/guides/content-security-policy.md) for the complete
+production header and development differences.

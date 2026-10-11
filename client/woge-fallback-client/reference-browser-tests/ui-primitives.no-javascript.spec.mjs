@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../test-support/strict-csp.mjs";
 
 test("primitives stay useful without JavaScript", async ({ page }) => {
   await page.goto("/projects/woge/tasks");
