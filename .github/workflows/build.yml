@@ -91,6 +91,6 @@ jobs:
           name: reference-browser-evidence
           if-no-files-found: warn
           path: |
-            client/woge-fallback-client/playwright-report/reference-application/**
-            client/woge-fallback-client/test-results/reference-application/**
+            client/woge-fallback-client/playwright-report/**
+            client/woge-fallback-client/test-results/**
             build/reports/scaffold-browser/**

@@ -329,7 +329,7 @@ test("a stylesheet that fails to load falls back to one document refresh", async
   await expect(page.getByRole("status")).toHaveText("Ready");
   await page.evaluate(() => { window.sameDocument = true; });
   await request.get("/control?css-broken");
-  await expect.poll(() => page.evaluate(() => window.sameDocument === undefined)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.sameDocument === undefined).catch(() => false)).toBe(true);
   await request.get("/control?css=rgb(0,%20128,%200)");
   await expect.poll(() => color(page, "h1")).toBe("rgb(0, 128, 0)");
 });

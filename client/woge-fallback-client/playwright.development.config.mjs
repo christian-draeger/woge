@@ -6,8 +6,14 @@ export default defineConfig({
   workers: 1,
   forbidOnly: true,
   retries: 0,
+  outputDir: "test-results/development",
   reporter: [["line"], ["html", { open: "never", outputFolder: "playwright-report/development" }]],
-  use: { baseURL: "http://127.0.0.1:4273", headless: true },
+  use: {
+    baseURL: "http://127.0.0.1:4273",
+    headless: true,
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+  },
   webServer: {
     command: "../../gradlew -p ../.. :woge-dev-browser:runBrowserFixture --console=plain -q",
     url: "http://127.0.0.1:4273",
