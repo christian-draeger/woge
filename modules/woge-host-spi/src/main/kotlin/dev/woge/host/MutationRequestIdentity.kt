@@ -32,5 +32,5 @@ public fun RequestContext.withMutationRequestIdentity(values: List<String>): Req
             val value = values.singleOrNull()?.let(RouteValues::uuid) ?: throw MutationRequestIdentityException()
             MutationRequestIdentity.of(value)
         }
-    return RequestContext(method, trace, language, headers, cookies, security, identity)
+    return RequestContext(method, trace, language, headers, cookies, security, identity, render)
 }

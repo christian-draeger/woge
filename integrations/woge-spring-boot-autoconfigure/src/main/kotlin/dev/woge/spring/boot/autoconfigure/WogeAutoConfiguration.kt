@@ -3,6 +3,7 @@ package dev.woge.spring.boot.autoconfigure
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
+import dev.woge.host.RenderIdentitySecret
 import dev.woge.host.WogeObserver
 import dev.woge.html.AssetUrls
 import dev.woge.protocol.PatchProtocolVersion
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ResourceLoader
+import java.util.Base64
 
 internal const val IMMUTABLE_ASSET_CACHE_DAYS = 365L
 
@@ -27,6 +29,20 @@ internal const val IMMUTABLE_ASSET_CACHE_DAYS = 365L
 @EnableConfigurationProperties(WogeProperties::class)
 @Import(WogeSpringMvcAutoConfiguration::class, WogeWebFluxAutoConfiguration::class)
 public class WogeAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public fun wogeRenderIdentitySecret(properties: WogeProperties): RenderIdentitySecret {
+        val configured = properties.renderIdentity.secret
+        if (configured == null) {
+            logger.warn(
+                "woge.render-identity.secret is unset; using a process-local secret. " +
+                    "Configure a shared secret before running multiple instances or restarting enhanced pages.",
+            )
+            return RenderIdentitySecret.random()
+        }
+        return RenderIdentitySecret.of(Base64.getDecoder().decode(configured))
+    }
+
     /** Build-generated assets are shared by MVC and WebFlux, with plain URLs only in wogeDev. */
     @Bean
     @ConditionalOnMissingBean

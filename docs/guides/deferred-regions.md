@@ -5,33 +5,8 @@ loading state is ordinary HTML, and the final content uses the same safe HTML wr
 
 ## Declare the region
 
-```kotlin
-val summary = deferredRegion(
-    target = projectSummaryTarget,
-    loading = {
-        element("p") { text("Loading project summary…") }
-    },
-    onFailure = { failure ->
-        patchHtml {
-            element("p") {
-                val message =
-                    if (failure == DeferredRegionFailure.TIMED_OUT) {
-                        "Summary timed out"
-                    } else {
-                        "Summary unavailable"
-                    }
-                text(message)
-            }
-        }
-    },
-    content = {
-        val project = projectRepository.load()
-        patchHtml {
-            element("p") { text("${project.openTasks} open tasks") }
-        }
-    },
-)
-```
+Use a generated descriptor and the host-owned render session. Your region function renders typed
+data; loading and failure messages use the same HTML DSL.
 
 ### Name the target
 
@@ -44,9 +19,9 @@ internal fun HtmlWriter.projectSummary(project: Project) {
     element("p") { text("${project.openTasks} open tasks") }
 }
 
-// Generated: ProjectSummaryRegion. One PageIdentity per rendered page.
-val page = PageIdentity(pageEpoch, renderIdentitySecret)
-val projectSummaryTarget = ProjectSummaryRegion.target(page)
+// Generated: ProjectSummaryRegion.
+val page = request.context.render
+val projectSummaryTarget = page.target(ProjectSummaryRegion)
 ```
 
 With a typed target, `deferredRegion` only needs the data. The descriptor renders it with your
@@ -56,7 +31,7 @@ function, so a summary target can never receive task-list HTML:
 val summary = deferredRegion(
     target = projectSummaryTarget,
     loading = { element("p") { text("Loading project summary…") } },
-    onFailure = { patchHtml { element("p") { text("Summary unavailable") } } },
+    onFailure = { regionHtml { element("p") { text("Summary unavailable") } } },
     content = { projectRepository.load() },
 )
 ```
@@ -71,7 +46,7 @@ class ProjectCard(@WogeKey val id: ProjectId)
 @WogeRegion(component = ProjectCard::class)
 internal fun HtmlWriter.cardSummary(project: Project) { /* … */ }
 
-val cardTargets = projects.associate { project -> project.id to CardSummaryRegion.target(page, project.id) }
+val cardTargets = projects.associate { project -> project.id to page.target(CardSummaryRegion, project.id) }
 ```
 
 Typed regions need the KSP Gradle plugin. The Woge Spring Boot scaffold already applies it. In
@@ -106,12 +81,11 @@ If the build rejects a declaration, the message starts with a stable ID and show
 | `WOGE-REF-007` | Two regions in one package do not generate the same descriptor name |
 | `WOGE-REF-008` | Names use letters, digits, `_` and `.` and stay below 128 characters |
 
-Without the processor you can still name targets by hand with
-`page.root.region(IdentityName.of("project-summary"))` and
-`page.root.component(IdentityName.of("ProjectCard"), IdentityKey.of(id)).children.region(...)`.
-
-Load `renderIdentitySecret` (at least 32 random bytes) from your secret store and use the same value
-on every server of one deployment. `RenderIdentitySecret.random()` is fine for tests.
+The host supplies the secret; do not create one in a page. Configure it once for the deployment as
+explained in [host configuration](live-updates.md#host-configuration). Write `page.metadata(this)` in
+the document head. For a later deferred request, pass the document's `page.epoch` through your typed
+patch route and use `request.context.render.resume(request.input.epoch)` to address the same region.
+Epochs are opaque text, not authorization: authorize the deferred GET just like the document.
 
 ### Run the work
 
@@ -219,7 +193,7 @@ A test can therefore hold every region back and still read the response headers.
 
 ```kotlin
 val gate = CompletableDeferred<Unit>()
-// region content: gate.await(); patchHtml { ... }
+// region content: gate.await(); regionHtml { ... }
 
 val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
 assertEquals(200, response.statusCode())

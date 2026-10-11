@@ -9,6 +9,7 @@ public final class dev/woge/spring/boot/autoconfigure/WogeAutoConfiguration {
 	public final fun wogeAssetUrls (Lorg/springframework/core/io/ResourceLoader;)Ldev/woge/html/AssetUrls;
 	public final fun wogeFailurePages ()Ldev/woge/host/FailurePages;
 	public final fun wogeObserver ()Ldev/woge/host/WogeObserver;
+	public final fun wogeRenderIdentitySecret (Ldev/woge/spring/boot/autoconfigure/WogeProperties;)Ldev/woge/host/RenderIdentitySecret;
 	public final fun wogeRuntimeInfo (Ldev/woge/spring/boot/autoconfigure/WogeProperties;Ldev/woge/spring/boot/autoconfigure/WogeApplicationCatalog;Lorg/springframework/core/io/ResourceLoader;Lorg/springframework/context/ApplicationContext;)Ldev/woge/spring/boot/autoconfigure/WogeRuntimeInfo;
 }
 
@@ -28,9 +29,11 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties {
 	public final fun getAdapter ()Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;
 	public final fun getDeferred ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;
 	public final fun getMvc ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;
+	public final fun getRenderIdentity ()Ldev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity;
 	public final fun setAdapter (Ldev/woge/spring/boot/autoconfigure/WogeSpringAdapter;)V
 	public final fun setDeferred (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Deferred;)V
 	public final fun setMvc (Ldev/woge/spring/boot/autoconfigure/WogeProperties$Mvc;)V
+	public final fun setRenderIdentity (Ldev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity;)V
 }
 
 public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Companion {
@@ -50,6 +53,12 @@ public final class dev/woge/spring/boot/autoconfigure/WogeProperties$Mvc {
 	public fun <init> ()V
 	public final fun getAsyncTimeout ()Ljava/time/Duration;
 	public final fun setAsyncTimeout (Ljava/time/Duration;)V
+}
+
+public final class dev/woge/spring/boot/autoconfigure/WogeProperties$RenderIdentity {
+	public fun <init> ()V
+	public final fun getSecret ()Ljava/lang/String;
+	public final fun setSecret (Ljava/lang/String;)V
 }
 
 public final class dev/woge/spring/boot/autoconfigure/WogeRuntimeInfo {

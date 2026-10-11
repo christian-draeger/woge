@@ -110,7 +110,7 @@ class FrameworkIndexTest {
         listOf(
             "PageUseCase<ProjectInput>",
             "normal `method`, `action`, named controls",
-            "PatchTarget(PageEpoch, RegionTargetId)",
+            "request.context.render.target(SummaryRegion)",
             "manual CSS selectors",
             "progressive enhancement",
             "Native Declarative Partial Updates",

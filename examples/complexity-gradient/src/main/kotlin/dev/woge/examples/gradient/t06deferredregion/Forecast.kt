@@ -3,15 +3,15 @@ package dev.woge.examples.gradient.t06deferredregion
 import dev.woge.host.DeferredRegion
 import dev.woge.host.DeferredRegionFailure
 import dev.woge.host.DeferredRegionsUseCase
-import dev.woge.host.PageIdentity
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
-import dev.woge.host.RenderIdentitySecret
+import dev.woge.host.RenderSession
 import dev.woge.host.WogeRegion
 import dev.woge.host.WogeRoute
 import dev.woge.host.deferredRegion
 import dev.woge.host.htmlPage
+import dev.woge.host.regionHtml
 import dev.woge.host.regionPlaceholder
 import dev.woge.html.HtmlWriter
 import dev.woge.html.applicationUrl
@@ -29,10 +29,7 @@ import dev.woge.html.p
 import dev.woge.html.stylesheet
 import dev.woge.html.title
 import dev.woge.html.ul
-import dev.woge.protocol.PageEpoch
-import dev.woge.protocol.patchHtml
 import kotlinx.coroutines.delay
-import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 @WogeRoute("/forecast")
@@ -41,31 +38,31 @@ public data object ForecastInput
 /** The browser opens this URL to receive the slow region; [epoch] ties it to the rendered page. */
 @WogeRoute("/forecast/woge-patches/{epoch}")
 public data class ForecastPatchesInput(
-    val epoch: UUID,
+    val epoch: String,
 )
 
-public class ForecastPage(
-    private val identitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
-) : PageUseCase<ForecastInput>,
+public class ForecastPage :
+    PageUseCase<ForecastInput>,
     DeferredRegionsUseCase<ForecastPatchesInput> {
     override suspend fun open(request: PageRequest<ForecastInput>): PageResult {
-        val epoch = UUID.randomUUID()
+        val page = request.context.render
         return htmlPage {
             doctype()
             html(attributes = { attribute("lang", "en") }) {
                 head {
                     meta { attribute("charset", "utf-8") }
                     metadata("viewport", "width=device-width, initial-scale=1")
+                    page.metadata(this)
                     title("Forecast · Deferred region")
                     stylesheet(applicationUrl("/assets/deferred-region/site.css"))
                     moduleScript(applicationUrl("/assets/deferred-region/app.js"))
                 }
                 body(attributes = {
-                    data("woge-patch-url", ForecastPatchesRoute.url(ForecastPatchesInput(epoch)).value)
+                    data("woge-patch-url", ForecastPatchesRoute.url(ForecastPatchesInput(page.epoch)).value)
                 }) {
                     main {
                         h1 { text("Weekend forecast") }
-                        regionPlaceholder(forecastRegion(epoch), elementName = "section")
+                        regionPlaceholder(forecastRegion(page), elementName = "section")
                         noscript { p { text("The forecast needs JavaScript.") } }
                     }
                 }
@@ -74,17 +71,15 @@ public class ForecastPage(
     }
 
     override suspend fun regions(request: PageRequest<ForecastPatchesInput>): Iterable<DeferredRegion> =
-        listOf(forecastRegion(request.input.epoch))
+        listOf(forecastRegion(request.context.render.resume(request.input.epoch)))
 
-    private fun forecastRegion(epoch: UUID): DeferredRegion {
-        val page = PageIdentity(PageEpoch.of(epoch.toString()), identitySecret)
-        return deferredRegion(
-            target = ForecastRegion.target(page),
+    private fun forecastRegion(page: RenderSession): DeferredRegion =
+        deferredRegion(
+            target = page.target(ForecastRegion),
             loading = { p { text("Loading the forecast…") } },
-            onFailure = { failure -> patchHtml { p { text(failureMessage(failure)) } } },
+            onFailure = { failure -> regionHtml { p { text(failureMessage(failure)) } } },
             content = { loadForecast() },
         )
-    }
 }
 
 private fun failureMessage(failure: DeferredRegionFailure): String =

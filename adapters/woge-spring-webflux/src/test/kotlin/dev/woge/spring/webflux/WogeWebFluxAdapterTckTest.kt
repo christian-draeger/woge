@@ -6,6 +6,7 @@ import dev.woge.tck.AdapterTckDeferredScenario
 import dev.woge.tck.AdapterTckFailureRoute
 import dev.woge.tck.AdapterTckHarnessFactory
 import dev.woge.tck.AdapterTckLiveRoute
+import dev.woge.tck.AdapterTckManagedRoute
 import dev.woge.tck.AdapterTckPageScenario
 import dev.woge.tck.AdapterTckRoute
 import dev.woge.tck.AdapterTckRoutes
@@ -66,6 +67,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 patchStreamLimits = application.deferredPatchStreamLimits,
             )
         val route = WogeWebFluxHandlers(observer = application.observer).page(application.routePages, AdapterTckRoute)
+        val managed = WogeWebFluxHandlers().liveRegion(application.managedLive, AdapterTckManagedRoute)
         val live =
             WogeWebFluxHandlers(observer = application.observer, liveLimits = application.liveLimits)
                 .live(application.live, AdapterTckLiveRoute)
@@ -83,6 +85,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 GET(AdapterTckRoutes.DEFERRED_PATTERN, deferred::handle)
                 GET(AdapterTckRoute.path, route::handle)
                 GET(AdapterTckLiveRoute.path, live::handle)
+                GET(AdapterTckManagedRoute.path, managed::handle)
                 GET(AdapterTckFailureRoute.path, failures::handle)
                 HEAD(AdapterTckFailureRoute.path, failures::handle)
                 POST(TckSubmitAction.path, action::handle)

@@ -6,6 +6,14 @@ import java.time.Duration
 /** Spring Boot settings for adapter selection and bounded response execution. */
 @ConfigurationProperties("woge")
 public class WogeProperties {
+    /** Identity configuration shared by every enhanced-page binding. */
+    public var renderIdentity: RenderIdentity = RenderIdentity()
+
+    /** Shared deployment secret; Base64 encoding of at least 32 random bytes. */
+    public class RenderIdentity {
+        public var secret: String? = null
+    }
+
     /** Adapter selection. AUTO requires exactly one supported Spring web stack. */
     public var adapter: WogeSpringAdapter = WogeSpringAdapter.AUTO
 

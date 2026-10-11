@@ -72,8 +72,7 @@ class FormTasksTest {
                     .NotesPage()
                     .open(PageRequest(dev.woge.examples.gradient.t05enhancedaction.EnhancedNotesInput, getContext))
                     .html()
-            val epoch = Regex("""name="epoch" value="([^"]+)"""").find(page)!!.groupValues[1]
-            val result = AddEnhancedNoteAction.execute(PageRequest(EnhancedNote("Mulch", epoch, 0), postContext))
+            val result = AddEnhancedNoteAction.execute(PageRequest(EnhancedNote("Mulch"), postContext))
             val updates = assertInstanceOf(PageResult.RegionUpdates::class.java, result)
             assertEquals(2, updates.patches.size)
             assertEquals(ResponseStatus.SEE_OTHER, updates.nativeResult.metadata.status)

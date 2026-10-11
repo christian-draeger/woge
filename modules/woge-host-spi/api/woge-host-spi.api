@@ -768,6 +768,15 @@ public final class dev/woge/host/LiveLimits {
 public final class dev/woge/host/LiveLimits$Companion {
 }
 
+public final class dev/woge/host/LiveRegionPage {
+	public fun <init> (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRegion;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRegion;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun document (Ldev/woge/host/PageRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getPage ()Ldev/woge/host/PageUseCase;
+	public final fun refresh (Ldev/woge/host/PageRequest;Ldev/woge/host/PageRoute;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun subscribe (Ldev/woge/host/PageRequest;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class dev/woge/host/LiveResult {
 }
 
@@ -1127,6 +1136,10 @@ public abstract class dev/woge/host/RegionDescriptor {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/woge/host/RegionHtmlKt {
+	public static final fun regionHtml (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/PatchHtml;
+}
+
 public final class dev/woge/host/RegionTarget {
 	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;
 	public final fun render (Ljava/lang/Object;)Ldev/woge/protocol/PatchHtml;
@@ -1143,13 +1156,45 @@ public final class dev/woge/host/RenderIdentitySecret$Companion {
 	public final fun random ()Ldev/woge/host/RenderIdentitySecret;
 }
 
+public final class dev/woge/host/RenderSession {
+	public final fun getEpoch ()Ljava/lang/String;
+	public final fun metadata (Ldev/woge/html/HtmlWriter;)V
+	public final fun resume (Ljava/lang/String;)Ldev/woge/host/RenderSession;
+	public final fun target (Ldev/woge/host/KeyedRegion;Ljava/lang/Object;)Ldev/woge/host/RegionTarget;
+	public final fun target (Ldev/woge/host/PageRegion;)Ldev/woge/host/RegionTarget;
+	public final fun updates-Pkbk8uk (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+}
+
+public final class dev/woge/host/RenderSessionException : java/lang/IllegalArgumentException {
+}
+
+public final class dev/woge/host/RenderSessionKt {
+	public static final fun liveRegion-HAlZ37Q (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RenderSession;Ldev/woge/host/PageRegion;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun liveRegion-HAlZ37Q$default (Ldev/woge/html/HtmlWriter;Ldev/woge/host/RenderSession;Ldev/woge/host/PageRegion;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun page (Ldev/woge/host/RenderSessions;Ldev/woge/host/PageUseCase;)Ldev/woge/host/PageUseCase;
+	public static final fun withRenderSession (Ldev/woge/host/RequestContext;Ldev/woge/host/RenderSession;)Ldev/woge/host/RequestContext;
+}
+
+public final class dev/woge/host/RenderSessions {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/host/RenderIdentitySecret;)V
+	public synthetic fun <init> (Ldev/woge/host/RenderIdentitySecret;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun create ()Ldev/woge/host/RenderSession;
+	public final fun forRequest (Ldev/woge/host/RequestHeaders;)Ldev/woge/host/RenderSession;
+}
+
+public final class dev/woge/host/RenderUpdates {
+	public final fun replace (Ldev/woge/host/KeyedRegion;Ljava/lang/Object;Ljava/lang/Object;)V
+	public final fun replace (Ldev/woge/host/PageRegion;Ljava/lang/Object;)V
+}
+
 public final class dev/woge/host/RenderedComponent {
 	public final fun getChildren ()Ldev/woge/host/IdentityScope;
 }
 
 public final class dev/woge/host/RequestContext {
-	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RequestTrace;Ljava/lang/String;Ldev/woge/host/RequestHeaders;Ldev/woge/host/RequestCookies;Ldev/woge/host/RequestSecurity;Ldev/woge/host/MutationRequestIdentity;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RequestTrace;Ljava/lang/String;Ldev/woge/host/RequestHeaders;Ldev/woge/host/RequestCookies;Ldev/woge/host/RequestSecurity;Ldev/woge/host/MutationRequestIdentity;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RequestTrace;Ljava/lang/String;Ldev/woge/host/RequestHeaders;Ldev/woge/host/RequestCookies;Ldev/woge/host/RequestSecurity;Ldev/woge/host/MutationRequestIdentity;Ldev/woge/host/RenderSession;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/woge/host/RequestTrace;Ljava/lang/String;Ldev/woge/host/RequestHeaders;Ldev/woge/host/RequestCookies;Ldev/woge/host/RequestSecurity;Ldev/woge/host/MutationRequestIdentity;Ldev/woge/host/RenderSession;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAuthentication ()Ldev/woge/host/AuthenticationFacts;
 	public final fun getCookies ()Ldev/woge/host/RequestCookies;
 	public final fun getCorrelationId-RicgizE ()Ljava/lang/String;
@@ -1158,6 +1203,7 @@ public final class dev/woge/host/RequestContext {
 	public final fun getLanguage-3P5dIGk ()Ljava/lang/String;
 	public final fun getMethod-QN7rulU ()Ljava/lang/String;
 	public final fun getMutationIdentity ()Ldev/woge/host/MutationRequestIdentity;
+	public final fun getRender ()Ldev/woge/host/RenderSession;
 	public final fun getRequestId-c15dvRY ()Ljava/lang/String;
 	public final fun getSecurity ()Ldev/woge/host/RequestSecurity;
 	public final fun getTrace ()Ldev/woge/host/RequestTrace;

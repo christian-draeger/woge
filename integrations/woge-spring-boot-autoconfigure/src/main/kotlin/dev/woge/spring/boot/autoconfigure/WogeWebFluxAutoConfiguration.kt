@@ -1,6 +1,7 @@
 package dev.woge.spring.boot.autoconfigure
 
 import dev.woge.host.FailurePages
+import dev.woge.host.RenderIdentitySecret
 import dev.woge.host.WogeObserver
 import dev.woge.spring.webflux.SameOriginWebFluxRequestContextFactory
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
@@ -51,12 +52,14 @@ internal class WogeWebFluxAutoConfiguration {
     /** Shared policy factory used from familiar functional WebFlux routes. */
     @Bean
     @ConditionalOnMissingBean
+    @Suppress("LongParameterList")
     public fun wogeWebFluxHandlers(
         properties: WogeProperties,
         contexts: WebFluxRequestContextFactory,
         runtimeInfo: WogeRuntimeInfo,
         observer: WogeObserver,
         failurePages: FailurePages,
+        renderIdentitySecret: RenderIdentitySecret,
     ): WogeWebFluxHandlers {
         check(runtimeInfo.adapter == WogeSpringAdapter.WEBFLUX) {
             "Reactive Woge configuration requires 'woge.adapter=webflux'."
@@ -67,6 +70,7 @@ internal class WogeWebFluxAutoConfiguration {
             regionTimeout = properties.deferred.regionTimeout.toKotlinDuration(),
             observer = observer,
             failurePages = failurePages,
+            renderIdentitySecret = renderIdentitySecret,
         )
     }
 }

@@ -31,8 +31,10 @@ interpretation are in
 
 This compiles every task and runs a short behavior test for each. It also measures each task (files,
 non-blank lines, Woge annotations, imported Woge concepts, hand-written route bindings, and
-protocol or host internals) and compares the result with `gradient-baseline.json`. Tasks 1 to 4 must not
-need any protocol or host internals.
+protocol or host internals) and compares the result with `gradient-baseline.json`. All tasks must not need protocol or host internals. Enhanced actions use the host-owned render
+session; the live task binds one page route and loads the shipped client without application JavaScript.
+Configure `woge.render-identity.secret` once per deployment (the Spring Boot development default is
+random and process-local).
 
 ## Update the baseline
 

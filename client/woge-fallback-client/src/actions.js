@@ -95,7 +95,8 @@ async function submit(root, runtime, submission, signal) {
     body: submission.body,
     credentials: "same-origin",
     redirect: "error",
-    headers: { Accept: PATCH_STREAM_MEDIA_TYPE, "Woge-Request-Identity": submission.identity },
+    headers: { Accept: PATCH_STREAM_MEDIA_TYPE, "Woge-Request-Identity": submission.identity,
+      ...renderHeaders(root, runtime) },
     signal,
   });
   const navigation = response.headers.get("Woge-Navigate");
@@ -155,4 +156,16 @@ function busy(form, submitter) {
 function restoreAttribute(element, name, value) {
   if (value === null) element.removeAttribute(name);
   else element.setAttribute(name, value);
+}
+
+function renderHeaders(root, runtime) {
+  if (!root.querySelector('meta[name="woge-render-session"]')) return {};
+  const targets = [...root.querySelectorAll("[data-woge-region]")].map((node) => node.getAttribute("data-woge-region"));
+  if (!targets.length) return {};
+  const state = runtime.beginInteraction(targets);
+  return {
+    "Woge-Page-Epoch": state.pageEpoch,
+    "Woge-Interaction": state.interactionSequence,
+    "Woge-Region-Revisions": state.targets.map((target) => `${target.target}:${target.baseRevision}`).join(","),
+  };
 }

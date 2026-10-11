@@ -38,14 +38,19 @@ package metadata and test tools: none of these are loaded by the browser at runt
 
 | Artifact | Raw bytes | gzip bytes | Brotli bytes |
 | --- | ---: | ---: | ---: |
-| Minified core ES module | 34,567 | 11,528 | 10,185 |
-| Unbundled classpath modules, sum of ten separately served files | 64,064 | 19,687 | 16,573 |
+| Minified core ES module | 35,958 | 11,938 | 10,568 |
+| Unbundled classpath modules, sum of ten separately served files | 66,571 | 20,519 | 17,274 |
 | Opt-in native dialog helper, as shipped | 1,374 | 661 | 549 |
 | Dialog helper if separately minified | 649 | 397 | 311 |
 | Reference application's generated/minified plain CSS | 3,071 | 1,238 | 1,027 |
 | Equivalent plain-CSS service card | 424 | 261 | 186 |
 | Optional dark/high-contrast card theme | 224 | 162 | 113 |
 | Tailwind service card, including compiler output and preflight | 6,006 | 2,012 | 1,718 |
+
+Issue #215 adds managed action ordering and a declarative live-page bootstrap to the existing
+client. The reviewed change costs 1,391 minified bytes (410 gzip / 383 Brotli), replacing application
+JavaScript in the gradient. Measurements were updated intentionally; all fixed ceilings stay
+unchanged. No module or runtime dependency was added.
 
 The bundled core has fixed ceilings of 36,000 raw / 12,500 gzip / 11,000 Brotli bytes. The stricter
 of the ceiling and baseline +10% wins. Per-file ceilings and measurements are in

@@ -34,13 +34,18 @@ class ComplexityGradientTest {
     }
 
     @Test
-    fun `static page, component, form and validation need no protocol or host internals`() {
-        val simple = computed().tasks.take(4)
-        assertEquals(listOf("static-page", "component", "form", "validation"), simple.map { it.id })
-        for (task in simple) {
+    fun `all tasks need no protocol or host internals`() {
+        for (task in computed().tasks) {
             assertEquals(emptyList<String>(), task.forbiddenConcepts, task.id)
             assertEquals(emptyList<String>(), task.knownGaps, task.id)
         }
+    }
+
+    @Test
+    fun `live regions need one binding and no application javascript`() {
+        val live = computed().tasks.single { it.id == "live-update" }
+        assertEquals(1, live.manualConfiguration)
+        assertEquals(0, live.javascriptLines)
     }
 
     @Test

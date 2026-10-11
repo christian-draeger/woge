@@ -272,28 +272,22 @@ without this explicit environment variable still require no Node installation.
 
 ## Update typed regions after an action
 
-Return `actionRegionUpdates` when an enhanced form should update part of the current page instead
-of navigating. Use the generated region descriptors that also render the original HTML:
+Use the host-owned render session when an enhanced form should update regions instead of navigating:
 
 ```kotlin
-val page = PageIdentity(activePageEpoch, applicationIdentitySecret)
-val summary = TaskSummaryRegion.target(page)
-val status = TaskStatusRegion.target(page)
-
-return actionRegionUpdates(
-    fallback = applicationUrl("/tasks"),
-    interaction = activeInteractionSequence,
-) {
-    replace(summary, updatedTasks, revision = summaryRevision)
-    replace(status, "Task saved", revision = statusRevision)
+return context.render.updates(applicationUrl("/tasks")) {
+    replace(TaskSummaryRegion, updatedTasks)
+    replace(TaskStatusRegion, "Task saved")
 }
 ```
 
-`TaskSummaryRegion` and `TaskStatusRegion` are generated from your `@WogeRegion` functions;
-their input types must match. Use the same page identity and region keys as the current document.
-Submit or otherwise track the active revisions and interaction sequence explicitly. Their initial
-defaults only describe a region that has not yet been updated; they do not automatically synchronize
-with the browser. These fields never replace authorization.
+The generated descriptors keep the data types checked. In the document, use
+`request.context.render.target(TaskSummaryRegion)` and write `request.context.render.metadata(this)`
+in the HTML head. The shipped action client sends the epoch, current revisions and interaction
+sequence in HTTP headers; command classes contain only application fields. Do not add hidden ordering
+fields. This state coordinates presentation only: authenticate, authorize and check CSRF as usual.
+Configure the deployment secret through the host; see [live updates](live-updates.md#host-configuration).
+The low-level `actionRegionUpdates` builder remains available for advanced adapters.
 
 An ordinary POST gets a 303 to the canonical fallback URL. An opted-in enhanced POST gets the existing
 patch stream, with replacements in declaration order and `Cache-Control: no-store`. Render the

@@ -51,7 +51,7 @@ Woge repository.
 | Page URL | `@WogeRoute("/projects/{project}")` on the input, then `ProjectPageRoute.url(input)` | string templates such as `"/projects/$slug?view=x"` |
 | Other application URL | `applicationUrl("/assets/app.css")` passed to `url(...)` | unchecked dynamic URL strings in attributes |
 | Native form | `form` with normal `method`, `action`, named controls and server validation | JavaScript-only submission or duplicated native/enhanced policy |
-| Region target | `PatchTarget(PageEpoch, RegionTargetId)` and `regionPlaceholder(...)` | manual CSS selectors such as `#summary` as patch identity |
+| Region target | `request.context.render.target(SummaryRegion)` and `regionPlaceholder(...)` | manual CSS selectors such as `#summary` as patch identity |
 | Host boundary | a small route adapter calling the portable page port | Spring, Reactor or Servlet imports in reusable components |
 | CSS | external modern CSS, class strings and bounded `declarations(...)` for inline values | a Kotlin catalog that hides normal CSS or unsanitized style data |
 
@@ -99,3 +99,17 @@ Do not invent `ActionRef` or selector-based action targets.
 
 If prose, generated guidance and the compiler disagree, do not cast or suppress around the mismatch.
 Confirm the Woge version, follow the version-matched compiler error and report stale guidance.
+
+## Enhanced pages and live regions
+
+Use `request.context.render` for typed region targets and write `render.metadata(this)` in the HTML head.
+Actions use `context.render.updates(fallback) { replace(SummaryRegion, data) }`; do not put epochs or
+revisions in commands. Deferred failure HTML uses `regionHtml { ... }`. Keep protocol types in adapter
+or advanced code, not page code. Configure `woge.render-identity.secret` with Base64-encoded random
+bytes (at least 32) shared by all deployment instances. The unset development default is random and
+process-local; Spring Boot and the Ktor config constructor warn without logging the secret.
+
+For live data, declare `LiveRegionPage(page, SummaryRegion, load = { ... }, changes = { ... },
+authorize = { ... })`, render `liveRegion(...)`, and bind `handlers.liveRegion(live, PageRoute)` at
+that one page route. Load the shipped fallback module; no application JavaScript is needed.
+`authorize` must enforce access for document, refresh and SSE reconnects; the default is anonymous.

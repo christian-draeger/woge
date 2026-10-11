@@ -251,6 +251,31 @@ class WogeAutoConfigurationTest {
         assertTrue(metadata.contains("woge.mvc.async-timeout"))
     }
 
+    @Test
+    fun `render secret configuration validates both hosts and provides a redacted dev default`() {
+        val configured =
+            java.util.Base64
+                .getEncoder()
+                .encodeToString(ByteArray(32) { 7 })
+        webFluxRunner().withPropertyValues("woge.render-identity.secret=$configured").run { context ->
+            assertNull(context.startupFailure)
+            val secret = context.getBean(dev.woge.host.RenderIdentitySecret::class.java)
+            assertEquals("RenderIdentitySecret(redacted)", secret.toString())
+            assertNotNull(context.getBean(WogeWebFluxHandlers::class.java))
+        }
+        mvcRunner().withPropertyValues("woge.render-identity.secret=$configured").run { context ->
+            assertNull(context.startupFailure)
+            assertNotNull(context.getBean(WogeSpringMvcHandlers::class.java))
+        }
+        webFluxRunner().withPropertyValues("woge.render-identity.secret=short").run { context ->
+            assertNotNull(context.startupFailure)
+        }
+        mvcRunner().run { context ->
+            assertNull(context.startupFailure)
+            assertNotNull(context.getBean(dev.woge.host.RenderIdentitySecret::class.java))
+        }
+    }
+
     private fun webFluxRunner(): ReactiveWebApplicationContextRunner =
         ReactiveWebApplicationContextRunner()
             .withConfiguration(autoConfiguration)

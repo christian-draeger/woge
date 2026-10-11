@@ -12,13 +12,9 @@ public class Routes {
     @Bean
     public fun announcementRoutes(handlers: WogeWebFluxHandlers): RouterFunction<ServerResponse> {
         val board = AnnouncementBoard()
-        val page = handlers.page(board.page, AnnouncementsRoute)
-        val refresh = handlers.page(board.refresh, AnnouncementsRegionRoute)
-        val live = handlers.live(board.live, AnnouncementsLiveRoute)
+        val page = handlers.liveRegion(board.live, AnnouncementsRoute)
         return coRouter {
             GET(AnnouncementsRoute.path, page::handle)
-            GET(AnnouncementsRegionRoute.path, refresh::handle)
-            GET(AnnouncementsLiveRoute.path, live::handle)
         }
     }
 }

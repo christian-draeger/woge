@@ -1,120 +1,89 @@
-# Live updates (Server-Sent Events)
+# Live regions (Server-Sent Events)
 
-Sometimes the server knows first that a page is out of date: another user added a task, a job
-finished. Woge tells the browser **which regions changed**, using
-[Server-Sent Events](https://developer.mozilla.org/docs/Web/API/Server-sent_events) (SSE). The
-browser then reloads each changed region with the region GET you already have.
+A live region changes when the server has new data: another user added a task or a job finished.
+Woge sends the region ID over SSE. The shipped browser client then makes a safe GET for current HTML.
+The stream never carries HTML, and every refresh checks current access.
 
-The event stream never contains HTML. Every reload is a normal GET that checks authorization
-against current data. See [ADR 0069](../adr/0069-live-invalidations-over-sse.md) for the reasoning.
+## Declare a live page
 
-Live updates are an extra. The page works without them, and normal navigation always shows
-current data.
-
-## On the wire
-
-```text
-retry: 3000
-
-id: 1
-event: invalidate
-data: r-4f1c…
-data: r-9a07…
-
-: heartbeat
-
-```
-
-- `retry` tells `EventSource` how long to wait before reconnecting.
-- `invalidate` lists the region target ids that changed, one `data` line each.
-- After a reconnect (the browser sends `Last-Event-ID`), the first event is `resync` and lists every
-  region the stream covers. That replaces anything missed while disconnected.
-- Lines that start with `:` are heartbeats that keep proxies and dead-connection detection working.
-
-Responses use `text/event-stream`, `Cache-Control: no-store, no-transform` and `X-Accel-Buffering: no`, so caches
-and nginx-style proxies pass events through right away.
-
-## Server: declare a live route
-
-A live route is a typed GET like any page. Its use case checks access and returns which regions the
-browser may refresh, plus a `Flow` that emits a region whenever it changed.
+Mark the HTML function with `@WogeRegion`; the build generates `AnnouncementListRegion`:
 
 ```kotlin
-val boardLive =
-    LiveUseCase<BoardLiveInput> { request ->
-        if (!canSeeBoard(request.context)) {
-            liveRefused(FailureCategory.FORBIDDEN, request.context.correlationId)
-        } else {
-            val page = PageIdentity(PageEpoch.of(request.input.epoch), secret)
-            val tasks = BoardTasksRegion.target(page)
-            liveSubscription(
-                targets = listOf(tasks),
-                invalidations = boardChanges.map { tasks }, // boardChanges: SharedFlow<Unit>
-                session = LiveSessionKey.of(sessionIdOf(request.context)),
-            )
-        }
-    }
+@WogeRegion
+internal fun HtmlWriter.announcementList(items: List<String>) {
+    ul { items.forEach { li { text(it) } } }
+}
 ```
 
-Bind it with the same handler factory as your pages:
+Render it in your ordinary `PageUseCase`. `request.context.render` owns the page identity and ordering
+state. Write its metadata in the HTML head and include the shipped fallback module (use your
+[asset URL](production-assets.md) for the packaged client). There is no application JavaScript:
 
 ```kotlin
-// Spring MVC
-BoardLiveRoute.path to handlers.live(boardLive, BoardLiveRoute)
-// Spring WebFlux
-GET(BoardLiveRoute.path, handlers.live(boardLive, BoardLiveRoute)::handle)
-// Ktor
-get(BoardLiveRoute.path) { live.handle(call) }
+val render = request.context.render
+// In head:
+render.metadata(this)
+moduleScript(applicationUrl("/assets/woge-fallback.js"))
+// In main:
+liveRegion(render, AnnouncementListRegion, repository.all(), AnnouncementsRoute.url(request.input))
 ```
 
-Rules:
+Describe how to reload the data and which changes should invalidate it:
 
-- Declare at most 128 regions. Emitting a region you did not declare ends the stream, because it is a
-  programming error.
-- Several changes to the same region while the browser is busy are merged into one event. Nothing
-  queues up, so do not use the stream as a message log. A notification list is just another region.
-- The stream ends after `maxLifetime` (30 minutes by default) and when your `Flow` completes. The
-  browser reconnects, and your use case checks access again. Complete the flow yourself when a
-  user logs out or loses access.
-- The application-wide and per-session limits are described in
-  [resource budgets](resource-budgets.md#live-streams).
-
-## Spring MVC note
-
-Live streams use Servlet async support, like deferred regions. The handler sets its own async
-timeout just above `maxLifetime`, so you do not need to raise `asyncTimeout` for it.
-
-## Browser
-
-```js
-import { connectWogeLive, createWogePatchRuntime } from "@woge/fallback-client";
-
-const runtime = createWogePatchRuntime(document);
-const live = connectWogeLive(runtime, "/board/live/" + epoch, {
-  load: async (context, { signal }) => {
-    const response = await fetch(regionUrl(context), {
-      headers: { Accept: "application/vnd.woge.patch-stream; version=1" },
-      signal,
-    });
-    if (!response.ok || !response.body) throw response;
-    return response.body;
-  },
-});
+```kotlin
+val live = LiveRegionPage(
+    page = announcementsPage,
+    region = AnnouncementListRegion,
+    load = { request -> repository.all(request.input) },
+    changes = { request -> repository.changes(request.input) }, // Flow<Unit>
+    authorize = { request -> checkAccess(request) }, // Failure or null
+)
 ```
 
-`regionUrl` builds your region route from `context.pageEpoch`, `context.targets[0]` and
-`context.interactionSequence`, exactly like any other region refresh. The connector refreshes each
-changed region once at a time, with at most one follow-up, and keeps working after a failed refresh.
+`authorize` runs for the document, every refresh and every SSE reconnect. The default allows anonymous
+access; protected pages must supply this check. Returning a failure stops that request before loading.
+Keep `load` side-effect-free. The epoch and opaque region ID are not access tokens.
 
-Background updates are silent and keep focus. Use a short `role="status"` summary, such as
-"3 new tasks", only after the user explicitly chooses to follow updates. See the
-[announcement policy and accessibility checklist](accessibility.md). Prefer a link to the fresh page over changing content the user
-is reading. The [reference task board](../../examples/reference-application/README.md) shows exactly
-that on Spring MVC, Spring WebFlux and Ktor.
+Bind just **one route**, the page's existing typed route:
 
-## Deployment
+```kotlin
+val handler = handlers.liveRegion(live, AnnouncementsRoute)
+// Spring WebFlux, inside coRouter:
+GET(AnnouncementsRoute.path, handler::handle)
+// Spring MVC: map AnnouncementsRoute.path to handler (an HttpRequestHandler).
+// Ktor: get(AnnouncementsRoute.path) { handler.handle(call) }
+```
 
-- Keep compression off for `text/event-stream`, or make sure the proxy flushes each event.
-- Proxy read timeouts must be longer than the heartbeat (15 seconds by default).
-- Each open tab holds one connection. Over HTTP/1.1, browsers allow about six per origin, so keep to
-  one live stream per page.
+The binding serves the document, safe region refresh and SSE at this same URL. Woge-owned query
+parameters distinguish the requests; applications need no extra input classes or protocol imports.
+Normal navigation still shows current data if JavaScript is disabled or the connection fails.
+
+## Host configuration
+
+Spring Boot binds `woge.render-identity.secret`. Supply a Base64 encoding of at least 32 random bytes
+from your secret store. All instances serving a deployment must share it. Never put the secret in HTML,
+source control or logs.
+
+Ktor reads the same key with `WogeKtorHandlers(application.environment.config)`. Manual hosts can pass
+`renderIdentitySecret` to their handler factory. Keep one handler factory for the application.
+
+If unset, Spring Boot and the Ktor config constructor generate one random startup secret and warn.
+This is safe for local development, but restarting invalidates old rendered IDs and independent
+instances cannot refresh each other's pages. Configure the shared secret in production. Invalid or
+short configured secrets fail startup; their values are never logged by Woge.
+
+## Limits and browser behavior
+
+Live bindings share the existing host-wide `LiveLimits`: bounded subscriptions, latest-only pending
+invalidations, heartbeats, retry hints and maximum connection lifetime. SSE reconnects reauthorize and
+resync the declared region. Browser refreshes are serialized per target, with at most one follow-up.
+No server-side page session or event replay log is needed.
+
+Updates preserve focus and are silent. Choose your own status text and accessibility policy; do not
+add `aria-live` merely because content is live. If the server refuses a stream or refresh, the page
+remains usable with normal navigation. Connections close on `pagehide`.
+
+Advanced applications can still use `LiveUseCase`, `liveSubscription`, explicit region GETs and
+`connectWogeLive` with their own loader, including multi-region subscriptions and per-session keys.
+See [ADR 0069](../adr/0069-live-invalidations-over-sse.md) and
+[ADR 0088](../adr/0088-host-owned-render-sessions-and-live-regions.md).
