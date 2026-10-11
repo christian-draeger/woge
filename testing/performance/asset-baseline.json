@@ -439,6 +439,42 @@
         "gzip": 2000,
         "brotli": 1800
       }
+    },
+    "websocket-module.js": {
+      "measured": {
+        "raw": 3071,
+        "gzip": 1643,
+        "brotli": 1443
+      },
+      "ceiling": {
+        "raw": 6500,
+        "gzip": 2600,
+        "brotli": 2400
+      }
+    },
+    "websocket-graph.js": {
+      "measured": {
+        "raw": 3071,
+        "gzip": 1643,
+        "brotli": 1443
+      },
+      "ceiling": {
+        "raw": 6500,
+        "gzip": 2600,
+        "brotli": 2400
+      }
+    },
+    "classpath/websocket.js": {
+      "measured": {
+        "raw": 5700,
+        "gzip": 2110,
+        "brotli": 1782
+      },
+      "ceiling": {
+        "raw": 10000,
+        "gzip": 3000,
+        "brotli": 2800
+      }
     }
   }
 }

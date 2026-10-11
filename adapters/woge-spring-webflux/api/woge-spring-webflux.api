@@ -68,3 +68,9 @@ public final class dev/woge/spring/webflux/WogeWebFluxPageHandler {
 	public final fun handle (Lorg/springframework/web/reactive/function/server/ServerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class dev/woge/spring/webflux/WogeWebFluxWebSocket : org/springframework/web/server/WebHandler {
+	public fun <init> (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;Ldev/woge/host/WebSocketLimits;Lorg/springframework/web/reactive/socket/server/WebSocketService;)V
+	public synthetic fun <init> (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/spring/webflux/WebFluxRequestContextFactory;Ldev/woge/host/WebSocketLimits;Lorg/springframework/web/reactive/socket/server/WebSocketService;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun handle (Lorg/springframework/web/server/ServerWebExchange;)Lreactor/core/publisher/Mono;
+}
+

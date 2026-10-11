@@ -250,3 +250,9 @@ Bind effects to the island mount AbortSignal and resolve optimistic handles only
 supplied authoritative server outcomes. No implicit props merging, DOM diffing or POST replay.
 See [the guide](../../docs/guides/island-signals.md). Run `npm run benchmark:signals` after building
 for an informational benchmark outside normal CI.
+
+### Optional WebSocket transport
+
+Import `@woge/fallback-client/websocket` only for bidirectional/high-frequency cases. It accepts the
+existing patch runtime, an explicit proof provider and revision-aware subscriptions. It has its own
+bundle budget; the core bundle does not import it. See the [WebSocket guide](../../docs/guides/websocket-updates.md).

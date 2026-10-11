@@ -18,6 +18,7 @@ dependencies {
     api(libs.kotlinxCoroutinesCore)
     api(libs.kotlinxSerializationJson)
 
+    testImplementation(libs.kotlinxCoroutinesTest)
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }

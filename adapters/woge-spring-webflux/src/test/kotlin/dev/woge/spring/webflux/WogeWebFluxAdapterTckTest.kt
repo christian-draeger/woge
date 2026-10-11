@@ -99,9 +99,43 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 .create()
                 .host("127.0.0.1")
                 .port(0)
-                .handle(ReactorHttpHandlerAdapter(RouterFunctions.toHttpHandler(routes)))
+                .handle(ReactorHttpHandlerAdapter(withCursorSocket(application, routes)))
                 .bindNow(),
         )
+    }
+
+    private fun withCursorSocket(
+        application: AdapterTckApplication,
+        routes: org.springframework.web.reactive.function.server.RouterFunction<
+            org.springframework.web.reactive.function.server.ServerResponse,
+        >,
+    ): org.springframework.http.server.reactive.HttpHandler {
+        val socket =
+            WogeWebFluxWebSocket(
+                dev.woge.tck.cursorWebSocketPolicy(),
+                application.cursorSocket,
+                WebFluxRequestContextFactory {
+                    tckActionContext(
+                        it.headers().firstHeader("X-Tck-Subject")?.takeUnless { subject ->
+                            subject ==
+                                "anonymous"
+                        },
+                        true,
+                    )
+                },
+            )
+        val ordinary = RouterFunctions.toHttpHandler(routes)
+        val socketHttp =
+            org.springframework.web.server.adapter.WebHttpHandlerBuilder
+                .webHandler(socket)
+                .build()
+        return org.springframework.http.server.reactive.HttpHandler { request, response ->
+            if (request.path.value() == "/woge-tck/socket") {
+                socketHttp.handle(request, response)
+            } else {
+                ordinary.handle(request, response)
+            }
+        }
     }
 
     private fun submitAction(application: AdapterTckApplication) =

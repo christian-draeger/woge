@@ -154,3 +154,5 @@ indexes and assembles these decisions rather than adding one.
 | [0103](0103-safe-component-render-caching.md) | Accepted | Cache typed component output with explicit security scope |
 
 | [0104](0104-enhanced-uploads-and-dynamic-forms.md) | Accepted | Enhance native uploads with optional progress and bind stable typed dynamic rows |
+
+| [0105](0105-optional-websocket-patch-transport.md) | Accepted | Keep WebSocket patch delivery optional and bounded |

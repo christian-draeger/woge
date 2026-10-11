@@ -38,6 +38,8 @@ kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serializati
 kspApi = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kspAaEmbeddable = { module = "com.google.devtools.ksp:symbol-processing-aa-embeddable", version.ref = "ksp" }
 kspCommonDeps = { module = "com.google.devtools.ksp:symbol-processing-common-deps", version.ref = "ksp" }
+ktorServerWebsockets = { module = "io.ktor:ktor-server-websockets-jvm", version.ref = "ktor" }
+springWebsocket = { module = "org.springframework:spring-websocket" }
 ktorServerCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

@@ -87,3 +87,6 @@ Advanced applications can still use `LiveUseCase`, `liveSubscription`, explicit 
 `connectWogeLive` with their own loader, including multi-region subscriptions and per-session keys.
 See [ADR 0069](../adr/0069-live-invalidations-over-sse.md) and
 [ADR 0088](../adr/0088-host-owned-render-sessions-and-live-regions.md).
+
+For genuinely bidirectional presence or high-frequency updates, see the
+[optional WebSocket transport](websocket-updates.md). SSE plus HTTP actions remains the default.

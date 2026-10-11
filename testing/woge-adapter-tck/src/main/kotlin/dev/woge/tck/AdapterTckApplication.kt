@@ -87,6 +87,8 @@ public enum class AdapterTckDeferredScenario(
 
 /** Shared portable application fixture compiled once and bound unchanged by every adapter. */
 public class AdapterTckApplication internal constructor() : AutoCloseable {
+    public val cursorSocket: CursorWebSocketFixture = CursorWebSocketFixture()
+
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
     private val actionWorkflow = TckActionWorkflow()
 

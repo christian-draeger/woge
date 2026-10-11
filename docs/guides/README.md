@@ -116,3 +116,6 @@ The [component caching guide](component-caching.md) shows opt-in fragment cachin
 
 The [enhanced uploads and dynamic forms guide](enhanced-uploads-and-dynamic-forms.md) adds optional
 upload progress, cancellation, stable nested rows, storage policies and explicitly localized input.
+
+The [optional WebSocket guide](websocket-updates.md) explains bidirectional presence, explicit upgrade
+security and bounded resume. SSE and HTTP actions remain the default.
