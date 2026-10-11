@@ -15,8 +15,6 @@ private val json =
         encodeDefaults = true
     }
 
-private val knownPostContextGap = setOf("CorrelationId", "RequestId", "RequestSecurity", "RequestTrace")
-
 class ComplexityGradientTest {
     private val root = File(System.getProperty("woge.gradient.root"))
     private val baseline = File(root, "gradient-baseline.json")
@@ -41,8 +39,7 @@ class ComplexityGradientTest {
         assertEquals(listOf("static-page", "component", "form", "validation"), simple.map { it.id })
         for (task in simple) {
             assertEquals(emptyList<String>(), task.forbiddenConcepts, task.id)
-            // Tracked in #213: POST requests need a hand-written request context until Spring and Ktor ship one.
-            assertTrue(knownPostContextGap.containsAll(task.knownGaps), "${task.id}: ${task.knownGaps}")
+            assertEquals(emptyList<String>(), task.knownGaps, task.id)
         }
     }
 

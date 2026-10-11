@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 /** Creates route-local Woge handlers with one shared Ktor runtime policy. */
 @Suppress("LongParameterList")
 public class WogeKtorHandlers(
-    private val contexts: KtorRequestContextFactory = DefaultKtorRequestContextFactory,
+    private val contexts: KtorRequestContextFactory = SameOriginKtorRequestContextFactory,
     private val maxConcurrency: Int = DeferredRegionPolicy.DEFAULT_MAX_CONCURRENCY,
     private val regionTimeout: Duration = 30.seconds,
     private val observer: WogeObserver = WogeObserver.NONE,
@@ -32,11 +32,14 @@ public class WogeKtorHandlers(
         DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
     }
 
-    /** Binds a POST action; the explicit context factory establishes authentication and CSRF before decoding. */
+    /**
+     * Binds a POST action. The context factory establishes authentication and CSRF before decoding;
+     * the built-in same-origin policy is the default.
+     */
     public fun <Command : Any> action(
         executor: ActionExecutor<Command>,
         input: KtorPageInput<Command>,
-        securityContexts: KtorRequestContextFactory,
+        securityContexts: KtorRequestContextFactory = SameOriginKtorRequestContextFactory,
     ): WogeKtorActionHandler<Command> =
         WogeKtorActionHandler(
             WogeKtorPageHandler(

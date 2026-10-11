@@ -50,6 +50,18 @@ accept GET and return an ordinary 405 with `Allow` for other methods. The adapte
 mode, response metadata, body streaming and cancellation. There is no application controller that
 must repeat Woge transport code.
 
+## Protect form actions
+
+`handlers.action(executor, input)` uses Woge's built-in same-origin check by default. A POST with
+an Origin matching the request's scheme and host is accepted; when Origin is missing or `null`,
+`Sec-Fetch-Site: same-origin` is accepted. Cross-origin or unverifiable requests receive 403 before
+the form is decoded. This is CSRF protection, not authentication or domain authorization.
+
+Applications using Spring Security CSRF tokens or authentication should pass a custom
+`SpringMvcRequestContextFactory`. With TLS terminated by a reverse proxy, set
+`server.forward-headers-strategy=framework` and trust forwarded headers only from that proxy, so the
+request origin reflects the public URL.
+
 ## Understand the execution model
 
 Input and request context are snapshotted on the original Servlet request thread. Woge then starts

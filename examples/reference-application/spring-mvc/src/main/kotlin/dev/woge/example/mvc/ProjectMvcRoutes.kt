@@ -9,15 +9,11 @@ import dev.woge.example.project.ProjectPageRoute
 import dev.woge.example.project.ProjectPatchesRoute
 import dev.woge.example.project.TaskBoard
 import dev.woge.example.project.TaskBoardRoute
-import dev.woge.example.project.boardActionContext
 import dev.woge.example.project.boardTaskForm
-import dev.woge.spring.mvc.SpringMvcRequestContextFactory
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import dev.woge.spring.mvc.springMvcInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpStatus
-import org.springframework.web.HttpRequestHandler
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping
 
 /** Connects familiar Spring MVC URL patterns to the framework-neutral project page. */
@@ -41,29 +37,14 @@ public class ProjectMvcRoutes {
     @Bean
     public fun taskBoardRoutes(handlers: WogeSpringMvcHandlers): SimpleUrlHandlerMapping {
         val board = TaskBoard()
-        val action =
-            handlers.action(
-                board.action,
-                boardTaskForm.springMvcInput(),
-                SpringMvcRequestContextFactory { boardActionContext() },
-            )
-        val protectedAction =
-            HttpRequestHandler { request, response ->
-                val uri = java.net.URI.create(request.requestURL.toString())
-                val origin = "${uri.scheme}://${uri.rawAuthority}"
-                if (request.getHeaders("Origin").toList() != listOf(origin)) {
-                    response.status = HttpStatus.FORBIDDEN.value()
-                } else {
-                    action.handleRequest(request, response)
-                }
-            }
+        val action = handlers.action(board.action, boardTaskForm.springMvcInput())
         return SimpleUrlHandlerMapping(
             mapOf(
                 TaskBoardRoute.path to handlers.page(board.page, TaskBoardRoute),
                 BoardRegionRoute.path to handlers.page(board.refresh, BoardRegionRoute),
                 BoardActivityRoute.path to handlers.page(board.activity, BoardActivityRoute),
                 BoardLiveRoute.path to handlers.live(board.live, BoardLiveRoute),
-                AddBoardTaskAction.path to protectedAction,
+                AddBoardTaskAction.path to action,
             ),
             0,
         )

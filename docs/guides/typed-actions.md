@@ -38,8 +38,9 @@ contains copied host authentication facts; the action still makes its own domain
 
 ## Register a POST endpoint
 
-Each host's `handlers.action(executor, input, securityContexts)` uses the same `ActionExecutor`
-contract. Apply Kotlin's serialization plugin in the application build (using the same version as
+Each host's `handlers.action(executor, input)` uses the same `ActionExecutor` contract and applies
+the built-in same-origin request check by default. Pass a `securityContexts` factory only when your
+application has a different security policy. Apply Kotlin's serialization plugin in the application build (using the same version as
 your Kotlin plugin), annotate the command with `kotlinx.serialization.Serializable`, and create a
 decoder:
 
@@ -51,34 +52,39 @@ plugins { kotlin("plugin.serialization") version "2.4.10" }
 val createTaskForm = FormDecoder(CreateTask.serializer())
 ```
 
-Pass the decoder's host binding and a context factory that translates the host's authentication
-and CSRF decisions:
+Pass the decoder's host binding. These ordinary bindings need no hand-written context:
 
 ```kotlin
 // Spring WebFlux
-val action = handlers.action(CreateTaskAction, createTaskForm.webFluxInput(), securityContexts)
+val action = handlers.action(CreateTaskAction, createTaskForm.webFluxInput())
 coRouter { POST(CreateTaskAction.path, action::handle) }
 
 // Spring MVC
 SimpleUrlHandlerMapping(
-    mapOf(CreateTaskAction.path to handlers.action(CreateTaskAction, createTaskForm.springMvcInput(), securityContexts)),
+    mapOf(CreateTaskAction.path to handlers.action(CreateTaskAction, createTaskForm.springMvcInput())),
     0,
 )
 
 // Ktor
-val action = handlers.action(CreateTaskAction, createTaskForm.ktorInput(), securityContexts)
+val action = handlers.action(CreateTaskAction, createTaskForm.ktorInput())
 routing { post(CreateTaskAction.path) { action.handle(call) } }
 ```
 
-The context factory is **required**, even if the surrounding handlers use default page contexts.
-Those defaults only support safe page methods. Establish the host's security policy first, reject
-missing or invalid CSRF verification at ingress, and only then supply `RequestContext`. Never trust a
-submitted principal or CSRF-status field. The Woge handler reads its input after context creation;
-domain authorization still happens in the action.
+The default factory accepts an unsafe request when its `Origin` matches the request's scheme and
+host. If Origin is absent or `null`, `Sec-Fetch-Site: same-origin` is accepted instead. A mismatched
+Origin or missing same-origin evidence receives 403 before form decoding. Safe GET, HEAD and OPTIONS
+requests do not require CSRF verification. This check does not authenticate the visitor or authorize
+the action.
 
-An action binding rejects `CsrfVerification.NOT_REQUIRED` with bodyless 403 before command decoding,
-even for an authenticated principal. Supply `VERIFIED` only after the configured host authenticity
-strategy has actually passed; do not copy that value from a submitted field.
+If your application uses Spring Security CSRF tokens, another token policy or authentication,
+provide the host's `WebFluxRequestContextFactory`, `SpringMvcRequestContextFactory` or
+`KtorRequestContextFactory`. Never trust a submitted principal or CSRF-status field. The Woge handler
+reads input only after the context factory returns; domain authorization still happens in the action.
+
+Behind a TLS-terminating reverse proxy, configure the trusted public origin. Spring Boot uses
+`server.forward-headers-strategy=framework`; Ktor applications can install `XForwardedHeaders`.
+Trust forwarded headers only from your own proxy, so the request origin matches the URL seen by the
+browser without letting arbitrary clients choose it.
 
 Enhanced forms also send a fresh random UUID in `Woge-Request-Identity`. Every action adapter makes
 it available as `request.context.mutationIdentity`, separately from the host's trace ID. A malformed

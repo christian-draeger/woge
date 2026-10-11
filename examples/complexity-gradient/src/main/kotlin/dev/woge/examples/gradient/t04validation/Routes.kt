@@ -1,6 +1,5 @@
 package dev.woge.examples.gradient.t04validation
 
-import dev.woge.examples.gradient.support.SameOriginActionContexts
 import dev.woge.spring.webflux.WogeWebFluxHandlers
 import dev.woge.spring.webflux.webFluxSubmission
 import org.springframework.context.annotation.Bean
@@ -14,7 +13,7 @@ public class Routes {
     @Bean
     public fun noteRoutes(handlers: WogeWebFluxHandlers): RouterFunction<ServerResponse> {
         val page = handlers.page(NotesPage(), ValidatedNotesRoute)
-        val add = handlers.action(addNoteAction, addNoteForm.webFluxSubmission(), SameOriginActionContexts)
+        val add = handlers.action(addNoteAction, addNoteForm.webFluxSubmission())
         return coRouter {
             GET(ValidatedNotesRoute.path, page::handle)
             POST(AddValidatedNoteAction.path, add::handle)

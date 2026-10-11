@@ -102,6 +102,7 @@ The check validates filenames, required sections, metadata, duplicate numbers, i
 | [0073](0073-native-first-headless-ui-primitives.md) | Accepted | Start headless UI primitives from native HTML elements |
 | [0074](0074-ktor-development-restart-parity.md) | Accepted | Run Ktor in `wogeDev` as a managed child that restarts fully after every successful build |
 | [0075](0075-experimental-development-mcp-endpoint.md) | Accepted | Offer an experimental, opt-in, loopback-only MCP endpoint in `wogeDev` for coding agents |
+| [0076](0076-same-origin-default-for-form-actions.md) | Accepted | Use a built-in same-origin check for form actions |
 
 ADRs 0001–0018 are the complete M0 decision set. ADRs beginning with 0019 record implementation-era
 decisions and supersessions. The [MVP boundary](../mvp-boundary.md) is the canonical short synthesis;

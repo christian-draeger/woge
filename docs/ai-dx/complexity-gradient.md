@@ -24,7 +24,8 @@ follow the [evaluation protocol](evaluation.md) and record the same numbers in a
 | Internals | Protocol or host internals the task imports (should be empty) |
 
 Shared setup that several tasks reuse is listed separately. Its internals are reported as known gaps,
-so the cost does not disappear from the numbers.
+so the cost does not disappear from the numbers. Form actions use the built-in same-origin request
+context, so no shared host-specific POST factory contributes to these tasks.
 
 ## Results (suite version 1)
 
@@ -32,17 +33,14 @@ so the cost does not disappear from the numbers.
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | static page | 3 | 68 | 1 | 17 | 1 | 0 | none |
 | component | 3 | 88 | 1 | 20 | 1 | 0 | none |
-| form | 3 | 115 | 2 | 27 | 2 | 0 | none, shared POST context ¹ |
-| validation | 3 | 171 | 2 | 40 | 2 | 0 | none, shared POST context ¹ |
-| enhanced action | 4 | 189 | 4 | 37 | 2 | 2 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision`, shared POST context ¹ |
+| form | 3 | 114 | 2 | 27 | 2 | 0 | none |
+| validation | 3 | 170 | 2 | 40 | 2 | 0 | none |
+| enhanced action | 4 | 188 | 4 | 37 | 2 | 2 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
 | deferred region | 4 | 134 | 3 | 33 | 2 | 9 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `patchHtml` |
 | live update | 4 | 174 | 4 | 31 | 3 | 25 | `InteractionSequence`, `PageEpoch`, `PageIdentity`, `RenderIdentitySecret`, `TargetRevision` |
 | custom JavaScript | 4 | 103 | 1 | 22 | 1 | 8 | none |
 | island | 4 | 109 | 2 | 24 | 1 | 18 | `PageEpoch`, `PageIdentity`, `RenderIdentitySecret` |
 
-¹ POST requests need a hand-written request context that uses `RequestTrace`, `RequestId`,
-`CorrelationId` and `RequestSecurity`. Tracked in
-[#213](https://github.com/christian-draeger/woge/issues/213).
 
 ## Comparison with hand-written HTML
 
@@ -68,17 +66,17 @@ gap is the goal of the follow-up issues below.
 
 ## What the numbers say
 
-- Static pages, components, forms and validation need no protocol or dev-runtime types. Their only gap
-  is the POST request context.
+- Static pages, components, forms and validation need no protocol or dev-runtime types and have no
+  known host-internal gaps.
 - Native and enhanced actions share one action and one outcome model; the enhanced task adds regions,
   not a second handler.
 - Enhanced pages leak protocol plumbing. This is the biggest source of extra concepts.
 
 ## Follow-up
 
-- [#213](https://github.com/christian-draeger/woge/issues/213) Built-in same-origin request context for POST actions
+- [#213](https://github.com/christian-draeger/woge/issues/213) Built-in same-origin request context for POST actions — done
 - [#214](https://github.com/christian-draeger/woge/issues/214) Optional action context, `FormValues` for business-rule errors, clearer duplicate-ID errors
 - [#215](https://github.com/christian-draeger/woge/issues/215) Hide identity, epoch and revision plumbing; simpler live regions
 - [#216](https://github.com/christian-draeger/woge/issues/216) No-JavaScript fallback for deferred regions
 
-When one of these lands, update the task, regenerate the baseline and update this table.
+When another follow-up lands, update the task, regenerate the baseline and update this table.

@@ -61,10 +61,14 @@ Navigation returns a complete `text/html; charset=UTF-8` response. The fallback 
 Fetches the second route as `application/vnd.woge.patch-stream; version=1`. Each completed region is
 flushed and can become visible while slower work is still running.
 
-The default context mapper intentionally supports safe page methods only and treats the request as
-anonymous. For an authenticated application, provide a `WebFluxRequestContextFactory` that translates
-the current Spring Security principal and verified CSRF decision into Woge's immutable security facts.
-Domain authorization still happens inside `ProjectPage` for both routes.
+The default context mapper treats requests as anonymous. Page and deferred handlers use safe methods;
+action bindings use the built-in same-origin CSRF check, so a normal browser form needs no custom
+factory. A matching Origin is accepted, or `Sec-Fetch-Site: same-origin` when Origin is absent or
+`null`; other unsafe requests receive 403 before decoding. For authenticated applications, provide a
+`WebFluxRequestContextFactory` that translates the Spring Security principal and verified CSRF
+decision. Domain authorization remains application-owned. Behind a TLS-terminating proxy, set
+`server.forward-headers-strategy=framework` so the observed scheme and host match the browser URL;
+trust forwarded headers only from a trusted proxy.
 
 ## What failures mean today
 

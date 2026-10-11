@@ -19,10 +19,8 @@ page needs.
 Every task is one package under `src/main/kotlin/dev/woge/examples/gradient/`, with its own Spring
 WebFlux `Routes.kt` and its CSS and JavaScript under `src/main/resources/gradient/<task>/`. Tasks do not
 import each other. Serve the resources as `/assets/<task>/...` and the Woge fallback client as
-`/assets/woge/index.js`. `support/` holds the one shared helper that lets POST requests pass the
-same-origin check. It uses host internals, so the measurements list it under `sharedSetup` and its
-internals under `knownGaps` until [#213](https://github.com/christian-draeger/woge/issues/213) ships a
-built-in version. Results and interpretation are in
+`/assets/woge/index.js`. Form actions use the built-in same-origin request context. Results and
+interpretation are in
 [the complexity gradient report](../../docs/ai-dx/complexity-gradient.md).
 
 ## Check it

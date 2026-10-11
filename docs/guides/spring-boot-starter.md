@@ -82,13 +82,18 @@ Deferred limits apply per patch-stream request. `mvc.async-timeout` bounds a Ser
 response and should exceed the region timeout. Invalid non-positive values fail while the application
 context starts.
 
-## Make security context explicit
+## Use the default form-action security
 
-The default `WebFluxRequestContextFactory` or `SpringMvcRequestContextFactory` permits safe page
-methods and creates an anonymous Woge request snapshot. A Spring Security application should expose
-its own matching bean that translates the
-authenticated principal, capabilities and verified request facts into Woge-owned values. The default
-backs off automatically.
+The default `WebFluxRequestContextFactory` or `SpringMvcRequestContextFactory` creates anonymous
+request snapshots. Action bindings allow normal same-origin browser forms: they compare Origin with
+the request origin, or accept `Sec-Fetch-Site: same-origin` when Origin is absent or `null`. Other
+unsafe requests receive 403 before form decoding. This CSRF check is not authentication or domain
+authorization.
+
+A Spring Security application should expose its own matching factory bean to translate its principal
+and verified token decision; the built-in `@ConditionalOnMissingBean` default backs off. Behind a
+TLS-terminating proxy, set `server.forward-headers-strategy=framework` and trust forwarded headers
+only from the proxy, so the request origin matches the browser's public URL.
 
 ## Connect metrics, traces or development tools
 
