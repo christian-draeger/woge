@@ -270,4 +270,4 @@ internal const val PRE_STREAM_PRIVATE_DETAIL: String = "tck-private-pre-stream-d
 internal const val TCK_DOCUMENT_STATUS_CODE: Int = 202
 
 private const val DISCONNECT_PULSES = 8
-private const val DISCONNECT_PULSE_MILLIS = 100L
+private const val DISCONNECT_PULSE_MILLIS = 400L

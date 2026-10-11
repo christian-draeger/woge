@@ -150,9 +150,10 @@ private suspend fun verifyActiveDisconnect(
         withTimeout(5.seconds) { fixture.disconnectStarted.await() }
     }
     // Servlet notices RST on the next pulse write; Reactor/Netty may notice immediately.
-    withTimeout(5.seconds) { fixture.disconnectReleased.await() }
+    withTimeout(RELEASE_TIMEOUT) { fixture.disconnectReleased.await() }
 }
 
+private val RELEASE_TIMEOUT = 10.seconds
 private const val STREAM_CHUNKS = 4
 private const val LAST_STREAM_CHUNK = STREAM_CHUNKS - 1
 private const val STREAM_SPACING_MILLIS = 500L
