@@ -61,7 +61,7 @@ jobs:
           runpy.run_path("scripts/verify-github-publication.py")["validate_channel"](sys.argv[1], sys.argv[2])
           PY
           test "$(git rev-parse HEAD)" = "$COMMIT"
-          ./gradlew check "-PwogeVersion=$VERSION" --console=plain --stacktrace
+          ./gradlew check --console=plain --stacktrace
           python3 scripts/verify-publication-commit.py "$COMMIT"
 
   publish:
