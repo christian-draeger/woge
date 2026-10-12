@@ -81,6 +81,9 @@ tasks.named<ProcessResources>("processResources") {
     from(browserSources.file("websocket.d.ts")) {
         into("META-INF/woge/fallback-client")
     }
+    from(browserSources.file("dpu.d.ts")) {
+        into("META-INF/woge/fallback-client")
+    }
     from(browserSources.file("signals.d.ts")) {
         into("META-INF/woge/fallback-client")
     }

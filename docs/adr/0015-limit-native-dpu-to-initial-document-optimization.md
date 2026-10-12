@@ -15,6 +15,11 @@ The security fixture is decisive: a script and inline error handler delivered in
 
 ## Decision
 
+**Route integration update:** [ADR 0106](0106-stream-typed-deferred-documents-with-native-dpu.md) replaces
+the encoder-only API ceiling below with a transport-neutral typed initial document and explicit
+Spring/Ktor opt-in policies. The Chrome-only tier, fail-closed eligibility and original-parser-only
+restriction remain unchanged; this is not a beta requirement.
+
 The maximum MVP support for native DPU is an opt-in limited-availability encoder for initial-document completion-order patches on Chrome 150 and newer. It remains an internal implementation of transport-neutral Patch IR and does not appear in component, action, page, Spring, Ktor or application-domain APIs.
 
 The adapter is off by default until its capability negotiation and parity suite ship. An application enabling it accepts the named Chrome-only optimization tier; every affected region still provides the complete or linked HTML-only fallback required by [ADR 0007](0007-browser-support-and-progressive-enhancement.md). Unsupported, absent or unadvertised capability uses the complete-page or Woge fallback path. User-agent sniffing is not capability detection.

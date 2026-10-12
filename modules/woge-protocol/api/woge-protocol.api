@@ -22,6 +22,25 @@ public final class dev/woge/protocol/HtmlFrameKt {
 	public static final fun htmlFrame (Lkotlin/jvm/functions/Function1;)Ldev/woge/protocol/HtmlFrame;
 }
 
+public final class dev/woge/protocol/InitialDocumentEligibilityKt {
+	public static final fun isInitialDocumentHtmlEligible (Ldev/woge/protocol/PatchHtml;)Z
+}
+
+public final class dev/woge/protocol/InitialDocumentRange {
+	public static final field Companion Ldev/woge/protocol/InitialDocumentRange$Companion;
+	public final fun replaceFrame (Ldev/woge/protocol/ReplacePatch;)Ldev/woge/protocol/HtmlFrame;
+	public final fun startFrame (Ldev/woge/protocol/PatchHtml;)Ldev/woge/protocol/HtmlFrame;
+}
+
+public final class dev/woge/protocol/InitialDocumentRange$Companion {
+	public final fun create--x3o5AM (Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/PatchHtml;)Ldev/woge/protocol/InitialDocumentRange;
+}
+
+public final class dev/woge/protocol/InitialDocumentRangeKt {
+	public static final fun initialDocumentEnd ()Ldev/woge/protocol/HtmlFrame;
+	public static final fun initialDocumentStart (Ldev/woge/protocol/HtmlFrame;)Ldev/woge/protocol/HtmlFrame;
+}
+
 public final class dev/woge/protocol/InteractionSequence {
 	public static final field Companion Ldev/woge/protocol/InteractionSequence$Companion;
 	public static final synthetic fun box-impl (J)Ldev/woge/protocol/InteractionSequence;
@@ -276,6 +295,10 @@ public final class dev/woge/protocol/RecoveryIntent : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/woge/protocol/RecoveryIntent;
 	public static fun values ()[Ldev/woge/protocol/RecoveryIntent;
+}
+
+public final class dev/woge/protocol/RegionLoadingFrameKt {
+	public static final fun regionLoadingFrame--x3o5AM (Ldev/woge/protocol/PatchTarget;JLdev/woge/protocol/PatchHtml;)Ldev/woge/protocol/HtmlFrame;
 }
 
 public final class dev/woge/protocol/RegionTargetId {

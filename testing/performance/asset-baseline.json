@@ -8,6 +8,18 @@
     "brotli": 1400
   },
   "assets": {
+    "dpu-module.js": {
+      "measured": { "raw": 23219, "gzip": 8245, "brotli": 7291 },
+      "ceiling": { "raw": 24000, "gzip": 8500, "brotli": 7500 }
+    },
+    "dpu-graph.js": {
+      "measured": { "raw": 23219, "gzip": 8245, "brotli": 7291 },
+      "ceiling": { "raw": 24000, "gzip": 8500, "brotli": 7500 }
+    },
+    "classpath/dpu.js": {
+      "measured": { "raw": 3778, "gzip": 1556, "brotli": 1313 },
+      "ceiling": { "raw": 4000, "gzip": 1600, "brotli": 1400 }
+    },
     "core-bundle.js": {
       "measured": {
         "raw": 35968,

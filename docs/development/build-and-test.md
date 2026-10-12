@@ -46,6 +46,8 @@ disabled; its setup and evidence paths are documented in
 `scaffoldDevSmoke` checks edits, compiler-error recovery and generated regions in both Spring hosts.
 It also proves incremental typed action addition, ID changes, duplicate-ID rejection and removal of
 obsolete generated descriptors and registries.
+CI runs this smoke test in `example-browser-smoke`, alongside the scaffold browser test, rather
+than extending the clean `check` job. Both remain required parts of the pre-merge gate.
 
 The JMH command is an explicit performance measurement rather than a pass/fail check. `check` compiles
 the benchmark fixture but does not execute it. HTML sink results are written below

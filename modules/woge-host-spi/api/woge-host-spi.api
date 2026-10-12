@@ -271,9 +271,23 @@ public final class dev/woge/host/CsrfVerification : java/lang/Enum {
 	public static fun values ()[Ldev/woge/host/CsrfVerification;
 }
 
+public final class dev/woge/host/DeferredDocument {
+	public final fun getHead ()Ldev/woge/protocol/HtmlFrame;
+	public final fun getRegions ()Ljava/lang/Iterable;
+	public final fun getShell ()Ldev/woge/protocol/HtmlFrame;
+	public final fun getTail ()Ldev/woge/protocol/HtmlFrame;
+	public final fun loadingFrames ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/woge/host/DeferredDocumentKt {
+	public static final fun deferredHtmlPage (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/woge/host/ResponseMetadata;J)Ldev/woge/host/PageResult$Document;
+	public static synthetic fun deferredHtmlPage$default (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/woge/host/ResponseMetadata;JILjava/lang/Object;)Ldev/woge/host/PageResult$Document;
+}
+
 public final class dev/woge/host/DeferredRegion {
 	public final fun getInitialRevision-UimE8lE ()J
 	public final fun getTarget ()Ldev/woge/protocol/PatchTarget;
+	public final fun loadingHtml ()Ldev/woge/protocol/PatchHtml;
 	public final fun renderContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun renderFailure (Ldev/woge/host/DeferredRegionFailure;)Ldev/woge/protocol/PatchHtml;
 	public fun toString ()Ljava/lang/String;
@@ -1048,8 +1062,9 @@ public abstract interface class dev/woge/host/PageResult {
 }
 
 public final class dev/woge/host/PageResult$Document : dev/woge/host/PageResult {
-	public fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;J)V
-	public synthetic fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;JLdev/woge/host/DeferredDocument;)V
+	public synthetic fun <init> (Ldev/woge/host/ResponseMetadata;Lkotlinx/coroutines/flow/Flow;JLdev/woge/host/DeferredDocument;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeferredDocument ()Ldev/woge/host/DeferredDocument;
 	public final fun getFrames ()Lkotlinx/coroutines/flow/Flow;
 	public final fun getMaxBytes ()J
 	public fun getMetadata ()Ldev/woge/host/ResponseMetadata;

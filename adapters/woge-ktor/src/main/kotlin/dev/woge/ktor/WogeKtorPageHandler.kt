@@ -21,6 +21,7 @@ import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.host.withUploadCleanup
+import dev.woge.runtime.InitialDocumentRuntime
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import io.ktor.server.application.ApplicationCall
@@ -34,6 +35,7 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
     private val contexts: KtorRequestContextFactory,
     private val observer: WogeObserver,
     private val failurePages: FailurePages,
+    private val initialDocuments: InitialDocumentRuntime = InitialDocumentRuntime(),
 ) {
     /** Decodes, executes and maps the page without an application-owned transport controller. */
     public suspend fun handle(call: ApplicationCall): Unit = handle(call, actionAccept = null)
@@ -67,7 +69,7 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                         context = observationContext,
                         successfulOutcome = { it.observationOutcome() },
                     ) {
-                        page.open(pageRequest)
+                        prepareDocument(page.open(pageRequest), call, context.trace)
                     }
                 }
             } catch (invalid: RouteValueException) {
@@ -89,15 +91,30 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
         val accept =
             actionAccept ?: if (result is PageResult.RegionUpdates) call.request.headers["Accept"].orEmpty() else null
         val finalized =
-            result.withFailurePages(failurePages).forHttpRequest(
-                RequestMethod.of(call.request.httpMethod.value),
-                call.request.headers
-                    .getAll("If-None-Match")
-                    .orEmpty(),
-                call.request.headers
-                    .getAll("If-Modified-Since")
-                    .orEmpty(),
-            )
+            result
+                .withFailurePages(failurePages)
+                .forHttpRequest(
+                    RequestMethod.of(call.request.httpMethod.value),
+                    call.request.headers
+                        .getAll("If-None-Match")
+                        .orEmpty(),
+                    call.request.headers
+                        .getAll("If-Modified-Since")
+                        .orEmpty(),
+                )
         call.respondWogePage(finalized, observer, observationContext, accept)
     }
+
+    private fun prepareDocument(
+        result: PageResult,
+        call: ApplicationCall,
+        trace: dev.woge.host.RequestTrace,
+    ): PageResult =
+        initialDocuments.prepare(
+            result,
+            call.request.headers
+                .getAll("Cookie")
+                ?.joinToString(";"),
+            trace,
+        )
 }

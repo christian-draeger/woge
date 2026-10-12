@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":woge-spring-boot-starter"))
     implementation(project(":woge-spring-mvc"))
     implementation(libs.springBootStarterWeb)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)

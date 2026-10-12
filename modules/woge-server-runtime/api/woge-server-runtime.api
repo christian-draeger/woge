@@ -1,0 +1,158 @@
+public final class dev/woge/runtime/DeferredRegionExecutor {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/WogeObserver;)V
+	public synthetic fun <init> (Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun execute (Ljava/lang/Iterable;Ldev/woge/host/RequestTrace;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun execute$default (Ldev/woge/runtime/DeferredRegionExecutor;Ljava/lang/Iterable;Ldev/woge/host/RequestTrace;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public final fun getPolicy ()Ldev/woge/runtime/DeferredRegionPolicy;
+	public final fun prepare (Ljava/lang/Iterable;Ldev/woge/host/RequestTrace;)Ljava/util/List;
+	public static synthetic fun prepare$default (Ldev/woge/runtime/DeferredRegionExecutor;Ljava/lang/Iterable;Ldev/woge/host/RequestTrace;ILjava/lang/Object;)Ljava/util/List;
+}
+
+public final class dev/woge/runtime/DeferredRegionLimitException : java/lang/IllegalStateException {
+	public fun <init> (I)V
+	public final fun getThreshold ()I
+}
+
+public final class dev/woge/runtime/DeferredRegionPolicy {
+	public static final field Companion Ldev/woge/runtime/DeferredRegionPolicy$Companion;
+	public static final field DEFAULT_MAX_CONCURRENCY I
+	public static final field DEFAULT_MAX_REGIONS I
+	public synthetic fun <init> (IJIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (IJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2-UwyO8pc ()J
+	public final fun component3 ()I
+	public final fun copy-8Mi8wO0 (IJI)Ldev/woge/runtime/DeferredRegionPolicy;
+	public static synthetic fun copy-8Mi8wO0$default (Ldev/woge/runtime/DeferredRegionPolicy;IJIILjava/lang/Object;)Ldev/woge/runtime/DeferredRegionPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxConcurrency ()I
+	public final fun getMaxRegions ()I
+	public final fun getRegionTimeout-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/runtime/DeferredRegionPolicy$Companion {
+	public final fun getDEFAULT_REGION_TIMEOUT-UwyO8pc ()J
+}
+
+public abstract interface class dev/woge/runtime/DeferredRegionUpdate {
+	public abstract fun getHtml ()Ldev/woge/protocol/PatchHtml;
+	public abstract fun getRegion ()Ldev/woge/host/DeferredRegion;
+}
+
+public final class dev/woge/runtime/DeferredRegionUpdate$Failed : dev/woge/runtime/DeferredRegionUpdate {
+	public fun <init> (Ldev/woge/host/DeferredRegion;Ldev/woge/host/DeferredRegionFailure;Ldev/woge/protocol/PatchHtml;Ljava/lang/Exception;)V
+	public final fun getCause ()Ljava/lang/Exception;
+	public final fun getFailure ()Ldev/woge/host/DeferredRegionFailure;
+	public fun getHtml ()Ldev/woge/protocol/PatchHtml;
+	public fun getRegion ()Ldev/woge/host/DeferredRegion;
+}
+
+public final class dev/woge/runtime/DeferredRegionUpdate$Resolved : dev/woge/runtime/DeferredRegionUpdate {
+	public fun <init> (Ldev/woge/host/DeferredRegion;Ldev/woge/protocol/PatchHtml;)V
+	public fun getHtml ()Ldev/woge/protocol/PatchHtml;
+	public fun getRegion ()Ldev/woge/host/DeferredRegion;
+}
+
+public final class dev/woge/runtime/EncodedPatchChunk {
+	public final fun getBytes ()[B
+	public final fun getTerminal ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/runtime/EncodedPatchChunkKt {
+	public static final fun encodeActionPatchStream (Ldev/woge/host/PageResult$RegionUpdates;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun encodeActionPatchStream$default (Ldev/woge/host/PageResult$RegionUpdates;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun encodeDeferredPatchStream (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun encodeDeferredPatchStream$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun encodePatchStream (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;Ldev/woge/host/PatchStreamLimits;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun encodePatchStream$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/RequestTrace;Ldev/woge/host/PatchStreamLimits;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun toReplacePatch-x1GtjnU (Ldev/woge/runtime/DeferredRegionUpdate;Ljava/lang/String;)Ldev/woge/protocol/ReplacePatch;
+}
+
+public final class dev/woge/runtime/HtmlFrameChunksKt {
+	public static final fun renderByteChunks (Ldev/woge/protocol/HtmlFrame;Ldev/woge/html/HtmlByteBudget;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeObservationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun renderByteChunks$default (Ldev/woge/protocol/HtmlFrame;Ldev/woge/html/HtmlByteBudget;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeObservationContext;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun writeByteChunks (Ldev/woge/protocol/HtmlFrame;Ldev/woge/html/HtmlByteBudget;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeObservationContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun writeByteChunks$default (Ldev/woge/protocol/HtmlFrame;Ldev/woge/html/HtmlByteBudget;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeObservationContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/woge/runtime/InitialDocumentPolicy {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/runtime/NativeDpuMode;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;)V
+	public synthetic fun <init> (Ldev/woge/runtime/NativeDpuMode;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/woge/runtime/NativeDpuMode;
+	public final fun component2 ()Ldev/woge/runtime/DeferredRegionPolicy;
+	public final fun component3 ()Ldev/woge/host/PatchStreamLimits;
+	public final fun copy (Ldev/woge/runtime/NativeDpuMode;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;)Ldev/woge/runtime/InitialDocumentPolicy;
+	public static synthetic fun copy$default (Ldev/woge/runtime/InitialDocumentPolicy;Ldev/woge/runtime/NativeDpuMode;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;ILjava/lang/Object;)Ldev/woge/runtime/InitialDocumentPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeferred ()Ldev/woge/runtime/DeferredRegionPolicy;
+	public final fun getMode ()Ldev/woge/runtime/NativeDpuMode;
+	public final fun getPatches ()Ldev/woge/host/PatchStreamLimits;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/woge/runtime/InitialDocumentRuntime {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/runtime/InitialDocumentPolicy;Ldev/woge/host/WogeObserver;)V
+	public synthetic fun <init> (Ldev/woge/runtime/InitialDocumentPolicy;Ldev/woge/host/WogeObserver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun prepare (Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/RequestTrace;)Ldev/woge/host/PageResult;
+	public static synthetic fun prepare$default (Ldev/woge/runtime/InitialDocumentRuntime;Ldev/woge/host/PageResult;Ljava/lang/String;Ldev/woge/host/RequestTrace;ILjava/lang/Object;)Ldev/woge/host/PageResult;
+}
+
+public final class dev/woge/runtime/LiveAdmission {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/host/LiveLimits;)V
+	public synthetic fun <init> (Ldev/woge/host/LiveLimits;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLimits ()Ldev/woge/host/LiveLimits;
+	public final fun getOpenStreams ()I
+	public final fun open (Ldev/woge/host/LiveUseCase;Ldev/woge/host/PageRequest;Ljava/lang/String;Ldev/woge/host/WogeObserver;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun open$default (Ldev/woge/runtime/LiveAdmission;Ldev/woge/host/LiveUseCase;Ldev/woge/host/PageRequest;Ljava/lang/String;Ldev/woge/host/WogeObserver;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/woge/runtime/LiveEventStream {
+	public static final field INSTANCE Ldev/woge/runtime/LiveEventStream;
+	public static final field LAST_EVENT_ID_HEADER Ljava/lang/String;
+	public static final field MEDIA_TYPE Ljava/lang/String;
+	public final fun getHEADERS ()Ljava/util/Map;
+}
+
+public abstract interface class dev/woge/runtime/LiveResponse {
+}
+
+public final class dev/woge/runtime/LiveResponse$Refused : dev/woge/runtime/LiveResponse {
+	public final fun getFailure ()Ldev/woge/host/PageResult$Failure;
+}
+
+public final class dev/woge/runtime/LiveResponse$Stream : dev/woge/runtime/LiveResponse {
+	public final fun getEvents ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/woge/runtime/NativeDpuMode : java/lang/Enum {
+	public static final field AUTO Ldev/woge/runtime/NativeDpuMode;
+	public static final field FORCE_FALLBACK Ldev/woge/runtime/NativeDpuMode;
+	public static final field FORCE_NATIVE Ldev/woge/runtime/NativeDpuMode;
+	public static final field OFF Ldev/woge/runtime/NativeDpuMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/woge/runtime/NativeDpuMode;
+	public static fun values ()[Ldev/woge/runtime/NativeDpuMode;
+}
+
+public final class dev/woge/runtime/WogeOperationObservation {
+	public final fun finish (Ldev/woge/host/WogeOutcome;)V
+}
+
+public final class dev/woge/runtime/WogeOperationObservationKt {
+	public static final fun observationOutcome (Ldev/woge/host/PageResult;)Ldev/woge/host/WogeOutcome;
+	public static final fun observeCollection (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeCollection$default (Lkotlinx/coroutines/flow/Flow;Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun observeOperation (Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun observeOperation$default (Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun startOperation (Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;)Ldev/woge/runtime/WogeOperationObservation;
+	public static synthetic fun startOperation$default (Ldev/woge/host/WogeObserver;Ldev/woge/host/WogeOperation;Ldev/woge/host/WogeObservationContext;ILjava/lang/Object;)Ldev/woge/runtime/WogeOperationObservation;
+}
+

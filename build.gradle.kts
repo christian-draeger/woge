@@ -196,6 +196,41 @@ val buildReferenceTheme = tasks.register<Exec>("buildReferenceTheme") {
     commandLine("node", "scripts/build-reference-theme.mjs")
 }
 
+val prepareProductionDeployment = tasks.register<Sync>("prepareProductionDeployment") {
+    group = "verification"
+    description = "Packages the three reference hosts for the opt-in container deployment test."
+    dependsOn(
+        ":woge-reference-spring-mvc:bootJar",
+        ":woge-reference-spring-webflux:bootJar",
+        ":woge-reference-ktor:installDist",
+    )
+    into(layout.buildDirectory.dir("production-deployment"))
+    from("testing/deployment/Dockerfile")
+    for (host in listOf("spring-mvc", "spring-webflux")) {
+        from(project(":woge-reference-$host").layout.buildDirectory.dir("libs")) {
+            include("*.jar")
+            exclude("*-plain.jar")
+            into(host)
+            rename { "server.jar" }
+        }
+    }
+    from(project(":woge-reference-ktor").layout.buildDirectory.dir("install/woge-reference-ktor")) {
+        into("ktor")
+    }
+}
+val testProductionDeploymentProbe = tasks.register<Exec>("testProductionDeploymentProbe") {
+    group = "verification"
+    description = "Checks the historical v1 deployment probe reader without Docker or browsers."
+    commandLine("python3", "-B", "-m", "unittest", "discover", "-s", "testing/deployment", "-p", "test_*.py")
+}
+tasks.register<Exec>("productionDeploymentTest") {
+    group = "verification"
+    description = "Runs real Docker/nginx smoke, resource rejection and rolling shutdown on every reference host."
+    dependsOn(prepareProductionDeployment, testProductionDeploymentProbe)
+    timeout.set(java.time.Duration.ofMinutes(5))
+    commandLine("python3", "testing/deployment/verify.py")
+}
+
 fun registerReferenceBrowserSmoke(
     name: String,
     host: String,
@@ -247,6 +282,7 @@ tasks.named("check") {
         validateAdrs,
         validateModuleBoundaries,
         testModuleBoundaries,
+        testProductionDeploymentProbe,
         validateDocumentation,
         testSpringBootScaffold,
         test,

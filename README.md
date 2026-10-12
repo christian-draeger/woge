@@ -44,6 +44,7 @@ ordinary modern CSS without requiring Node.js.
 ## Project documentation
 
 - [Documentation index](docs/README.md)
+- [Production operations and rolling deployment](docs/guides/production-operations.md)
 - [MVP boundary](docs/mvp-boundary.md)
 - [Architecture decisions](docs/adr/README.md)
 - [Documentation style guide](docs/documentation/style-guide.md)

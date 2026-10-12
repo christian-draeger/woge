@@ -1,17 +1,27 @@
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
+
 plugins {
     id("dev.woge.kotlin-jvm-library")
 }
 
-description = "Internal shared dispatch and execution implementation for server adapters."
+description = "Shared dispatch, experimental document policy and execution runtime for server adapters."
+
+kotlin {
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation()
+}
 
 dependencies {
-    implementation(project(":woge-core"))
-    implementation(project(":woge-protocol"))
-    implementation(project(":woge-host-spi"))
-    implementation(libs.kotlinxCoroutinesCore)
-    implementation(libs.jsoup)
+    api(project(":woge-core"))
+    api(project(":woge-protocol"))
+    api(project(":woge-host-spi"))
+    api(libs.kotlinxCoroutinesCore)
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)
     testRuntimeOnly(libs.junitPlatformLauncher)
+}
+
+tasks.named("check") {
+    dependsOn(tasks.named("checkKotlinAbi"))
 }

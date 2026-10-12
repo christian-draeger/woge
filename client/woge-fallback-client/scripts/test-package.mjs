@@ -30,6 +30,8 @@ const archiveFiles = archiveOutput.trim().split("\n").sort();
 const expectedFiles = [
   "package/README.md",
   "package/dist/LICENSE",
+  "package/dist/dpu.js",
+  "package/dist/dpu.d.ts",
   "package/dist/index.d.ts",
   "package/dist/manifest.json",
   "package/dist/woge-navigation.js",
@@ -74,6 +76,7 @@ await writeFile(
   [
     'import { createWogePatchRuntime, WOGE_PATCH_PROTOCOL_VERSION } from "@woge/fallback-client";',
     'import { signal, createOptimisticAction } from "@woge/fallback-client/signals";',
+    'import "@woge/fallback-client/dpu";',
     "if (createOptimisticAction(signal(0)).pendingCount.get() !== 0) throw new Error(\"Signals export failed\");",
     "if (WOGE_PATCH_PROTOCOL_VERSION !== 1) throw new Error(\"Installed protocol version mismatch\");",
     "globalThis.WogePackageConsumer = { createWogePatchRuntime, protocolVersion: WOGE_PATCH_PROTOCOL_VERSION };",
@@ -90,6 +93,10 @@ await build({
   target: "es2022",
   sourcemap: "external",
 });
+const consumerBundle = await readFile(new URL("consumer-bundle.js", consumerDirectory), "utf8");
+if (!consumerBundle.includes("woge_dpu=")) {
+  throw new Error("Bundling removed the explicitly imported DPU module installation");
+}
 
 const installedPackage = JSON.parse(
   await readFile(new URL("node_modules/@woge/fallback-client/package.json", consumerDirectory), "utf8"),

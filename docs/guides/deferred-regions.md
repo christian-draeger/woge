@@ -4,6 +4,10 @@ A deferred region lets the browser receive useful page HTML while slower server 
 loading state is ordinary HTML, and the final content uses the same safe HTML writer. Include a
 normal link to a complete HTML page so the content is also reachable without JavaScript.
 
+For an experimental Chrome-only optimization, the same region can be placed in a
+[typed original-document stream](native-deferred-documents.md). Its shell and native or framed
+replacement share one navigation response. The supported post-shell fetch path below is unchanged.
+
 ## Declare the region
 
 Use a generated descriptor and the host-owned render session. Your region function renders typed

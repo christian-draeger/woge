@@ -60,8 +60,9 @@ The current implementation emits:
 | `patch.encode` | shared server runtime | one semantic patch encoded for transport |
 | `patch.apply` | fallback browser runtime | one validated patch applied or rejected |
 
-`action`, `live.subscription` and `recovery` are stable vocabulary for later slices; Woge does not
-pretend to emit them before that behavior exists.
+The implemented live adapters also emit `live.subscription`; live admission refusals and
+resource-limit failures carry the typed `context.exceededLimit`. `action` and `recovery` remain
+vocabulary rather than promises of dedicated action events or automatic server-side mutation replay.
 
 ## Observe the browser
 
@@ -88,4 +89,3 @@ send server-only facts to the browser.
 
 See [ADR 0035](../adr/0035-framework-neutral-semantic-observation-port.md) for the architectural
 tradeoffs and the [threat model](../security/threat-model.md) for the wider redaction boundary.
-

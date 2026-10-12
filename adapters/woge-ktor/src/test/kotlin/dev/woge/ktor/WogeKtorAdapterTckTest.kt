@@ -37,6 +37,14 @@ import java.nio.file.Path
 
 class WogeKtorAdapterTckTest {
     @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_DPU_BROWSER_SCRIPT", matches = ".+")
+    fun `native DPU passes original document browser conformance`() {
+        ServerAdapterContract(KtorTckHarnessFactory).verify(
+            listOf(dev.woge.tck.NativeDpuBrowserContract(Path.of(System.getenv("WOGE_DPU_BROWSER_SCRIPT")))),
+        )
+    }
+
+    @Test
     @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
     fun `native forms pass the real browser contract`() {
         ServerAdapterContract(KtorTckHarnessFactory).verify(
@@ -87,6 +95,7 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
             embeddedServer(Netty, host = "127.0.0.1", port = 0) {
                 install(io.ktor.server.websocket.WebSockets)
                 routing {
+                    initialDocumentRoutes(application)
                     cursorSocket(application)
                     get(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
                     head(AdapterTckRoutes.PAGE_PATTERN) { page.handle(call) }
@@ -104,6 +113,33 @@ private object KtorTckHarnessFactory : AdapterTckHarnessFactory {
                 }
             }.start(wait = false)
         return KtorTckServer(server)
+    }
+
+    private fun io.ktor.server.routing.Route.initialDocumentRoutes(application: AdapterTckApplication) {
+        for ((mode, policy) in listOf(
+            "auto" to dev.woge.runtime.NativeDpuMode.AUTO,
+            "native" to dev.woge.runtime.NativeDpuMode.FORCE_NATIVE,
+            "fallback" to dev.woge.runtime.NativeDpuMode.FORCE_FALLBACK,
+        )) {
+            val dpu =
+                WogeKtorHandlers(nativeDpuMode = policy, maxRegions = 2).page(
+                    application.initialDocuments.pages,
+                    KtorPageInput { requireNotNull(it.parameters["scenario"]) },
+                )
+            get("/woge-tck/dpu/$mode/{scenario}") { dpu.handle(call) }
+            head("/woge-tck/dpu/$mode/{scenario}") { dpu.handle(call) }
+        }
+        get("/woge-tck/dpu/complete") {
+            call.respondWogePage(
+                dev.woge.host.htmlPage {
+                    element("ul") {
+                        listOf("Alpha", "Beta", "Gamma").forEach { element("li") { text(it) } }
+                    }
+                },
+                dev.woge.host.WogeObserver.NONE,
+                dev.woge.host.WogeObservationContext(),
+            )
+        }
     }
 
     private fun io.ktor.server.routing.Route.cursorSocket(application: AdapterTckApplication) {

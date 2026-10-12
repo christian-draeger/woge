@@ -40,8 +40,8 @@ public final class dev/woge/ktor/WogeKtorDeferredHandler {
 }
 
 public final class dev/woge/ktor/WogeKtorHandlers {
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Ldev/woge/runtime/NativeDpuMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ldev/woge/ktor/KtorRequestContextFactory;IJLdev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;ILdev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Ldev/woge/runtime/NativeDpuMode;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lio/ktor/server/config/ApplicationConfig;)V
 	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/ktor/KtorPageInput;Ldev/woge/ktor/KtorRequestContextFactory;)Ldev/woge/ktor/WogeKtorActionHandler;
 	public static synthetic fun action$default (Ldev/woge/ktor/WogeKtorHandlers;Ldev/woge/host/ActionExecutor;Ldev/woge/ktor/KtorPageInput;Ldev/woge/ktor/KtorRequestContextFactory;ILjava/lang/Object;)Ldev/woge/ktor/WogeKtorActionHandler;

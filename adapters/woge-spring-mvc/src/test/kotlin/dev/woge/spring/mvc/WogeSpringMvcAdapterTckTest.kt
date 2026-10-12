@@ -46,6 +46,14 @@ import kotlin.time.Duration.Companion.seconds
 
 class WogeSpringMvcAdapterTckTest {
     @Test
+    @EnabledIfEnvironmentVariable(named = "WOGE_DPU_BROWSER_SCRIPT", matches = ".+")
+    fun `native DPU passes original document browser conformance`() {
+        ServerAdapterContract(SpringMvcTckHarnessFactory).verify(
+            listOf(dev.woge.tck.NativeDpuBrowserContract(Path.of(System.getenv("WOGE_DPU_BROWSER_SCRIPT")))),
+        )
+    }
+
+    @Test
     @EnabledIfEnvironmentVariable(named = "WOGE_NATIVE_BROWSER_SCRIPT", matches = ".+")
     fun `native forms pass the real browser contract`() {
         ServerAdapterContract(SpringMvcTckHarnessFactory).verify(
@@ -164,7 +172,8 @@ private class SpringMvcTckConfiguration {
                 AdapterTckRoutes.DEFERRED_PATTERN to deferred,
                 AdapterTckRoute.path to handlers.page(application.routePages, AdapterTckRoute),
                 AdapterTckLiveRoute.path to handlers.live(application.live, AdapterTckLiveRoute),
-                AdapterTckManagedRoute.path to handlers.liveRegion(application.managedLive, AdapterTckManagedRoute),
+                AdapterTckManagedRoute.path to
+                    handlers.liveRegion(application.managedLive, AdapterTckManagedRoute),
                 AdapterTckFailureRoute.path to
                     WogeSpringMvcHandlers(failurePages = application.failurePages)
                         .page(application.failureRoutePages, AdapterTckFailureRoute),
@@ -179,7 +188,8 @@ private class SpringMvcTckConfiguration {
                             )
                         },
                     ),
-                "/woge-tck/action-complete" to handlers.page(application.actionCompletion, SpringMvcPageInput { }),
+                "/woge-tck/action-complete" to
+                    handlers.page(application.actionCompletion, SpringMvcPageInput { }),
                 TckUploadAction.path to
                     handlers.action(
                         TckUploadAction,
@@ -192,10 +202,43 @@ private class SpringMvcTckConfiguration {
                         },
                     ),
                 "/woge-tck/upload-complete" to handlers.page(tckUploadPage, SpringMvcPageInput { }),
-            ),
+            ) + initialDocumentRoutes(application, handlers),
             0,
         )
     }
+
+    private fun initialDocumentRoutes(
+        application: AdapterTckApplication,
+        handlers: WogeSpringMvcHandlers,
+    ): Map<String, Any> =
+        buildMap {
+            for ((mode, policy) in listOf(
+                "auto" to dev.woge.runtime.NativeDpuMode.AUTO,
+                "native" to dev.woge.runtime.NativeDpuMode.FORCE_NATIVE,
+                "fallback" to dev.woge.runtime.NativeDpuMode.FORCE_FALLBACK,
+            )) {
+                put(
+                    "/woge-tck/dpu/$mode/{scenario}",
+                    WogeSpringMvcHandlers(nativeDpuMode = policy, maxRegions = 2).page(
+                        application.initialDocuments.pages,
+                        SpringMvcPageInput { it.pathVariable("scenario") },
+                    ),
+                )
+            }
+            put(
+                "/woge-tck/dpu/complete",
+                handlers.page(
+                    PageUseCase<Unit> {
+                        dev.woge.host.htmlPage {
+                            element("ul") {
+                                listOf("Alpha", "Beta", "Gamma").forEach { element("li") { text(it) } }
+                            }
+                        }
+                    },
+                    SpringMvcPageInput { },
+                ),
+            )
+        }
 }
 
 private class SpringMvcTckServer(

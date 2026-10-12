@@ -37,6 +37,9 @@ public class DeferredRegion internal constructor(
         loading(writer)
     }
 
+    /** Materializes only this region's bounded, provenance-tracked loading fragment. */
+    public fun loadingHtml(): PatchHtml = dev.woge.protocol.patchHtml(loading)
+
     override fun toString(): String =
         "DeferredRegion(target=$target, initialRevision=${initialRevision.value}, renderers=<redacted>)"
 }

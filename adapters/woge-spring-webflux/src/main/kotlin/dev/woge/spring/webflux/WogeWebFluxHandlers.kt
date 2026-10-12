@@ -15,7 +15,10 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.page
 import dev.woge.host.withRenderSession
 import dev.woge.runtime.DeferredRegionPolicy
+import dev.woge.runtime.InitialDocumentPolicy
+import dev.woge.runtime.InitialDocumentRuntime
 import dev.woge.runtime.LiveAdmission
+import dev.woge.runtime.NativeDpuMode
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -31,6 +34,7 @@ public class WogeWebFluxHandlers(
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     liveLimits: LiveLimits = LiveLimits(),
     renderIdentitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
+    nativeDpuMode: NativeDpuMode = NativeDpuMode.OFF,
 ) {
     private val sessions = RenderSessions(renderIdentitySecret)
     private val contexts =
@@ -39,6 +43,15 @@ public class WogeWebFluxHandlers(
         }
 
     private val liveAdmission = LiveAdmission(liveLimits)
+    private val initialDocuments =
+        InitialDocumentRuntime(
+            InitialDocumentPolicy(
+                nativeDpuMode,
+                DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions),
+                patchStreamLimits,
+            ),
+            observer,
+        )
 
     init {
         DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
@@ -68,7 +81,7 @@ public class WogeWebFluxHandlers(
         useCase: PageUseCase<Input>,
         input: WebFluxPageInput<Input>,
     ): WogeWebFluxPageHandler<Input> =
-        WogeWebFluxPageHandler(sessions.page(useCase), input, contexts, observer, failurePages)
+        WogeWebFluxPageHandler(sessions.page(useCase), input, contexts, observer, failurePages, initialDocuments)
 
     /**
      * Creates a handler for a page with a generated route. Register it at the route's own path:

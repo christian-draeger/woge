@@ -53,4 +53,7 @@ protocol version without executing the action. For a breaking wire change, intro
 version and fixtures rather than silently changing v1.
 
 For immutable cache behavior and asset packaging, see the [production asset guide](production-assets.md).
+For a real three-host container rollout, retained assets and shutdown order, see
+[production operations](production-operations.md). Its historical v1 wire checks are distinct from
+testing arbitrary historical application binaries.
 The policy and its pre-1.0 boundary are recorded in [ADR 0077](../adr/0077-pre-1-0-compatibility-and-version-skew.md).

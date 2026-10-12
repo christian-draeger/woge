@@ -1,6 +1,7 @@
 # ADR 0086: Keep native DPU an explicit initial-document encoder
 
 - Status: Accepted
+- Route and configuration statements superseded by: [ADR 0106](0106-stream-typed-deferred-documents-with-native-dpu.md)
 - Date: 2026-10-11
 - Decision owners: Woge maintainers
 - Related issues: [#40](https://github.com/christian-draeger/woge/issues/40)
@@ -10,6 +11,10 @@
 [ADR 0015](0015-limit-native-dpu-to-initial-document-optimization.md) limits Chrome's Declarative Partial Updates (DPU) to an opt-in initial-document optimization. Woge's current deferred-region adapter fetches framed patches after the HTML shell ([ADR 0027](0027-fetch-deferred-patches-after-html-shell.md)); a response parsed as a detached fetch fragment cannot reach the already parsed document. Sending native templates through that endpoint would look enabled while silently leaving loading content in place.
 
 ## Decision
+
+**Update:** [ADR 0106](0106-stream-typed-deferred-documents-with-native-dpu.md) ships the typed original-document
+route, public modes, Spring/Ktor configuration and optional capability module. The paragraphs below
+describe the encoder-only stage; the post-shell fetch restriction and eligibility policy still apply.
 
 The server runtime now contains an experimental encoder from the existing `ReplacePatch` IR to range processing instructions and `<template for>`. It does not change page, component, action, or region DSLs. The existing post-shell deferred endpoint remains on framed fallback transport; native output is only valid while the original HTML document parser owns the response.
 
@@ -41,6 +46,9 @@ Replace closes/replaces one addressed range. A range is the placeholder boundary
 - Append and dynamic/action updates remain fallback-only.
 
 ## Follow-up
+
+- Completed in [ADR 0106](0106-stream-typed-deferred-documents-with-native-dpu.md): #230 route integration,
+  capability negotiation and real-adapter native/fallback conformance.
 
 - [#230](https://github.com/christian-draeger/woge/issues/230): add native selection to a host-owned original-document streaming route only when it can emit shell boundaries and deferred patches on the same parser response; do not redirect the framed post-shell endpoint.
 - Revisit range and append mappings with browser evidence and cross-engine support changes.

@@ -15,7 +15,10 @@ import dev.woge.host.WogeObserver
 import dev.woge.host.page
 import dev.woge.host.withRenderSession
 import dev.woge.runtime.DeferredRegionPolicy
+import dev.woge.runtime.InitialDocumentPolicy
+import dev.woge.runtime.InitialDocumentRuntime
 import dev.woge.runtime.LiveAdmission
+import dev.woge.runtime.NativeDpuMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
@@ -35,6 +38,7 @@ public class WogeSpringMvcHandlers(
     private val patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
     liveLimits: LiveLimits = LiveLimits(),
     renderIdentitySecret: RenderIdentitySecret = RenderIdentitySecret.random(),
+    nativeDpuMode: NativeDpuMode = NativeDpuMode.OFF,
 ) {
     private val sessions = RenderSessions(renderIdentitySecret)
     private val contexts =
@@ -43,6 +47,8 @@ public class WogeSpringMvcHandlers(
         }
 
     private val policy = DeferredRegionPolicy(maxConcurrency, regionTimeout, maxRegions)
+    private val initialDocuments =
+        InitialDocumentRuntime(InitialDocumentPolicy(nativeDpuMode, policy, patchStreamLimits), observer)
     private val liveAdmission = LiveAdmission(liveLimits)
     private val asyncTimeoutMillis: Long
 
@@ -88,6 +94,7 @@ public class WogeSpringMvcHandlers(
             asyncTimeoutMillis,
             observer,
             failurePages,
+            initialDocuments = initialDocuments,
         )
 
     /**

@@ -62,6 +62,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Run a Woge page with Ktor](guides/ktor-adapter.md)
 - [Configure Woge with Spring Boot](guides/spring-boot-starter.md)
 - [Observe Woge without parsing logs](guides/semantic-observability.md)
+- [Deploy and operate a Woge application](guides/production-operations.md)
 
 ## Performance evidence
 

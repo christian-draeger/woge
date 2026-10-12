@@ -87,6 +87,8 @@ public enum class AdapterTckDeferredScenario(
 
 /** Shared portable application fixture compiled once and bound unchanged by every adapter. */
 public class AdapterTckApplication internal constructor() : AutoCloseable {
+    public val initialDocuments: InitialDocumentFixture
+        get() = state.initialDocuments
     public val cursorSocket: CursorWebSocketFixture = CursorWebSocketFixture()
 
     private val state: AdapterTckFixtureState = AdapterTckFixtureState()
@@ -126,6 +128,7 @@ public class AdapterTckApplication internal constructor() : AutoCloseable {
 }
 
 internal class AdapterTckFixtureState {
+    val initialDocuments = InitialDocumentFixture()
     val deferredFallback: DeferredFallbackFixture = DeferredFallbackFixture()
     val performance: PerformanceRenderFixture = PerformanceRenderFixture()
     val uploadDirectory: java.nio.file.Path =

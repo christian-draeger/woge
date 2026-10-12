@@ -6,6 +6,13 @@ standards-based JavaScript: no virtual DOM, hydration graph, component state sto
 The server still renders useful HTML. The fallback client only enhances an already active document
 by decoding a Woge patch stream and replacing the children of a registered region.
 
+The separate optional `@woge/fallback-client/dpu` entry records a short-lived capability cookie and
+consumes inert framed envelopes in a typed initial-document stream. It leaves native templates to the
+original document parser. Serve it as an async module for progressive fallback updates; it is also
+included in the server classpath assets, without requiring Node for plain applications. Native DPU
+remains experimental, Chrome-only and off by default. See the
+[initial-document guide](../../docs/guides/native-deferred-documents.md) for configuration and per-region fallback.
+
 ## Page contract
 
 A complete page declares one opaque epoch in its `head` and each legal patch target declares its

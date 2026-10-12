@@ -1,11 +1,20 @@
 package dev.woge.spring.boot.autoconfigure
 
+import dev.woge.runtime.NativeDpuMode
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.time.Duration
 
 /** Spring Boot settings for adapter selection and bounded response execution. */
 @ConfigurationProperties("woge")
 public class WogeProperties {
+    /** Experimental original-document optimization; supported framed updates remain the default. */
+    public var nativeDpu: NativeDpu = NativeDpu()
+
+    public class NativeDpu {
+        /** OFF, AUTO, FORCE_NATIVE or FORCE_FALLBACK. Forced modes are for conformance tests. */
+        public var mode: NativeDpuMode = NativeDpuMode.OFF
+    }
+
     /** Identity configuration shared by every enhanced-page binding. */
     public var renderIdentity: RenderIdentity = RenderIdentity()
 

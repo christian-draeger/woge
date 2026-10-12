@@ -20,7 +20,7 @@ dependencies {
     api(libs.jakartaServletApi)
     api(libs.springWebmvc)
 
-    implementation(project(":woge-server-runtime"))
+    api(project(":woge-server-runtime"))
     implementation(libs.springContext)
     implementation(libs.kotlinxCoroutinesCore)
 
@@ -35,6 +35,25 @@ dependencies {
 
 tasks.named("check") {
     dependsOn(tasks.named("checkKotlinAbi"))
+}
+
+tasks.register<Test>("nativeDpuBrowserTest") {
+    group = "verification"
+    description = "Experimental Chromium original-document DPU conformance against the real Spring MVC adapter."
+    testClassesDirs =
+        sourceSets.test
+            .get()
+            .output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    systemProperties(tasks.named<Test>("test").get().systemProperties)
+    useJUnitPlatform()
+    filter.includeTestsMatching("*native DPU passes original document browser conformance")
+    environment("WOGE_DPU_BROWSER_SCRIPT", rootProject.file("client/woge-fallback-client/scripts/test-native-dpu.mjs"))
+    inputs.files(
+        rootProject.file("client/woge-fallback-client/dist/dpu.js"),
+        rootProject.file("client/woge-fallback-client/scripts/test-native-dpu.mjs"),
+    )
+    testLogging.showStandardStreams = true
 }
 
 val updatePerformanceBaseline = providers.gradleProperty("woge.budgets.update").getOrElse("false")

@@ -21,6 +21,7 @@ import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.host.withUploadCleanup
+import dev.woge.runtime.InitialDocumentRuntime
 import dev.woge.runtime.observationOutcome
 import dev.woge.runtime.observeOperation
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -33,6 +34,7 @@ public class WogeWebFluxPageHandler<Input : Any>(
     private val contexts: WebFluxRequestContextFactory = DefaultWebFluxRequestContextFactory,
     private val observer: WogeObserver = WogeObserver.NONE,
     private val failurePages: FailurePages = FailurePages.NONE,
+    private val initialDocuments: InitialDocumentRuntime = InitialDocumentRuntime(),
 ) {
     /** Decodes, executes and maps the page without an application-owned controller. */
     public suspend fun handle(request: ServerRequest): ServerResponse = handle(request, actionAccept = null)
@@ -79,7 +81,11 @@ public class WogeWebFluxPageHandler<Input : Any>(
                         context = observationContext,
                         successfulOutcome = { it.observationOutcome() },
                     ) {
-                        page.open(pageRequest)
+                        initialDocuments.prepare(
+                            page.open(pageRequest),
+                            request.headers().header("Cookie").joinToString(";"),
+                            context.trace,
+                        )
                     }
                 }
             }
