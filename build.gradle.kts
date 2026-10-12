@@ -1,6 +1,10 @@
+import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.Exec
+import org.gradle.jvm.tasks.Jar
 
 plugins {
     base
@@ -38,8 +42,74 @@ val scaffoldPublicationModules =
 val scaffoldPluginModules = setOf("woge-gradle-plugin")
 val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
 val wogeTagline = "HTML-first reactive web development for Kotlin."
+val publicationModules = scaffoldPublicationModules + scaffoldPluginModules
+val verifyGitHubPackagesPublication = tasks.register<Exec>("verifyGitHubPackagesPublication") {
+    group = "publishing"
+    description = "Checks explicit channel, credentials and unused release coordinates before any upload."
+    commandLine(
+        "python3",
+        "scripts/verify-github-publication.py",
+        "--repository",
+        scaffoldMavenRepository.get().asFile.absolutePath,
+        "--group",
+        project.group.toString(),
+        "--version",
+        project.version.toString(),
+        "--channel",
+        providers.gradleProperty("wogePublicationChannel").getOrElse(""),
+        "--requested-channel",
+        gradle.startParameter.taskNames.mapNotNull {
+            when (it.substringAfterLast(':')) {
+                "publishGitHubPackagesSnapshot" -> "snapshot"
+                "publishGitHubPackagesRelease" -> "release"
+                else -> null
+            }
+        }.distinct().joinToString(","),
+    )
+}
 
 subprojects {
+    if (name in publicationModules) {
+        pluginManager.withPlugin("java") {
+            extensions.configure<JavaPluginExtension> {
+                withSourcesJar()
+                withJavadocJar()
+            }
+            // Kotlin-only modules have no Java Javadoc; ship the actual maintained guides instead.
+            tasks.named<Jar>("javadocJar") {
+                from(rootProject.layout.projectDirectory.dir("docs")) { into("docs") }
+                from(rootProject.layout.projectDirectory.file("README.md"))
+                from(rootProject.layout.projectDirectory.file("LICENSE"))
+                from(layout.projectDirectory.file("README.md")) { into("module") }
+            }
+            tasks.named<Jar>("jar") {
+                from(rootProject.layout.projectDirectory.file("LICENSE")) { into("META-INF") }
+                if (project.name == "woge-core") {
+                    from(rootProject.layout.projectDirectory.file("config/html-elements/LICENSE.webref")) {
+                        into("META-INF/licenses")
+                    }
+                    from(rootProject.layout.projectDirectory.file("config/html-elements/README.md")) {
+                        into("META-INF/licenses")
+                        rename { "webref-provenance.md" }
+                    }
+                }
+            }
+        }
+        pluginManager.withPlugin("maven-publish") {
+            extensions.configure<PublishingExtension> {
+                repositories.maven {
+                    name = "githubPackages"
+                    url = uri("https://maven.pkg.github.com/christian-draeger/woge")
+                    credentials(PasswordCredentials::class)
+                }
+            }
+            tasks.withType<PublishToMavenRepository>().configureEach {
+                if (name.endsWith("ToGithubPackagesRepository")) {
+                    dependsOn(verifyGitHubPackagesPublication)
+                }
+            }
+        }
+    }
     afterEvaluate {
         extensions.findByType(PublishingExtension::class.java)?.publications?.withType(MavenPublication::class.java)
             ?.configureEach {
@@ -51,9 +121,21 @@ subprojects {
                         license {
                             name.set("Apache License, Version 2.0")
                             url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                            distribution.set("repo")
                         }
                     }
-                    scm { url.set("https://github.com/christian-draeger/woge") }
+                    scm {
+                        url.set("https://github.com/christian-draeger/woge")
+                        connection.set("scm:git:https://github.com/christian-draeger/woge.git")
+                        developerConnection.set("scm:git:ssh://git@github.com/christian-draeger/woge.git")
+                    }
+                    developers {
+                        developer {
+                            id.set("christian-draeger")
+                            name.set("Christian Dräger")
+                            url.set("https://github.com/christian-draeger")
+                        }
+                    }
                 }
             }
     }
@@ -78,6 +160,33 @@ subprojects {
             repositories.maven {
                 name = "scaffold"
                 url = uri(scaffoldMavenRepository)
+            }
+        }
+    }
+}
+
+// Kotlin configures its Java-compatible sources archive during project evaluation.
+// Append distribution sources afterward so every task graph retains them.
+gradle.projectsEvaluated {
+    subprojects.filter { it.name in publicationModules }.forEach { publishedProject ->
+        publishedProject.configurations.findByName("sourcesElements")?.outgoing?.artifacts?.removeIf { artifact ->
+            artifact.buildDependencies.getDependencies(null).any { it.name == "kotlinSourcesJar" }
+        }
+        // Kotlin's check lifecycle also builds this archive; it must not overwrite Java's
+        // published sourcesJar at the same default path.
+        publishedProject.tasks.withType<Jar>().matching { it.name == "kotlinSourcesJar" }.configureEach {
+            destinationDirectory.set(publishedProject.layout.buildDirectory.dir("kotlin-sources"))
+        }
+        publishedProject.tasks.named<Jar>("sourcesJar") {
+            from(publishedProject.layout.projectDirectory.file("build.gradle.kts")) { into("build-definition") }
+            from(rootProject.layout.projectDirectory.file("LICENSE"))
+            if (publishedProject.name == "woge-core") {
+                from(rootProject.layout.projectDirectory.dir("config/html-elements")) {
+                    into("provenance/html-elements")
+                }
+            }
+            if (publishedProject.name == "woge-fallback-client-assets") {
+                from(rootProject.layout.projectDirectory.dir("client/woge-fallback-client/src")) { into("browser") }
             }
         }
     }
@@ -128,6 +237,39 @@ val publishScaffoldArtifacts =
                 scaffoldPluginModules.map { module -> ":$module:publishAllPublicationsToScaffoldRepository" },
         )
     }
+verifyGitHubPackagesPublication.configure {
+    dependsOn(publishScaffoldArtifacts)
+}
+val verifyPublicationContract = tasks.register<Exec>("verifyPublicationContract") {
+    group = "verification"
+    description = "Checks local Maven sources, documentation, POMs, markers and runtime dependency metadata."
+    dependsOn(publishScaffoldArtifacts)
+    commandLine(
+        "python3",
+        "scripts/verify-publication-contract.py",
+        scaffoldMavenRepository.get().asFile.absolutePath,
+        project.group.toString(),
+        project.version.toString(),
+        publicationModules.sorted().joinToString(","),
+    )
+}
+val testPublicationGuards = tasks.register<Exec>("testPublicationGuards") {
+    group = "verification"
+    description = "Tests publication channels, credential errors and fail-closed release/check guards without network access."
+    commandLine("python3", "-B", "scripts/test-publication-guards.py")
+}
+for (channel in listOf("snapshot", "release")) {
+    tasks.register("publishGitHubPackages${channel.replaceFirstChar { it.uppercase() }}") {
+        group = "publishing"
+        description = "Explicitly publishes the $channel channel to GitHub Packages."
+        dependsOn(
+            verifyPublicationContract,
+            testPublicationGuards,
+            publicationModules.map { ":$it:publishAllPublicationsToGithubPackagesRepository" },
+        )
+    }
+}
+verifyGitHubPackagesPublication.configure { dependsOn(verifyPublicationContract) }
 val testSpringBootScaffold =
     tasks.register<Exec>("testSpringBootScaffold") {
         group = "verification"
@@ -139,6 +281,7 @@ val testSpringBootScaffold =
             layout.projectDirectory.file("scripts/test-spring-boot-scaffold.sh").asFile.absolutePath,
             scaffoldMavenRepository.get().asFile.absolutePath,
         )
+        environment("WOGE_TEST_VERSION", project.version.toString())
     }
 val scaffoldDevSmoke =
     tasks.register<Exec>("scaffoldDevSmoke") {
@@ -285,6 +428,7 @@ tasks.named("check") {
         testProductionDeploymentProbe,
         validateDocumentation,
         testSpringBootScaffold,
+        verifyPublicationContract,
         test,
         detekt,
         ktlintCheck,

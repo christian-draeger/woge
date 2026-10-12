@@ -63,7 +63,7 @@ description = "Framework-neutral classpath assets for the Woge fallback browser 
 val clientDirectory = rootProject.layout.projectDirectory.dir("client/woge-fallback-client")
 val browserSources = clientDirectory.dir("src")
 val packageMetadataFile = clientDirectory.file("package.json")
-val projectLicense = rootProject.layout.projectDirectory.file("LICENSE")
+val assetVersion = project.version.toString()
 val kotlinPatch =
     rootProject.layout.projectDirectory.file(
         "modules/woge-protocol/src/main/kotlin/dev/woge/protocol/Patch.kt",
@@ -74,6 +74,8 @@ val kotlinPatchStream =
     )
 
 tasks.named<ProcessResources>("processResources") {
+    val publishedVersion = assetVersion
+    inputs.property("assetVersion", publishedVersion)
     from(browserSources) {
         include("*.js")
         into("static/assets/woge")
@@ -92,9 +94,9 @@ tasks.named<ProcessResources>("processResources") {
     }
     from(packageMetadataFile) {
         into("META-INF/woge/fallback-client")
-    }
-    from(projectLicense) {
-        into("META-INF")
+        filter { line: String ->
+            line.replace(Regex("\"version\": \"[^\"]+\""), "\"version\": \"$publishedVersion\"")
+        }
     }
 }
 

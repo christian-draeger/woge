@@ -21,8 +21,12 @@ a JavaScript application build.
 
 The scaffold pins Woge, Kotlin, Spring Boot, selected host, build-JDK and JVM-target versions in
 `gradle.properties`.
-Woge is pre-release; repository CI supplies `-PwogeRepository=/path/to/local/repository` until the
-coordinates are publicly available.
+Woge is pre-release. Its Maven registry is GitHub Packages, which requires authentication even for
+public packages. Follow the
+[repository and credential recipe](https://github.com/christian-draeger/woge/blob/main/docs/guides/packages.md)
+and select an actually published `wogeVersion`. No Woge checkout is needed for package consumption.
+Repository CI still supplies `-PwogeRepository=/path/to/local/repository` for credential-free
+build-local acceptance.
 
 ## Develop with live reload
 

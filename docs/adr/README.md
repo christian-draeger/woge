@@ -160,3 +160,4 @@ indexes and assembles these decisions rather than adding one.
 | [0106](0106-stream-typed-deferred-documents-with-native-dpu.md) | Accepted | Stream typed original documents with guarded native DPU and framed late fallback |
 
 | [0107](0107-reference-production-rollout-contract.md) | Accepted | Verify retained assets, versioned actions and bounded stream draining in real containers |
+| [0108](0108-github-packages-first-publication.md) | Accepted | Reuse Maven publications for explicit, checked GitHub Packages delivery |

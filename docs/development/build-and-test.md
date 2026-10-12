@@ -130,6 +130,8 @@ compilation, quality and reporting behavior. A module build file should describe
 role and dependencies. The production projects and allowed edges are documented in the
 [M1 module and consumer graph](../architecture/module-graph.md).
 
-The scaffold contains no publishing credentials, automatic snapshots or template-specific release assumptions. Publication is added with its own threat and release review in the M3 release work.
+The scaffold contains no saved publishing credentials, automatic snapshots or template-specific release assumptions.
+The root build now reuses its local Maven publications for
+[explicit GitHub Packages publication](publishing.md); Maven Central remains later work.
 Its selectively adopted template patterns and deliberate omissions are recorded in
 [Repository scaffold provenance](scaffold-provenance.md).

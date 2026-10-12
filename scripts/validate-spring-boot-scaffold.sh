@@ -60,7 +60,8 @@ for required_path in \
   [[ -f "$scaffold_root/$required_path" ]] || fail "missing $required_path"
 done
 
-generated_guidance=$(mktemp)
+mkdir -p "$repository_root/build/issue48"
+generated_guidance="$repository_root/build/issue48/generated-guidance-$$.md"
 trap 'rm -f "$generated_guidance"' EXIT
 if ! "$repository_root/scripts/generate-spring-boot-agent-guidance.sh" "$generated_guidance"; then
   fail "AGENTS.md could not be generated from canonical metadata"

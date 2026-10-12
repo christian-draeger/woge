@@ -1,0 +1,101 @@
+name: Publish GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Current main HEAD SHA with all checks green (40 characters)
+        required: true
+        type: string
+      version:
+        description: Maven version (snapshots end in -SNAPSHOT; releases use a fresh version)
+        required: true
+        type: string
+      channel:
+        description: Explicit publication channel
+        required: true
+        type: choice
+        options:
+          - snapshot
+          - release
+
+permissions:
+  contents: read
+
+concurrency:
+  group: woge-github-packages-publication
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Publication gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: read
+      statuses: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Verify selected current main and every check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT: ${{ inputs.commit }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          python3 scripts/verify-publication-commit.py "$COMMIT"
+          python3 - "$VERSION" "$CHANNEL" <<'PY'
+          import runpy, sys
+          runpy.run_path("scripts/verify-github-publication.py")["validate_channel"](sys.argv[1], sys.argv[2])
+          PY
+          test "$(git rev-parse HEAD)" = "$COMMIT"
+          ./gradlew check "-PwogeVersion=$VERSION" --console=plain --stacktrace
+          python3 scripts/verify-publication-commit.py "$COMMIT"
+
+  publish:
+    name: Publish packages
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Publish only the explicit Maven channel
+        env:
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+        run: |
+          case "$CHANNEL" in
+            snapshot) task=publishGitHubPackagesSnapshot ;;
+            release) task=publishGitHubPackagesRelease ;;
+            *) exit 1 ;;
+          esac
+          ./gradlew "$task" "-PwogeVersion=$VERSION" "-PwogePublicationChannel=$CHANNEL" \
+            --no-configuration-cache --console=plain

@@ -32,7 +32,7 @@ cp "$repository_root/gradle/wrapper/gradle-wrapper.jar" "$target_directory/gradl
 cp "$repository_root/gradle/wrapper/gradle-wrapper.properties" "$target_directory/gradle/wrapper/gradle-wrapper.properties"
 chmod +x "$target_directory/gradlew"
 
-temporary_properties=$(mktemp "$target_directory/gradle.properties.tmp.XXXXXX")
+temporary_properties="$target_directory/gradle.properties.next"
 awk -v selected_host="$selected_host" '
   /^wogeSpringAdapter=/ { print "wogeSpringAdapter=" selected_host; next }
   { print }
