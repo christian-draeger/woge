@@ -31,6 +31,10 @@ For a small standalone starting point, see the
 coordinates, defaults to WebFlux, can select MVC explicitly and starts with type-safe semantic HTML and
 ordinary modern CSS without requiring Node.js.
 
+To use Woge in your own Gradle build, see the
+[minimal Gradle project](docs/guides/packages.md#minimal-gradle-project) (GitHub Packages; no version
+has been published yet).
+
 ## Direction
 
 - HTML, CSS, links, forms, HTTP, URLs and browser APIs remain visible.
