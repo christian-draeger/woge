@@ -65,6 +65,71 @@ The [Spring Boot scaffold](../../scaffolds/spring-boot/README.md) already has bo
 Its `-PwogeRepository=/path/to/repository` override still uses only the build-local registry for
 Woge and does not require GitHub credentials.
 
+## Minimal Gradle project
+
+> **Status:** no Woge version has been uploaded to GitHub Packages yet. The setup below is what a
+> consumer build will look like once a maintainer has run the publish workflow. Until then, start from
+> the [scaffold](../../scaffolds/spring-boot/README.md) with its local `-PwogeRepository` flow.
+
+Pick a version that exists on the repository's Packages page and use it everywhere
+(`0.1.0-SNAPSHOT` is the current development version).
+
+`gradle.properties`:
+
+```properties
+wogeVersion=0.1.0-SNAPSHOT
+kotlinVersion=2.4.10
+kspVersion=2.3.12
+springBootVersion=4.1.1
+```
+
+`settings.gradle.kts`: use the two repository sections from above, plus the plugin versions:
+
+```kotlin
+pluginManagement {
+    val kotlinVersion: String by settings
+    val kspVersion: String by settings
+    val springBootVersion: String by settings
+    val wogeVersion: String by settings
+    plugins {
+        id("org.jetbrains.kotlin.jvm") version kotlinVersion
+        id("com.google.devtools.ksp") version kspVersion
+        id("org.springframework.boot") version springBootVersion
+        id("dev.woge.spring-boot") version wogeVersion
+    }
+    // repositories { ... } as shown above
+}
+```
+
+`build.gradle.kts` (Spring Boot WebFlux; JDK 21 to build, Java 17-compatible bytecode):
+
+```kotlin
+plugins {
+    id("org.jetbrains.kotlin.jvm")
+    id("com.google.devtools.ksp")
+    id("org.springframework.boot")
+    id("dev.woge.spring-boot")
+}
+
+val wogeVersion: String by project
+val springBootVersion: String by project
+
+dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation("dev.woge:woge-spring-boot-starter:$wogeVersion")
+    implementation("dev.woge:woge-spring-webflux:$wogeVersion")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion") // optional browser enhancement
+}
+```
+
+- The `dev.woge.spring-boot` plugin already adds the Woge KSP processor.
+- For Spring MVC, swap `woge-spring-webflux` for `woge-spring-mvc` and the WebFlux starter for
+  `spring-boot-starter-web`.
+- Dependencies are the neutral starter plus exactly one host. Node, Vite and Tailwind are not needed.
+- Copy the application code from the [scaffold](../../scaffolds/spring-boot/README.md) and read the
+  [quickstart](quickstart-spring-boot.md) for your first page and form.
+
 ## Browser assets and source
 
 `woge-fallback-client-assets` serves the checked-in browser modules from the JVM classpath.
