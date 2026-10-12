@@ -1,3 +1,4 @@
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.initialization.resolve.RepositoriesMode
 
 rootProject.name = "woge-application"
@@ -15,8 +16,16 @@ pluginManagement {
         id("dev.woge.spring-boot") version wogeVersion
     }
     repositories {
-        providers.gradleProperty("wogeRepository").orNull?.let { localRepository ->
+        val localRepository = providers.gradleProperty("wogeRepository").orNull
+        if (localRepository != null) {
             maven { url = uri(localRepository) }
+        } else {
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/christian-draeger/woge")
+                credentials(PasswordCredentials::class)
+                content { includeGroupByRegex("dev\\.woge.*") }
+            }
         }
         gradlePluginPortal()
         mavenCentral()
@@ -26,8 +35,16 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
-        providers.gradleProperty("wogeRepository").orNull?.let { localRepository ->
+        val localRepository = providers.gradleProperty("wogeRepository").orNull
+        if (localRepository != null) {
             maven { url = uri(localRepository) }
+        } else {
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/christian-draeger/woge")
+                credentials(PasswordCredentials::class)
+                content { includeGroup("dev.woge") }
+            }
         }
         mavenCentral()
     }

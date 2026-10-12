@@ -76,7 +76,7 @@ esac
 }
 
 mkdir -p "$(dirname "$output_file")"
-temporary_output=$(mktemp "${output_file}.tmp.XXXXXX")
+temporary_output="${output_file}.next"
 trap 'rm -f "$temporary_output"' EXIT
 
 awk \

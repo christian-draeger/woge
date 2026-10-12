@@ -55,3 +55,9 @@ ordinary modern CSS without requiring Node.js.
 ## License
 
 Woge is licensed under the [Apache License 2.0](LICENSE).
+
+## Follow-up
+
+| Area | Current delivery and next step |
+| --- | --- |
+| Packages | [Authenticated GitHub Packages consumption](docs/guides/packages.md) and [explicit Maven publication](docs/development/publishing.md); Maven Central remains later work. |

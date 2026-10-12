@@ -15,7 +15,8 @@ published_repository=$1
   exit 2
 }
 
-scratch_root=$(mktemp -d)
+scratch_root="$repository_root/build/issue48/scaffold-$$"
+mkdir -p "$scratch_root"
 # Fixture daemons use a private registry so they can be stopped instead of outliving the check.
 daemon_registry="-Dorg.gradle.daemon.registry.base=$scratch_root/daemons"
 cleanup() {
@@ -30,6 +31,14 @@ trap cleanup EXIT
 for adapter in webflux mvc; do
   fixture_root="$scratch_root/$adapter"
   "$repository_root/scripts/materialize-spring-boot-scaffold.sh" "$fixture_root" "$adapter"
+  python3 - "$fixture_root/gradle.properties" "${WOGE_TEST_VERSION:-$(sed -n 's/^wogeVersion=//p' "$repository_root/gradle.properties")}" <<'PY'
+import pathlib, re, sys
+path = pathlib.Path(sys.argv[1])
+path.write_text(re.sub(r"(?m)^wogeVersion=.*$", "wogeVersion=" + sys.argv[2], path.read_text()))
+# The fixture consumes this build's version, not necessarily the checked-in snapshot default.
+guidance = path.with_name("AGENTS.md")
+guidance.write_text(re.sub(r"(?m)^- Woge: .*$", "- Woge: " + sys.argv[2], guidance.read_text()))
+PY
   grep -Fqx "wogeSpringAdapter=$adapter" "$fixture_root/gradle.properties"
   grep -Fq -- "- Selected host: \`$adapter\`" "$fixture_root/AGENTS.md"
   "$fixture_root/gradlew" \
@@ -108,6 +117,10 @@ GRADLE
 boot_jar=$(ls "$fixture_root"/build/libs/*.jar | grep -v -- '-plain\.jar$')
 if unzip -Z1 "$boot_jar" | grep -E '(^|/)(\.woge/manifest\.json|META-INF/woge/manifest\.json)$'; then
   printf 'The application manifest must not be packaged by default.\n' >&2
+  exit 1
+fi
+if unzip -Z1 "$boot_jar" | grep -E '^BOOT-INF/lib/(woge-dev-|spring-boot-devtools)'; then
+  printf 'The production application must not bundle development tooling.\n' >&2
   exit 1
 fi
 asset_jar=$(unzip -Z1 "$boot_jar" | grep -E '^BOOT-INF/lib/woge-fallback-client-assets-.*\.jar$')

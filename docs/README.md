@@ -36,6 +36,8 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Machine-readable Woge framework index](ai-dx/woge-framework-index.json)
 - [Version-matched application agent guidance](ai-dx/application-agent-guidance.md)
 - [Build and test Woge](development/build-and-test.md)
+- [Use Woge from GitHub Packages](guides/packages.md)
+- [Publish Maven packages](development/publishing.md)
 - [Maintain the Spring Boot application scaffold](development/spring-boot-application-scaffold.md)
 - [Install and deploy the fallback browser client](guides/fallback-client-installation.md)
 - [Compatibility and upgrades](guides/compatibility-and-upgrades.md)
