@@ -2,8 +2,7 @@
 
 Woge's first Maven registry is `https://maven.pkg.github.com/christian-draeger/woge`.
 Maven Central and the Gradle Plugin Portal are not release destinations yet.
-The publication setup does not mean a version has already been uploaded: check the repository's
-Packages page for an available version before choosing it.
+Version `0.1.0-alpha.1` is available; check the repository's Packages page for newer versions.
 
 ## Authenticate once in your shell
 
@@ -67,17 +66,15 @@ Woge and does not require GitHub credentials.
 
 ## Minimal Gradle project
 
-> **Status:** no Woge version has been uploaded to GitHub Packages yet. The setup below is what a
-> consumer build will look like once a maintainer has run the publish workflow. Until then, start from
-> the [scaffold](../../scaffolds/spring-boot/README.md) with its local `-PwogeRepository` flow.
+> **Status:** `0.1.0-alpha.1` is published on GitHub Packages (alpha: APIs may still change).
 
 Pick a version that exists on the repository's Packages page and use it everywhere
-(`0.1.0-SNAPSHOT` is the current development version).
+(`0.1.0-alpha.1` is the first published version).
 
 `gradle.properties`:
 
 ```properties
-wogeVersion=0.1.0-SNAPSHOT
+wogeVersion=0.1.0-alpha.1
 kotlinVersion=2.4.10
 kspVersion=2.3.12
 springBootVersion=4.1.1

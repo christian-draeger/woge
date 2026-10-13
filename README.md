@@ -32,8 +32,8 @@ coordinates, defaults to WebFlux, can select MVC explicitly and starts with type
 ordinary modern CSS without requiring Node.js.
 
 To use Woge in your own Gradle build, see the
-[minimal Gradle project](docs/guides/packages.md#minimal-gradle-project) (GitHub Packages; no version
-has been published yet).
+[minimal Gradle project](docs/guides/packages.md#minimal-gradle-project) (GitHub Packages, version
+`0.1.0-alpha.1`).
 
 ## Direction
 
