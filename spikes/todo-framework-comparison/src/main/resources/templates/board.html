@@ -3,11 +3,11 @@
   <ul><li th:each="todo : ${snapshot.visible}" th:attr="data-todo-id=${todo.id}">
     <span th:text="${todo.title}"></span><span th:if="${todo.completed}"> (completed)</span>
     <form method="post" action="/woge-actions/toggle-todo" hx-post="/woge-actions/toggle-todo" hx-target="#todo-board" hx-swap="outerHTML">
-      <input type="hidden" name="id" th:value="${todo.id}"><input type="hidden" name="filter" value="all">
+      <input type="hidden" name="id" th:value="${todo.id}"><input type="hidden" name="filter" th:value="${snapshot.filter}">
       <button th:text="${todo.completed} ? 'Mark active' : 'Complete'"></button>
     </form>
     <form method="post" action="/woge-actions/delete-todo" hx-post="/woge-actions/delete-todo" hx-target="#todo-board" hx-swap="outerHTML">
-      <input type="hidden" name="id" th:value="${todo.id}"><input type="hidden" name="filter" value="all"><button>Delete</button>
+      <input type="hidden" name="id" th:value="${todo.id}"><input type="hidden" name="filter" th:value="${snapshot.filter}"><button>Delete</button>
     </form>
   </li></ul>
 </div>
