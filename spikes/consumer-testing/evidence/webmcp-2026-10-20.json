@@ -1,0 +1,41 @@
+{
+  "browser": "153.0.8010.12",
+  "capabilities": {
+    "secureContext": true,
+    "modelContext": true,
+    "members": [
+      "ontoolchange",
+      "executeTool",
+      "getTools",
+      "registerTool",
+      "constructor"
+    ],
+    "testing": []
+  },
+  "registered": [
+    {
+      "name": "addTodo",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "New todo"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    }
+  ],
+  "invocation": {
+    "state": "rejected",
+    "name": "UnknownError",
+    "message": "The site has a programming error: it called preventDefault() on the 'submit' event, without also calling respondWith() with the tool result"
+  },
+  "mutationVisible": true,
+  "replacement": "one tool",
+  "removal": "zero tools",
+  "actualModelTrials": false
+}

@@ -47,6 +47,8 @@ test("another tab updates the board while an unsaved draft remains intact", asyn
   test.skip(testInfo.project.name.endsWith("-native"), "Native pages refresh through ordinary navigation.");
   await page.goto("/");
   const draft = `Unsubmitted ${randomUUID()}`;
+  const count = (await page.locator("#todo-count").textContent()).match(/(\d+) remaining · (\d+) total/);
+  expect(count).not.toBeNull();
   await page.getByLabel("New todo").fill(draft);
   const other = await context.newPage();
   await other.goto("/");
@@ -54,6 +56,8 @@ test("another tab updates the board while an unsaved draft remains intact", asyn
   await other.getByLabel("New todo").fill(title);
   await other.getByRole("button", { name: "Add todo", exact: true }).click();
   await expect(page.locator("[data-todo-id]").filter({ hasText: title })).toHaveCount(1);
+  await expect(page.locator("#todo-count")).toHaveText(`${Number(count[1]) + 1} remaining · ${Number(count[2]) + 1} total`);
   await expect(page.getByLabel("New todo")).toHaveValue(draft);
+  await expect(page.getByLabel("New todo")).toBeFocused();
   await other.close();
 });

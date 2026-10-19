@@ -1,0 +1,50 @@
+name: Consumer investigations
+on:
+  pull_request:
+    paths:
+      - spikes/consumer-testing/**
+      - spikes/todo-framework-comparison/**
+      - .github/workflows/consumer-investigations.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  functional-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Build the candidate consumer and comparison fixtures
+        run: |
+          ./gradlew publishScaffoldArtifacts --console=plain
+          repository="$PWD/build/scaffold-maven-repository"
+          ./examples/todo-spring-boot/gradlew -p examples/todo-spring-boot "-PwogeRepository=$repository" -PwogeVersion=0.1.0-SNAPSHOT check bootJar --console=plain
+          docker build --tag woge-todo:roadmap --build-arg "REVISION=$GITHUB_SHA" examples/todo-spring-boot
+          ./gradlew -p spikes/consumer-testing installDist --console=plain
+          ./gradlew -p spikes/todo-framework-comparison "-PwogeRepository=$repository" installDist --console=plain
+          npm --prefix spikes/consumer-testing ci --ignore-scripts
+      - name: Compare the same JVM and Node browser journeys
+        run: |
+          python3 spikes/consumer-testing/run.py
+          python3 spikes/consumer-testing/run.py --node
+      - name: Reproduce the bounded WebMCP negative result
+        run: python3 spikes/consumer-testing/run.py --webmcp
+      - name: Verify benchmark HTTP fixtures without a throughput threshold
+        run: python3 spikes/todo-framework-comparison/run.py --samples 12 --rounds 1 --concurrency 2
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: consumer-investigation-evidence
+          path: |
+            spikes/consumer-testing/build/evidence/**
+            spikes/consumer-testing/build/node-report/**
+            spikes/consumer-testing/build/node-results/**
+            spikes/todo-framework-comparison/build/evidence/**

@@ -75,3 +75,7 @@ do not establish a universal productivity or "best framework" claim.
 Use the [Todo evaluation corpus](../ai-dx/todo-corpus-v0.1.md) for a current comparison. #181 owns the
 human control, #49 owns the quickstart usability trial, #253 owns themed/manual verification and
 #50 owns independent design-partner feedback. Record incomplete or failed runs as such.
+
+The [consumer-testing comparison](../../spikes/consumer-testing/results.md) records executed HTML,
+direct JVM, Kotlin-DSL and Node browser paths. The [MCP client matrix](../../spikes/development-mcp-clients/README.md)
+records protocol interoperability. Neither substitutes for the controlled model/human evaluations.

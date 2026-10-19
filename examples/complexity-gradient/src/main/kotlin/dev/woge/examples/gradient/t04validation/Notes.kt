@@ -101,7 +101,7 @@ public val addNoteAction: ActionExecutor<FormSubmission<AddNote>> =
 
 public class NotesPage : PageUseCase<ValidatedNotesInput> {
     override suspend fun open(request: PageRequest<ValidatedNotesInput>): PageResult =
-        notesDocument(FormErrors(FormValues.EMPTY, emptyList()), ResponseStatus.OK)
+        notesDocument(FormErrors(), ResponseStatus.OK)
 }
 
 private fun notesDocument(

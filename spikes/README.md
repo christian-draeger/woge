@@ -40,6 +40,14 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 
 | Frozen | [`local-island-target`](local-island-target/) | Kotlin/JS for opt-in DOM islands in ADR [0093](../docs/adr/0093-kotlin-js-local-islands.md) | Lazy lifecycle [#54](https://github.com/christian-draeger/woge/issues/54), shared validation [#55](https://github.com/christian-draeger/woge/issues/55), local signals [#56](https://github.com/christian-draeger/woge/issues/56) |
 
+## Consumer roadmap investigations (2026-10-20)
+
+| State | Spike | Decision and remaining work |
+| --- | --- | --- |
+| Frozen | [consumer-testing](consumer-testing/) | ADRs [0112](../docs/adr/0112-consumer-testing-layers.md) and [0114](../docs/adr/0114-webmcp-managed-form-experiment.md); parser/browser and negative WebMCP evidence, scoped upstream/agent-trial follow-ups |
+| Frozen | [development-mcp-clients](development-mcp-clients/) | ADR [0113](../docs/adr/0113-retain-experimental-development-mcp.md); two real SDK clients and lifecycle checks, no productivity claim |
+| Active | [todo-framework-comparison](todo-framework-comparison/) | Bounded JVM comparison under #269; informational measurements, no throughput release gate |
+
 ## Pre-1.0 audit (2026-10-11)
 
 The audit retains the eight remaining investigations as **Frozen**, not Active. Having a production

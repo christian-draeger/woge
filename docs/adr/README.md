@@ -164,3 +164,6 @@ indexes and assembles these decisions rather than adding one.
 | [0109](0109-standalone-todo-consumer.md) | Accepted | Verify a standalone Todo application through published artifact coordinates |
 | [0110](0110-request-owned-validation-convenience.md) | Accepted | Prepare native and enhanced validation through request-owned ordering |
 | [0111](0111-server-driven-data-freshness.md) | Accepted | Keep data freshness on authoritative server and ordered region boundaries |
+| [0112](0112-consumer-testing-layers.md) | Accepted | Keep consumer tests layered; preserve browser CI and optional JVM access |
+| [0113](0113-retain-experimental-development-mcp.md) | Accepted | Retain the bounded experimental development MCP after client interoperability checks |
+| [0114](0114-webmcp-managed-form-experiment.md) | Accepted | Defer WebMCP managed forms after a real rejected tool result |

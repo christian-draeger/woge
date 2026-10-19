@@ -1,0 +1,49 @@
+{
+  "recorded": "2026-10-20",
+  "clients": [
+    {
+      "client": "typescript-sdk-1.32.1",
+      "protocol": "2025-06-18",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    },
+    {
+      "client": "python-sdk-2.3.0",
+      "protocol": "2025-06-18",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    }
+  ],
+  "lifecycle": {
+    "command": "./gradlew scaffoldDevSmoke",
+    "hosts": [
+      "webflux",
+      "mvc",
+      "ktor"
+    ],
+    "result": "passed",
+    "duration": "2m48s",
+    "sessionFileRemoved": true
+  },
+  "modelTrials": false
+}
