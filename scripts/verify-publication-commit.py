@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 
 REPOSITORY = "christian-draeger/woge"
 REQUIRED_CHECKS = {"check", "production-deployment", "reference-browser-smoke", "example-browser-smoke"}
-PUBLICATION_CHECKS = {"Publication gate", "Publish packages"}
+PUBLICATION_CHECKS = {"Publication gate", "Publish packages", "Todo image gate", "Publish Todo image"}
 
 
 def validate_checks(checks):

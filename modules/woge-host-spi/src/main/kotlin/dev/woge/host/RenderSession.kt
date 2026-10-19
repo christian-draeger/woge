@@ -44,6 +44,34 @@ public class RenderSession internal constructor(
         actionRegionUpdates(fallback, InteractionSequence.of(interaction)) {
             RenderUpdates(this, this@RenderSession, revisions).apply(updates)
         }
+
+    /**
+     * Native validation returns [nativePage]; enhancement replaces typed regions and focuses [summary].
+     * Uses this request's ordering without sharing the native document's identity registration.
+     */
+    public fun validation(
+        nativePage: PageResult.Document,
+        summary: FormElementId,
+        patchStreamLimits: PatchStreamLimits = PatchStreamLimits(),
+        updates: RenderUpdates.() -> Unit,
+    ): PageResult.RegionUpdates {
+        require(nativePage.metadata.status == ResponseStatus.BAD_REQUEST) { "A validation page must use status 400" }
+        val session = RenderSession(secret, epoch, revisions, interaction)
+        val prepared = ActionRegionUpdates(InteractionSequence.of(interaction), patchStreamLimits)
+        RenderUpdates(prepared, session, revisions).apply(updates)
+        return PageResult.RegionUpdates(
+            prepared.finish(),
+            nativePage,
+            summary,
+            ResponseMetadata(
+                status = ResponseStatus.BAD_REQUEST,
+                contentType = null,
+                headers = nativePage.metadata.headers,
+                cookies = nativePage.metadata.cookies,
+            ),
+            patchStreamLimits,
+        )
+    }
 }
 
 /** Typed replacements using the ordering state supplied by the shipped client. */

@@ -283,6 +283,17 @@ val testSpringBootScaffold =
         )
         environment("WOGE_TEST_VERSION", project.version.toString())
     }
+val testTodoExample = tasks.register<Exec>("testTodoExample") {
+    group = "verification"
+    description = "Builds and tests the standalone Todo consumer against published artifact coordinates."
+    dependsOn(publishScaffoldArtifacts)
+    commandLine(
+        "bash",
+        layout.projectDirectory.file("scripts/test-todo-example.sh").asFile.absolutePath,
+        scaffoldMavenRepository.get().asFile.absolutePath,
+    )
+    environment("WOGE_TEST_VERSION", project.version.toString())
+}
 val scaffoldDevSmoke =
     tasks.register<Exec>("scaffoldDevSmoke") {
         group = "verification"
@@ -428,6 +439,7 @@ tasks.named("check") {
         testProductionDeploymentProbe,
         validateDocumentation,
         testSpringBootScaffold,
+        testTodoExample,
         verifyPublicationContract,
         test,
         detekt,

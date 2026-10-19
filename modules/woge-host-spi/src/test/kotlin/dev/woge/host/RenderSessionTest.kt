@@ -1,5 +1,6 @@
 package dev.woge.host
 
+import dev.woge.html.HtmlSink
 import dev.woge.html.HtmlWriter
 import dev.woge.html.applicationUrl
 import dev.woge.html.renderHtml
@@ -62,6 +63,58 @@ class RenderSessionTest {
         assertEquals(13L, patch.revision.next.value)
         assertEquals(7L, patch.interactionSequence.value)
         assertEquals("&lt;updated&gt;", patch.html.value)
+    }
+
+    @Test
+    fun `validation shares request ordering while native document has an independent identity registry`() =
+        runBlocking {
+            val original = sessions.create()
+            val target = original.target(region).target
+            val session =
+                sessions.forRequest(
+                    RequestHeaders.of(
+                        httpHeader("Woge-Page-Epoch", original.epoch),
+                        httpHeader("Woge-Region-Revisions", "${target.region.value}:12"),
+                        httpHeader("Woge-Interaction", "7"),
+                    ),
+                )
+            val native =
+                htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {
+                    region(session.target(region), "<invalid>")
+                }
+            val summary = FormElementId.of("errors")
+            val result = session.validation(native, summary) { replace(region, "<invalid>") }
+            val patch = result.patches.single()
+            assertEquals(target, patch.target)
+            assertEquals(12L, patch.revision.base.value)
+            assertEquals(13L, patch.revision.next.value)
+            assertEquals(7L, patch.interactionSequence.value)
+            assertEquals("&lt;invalid&gt;", patch.html.value)
+            assertEquals(ResponseStatus.BAD_REQUEST, result.metadata.status)
+            assertEquals(summary, result.focusSummary)
+            assertEquals(native, result.nativeResult)
+            val html = StringBuilder()
+            native.frames.collect { it.writeTo(HtmlSink { value -> html.append(value) }) }
+            org.junit.jupiter.api.Assertions
+                .assertTrue(html.contains("&lt;invalid&gt;"))
+        }
+
+    @Test
+    fun `validation rejects non-validation documents and retains configured stream limits`() {
+        val summary = FormElementId.of("errors")
+        assertThrows(IllegalArgumentException::class.java) {
+            sessions.create().validation(htmlPage {}, summary) { replace(region, "Invalid") }
+        }
+        assertThrows(ResourceLimitException::class.java) {
+            sessions.create().validation(
+                htmlPage(ResponseMetadata(status = ResponseStatus.BAD_REQUEST)) {},
+                summary,
+                PatchStreamLimits(maxBytes = 1),
+            ) { replace(region, "Invalid") }
+        }
+        val errors = FormErrors<String>()
+        assertEquals(emptyList<FormError<String>>(), errors.errors)
+        assertEquals(null, errors.values.first("password"))
     }
 
     @Test

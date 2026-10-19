@@ -161,3 +161,6 @@ indexes and assembles these decisions rather than adding one.
 
 | [0107](0107-reference-production-rollout-contract.md) | Accepted | Verify retained assets, versioned actions and bounded stream draining in real containers |
 | [0108](0108-github-packages-first-publication.md) | Accepted | Reuse Maven publications for explicit, checked GitHub Packages delivery |
+| [0109](0109-standalone-todo-consumer.md) | Accepted | Verify a standalone Todo application through published artifact coordinates |
+| [0110](0110-request-owned-validation-convenience.md) | Accepted | Prepare native and enhanced validation through request-owned ordering |
+| [0111](0111-server-driven-data-freshness.md) | Accepted | Keep data freshness on authoritative server and ordered region boundaries |

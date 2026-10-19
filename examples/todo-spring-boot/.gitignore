@@ -1,0 +1,6 @@
+.gradle/
+.woge/
+build/
+playwright-report/
+test-results/
+node_modules/

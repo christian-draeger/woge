@@ -94,7 +94,7 @@ internal fun notesDocument(
     errors: FormErrors<AddNote> = FormErrors(FormValues.EMPTY, emptyList()),
     status: ResponseStatus = ResponseStatus.OK,
 ): PageResult.Document {
-    val page = context.render.resume(context.render.epoch)
+    val page = context.render
     return htmlPage(ResponseMetadata(status = status)) {
         doctype()
         html(attributes = { attribute("lang", "en") }) {

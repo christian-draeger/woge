@@ -481,7 +481,9 @@ public final class dev/woge/host/FormErrorCode : java/lang/Enum {
 }
 
 public final class dev/woge/host/FormErrors {
+	public fun <init> ()V
 	public fun <init> (Ldev/woge/host/FormValues;Ljava/lang/Iterable;)V
+	public synthetic fun <init> (Ldev/woge/host/FormValues;Ljava/lang/Iterable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getErrors ()Ljava/util/List;
 	public final fun getValues ()Ldev/woge/host/FormValues;
 	public final fun messages (Ldev/woge/host/FormField;)Ljava/util/List;
@@ -1229,6 +1231,8 @@ public final class dev/woge/host/RenderSession {
 	public final fun target (Ldev/woge/host/KeyedRegion;Ljava/lang/Object;)Ldev/woge/host/RegionTarget;
 	public final fun target (Ldev/woge/host/PageRegion;)Ldev/woge/host/RegionTarget;
 	public final fun updates-Pkbk8uk (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public final fun validation-VzxvOzw (Ldev/woge/host/PageResult$Document;Ljava/lang/String;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;)Ldev/woge/host/PageResult$RegionUpdates;
+	public static synthetic fun validation-VzxvOzw$default (Ldev/woge/host/RenderSession;Ldev/woge/host/PageResult$Document;Ljava/lang/String;Ldev/woge/host/PatchStreamLimits;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/woge/host/PageResult$RegionUpdates;
 }
 
 public final class dev/woge/host/RenderSessionException : java/lang/IllegalArgumentException {

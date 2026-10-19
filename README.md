@@ -13,9 +13,19 @@ Client-side UI toolkits such as React, Vue or Compose for Web are a good fit whe
 own most of the UI state. Woge takes the other path: the server owns the HTML, every page works
 without JavaScript, and Kotlin types catch mistakes at compile time.
 
-The M0 architecture and product-validation baseline is complete. The first M1 multi-host vertical
-slice is executable on Spring Boot WebFlux, Spring MVC and Ktor; Woge is not ready for production use
-yet.
+Woge is in alpha (`0.1.0-alpha.1`). Typed routes, forms/actions, validation, deferred/live regions and
+ordinary CSS run on Spring Boot WebFlux, Spring MVC and Ktor. Automated adapter, browser and container
+checks cover the shared contracts. Human usability trials and independent release reviews remain
+open; Woge is not ready for production use yet.
+
+Start with the [standalone Todo application](examples/todo-spring-boot/README.md) for one complete
+form/validation/update journey using published dependencies, or follow the framework quickstart below.
+
+**For humans and coding agents:** typed public declarations, compiler diagnostics and fast server-side
+tests support the same readable HTML/HTTP workflow. Version-matched guidance and the experimental
+development MCP make application structure and build state discoverable. See the
+[human and agent workflow](docs/guides/human-and-agent-workflow.md) for commands, verification layers
+and the limits of current evidence.
 
 Run the maintained example with `./gradlew :woge-reference-spring-webflux:bootRun`, then open
 `http://localhost:8080/notes`. The [web-first quickstart](docs/guides/quickstart-spring-boot.md)

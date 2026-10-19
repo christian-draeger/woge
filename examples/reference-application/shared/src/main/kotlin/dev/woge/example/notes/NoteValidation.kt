@@ -10,7 +10,6 @@ import dev.woge.host.PageResult
 import dev.woge.host.RequestContext
 import dev.woge.host.ResponseStatus
 import dev.woge.host.WogeRegion
-import dev.woge.host.actionValidationUpdates
 import dev.woge.host.formErrorSummary
 import dev.woge.host.formFieldErrors
 import dev.woge.html.HtmlWriter
@@ -29,15 +28,11 @@ internal fun noteValidation(
             FormValues.of(mapOf("text" to listOf(text))),
             listOf(FormError(noteTextField, "text: $code — ${error.message}")),
         )
-    // Reuse the request-owned render session's ordering, not a client phase or a new page identity.
-    val prepared = context.render.updates(NotesRoute.url(NotesInput)) { replace(NoteErrorsRegion, errors) }
-    val patch = prepared.patches.single()
-    return actionValidationUpdates(
+    return context.render.validation(
         notesDocument(context, errors, ResponseStatus.BAD_REQUEST),
         noteErrorSummary,
-        interaction = patch.interactionSequence,
     ) {
-        replace(context.render.resume(context.render.epoch).target(NoteErrorsRegion), errors, patch.revision.base)
+        replace(NoteErrorsRegion, errors)
     }
 }
 

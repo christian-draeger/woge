@@ -110,7 +110,10 @@
     "atomicRegionUpdates": "docs/guides/typed-actions.md",
     "formComponents": "docs/guides/form-components.md",
     "navigationOverlayFeedback": "docs/guides/navigation-overlay-feedback.md",
-    "dataDisplayAndComplexInputs": "docs/guides/data-display-and-complex-inputs.md"
+    "dataDisplayAndComplexInputs": "docs/guides/data-display-and-complex-inputs.md",
+    "humanAndAgentWorkflow": "docs/guides/human-and-agent-workflow.md",
+    "todoConsumer": "examples/todo-spring-boot/README.md",
+    "dataFreshness": "docs/guides/data-freshness.md"
   },
   "modules": [
     {
