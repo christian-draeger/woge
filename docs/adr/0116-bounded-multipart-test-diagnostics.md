@@ -25,6 +25,8 @@ Failures print the timeline, and an environment flag retains successful timeline
 The investigation runs on native Linux amd64 after the clean root gate, compares three parallel
 and three serial three-host attempts with nginx, and stops at the first failure within a fixed
 time budget. Reports remain distinct and successful processes must supply fresh executed TCK XML.
+The serial control limits Gradle to one worker, and XML suite time windows verify the actual
+presence or absence of host overlap; a CLI mode label alone is insufficient evidence.
 
 ## Alternatives considered
 

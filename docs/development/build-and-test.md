@@ -76,6 +76,10 @@ with Temurin 21. After the clean root gate it runs three parallel and three seri
 attempts behind nginx. Each attempt explicitly reruns the test tasks without task-output caching,
 has a 180-second ceiling, and retains separate logs and reports. The investigation has a six-minute
 total budget and stops on the first failure; it never retries a failed assertion into a pass.
+The serial control uses `--max-workers=1`: [Configuration Cache](https://docs.gradle.org/8.14.4/userguide/configuration_cache.html)
+can still run tasks in parallel with `--no-parallel`. The runner checks actual test-suite time
+windows and fails if parallel suites do not overlap or serial suites do overlap; `summary.json`
+retains those windows.
 To run the same sequence locally with Docker available:
 
 ```shell

@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / "build/multipart-diagnostics"
@@ -28,7 +29,8 @@ def retain_reports(destination):
                 shutil.copytree(source / relative, destination / project / relative)
 
 
-def verify_executed(destination):
+def verify_executed(destination, result):
+    windows = []
     for project in PROJECTS:
         reports = list((destination / project / "test-results/test").glob("TEST-*AdapterTckTest.xml"))
         if len(reports) != 1:
@@ -43,6 +45,14 @@ def verify_executed(destination):
             return f"Missing multipart limit timeline for {project}"
         if project == "woge-spring-webflux" and "netty.request connection=" not in output:
             return "Missing WebFlux server-side timeline"
+        windows.append({"project": project, "start": datetime.fromisoformat(suite.get("timestamp")).timestamp(),
+                        "seconds": float(suite.get("time"))})
+    result["testWindows"] = windows
+    overlapping = any(max(a["start"], b["start"]) < min(a["start"] + a["seconds"], b["start"] + b["seconds"])
+                      for index, a in enumerate(windows) for b in windows[index + 1:])
+    result["hostTestsOverlap"] = overlapping
+    if overlapping != (result["mode"] == "parallel"):
+        return f"Expected {result['mode']} host execution, observed overlap={overlapping}"
     return None
 
 
@@ -78,6 +88,9 @@ def investigate():
                     command += [f":{project}:test", "--tests", "*AdapterTckTest", "--rerun"]
                 command += ["--no-build-cache", "--console=plain", "--stacktrace",
                             "--parallel" if mode == "parallel" else "--no-parallel"]
+                if mode == "serial":
+                    # Configuration Cache executes tasks in parallel even with --no-parallel.
+                    command += ["--max-workers=1"]
                 started = time.monotonic()
                 remaining = deadline - started
                 print(f"Multipart investigation {mode} attempt {number}/{ATTEMPTS_PER_MODE}", flush=True)
@@ -101,7 +114,10 @@ def investigate():
                 result["seconds"] = round(time.monotonic() - started, 3)
                 retain_reports(attempt)
                 if not result["exitCode"]:
-                    problem = verify_executed(attempt)
+                    try:
+                        problem = verify_executed(attempt, result)
+                    except (ET.ParseError, ValueError, TypeError) as failure:
+                        problem = f"Invalid TCK XML evidence: {type(failure).__name__}"
                     if problem:
                         result["evidenceError"] = problem
                         result["exitCode"] = 1
