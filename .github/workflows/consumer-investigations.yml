@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - spikes/consumer-testing/**
+      - spikes/development-mcp-clients/**
       - spikes/todo-framework-comparison/**
       - .github/workflows/consumer-investigations.yml
   workflow_dispatch:

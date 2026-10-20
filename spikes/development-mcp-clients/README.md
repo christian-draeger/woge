@@ -10,9 +10,11 @@ From the repository root:
 ```shell
 npm --prefix spikes/development-mcp-clients ci --ignore-scripts
 node spikes/development-mcp-clients/client.mjs examples/todo-spring-boot/build/woge-dev/mcp.json
+node spikes/development-mcp-clients/client.mjs examples/todo-spring-boot/build/woge-dev/mcp.json 2025-03-26
 python3 -m venv spikes/development-mcp-clients/.venv
 spikes/development-mcp-clients/.venv/bin/pip install -r spikes/development-mcp-clients/requirements.txt
 spikes/development-mcp-clients/.venv/bin/python spikes/development-mcp-clients/client.py examples/todo-spring-boot/build/woge-dev/mcp.json
+spikes/development-mcp-clients/.venv/bin/python spikes/development-mcp-clients/client.py examples/todo-spring-boot/build/woge-dev/mcp.json 2025-03-26
 ./gradlew scaffoldDevSmoke
 ```
 
@@ -24,13 +26,17 @@ connection file. Stop `wogeDev` normally and verify the file was removed. The CL
 
 | Client | Transport | Negotiated version | Executed |
 | --- | --- | --- | --- |
-| Official TypeScript SDK 1.32.1 | Streamable HTTP / JSON | 2025-06-18 | initialize, 7-tool list, status, diagnostics, manifest, URLs, bounded idle await |
-| Official Python SDK 2.3.0, Python 3.14.7 | Streamable HTTP / JSON | 2025-06-18 | Same operations |
+| Official TypeScript SDK 1.32.1 | Streamable HTTP / JSON | 2025-06-18 and 2025-03-26 | initialize, 7-tool list, status, diagnostics, manifest, URLs, bounded idle await |
+| Official Python SDK 2.3.0, Python 3.14.7 | Streamable HTTP / JSON | 2025-06-18 and 2025-03-26 | Same operations |
 | Maintained native smoke CLI | Streamable HTTP / JSON | Explicit 2025-06-18 | Actual build/ready, compilation failure/file+line, fix, stale reload, reload/restart, shutdown/token cleanup |
 
 `./gradlew scaffoldDevSmoke` passed on WebFlux, MVC and Ktor (2m48s, 190 tasks). Existing protocol
-tests cover exact 2025-03-26 selection and fallback for an unsupported requested version; that older
-version has not been separately exercised through both SDK clients. Unit/server tests cover tokens,
+tests cover exact version selection and fallback for an unsupported requested version. The follow-up
+[two-by-two SDK record](evidence/2026-10-20-protocol-matrix.json) exercises both supported versions.
+An optional argument overrides only the outgoing initialize request through a tiny SDK subclass;
+the real server selects the requested version and the unmodified SDK transport/parser adopts it.
+Default SDK negotiation is separately retained in the original evidence. This is a controlled wire
+version offer, not a claim that SDK defaults select the older version. Unit/server tests cover tokens,
 Origin/Host, size limits and the seven tool schemas. The production artifact verifier remains in
 the consumer build and production container gate.
 

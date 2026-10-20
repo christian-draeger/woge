@@ -36,3 +36,10 @@ comparative-productivity decision.
 
 Run controlled with/without-MCP trials through #273/#272 and #181's human control. Extend negotiated
 versions only with actual client/conformance evidence and a documented compatibility policy.
+
+## Subsequent evidence, 2026-10-20
+
+The [explicit SDK matrix](../../spikes/development-mcp-clients/evidence/2026-10-20-protocol-matrix.json)
+now covers both clients against both supported negotiated versions. Only the outgoing initialize
+offer is pinned; SDK result validation and transport remain intact. The integration stays incubating:
+these successful protocol operations do not replace the controlled model-family/human trials.
