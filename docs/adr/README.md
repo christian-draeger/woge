@@ -167,3 +167,4 @@ indexes and assembles these decisions rather than adding one.
 | [0112](0112-consumer-testing-layers.md) | Accepted | Keep consumer tests layered; preserve browser CI and optional JVM access |
 | [0113](0113-retain-experimental-development-mcp.md) | Accepted | Retain the bounded experimental development MCP after client interoperability checks |
 | [0114](0114-webmcp-managed-form-experiment.md) | Accepted | Defer WebMCP managed forms after a real rejected tool result |
+| [0115](0115-bounded-framework-comparison-evidence.md) | Accepted | Bound comparisons to measured equivalent journeys and preserve separate deployment questions |

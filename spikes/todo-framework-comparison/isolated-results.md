@@ -35,4 +35,20 @@ Browser interaction timing includes field filling, automation/proxy overhead and
 
 Woge still pays for typed decoding, multiple region outputs and managed ordering/recovery, while htmx needs explicit fixture code for live reads, request serialization and validation focus. The shared outcomes are now verified, but the fixtures do not establish identical malformed-input/security/protocol or deferred-stream behavior. Readable claims remain limited to this dataset and measured setup; there is no cross-ecosystem winner.
 
-The first-stage [unisolated results](results.md) remain historical evidence with their original simpler baseline and JDK; do not mix their numbers with this table. Separate clean builds/minimal distribution footprints, cold OS caches, arrival-rate saturation, browser interaction tails at scale and controlled deferred workloads remain explicit #269 follow-ups. Existing deterministic budgets are unchanged.
+## Build and cache boundaries
+
+Three common-fixture clean-output builds took **8.454, 2.513 and 2.073 seconds**; the immediately
+following unchanged incremental invocations took **0.640, 0.598 and 0.607 seconds**. All six completed
+successfully. These are wall times for `./gradlew -p spikes/todo-framework-comparison
+-PwogeRepository=PATH clean installDist` and then `installDist`, with JDK 21.0.6, warm dependency/
+Gradle caches and no OS-cache reset. Retain the first slower round rather than dropping daemon/JIT
+variation. [Raw build evidence](evidence/2026-10-20-build.json) records every sample and the exact
+source revision. The combined distribution has 110 JARs / 51,793,056 JAR bytes, including all four
+modes. Neither these build times nor that footprint compare independent minimal framework apps.
+
+The first-stage [unisolated results](results.md) remain historical evidence with their original
+simpler baseline and JDK; do not mix their numbers with this table. [ADR 0115](../../docs/adr/0115-bounded-framework-comparison-evidence.md)
+completes this bounded incremental JVM question. Independent clean builds/minimal distributions and
+a Next.js deployment comparison are scoped separately in [#277](https://github.com/christian-draeger/woge/issues/277).
+Cold OS caches, arrival-rate saturation, interaction tails at scale and controlled deferred workloads
+are unmeasured extensions, not claims made by this dataset. Existing deterministic budgets are unchanged.

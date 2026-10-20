@@ -1,6 +1,7 @@
 # Todo framework comparison
 
-State: Active, #269. Time box: four JVM fixtures, four HTTP workloads and shared three-engine
+State: Frozen, #269 / [ADR 0115](../../docs/adr/0115-bounded-framework-comparison-evidence.md).
+Time box: four JVM fixtures, four HTTP workloads and shared three-engine
 native/enhanced browser journeys, three measured rounds. The isolated comparison identifies
 incremental costs; it does not rank production capacity. No production project depends on it.
 
@@ -67,7 +68,8 @@ All dependencies are in the combined fixture build, including unused host/render
 
 [Isolated results](isolated-results.md) include unfavorable observations, all rounds and compressed raw
 evidence. The original [unisolated results](results.md) preserve the earlier simpler baseline; do not
-mix those datasets. Separate clean builds/minimal distributions and a rigorous arrival-rate load
-model remain open under #269. A Next.js comparison needs a separately defined equivalent application
-and deployment setup. Existing [performance budgets](../../docs/performance/budgets.md) remain
+mix those datasets. Common-fixture clean/incremental build measurements explicitly do not rank
+independent framework builds. Minimal distributions, full deployment and Next.js are scoped in
+[#277](https://github.com/christian-draeger/woge/issues/277). Arrival-rate/saturation and deferred
+workloads need their own equivalent contracts. Existing [performance budgets](../../docs/performance/budgets.md) remain
 unchanged; no general comparative marketing claim follows from these descriptive measurements.
