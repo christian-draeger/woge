@@ -22,11 +22,9 @@ import dev.woge.tck.tckUploadPage
 import dev.woge.tck.tckUploadPolicy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
-import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.coRouter
 import reactor.netty.DisposableServer
-import reactor.netty.http.server.HttpServer
 import java.net.URI
 import java.nio.file.Path
 
@@ -103,14 +101,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
                 POST(TckUploadAction.path, upload::handle)
                 GET("/woge-tck/upload-complete", uploadPage::handle)
             }
-        return WebFluxTckServer(
-            HttpServer
-                .create()
-                .host("127.0.0.1")
-                .port(0)
-                .handle(ReactorHttpHandlerAdapter(withCursorSocket(application, routes)))
-                .bindNow(),
-        )
+        return WebFluxTckServer(uploadDiagnosticServer(withCursorSocket(application, routes)))
     }
 
     private fun org.springframework.web.reactive.function.server.CoRouterFunctionDsl.initialDocumentRoutes(
@@ -188,7 +179,7 @@ private object WebFluxTckHarnessFactory : AdapterTckHarnessFactory {
     private fun uploadAction(application: AdapterTckApplication) =
         WogeWebFluxHandlers().action(
             TckUploadAction,
-            tckUploadForm.webFluxMultipart(tckUploadPolicy(application.uploadDirectory)),
+            tckUploadForm.webFluxMultipart(tckUploadPolicy(application.uploadDirectory)).withUploadDiagnostics(),
             WebFluxRequestContextFactory { request ->
                 tckActionContext(
                     request.headers().firstHeader("X-Tck-Subject"),

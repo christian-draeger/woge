@@ -1,7 +1,6 @@
 package dev.woge.tck
 
 import dev.woge.host.AuthenticationFacts
-import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
 import dev.woge.host.FormDecodingException
@@ -66,7 +65,7 @@ public val tckUploadForm: FormDecoder<TckUploadCommand> =
 public fun tckUploadPolicy(directory: Path): UploadPolicy =
     UploadPolicy(
         limits = tckUploadLimits,
-        temporaryFiles = { DirectoryUploadTemporaryFiles(directory) },
+        temporaryFiles = { TckUploadDiagnostics.temporaryFiles(directory) },
         authorize = { it.field == "attachment" },
     )
 
@@ -129,79 +128,111 @@ public val tckUploadPage: PageUseCase<Unit> =
         }
     }
 
+@Suppress("TooGenericExceptionCaught")
 internal suspend fun AdapterTckHttpClient.verifyMultipartUploads(
     origin: URI,
     directory: Path,
     expect: (Boolean, String, String) -> Unit,
 ) {
     val contract = "native-multipart"
+    val cases = uploadCases()
+    UploadTimeline(directory).use { timeline ->
+        try {
+            cases.forEachIndexed { index, (requestHeaders, body, status) ->
+                val id = timeline.begin("case-$index")
+                val response =
+                    try {
+                        open(
+                            RequestMethod.POST,
+                            TckUploadAction.path,
+                            requestHeaders + (TckUploadDiagnostics.HEADER to id),
+                            body,
+                        )
+                    } catch (timeout: HttpTimeoutException) {
+                        throw IllegalStateException(
+                            "upload case #$index ($status) timed out; threads:\n${uploadThreadDump()}",
+                            timeout,
+                        )
+                    }
+                response.body().close()
+                TckUploadDiagnostics.record(id, "client.response.body.closed status=${response.statusCode()}")
+                expect(
+                    response.statusCode() == status,
+                    contract,
+                    "upload security/validation/limit status changed: $status",
+                )
+                if (status == ResponseStatus.SEE_OTHER.code) {
+                    expect(
+                        response.header("location") == "/woge-tck/upload-complete",
+                        contract,
+                        "not a native redirect",
+                    )
+                }
+                expectUploadsClean(directory)
+                TckUploadDiagnostics.record(id, "files.directory.empty")
+            }
+            verifyUploadDisconnect(origin, directory, timeline.begin("disconnect"))
+        } catch (failure: Exception) {
+            timeline.print()
+            throw failure
+        }
+    }
+}
+
+private fun uploadCases(): List<Triple<Map<String, String>, String, Int>> {
     val headers = mapOf("Content-Type" to "multipart/form-data; boundary=upload", "X-Tck-Subject" to "tck-user")
     val valid = uploadBody("native", "\u0001\u0002\u0003")
-    val cases =
-        listOf(
-            Triple(headers, valid, ResponseStatus.SEE_OTHER.code),
-            Triple(headers, valid.replace("name=\"attachment\"", "name=\"restricted\""), ResponseStatus.FORBIDDEN.code),
-            Triple(
-                headers,
-                valid.replace("--upload--", nestedUploadFields() + "--upload--"),
-                ResponseStatus.SEE_OTHER.code,
-            ),
-            Triple(
-                headers,
-                valid.replace("--upload--", nestedUploadFields().replace("1,5", "1,2,3") + "--upload--"),
-                ResponseStatus.BAD_REQUEST.code,
-            ),
-            Triple(headers + ("X-Tck-Subject" to "other-user"), valid, ResponseStatus.FORBIDDEN.code),
-            Triple(headers + ("X-Tck-Unverified" to "true"), "bad multipart", ResponseStatus.FORBIDDEN.code),
-            Triple(
-                headers,
-                uploadBody("native", "x".repeat(TCK_UPLOAD_FILE_BYTES.toInt() + 1)),
-                ResponseStatus.PAYLOAD_TOO_LARGE.code,
-            ),
-            Triple(headers, valid.dropLast(UPLOAD_TRUNCATION_BYTES), ResponseStatus.BAD_REQUEST.code),
-            Triple(headers, valid.replace("name=\"title\"", "name=\"unknown\""), ResponseStatus.BAD_REQUEST.code),
-            Triple(headers, uploadBody("fail", "\u0001\u0002\u0003"), ResponseStatus.INTERNAL_SERVER_ERROR.code),
-        )
-    cases.forEachIndexed { index, (requestHeaders, body, status) ->
-        val response =
-            try {
-                open(RequestMethod.POST, TckUploadAction.path, requestHeaders, body)
-            } catch (timeout: HttpTimeoutException) {
-                throw IllegalStateException(
-                    "upload case #$index ($status) timed out; threads:\n${uploadThreadDump()}",
-                    timeout,
-                )
-            }
-        response.body().close()
-        expect(response.statusCode() == status, contract, "upload security/validation/limit status changed: $status")
-        if (status == ResponseStatus.SEE_OTHER.code) {
-            expect(response.header("location") == "/woge-tck/upload-complete", contract, "not a native redirect")
-        }
-        expectUploadsClean(directory)
-    }
-    verifyUploadDisconnect(origin, directory)
+    return listOf(
+        Triple(headers, valid, ResponseStatus.SEE_OTHER.code),
+        Triple(headers, valid.replace("name=\"attachment\"", "name=\"restricted\""), ResponseStatus.FORBIDDEN.code),
+        Triple(
+            headers,
+            valid.replace("--upload--", nestedUploadFields() + "--upload--"),
+            ResponseStatus.SEE_OTHER.code,
+        ),
+        Triple(
+            headers,
+            valid.replace("--upload--", nestedUploadFields().replace("1,5", "1,2,3") + "--upload--"),
+            ResponseStatus.BAD_REQUEST.code,
+        ),
+        Triple(headers + ("X-Tck-Subject" to "other-user"), valid, ResponseStatus.FORBIDDEN.code),
+        Triple(headers + ("X-Tck-Unverified" to "true"), "bad multipart", ResponseStatus.FORBIDDEN.code),
+        Triple(
+            headers,
+            uploadBody("native", "x".repeat(TCK_UPLOAD_FILE_BYTES.toInt() + 1)),
+            ResponseStatus.PAYLOAD_TOO_LARGE.code,
+        ),
+        Triple(headers, valid.dropLast(UPLOAD_TRUNCATION_BYTES), ResponseStatus.BAD_REQUEST.code),
+        Triple(headers, valid.replace("name=\"title\"", "name=\"unknown\""), ResponseStatus.BAD_REQUEST.code),
+        Triple(headers, uploadBody("fail", "\u0001\u0002\u0003"), ResponseStatus.INTERNAL_SERVER_ERROR.code),
+    )
 }
 
 private suspend fun verifyUploadDisconnect(
     origin: URI,
     directory: Path,
+    requestId: String,
 ) {
     val prefix = uploadBody("native", "123").substringBefore("\r\n--upload--")
     Socket(origin.host, origin.port).use { socket ->
         val headers =
             "POST ${TckUploadAction.path} HTTP/1.1\r\nHost: ${origin.host}\r\n" +
                 "Content-Type: multipart/form-data; boundary=upload\r\nX-Tck-Subject: tck-user\r\n" +
+                "${TckUploadDiagnostics.HEADER}: $requestId\r\n" +
                 "Transfer-Encoding: chunked\r\n\r\n"
         socket.getOutputStream().apply {
             write(headers.toByteArray())
             write("${prefix.toByteArray().size.toString(HEX_RADIX)}\r\n$prefix\r\n".toByteArray())
             flush()
+            TckUploadDiagnostics.record(requestId, "client.disconnect.prefix.flushed")
         }
         withTimeout(5.seconds) {
             while (Files.list(directory).use { it.findAny().isEmpty }) delay(1.milliseconds)
         }
     }
+    TckUploadDiagnostics.record(requestId, "client.disconnect.socket.closed")
     expectUploadsClean(directory)
+    TckUploadDiagnostics.record(requestId, "files.directory.empty")
 }
 
 private suspend fun expectUploadsClean(directory: Path) {

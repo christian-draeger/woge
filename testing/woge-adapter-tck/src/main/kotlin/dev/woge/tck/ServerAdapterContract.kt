@@ -926,6 +926,7 @@ internal class AdapterTckHttpClient(
         path: String,
     ): HttpResponse<ByteArray> = send(method, path, emptyMap(), HttpResponse.BodyHandlers.ofByteArray())
 
+    @Suppress("TooGenericExceptionCaught")
     private fun <Body> send(
         method: RequestMethod,
         path: String,
@@ -933,14 +934,23 @@ internal class AdapterTckHttpClient(
         handler: HttpResponse.BodyHandler<Body>,
         body: HttpRequest.BodyPublisher = HttpRequest.BodyPublishers.noBody(),
     ): HttpResponse<Body> {
+        val diagnosticId = headers[TckUploadDiagnostics.HEADER]
         val request =
             HttpRequest
                 .newBuilder(URI.create(base + path))
                 .timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
-                .method(method.value, body)
+                .method(method.value, body.withUploadDiagnostics(diagnosticId))
                 .apply { headers.forEach(::header) }
                 .build()
-        return client.send(request, handler)
+        TckUploadDiagnostics.record(diagnosticId, "client.send.begin")
+        try {
+            return client.send(request, handler).also {
+                TckUploadDiagnostics.record(diagnosticId, "client.response.headers status=${it.statusCode()}")
+            }
+        } catch (failure: Exception) {
+            TckUploadDiagnostics.record(diagnosticId, "client.send.error type=${failure.javaClass.simpleName}")
+            throw failure
+        }
     }
 }
 

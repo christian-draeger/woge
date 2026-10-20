@@ -1,0 +1,56 @@
+name: Multipart diagnostics
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/multipart-diagnostics.yml
+      - testing/diagnostics/**
+      - testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/TckUpload*.kt
+      - testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/UploadDiagnosticPublisher.kt
+      - testing/woge-adapter-tck/src/main/kotlin/dev/woge/tck/ServerAdapterContract.kt
+      - adapters/woge-spring-webflux/src/test/kotlin/dev/woge/spring/webflux/UploadDiagnosticHandler.kt
+      - adapters/woge-spring-webflux/src/test/kotlin/dev/woge/spring/webflux/WogeWebFluxAdapterTckTest.kt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-amd64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WOGE_TCK_UPLOAD_DIAGNOSTICS: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Confirm native Linux amd64 runner
+        run: test "$(uname -m)" = x86_64
+      - name: Run the original clean root gate
+        run: ./gradlew clean check --no-build-cache --stacktrace
+      - name: Retain clean-gate reports before repeated TCK executions
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: multipart-clean-gate
+          path: |
+            **/build/reports/**
+            **/build/test-results/**
+      - name: Pull the original proxy image
+        run: docker pull nginx:1.28-alpine
+      - name: Compare three parallel and three serial three-host attempts
+        timeout-minutes: 7
+        run: python3 testing/diagnostics/multipart-ci.py
+      - name: Retain every attempt including the first failure
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: multipart-diagnostic-attempts
+          path: build/multipart-diagnostics/**

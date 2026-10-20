@@ -71,6 +71,28 @@ model.
 Generated Kotlin is compiled and tested, but excluded from ktlint and Detekt: formatting checks
 apply to hand-written sources, not compiler output.
 
+The `Multipart diagnostics` workflow investigates intermittent upload timeouts on native Linux amd64
+with Temurin 21. After the clean root gate it runs three parallel and three serial three-host TCK
+attempts behind nginx. Each attempt explicitly reruns the test tasks without task-output caching,
+has a 180-second ceiling, and retains separate logs and reports. The investigation has a six-minute
+total budget and stops on the first failure; it never retries a failed assertion into a pass.
+To run the same sequence locally with Docker available:
+
+```shell
+WOGE_TCK_UPLOAD_DIAGNOSTICS=true ./gradlew clean check --no-build-cache --stacktrace
+docker pull nginx:1.28-alpine
+python3 testing/diagnostics/multipart-ci.py
+```
+
+Multipart failures print a bounded, request-correlated in-memory timeline in the test output.
+`WOGE_TCK_UPLOAD_DIAGNOSTICS=true` also prints successful timelines into JUnit XML reports. WebFlux
+fixtures include Netty connection IDs, body subscription/demand/completion/cancellation, coroutine
+decoder entry/exit, response completion and temporary-file lifecycle. Events contain timings, byte
+counts and exception types, without request bodies, header values, filenames or temporary paths.
+Client body publication proves delivery to the JDK client, not that bytes reached the network.
+Passing attempts establish only that the original timeout was not reproduced; they do not resolve
+[#278](https://github.com/christian-draeger/woge/issues/278).
+
 Each build CI job has a 15-minute limit, including setup and smoke tests. A timeout is a failure,
 not a reason to rerun indefinitely or increase the limit. Locally, use `./gradlew check --console=plain`
 to see progress. If a task stops progressing well beyond its usual duration, inspect its process and
