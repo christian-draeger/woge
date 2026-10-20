@@ -4,6 +4,13 @@ A small full-stack application: normal HTML forms, server validation, typed Kotl
 list/count updates and an in-memory repository. The same action serves native POST/Redirect/GET and
 enhancement. Open two tabs to see live updates.
 
+## Run the published container
+
+The public image `ghcr.io/christian-draeger/woge-todo:0.1.0-demo.1` runs on `linux/amd64`.
+Follow the [container quickstart](https://github.com/christian-draeger/woge/blob/main/docs/guides/todo-container.md#run-the-published-demo)
+for the verified digest and one Docker command; no local JDK, Gradle or Maven credentials are needed.
+It is the same single-instance, in-memory demo described below.
+
 ## Run from published packages
 
 Install JDK 21. Copy this directory anywhere; it has its own Gradle wrapper and consumes Woge

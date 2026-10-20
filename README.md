@@ -19,7 +19,9 @@ checks cover the shared contracts. Human usability trials and independent releas
 open; Woge is not ready for production use yet.
 
 Start with the [standalone Todo application](examples/todo-spring-boot/README.md) for one complete
-form/validation/update journey using published dependencies, or follow the framework quickstart below.
+form/validation/update journey using published dependencies. The [published Todo container](docs/guides/todo-container.md)
+starts the same demo with Docker on `linux/amd64`; its immutable digest and release evidence are documented.
+For your own application, follow the framework quickstart below.
 
 **For humans and coding agents:** typed public declarations, compiler diagnostics and fast server-side
 tests support the same readable HTML/HTTP workflow. Version-matched guidance and the experimental

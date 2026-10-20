@@ -1,0 +1,96 @@
+{
+  "image": "ghcr.io/christian-draeger/woge-todo:0.1.0-demo.1",
+  "indexDigest": "sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9",
+  "platform": "linux/amd64",
+  "platformManifestDigest": "sha256:372e4f05c993671389dd4b93a29748ba4037414a79ba8f7403f88714b1dbfe78",
+  "attestationManifestDigest": "sha256:3f089575ba9f5d6b432954af8706ae8d5ac5287c4664852902bcefe37e5ddd2c",
+  "imageConfigDigest": "sha256:d3e0ee122a2d9fb448eb2e871d0e3521353783313bef409b5a355d2abcd6f404",
+  "sourceCommit": "ecac09a1cfd81f6b154fd7bbdc22a2234f4fedea",
+  "wogeDependencyVersion": "0.1.0-alpha.1",
+  "publishedAt": "2026-10-20T07:52:16Z",
+  "publicationRun": "https://github.com/christian-draeger/woge/actions/runs/39388988980",
+  "mainChecks": {
+    "build": "https://github.com/christian-draeger/woge/actions/runs/39387776856",
+    "documentation": "https://github.com/christian-draeger/woge/actions/runs/39387776898",
+    "allSuccessful": true
+  },
+  "anonymousRegistryAccess": {
+    "index": true,
+    "imageLayers": true,
+    "provenance": true,
+    "sbom": true,
+    "credentials": "empty Docker configuration"
+  },
+  "provenance": {
+    "predicateType": "https://slsa.dev/provenance/v1",
+    "payloadDigest": "sha256:a93cfc7d1ca0e3c1ffd6332051f9ca9fd13a8bd80c6c8eed20ab426092b724e8",
+    "builder": "https://github.com/christian-draeger/woge/actions/runs/39388988980/attempts/1",
+    "vcsRevision": "ecac09a1cfd81f6b154fd7bbdc22a2234f4fedea",
+    "cryptographicSignatureVerified": false
+  },
+  "sbom": {
+    "predicateType": "https://spdx.dev/Document",
+    "payloadDigest": "sha256:7c7ec87bdda68bd401b9dd15a3181000755de4a488be289573771eb9da087d2e",
+    "spdxVersion": "SPDX-2.3",
+    "packageCount": 243,
+    "wogePackages": [
+      {
+        "name": "woge-core",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-fallback-client-assets",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-host-spi",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-protocol",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-server-runtime",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-spring-boot-autoconfigure",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-spring-boot-starter",
+        "version": "0.1.0-alpha.1"
+      },
+      {
+        "name": "woge-spring-webflux",
+        "version": "0.1.0-alpha.1"
+      }
+    ]
+  },
+  "registryImageVerification": {
+    "imageConfigDigest": "sha256:d3e0ee122a2d9fb448eb2e871d0e3521353783313bef409b5a355d2abcd6f404",
+    "architecture": "amd64",
+    "runner": "macOS arm64 with local Linux amd64 emulation",
+    "nonRoot": true,
+    "readOnlyRoot": true,
+    "proxy": "nginx:1.28-alpine",
+    "firstSseFrameMs": 36.6,
+    "shutdownExitCode": 143,
+    "browserImage": "mcr.microsoft.com/playwright:v1.62.1-noble",
+    "browserVersion": "1.62.1",
+    "browserContainerPlatform": "linux/arm64",
+    "engines": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "passed": 15,
+    "skipped": 3,
+    "skipReason": "Cross-tab live updates require enhancement; native pages refresh through ordinary navigation."
+  },
+  "reproduce": {
+    "pull": "docker pull --platform linux/amd64 ghcr.io/christian-draeger/woge-todo@sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9",
+    "containerAndBrowsers": "python3 scripts/test-todo-container.py ghcr.io/christian-draeger/woge-todo@sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9 --browser-image mcr.microsoft.com/playwright:v1.62.1-noble"
+  }
+}
