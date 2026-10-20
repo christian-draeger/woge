@@ -1,6 +1,41 @@
 # Run the Todo application in a container
 
 The [Todo example](../../examples/todo-spring-boot/README.md) is a concrete application image.
+
+## Run the published demo
+
+The verified image starts without a JDK, Gradle or Maven credentials on your machine:
+
+```shell
+docker run --rm --platform linux/amd64 \
+  --publish 127.0.0.1:8080:8080 \
+  ghcr.io/christian-draeger/woge-todo@sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9
+```
+
+Open [localhost:8080](http://localhost:8080). All visitors share one in-memory store. Restarting
+loses the data; run one instance. Durable or replicated deployments need an application-owned
+shared store and session/live-event distribution.
+
+| Release fact | Verified value |
+| --- | --- |
+| Image version | `ghcr.io/christian-draeger/woge-todo:0.1.0-demo.1` |
+| Immutable index digest | `sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9` |
+| Application source | [`ecac09a`](https://github.com/christian-draeger/woge/commit/ecac09a1cfd81f6b154fd7bbdc22a2234f4fedea) |
+| Woge dependency | `0.1.0-alpha.1` |
+| Tested image platform | `linux/amd64` |
+| Publication and attestations | [Release workflow](https://github.com/christian-draeger/woge/actions/runs/39388988980) |
+
+The registry image includes BuildKit provenance and an SPDX 2.3 SBOM (243 packages). The
+[release evidence](../../testing/deployment/todo-0.1.0-demo.1.json) records the
+actual image labels, platform manifest and attestation digests. The exact digest above passed
+read-only/non-root container, nginx, native request, streaming, shutdown and three-engine browser
+verification: 15 browser checks pass. Three live-update cases are intentionally skipped for native
+pages, which refresh through ordinary navigation.
+These attestations record the build; a cryptographic signature was not verified. Local Apple Silicon
+runs use amd64 emulation; this release does not advertise an arm64 image. Woge remains alpha.
+
+## Build your own image
+
 Woge libraries still arrive as JVM artifacts. Build the production JAR from the example directory:
 
 ```shell
@@ -67,9 +102,9 @@ Run one instance; a replicated deployment needs an application-owned durable sto
 session policy. An OCI image does not supply those application decisions.
 
 Only advertise architectures actually tested for the exact image. A release image must record its
-source commit, immutable digest and provenance/SBOM. No public Todo image is claimed by this guide
-until an approved registry publication has completed. Maven/OCI publishing is an explicit release
-operation; a normal build or test never uploads an image.
+source commit, immutable digest and provenance/SBOM. The public release above has completed those
+checks. Maven/OCI publishing is an explicit release operation; a normal build or test never uploads
+an image.
 
 Maintainers can explicitly approve publication by running **Publish Todo image** from main with the
 exact current main SHA and a fresh image version. The workflow requires successful main checks,
@@ -79,3 +114,18 @@ dependency versions are separate and both remain traceable through the source. T
 publishes its verified Linux amd64 path; broader architectures need their own release verification.
 An existing tag or an ambiguous registry lookup blocks publication. GitHub Packages is not an
 atomic cross-artifact release transaction; do not race this serialized workflow with manual uploads.
+
+## Inspect the release metadata
+
+Retrieve the immutable index, provenance and SBOM from the registry without credentials:
+
+```shell
+todo_image=ghcr.io/christian-draeger/woge-todo@sha256:aca01de6edc7b4596569e95c3fe1624a9c82629d59ce9f40048f212ed1fa08c9
+docker buildx imagetools inspect "$todo_image"
+docker buildx imagetools inspect "$todo_image" --format '{{json .Provenance}}'
+docker buildx imagetools inspect "$todo_image" --format '{{json .SBOM}}'
+```
+
+The index includes one application platform, `linux/amd64`, plus an attestation manifest with an
+`unknown/unknown` platform marker. That marker is metadata, not another supported application
+architecture. The provenance names the source commit and the publication workflow run.
