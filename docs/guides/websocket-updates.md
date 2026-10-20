@@ -105,6 +105,9 @@ The default server limits are 16 subscriptions, 64 commands/second, 4 KiB comman
 frames and 512 KiB frames. Customize `WebSocketLimits` per binding. Application ping every 15 seconds
 requires a pong within 45 seconds; sends are timed out too. Connections expire after 30 minutes to
 rerun upgrade authentication. All subscription children are cancelled on disconnect or refusal.
+On Spring MVC, a frame already being written finishes within its send deadline before connection
+cleanup proceeds. Data and close frames use `idleTimeout`; heartbeat writes use `heartbeat`.
+This keeps subscription cancellation from interrupting the transport halfway through a frame.
 
 A slow consumer closes with **1013**, not an unbounded queue or silently missing revisions.
 Unauthorized, malformed or rate-limited input closes with **1008**. Application failures close with
