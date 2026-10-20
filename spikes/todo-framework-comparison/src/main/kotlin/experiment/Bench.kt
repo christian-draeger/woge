@@ -28,6 +28,8 @@ import io.ktor.server.response.respondTextWriter
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
 import kotlinx.html.button
@@ -40,18 +42,16 @@ import kotlinx.html.p
 import kotlinx.html.span
 import kotlinx.html.stream.createHTML
 import kotlinx.html.ul
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.collect
-import org.springframework.http.codec.ServerSentEvent
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.awaitFormData
-import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.bodyAndAwait
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.coRouter
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
@@ -87,7 +87,12 @@ fun main() {
                 )
             }.run()
     } else {
-        embeddedServer(Netty, host = System.getenv("BENCH_BIND") ?: "127.0.0.1", port = System.getenv("PORT")?.toInt() ?: 8080) {
+        embeddedServer(
+            Netty,
+            host = System.getenv("BENCH_BIND") ?: "127.0.0.1",
+            port =
+                System.getenv("PORT")?.toInt() ?: 8080,
+        ) {
             val handlers = WogeKtorHandlers()
             val page = handlers.liveRegion(liveTodos, TodosRoute)
             val add = handlers.action(AddTodoAction, addForm.ktorInput())
@@ -95,22 +100,36 @@ fun main() {
             val delete = handlers.action(DeleteTodoAction, changeForm.ktorInput())
             routing {
                 get("/") {
-                    if (woge) page.handle(call) else {
+                    if (woge) {
+                        page.handle(call)
+                    } else {
                         val filter = call.request.queryParameters["filter"] ?: "all"
-                        if (filter !in FILTERS) call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
-                        else call.respondText(fullPage(filter = filter), ContentType.Text.Html)
+                        if (filter !in FILTERS) {
+                            call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
+                        } else {
+                            call.respondText(fullPage(filter = filter), ContentType.Text.Html)
+                        }
                     }
                 }
                 get("/board") {
                     val filter = call.request.queryParameters["filter"] ?: "all"
-                    if (filter !in FILTERS) call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
-                    else call.respondText(board(filter), ContentType.Text.Html)
+                    if (filter !in FILTERS) {
+                        call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
+                    } else {
+                        call.respondText(board(filter), ContentType.Text.Html)
+                    }
                 }
                 get("/events") {
                     val filter = call.request.queryParameters["filter"] ?: "all"
-                    if (filter !in FILTERS) call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
-                    else call.respondTextWriter(ContentType.Text.EventStream) {
-                        todos.changes().collect { write("event: todo-change\ndata: changed\n\n"); flush() }
+                    if (filter !in FILTERS) {
+                        call.respondText("Invalid filter", status = HttpStatusCode.BadRequest)
+                    } else {
+                        call.respondTextWriter(ContentType.Text.EventStream) {
+                            todos.changes().collect {
+                                write("event: todo-change\ndata: changed\n\n")
+                                flush()
+                            }
+                        }
                     }
                 }
                 get("/bench-render") { call.respondText(renderMetrics(), ContentType.Application.Json) }
@@ -156,7 +175,10 @@ fun main() {
                     )
                 }
                 get("/baseline.js") {
-                    call.respondText(requireNotNull(object {}.javaClass.getResource("/static/baseline.js")).readText(), ContentType.Application.JavaScript)
+                    call.respondText(
+                        requireNotNull(object {}.javaClass.getResource("/static/baseline.js")).readText(),
+                        ContentType.Application.JavaScript,
+                    )
                 }
             }
         }.start(wait = true)
@@ -179,21 +201,34 @@ class BenchConfiguration {
                     page.handle(request)
                 } else {
                     val filter = request.queryParam("filter").orElse("all")
-                    if (filter !in FILTERS) ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
-                    else ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValueAndAwait(fullPage(filter = filter))
+                    if (filter !in FILTERS) {
+                        ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
+                    } else {
+                        ServerResponse
+                            .ok()
+                            .contentType(
+                                MediaType.TEXT_HTML,
+                            ).bodyValueAndAwait(fullPage(filter = filter))
+                    }
                 }
             }
             GET("/board") { request ->
                 val filter = request.queryParam("filter").orElse("all")
-                if (filter !in FILTERS) ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
-                else ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValueAndAwait(board(filter))
+                if (filter !in FILTERS) {
+                    ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
+                } else {
+                    ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValueAndAwait(board(filter))
+                }
             }
             GET("/events") { request ->
                 val filter = request.queryParam("filter").orElse("all")
-                if (filter !in FILTERS) ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
-                else ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM).bodyAndAwait(
-                    todos.changes().map { ServerSentEvent.builder("changed").event("todo-change").build() }
-                )
+                if (filter !in FILTERS) {
+                    ServerResponse.badRequest().bodyValueAndAwait("Invalid filter")
+                } else {
+                    ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM).bodyAndAwait(
+                        todos.changes().map { ServerSentEvent.builder("changed").event("todo-change").build() },
+                    )
+                }
             }
             GET(
                 "/bench-render",
@@ -249,8 +284,19 @@ private fun baseline(
             if (title.trim().isEmpty() ||
                 title.trim().length > MAX_TITLE_LENGTH
             ) {
-                return if (enhanced) Result(400, addFormHtml(title, true, filter), headers = mapOf("HX-Retarget" to "#todo-form", "HX-Reswap" to "outerHTML"))
-                else Result(400, fullPage(title, true, filter))
+                return if (enhanced) {
+                    Result(
+                        400,
+                        addFormHtml(title, true, filter),
+                        headers =
+                            mapOf(
+                                "HX-Retarget" to "#todo-form",
+                                "HX-Reswap" to "outerHTML",
+                            ),
+                    )
+                } else {
+                    Result(400, fullPage(title, true, filter))
+                }
             }
             todos.add(title)
         }
@@ -258,8 +304,21 @@ private fun baseline(
         "delete-todo" -> if (!todos.delete(fields["id"]?.toLongOrNull() ?: return Result(400))) return Result(404)
         else -> return Result(404)
     }
-    val message = when (action) { "add-todo" -> "Todo added."; "toggle-todo" -> "Todo updated."; else -> "Todo deleted." }
-    return if (enhanced) Result(200, board(filter) + "<p id=\"todo-status\" role=\"status\" hx-swap-oob=\"outerHTML\">$message</p>" + addFormHtml(filter = filter, outOfBand = true)) else Result(303, location = "/?filter=$filter")
+    val message =
+        when (action) {
+            "add-todo" -> "Todo added."
+            "toggle-todo" -> "Todo updated."
+            else -> "Todo deleted."
+        }
+    return if (enhanced) {
+        Result(
+            200,
+            board(filter) + "<p id=\"todo-status\" role=\"status\" hx-swap-oob=\"outerHTML\">$message</p>" +
+                addFormHtml(filter = filter, outOfBand = true),
+        )
+    } else {
+        Result(303, location = "/?filter=$filter")
+    }
 }
 
 private fun board(filter: String = "all"): String {
@@ -319,7 +378,9 @@ private fun fullPage(
         append("<link rel=\"stylesheet\" href=\"/todo.css\"><script src=\"/htmx.min.js\"></script>")
         append("<script defer src=\"/baseline.js\"></script></head><body hx-sync=\"body:queue all\"><h1>Todos</h1>")
         append("<nav aria-label=\"Filter todos\">")
-        FILTERS.forEach { choice -> append("<a href=\"/?filter=$choice\">${choice.replaceFirstChar(Char::uppercase)}</a> ") }
+        FILTERS.forEach { choice ->
+            append("<a href=\"/?filter=$choice\">${choice.replaceFirstChar(Char::uppercase)}</a> ")
+        }
         append("</nav>")
         append(board(filter))
         append("<p id=\"todo-status\" role=\"status\"></p><p id=\"todo-alert\" role=\"alert\"></p>")
@@ -327,7 +388,12 @@ private fun fullPage(
         append("</body></html>")
     }
 
-private fun addFormHtml(value: String = "", error: Boolean = false, filter: String = "all", outOfBand: Boolean = false): String =
+private fun addFormHtml(
+    value: String = "",
+    error: Boolean = false,
+    filter: String = "all",
+    outOfBand: Boolean = false,
+): String =
     buildString {
         append("<div id=\"todo-form\"")
         if (outOfBand) append(" hx-swap-oob=\"outerHTML\"")

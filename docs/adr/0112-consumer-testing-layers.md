@@ -39,3 +39,12 @@ rate. Those comparisons and current upstream host-adapter migrations remain expl
 
 Keep #267/#268 open for current host-adapter migrations, richer generic selection diagnostics and
 runner lifecycle/failure comparisons. Promote a small test helper only after a repeated consumer gap.
+
+## Subsequent evidence, 2026-10-20
+
+The [bounded runner follow-up](../../spikes/consumer-testing/results.md#bounded-runner-follow-up-2026-10-20)
+now supplies thread-confined parallel execution, repeated matrices and deliberate assertion failures
+with retained diagnostics/traces. Published parser probes also pass against current WebFlux and Ktor
+fixtures. The decision is unchanged. #267/#268 can close on the completed assessment and recipe;
+upstream adapter/diff improvements remain recommendations, not a required new Woge test subsystem.
+The shared-store activation observation is tracked separately in #276 with native-browser comparison.

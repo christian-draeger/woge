@@ -1,5 +1,9 @@
 # First-stage measurements, 2026-10-20
 
+Historical first stage. The [isolated shared-journey follow-up](isolated-results.md) adds full filter/
+validation/live browser outcomes, fixed application limits and actual browser interaction timings.
+Keep these datasets separate; the baseline behavior and runtime JRE differ.
+
 Apple M3 Max, 64 GiB RAM, macOS 27.0.1 arm64, OpenJDK 21.0.6, G1, 128–512 MiB heap. No CPU/container isolation; other desktop/verification work ran concurrently. Browser probe: Linux arm64 Docker, Chromium 153.0.8010.12 / Playwright 1.63.0. Exact candidate source hashes, versions, all timings and byte entries are in [raw data](evidence/2026-10-20.json).
 
 Three rotated rounds, each with 100 warm-up requests and 300 measured requests per case at concurrency four. The table is the median of the three per-round percentiles, in milliseconds. All 14,400 measured HTTP responses had their expected statuses; this is HTTP response time, not completed browser interaction time.
@@ -26,4 +30,6 @@ The last Spring/Thymeleaf round shows substantial drift, including a 3.046 ms en
 
 Woge has higher allocation and response costs in several measured cases. These results give concrete investigation targets: typed form/region rendering, native mutation response preparation, patch/status/form output and optional client delivery. They do not establish the cause of any individual difference. The simpler baselines omit behavior that Woge performs; equivalence and isolated measurement come before speed/resource marketing claims.
 
-#269 remains open for complete browser/validation/live parity, isolated resource measurements, separate builds and a rigorous interaction/load model. Existing regression budgets are unchanged.
+At this stage those gaps were open. The isolated follow-up supplies shared browser/validation/live
+outcomes and fixed container resources. Separate clean builds/minimal distributions and a rigorous
+arrival-rate load model remain unmeasured. Existing regression budgets are unchanged.

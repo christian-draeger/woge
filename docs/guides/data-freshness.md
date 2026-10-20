@@ -45,6 +45,13 @@ Reconnect reauthorizes and resynchronizes. The live event stream is not a durabl
 Keep loaders side-effect-free, and enforce the same access rule on the document, refresh and every
 subscription/reconnect. See [live regions](live-updates.md).
 
+Choose live-region boundaries around interactions deliberately. Replacing a button between pointer
+down and pointer up can cancel its activation before any POST, just as ordinary HTML replacement
+does. Keeping the add form outside the board protects its draft; it does not preserve every
+interaction inside the board. The [three-engine comparison](../../spikes/consumer-testing/results.md#bounded-runner-follow-up-2026-10-20)
+records this limitation. Do not compensate by replaying a mutation; further interaction-preservation
+policy is tracked in [#276](https://github.com/christian-draeger/woge/issues/276).
+
 ## Ordering and recovery
 
 | Situation | Supported outcome |

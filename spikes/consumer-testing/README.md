@@ -1,6 +1,6 @@
 # Consumer testing investigation
 
-State: Frozen. Decisions: [ADR 0112](../../docs/adr/0112-consumer-testing-layers.md) and
+State: Frozen after the bounded failure/parallel/repetition follow-up. Decisions: [ADR 0112](../../docs/adr/0112-consumer-testing-layers.md) and
 [ADR 0114](../../docs/adr/0114-webmcp-managed-form-experiment.md). Issues: #267, #268, #274.
 This independent experiment is not an application dependency or a public test API.
 Time box: one Todo consumer, three journeys, three browser engines, one host.
@@ -15,6 +15,10 @@ From the Woge root, with JDK 21:
 npm --prefix spikes/consumer-testing ci --ignore-scripts
 python3 spikes/consumer-testing/run.py
 python3 spikes/consumer-testing/run.py --node
+python3 spikes/consumer-testing/run.py --parallel
+python3 spikes/consumer-testing/run.py --failure-probe
+python3 spikes/consumer-testing/run.py --node-failure
+python3 spikes/consumer-testing/run.py --pointer-probe
 python3 spikes/consumer-testing/run.py --webmcp
 ```
 
@@ -22,6 +26,11 @@ Each run creates and removes its own app/container. Docker provides native Linux
 the JVM/Node images pin Playwright 1.63.0. The DSL source is fetched at the exact MIT-licensed
 `9adefaed1c1c6c34f356479aa952a8d22eda238e` commit; its license is downloaded alongside it.
 Only its Playwright dependency is modernized for this comparison. Production imports none of it.
+Parallel JVM workers own their Playwright instance/thread and independent application stores.
+`--parallel --shared-store` is a separate multi-user stress experiment: live replacement can cancel
+a pointer activation before any POST. The pointer probe compares that behavior with ordinary HTML.
+Expected-failure probes succeed only after recognizing the intended diagnostic and retained trace;
+an arbitrary broken test command is not accepted as evidence.
 The unchanged Node Todo test source is copied into an isolated 1.63.0 test directory.
 Application browser CI keeps its existing 1.62.1 pin and separately passed the same journeys.
 

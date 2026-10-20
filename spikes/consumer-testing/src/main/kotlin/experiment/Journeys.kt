@@ -11,39 +11,106 @@ import com.microsoft.playwright.options.AriaRole
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.UUID
+import java.util.concurrent.Executors
 
 fun main(args: Array<String>) {
     val url = requireNotNull(System.getenv("WOGE_TODO_URL")) { "Set WOGE_TODO_URL to the running Todo app" }
     val output = Path.of("build/evidence")
     Files.createDirectories(output)
-    val engines = args.toList().ifEmpty { listOf("chromium", "firefox", "webkit") }
-    for (engine in engines) {
-        for (dsl in listOf(false, true)) {
-            val start = System.nanoTime()
-            if (dsl) {
-                playwright { upstream ->
-                    browserType =
-                        when (engine) {
-                            "chromium" -> upstream.chromium()
-                            "firefox" -> upstream.firefox()
-                            "webkit" -> upstream.webkit()
-                            else -> error("Unknown browser $engine")
-                        }
-                    browser { browser -> runJourneys(browser, url, output, "$engine-dsl") }
-                }
-            } else {
-                Playwright.create().use { upstream ->
-                    val type =
-                        when (engine) {
-                            "chromium" -> upstream.chromium()
-                            "firefox" -> upstream.firefox()
-                            "webkit" -> upstream.webkit()
-                            else -> error("Unknown browser $engine")
-                        }
-                    type.launch().use { runJourneys(it, url, output, "$engine-direct") }
+    if ("--failure-probe" in args) {
+        failureProbe(url, output)
+        return
+    }
+    val engines = args.filterNot { it.startsWith("--") }.ifEmpty { listOf("chromium", "firefox", "webkit") }
+    val urls =
+        System
+            .getenv("WOGE_TODO_URLS")
+            ?.split(',')
+            ?.associate { entry ->
+                entry.substringBefore('=') to
+                    entry.substringAfter('=')
+            }.orEmpty()
+    if ("--parallel" in args) {
+        Executors.newFixedThreadPool(engines.size).use { executor ->
+            engines
+                .map { engine ->
+                    executor.submit { runEngine(engine, urls[engine] ?: url, output) }
+                }.forEach { it.get() }
+        }
+    } else {
+        engines.forEach { runEngine(it, url, output) }
+    }
+}
+
+private fun runEngine(
+    engine: String,
+    url: String,
+    output: Path,
+) {
+    for (dsl in listOf(false, true)) {
+        val start = System.nanoTime()
+        if (dsl) {
+            playwright { upstream ->
+                browserType =
+                    when (engine) {
+                        "chromium" -> upstream.chromium()
+                        "firefox" -> upstream.firefox()
+                        "webkit" -> upstream.webkit()
+                        else -> error("Unknown browser $engine")
+                    }
+                browser { browser -> runJourneys(browser, url, output, "$engine-dsl") }
+            }
+        } else {
+            Playwright.create().use { upstream ->
+                val type =
+                    when (engine) {
+                        "chromium" -> upstream.chromium()
+                        "firefox" -> upstream.firefox()
+                        "webkit" -> upstream.webkit()
+                        else -> error("Unknown browser $engine")
+                    }
+                type.launch().use { runJourneys(it, url, output, "$engine-direct") }
+            }
+        }
+        println("PASS $engine ${if (dsl) "dsl" else "direct"} ${(System.nanoTime() - start) / 1_000_000}ms")
+    }
+}
+
+private fun failureProbe(
+    url: String,
+    output: Path,
+) {
+    Playwright.create().use { upstream ->
+        upstream.chromium().launch().use { browser ->
+            browser.newContext().use { context ->
+                context.tracing().start(Tracing.StartOptions().setSnapshots(true).setSources(true))
+                try {
+                    val page = context.newPage()
+                    page.navigate(url)
+                    val missing =
+                        page.getByRole(
+                            AriaRole.BUTTON,
+                            Page.GetByRoleOptions().setName("Expected missing button"),
+                        )
+                    try {
+                        assertThat(
+                            missing,
+                        ).isVisible(
+                            com.microsoft.playwright.assertions.LocatorAssertions
+                                .IsVisibleOptions()
+                                .setTimeout(250.0),
+                        )
+                        error("Expected the assertion to fail")
+                    } catch (expected: AssertionError) {
+                        val diagnostic = expected.stackTraceToString()
+                        check(diagnostic.contains("Expected missing button"))
+                        Files.writeString(output.resolve("java-expected-failure.txt"), diagnostic.take(8000))
+                        println("PASS expected Java assertion failure: locator diagnostic and source stack captured")
+                    }
+                } finally {
+                    context.tracing().stop(Tracing.StopOptions().setPath(output.resolve("java-expected-failure.zip")))
                 }
             }
-            println("PASS $engine ${if (dsl) "dsl" else "direct"} ${(System.nanoTime() - start) / 1_000_000}ms")
         }
     }
 }

@@ -1,8 +1,8 @@
 # Todo framework comparison
 
-State: Active, #269. Time box: four JVM fixtures and four bounded HTTP workloads, three measured
-rounds. This first stage identifies costs and missing equivalence; it does not rank production
-capacity. No production project depends on this experiment.
+State: Active, #269. Time box: four JVM fixtures, four HTTP workloads and shared three-engine
+native/enhanced browser journeys, three measured rounds. The isolated comparison identifies
+incremental costs; it does not rank production capacity. No production project depends on it.
 
 The same ten-row, synchronized Todo repository and add/toggle/delete rules power all modes:
 `spring-woge`, `spring-thymeleaf`, `ktor-woge`, `ktor-html`. The Woge modes compile the maintained
@@ -19,7 +19,11 @@ From the Woge root, with JDK 21, Python 3, Docker and Node:
 ./gradlew -p spikes/todo-framework-comparison \
   -PwogeRepository="$PWD/build/scaffold-maven-repository" installDist
 npm --prefix spikes/todo-framework-comparison ci --ignore-scripts
-python3 spikes/todo-framework-comparison/run.py --browser-bytes
+./gradlew -p spikes/consumer-testing installDist
+docker build --tag woge-todo-comparison:local spikes/todo-framework-comparison
+python3 spikes/todo-framework-comparison/run.py \
+  --container-image woge-todo-comparison:local \
+  --browser-journeys --browser-bytes --skrape-probe
 ```
 
 The build uses explicit local candidate artifacts; it is not a published-artifact consumer proof.
@@ -34,32 +38,36 @@ One connection per worker keeps HTTP connections alive. This is closed-loop load
 coordinated-omission correction, not an arrival-rate capacity test. There is no throughput threshold.
 A functional/status or resource-load failure stops the run rather than counting errors as fast work.
 
-The browser byte probe uses actual Chromium 153 resource timing in Playwright 1.63.0, a fresh
-context, no compression and the same Todo CSS. Docker reaches the host through `host.docker.internal`;
-an explicit local-only secure-origin flag supplies the secure APIs normally available over HTTPS.
-This is a measurement topology, not a deployment recipe. Script/CSS/HTTP/page errors fail the probe;
-live-fetch cancellations are recorded separately. It measures initial resources, not browser action
-latency or a warm HTTP cache. Without `--browser-bytes`, Docker/npm are unnecessary.
+Container mode verifies actual 2-CPU/768-MiB limits and records the image ID and server JRE separately
+from the host build JDK. The browser byte probe uses Chromium 153 in Playwright 1.63.0, a fresh context,
+no compression and the same CSS. Docker reaches the host through host networking on Linux or
+`host.docker.internal` on macOS. A local-only secure-origin flag supports the byte probe; full
+three-engine journeys use a streaming loopback proxy. This is a measurement topology, not a deployment
+recipe. Resource/HTTP/page failures fail the probe; live-fetch cancellations are recorded separately.
+Full browser journeys separately record fill/submit/visible completion. Without the container/browser
+options the HTTP harness can run directly on the host with only JDK/Python.
 
 ## Equivalence and remaining gaps
 
 All modes escape the same titles, preserve invalid submitted text, return native 400/303 responses,
-check a hostile Origin and mutate the same store. Enhanced toggle updates the list/count in one
-board. The Woge response additionally supplies status/form replacements, identities, typed decoding,
-ordering and recovery; htmx returns a single HTML fragment. The simpler baseline does not implement
-the full filter journey, enhanced validation focus/400 handling, invalidation/reconnect/deferred
-streams, replay protection or account authorization. Its strict Origin check is a limited fixture
-policy, not a general replacement for Woge's host request-context policies.
+check a hostile Origin and mutate the same store. Shared browser tests verify filtering, enhanced
+validation/focus, list/count/status/form updates and two-tab SSE/refetch preserving draft and focus.
+The htmx fixture owns its validation/live-read serialization adapter. Woge additionally supplies typed
+decoding, identities, managed ordering and recovery. Malformed protocol input, reconnect/deferred
+streams and account authorization are not equivalent workload proofs. The baseline's strict Origin
+check is a limited fixture policy, not a replacement for Woge's host request-context policies.
 
-Consequently the HTTP workloads compare particular responses, not fully equivalent browser journeys.
+The HTTP workloads compare particular responses; shared browser outcomes are verified separately.
 Native mutation timing ends at 303, before the redirected GET; validation is a native response.
 The render loop measures board markup + snapshot + UTF-8 bytes only; Woge's typed outer-region
 identity/framing is outside that micro-loop. It uses ThreadMXBean allocations on the current thread,
-not application-wide or retained memory. JIT/GC and other desktop activity remain uncontrolled.
+not application-wide or retained memory. JIT/GC and other desktop activity remain uncontrolled even
+when each application has fixed container limits.
 All dependencies are in the combined fixture build, including unused host/render libraries.
 
-[Recorded results](results.md) include unfavorable observations and raw data. Keep #269 open for
-equivalent full browser/validation/live fixtures, repeatable CPU/container isolation, separate clean
-build/artifact footprints, successful interaction latency and a more rigorous load model. Only then
-consider a cross-ecosystem comparison. Existing [performance budgets](../../docs/performance/budgets.md)
-remain unchanged. No comparative marketing claim follows from this first stage.
+[Isolated results](isolated-results.md) include unfavorable observations, all rounds and compressed raw
+evidence. The original [unisolated results](results.md) preserve the earlier simpler baseline; do not
+mix those datasets. Separate clean builds/minimal distributions and a rigorous arrival-rate load
+model remain open under #269. A Next.js comparison needs a separately defined equivalent application
+and deployment setup. Existing [performance budgets](../../docs/performance/budgets.md) remain
+unchanged; no general comparative marketing claim follows from these descriptive measurements.

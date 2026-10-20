@@ -29,6 +29,8 @@ assert args.samples > 0 and args.concurrency > 0 and args.rounds > 0
 root = pathlib.Path(__file__).resolve().parent
 evidence = root / "build/evidence"
 evidence.mkdir(parents=True, exist_ok=True)
+browser_network = ["--network", "host"] if platform.system() == "Linux" else []
+browser_host = "127.0.0.1" if platform.system() == "Linux" else "host.docker.internal"
 result = {"platform": platform.platform(), "machine": platform.machine(), "processor": platform.processor(),
           "java": subprocess.run([os.environ.get("JAVA_HOME", "") + "/bin/java", "-version"], capture_output=True, text=True).stderr,
           "limits": "No CPU/container isolation; JAVA_OPTS=-Xms128m -Xmx512m -XX:+UseG1GC", "load": "closed loop, one keep-alive connection per worker; no coordinated-omission correction",
@@ -43,6 +45,9 @@ if args.container_image:
     metadata = json.loads(subprocess.check_output(["docker", "image", "inspect", args.container_image], text=True))[0]
     result["container"] = {"imageId": metadata["Id"], "architecture": metadata["Architecture"], "cpus": 2, "memoryBytes": 768 * 1024 * 1024}
     result["limits"] = "Each server: 2 CPUs, 768 MiB container; JAVA_OPTS=-Xms128m -Xmx512m -XX:+UseG1GC"
+    result["loadGeneratorJava"] = result["java"]
+    result["java"] = subprocess.run(["docker", "run", "--rm", "--entrypoint", "java", args.container_image, "-version"], capture_output=True, text=True, check=True).stderr
+    result["serverPlatform"] = "Linux/" + metadata["Architecture"]
 
 def percentile(values, fraction):
     return sorted(values)[max(0, math.ceil(len(values) * fraction) - 1)]
@@ -132,7 +137,7 @@ for round_number in range(args.rounds):
                     subprocess.run([java, "-cp", libraries, "experiment.SkrapeProbeKt"], env=dict(os.environ, WOGE_TODO_URL="http://127.0.0.1:" + str(port)), check=True, timeout=30)
                 browser_bytes = None
                 if args.browser_bytes:
-                    probe = subprocess.run(["docker", "run", "--rm", "--mount", "type=bind,src=" + str(root) + ",dst=/work", "-w", "/work", "-e", "BENCH_URL=http://host.docker.internal:" + str(port), "mcr.microsoft.com/playwright:v1.63.0-noble", "node", "browser-bytes.mjs"], check=True, capture_output=True, text=True, timeout=30)
+                    probe = subprocess.run(["docker", "run", "--rm", *browser_network, "--mount", "type=bind,src=" + str(root) + ",dst=/work", "-w", "/work", "-e", "BENCH_URL=http://" + browser_host + ":" + str(port), "mcr.microsoft.com/playwright:v1.63.0-noble", "node", "browser-bytes.mjs"], check=True, capture_output=True, text=True, timeout=30)
                     browser_bytes = json.loads(probe.stdout)
                     assert not [f for f in browser_bytes["failures"] if f["type"] not in ("fetch", "eventsource")], browser_bytes
                     assert not browser_bytes["httpFailures"] and not browser_bytes["pageErrors"], browser_bytes
@@ -164,7 +169,7 @@ for round_number in range(args.rounds):
                     label = mode + "-" + str(round_number)
                     worker = "woge-benchmark-browser-" + str(port)
                     try:
-                        subprocess.run(["docker", "run", "--rm", "--name", worker, "--mount", "type=bind,src=" + str(root) + ",dst=/work", "--mount", "type=bind,src=" + str(root.parents[1] / "examples/todo-spring-boot/browser-tests") + ",dst=/examples/todo-spring-boot/browser-tests,readonly", "-w", "/work", "-e", "BENCH_URL=http://host.docker.internal:" + str(port), "-e", "BENCH_LABEL=" + label, "mcr.microsoft.com/playwright:v1.63.0-noble", "node", "run-browser.mjs"], check=True, timeout=180)
+                        subprocess.run(["docker", "run", "--rm", "--name", worker, *browser_network, "--mount", "type=bind,src=" + str(root) + ",dst=/work", "--mount", "type=bind,src=" + str(root.parents[1] / "examples/todo-spring-boot/browser-tests") + ",dst=/examples/todo-spring-boot/browser-tests,readonly", "-w", "/work", "-e", "BENCH_URL=http://" + browser_host + ":" + str(port), "-e", "BENCH_LABEL=" + label, "mcr.microsoft.com/playwright:v1.63.0-noble", "node", "run-browser.mjs"], check=True, timeout=180)
                     finally:
                         subprocess.run(["docker", "rm", "-f", worker], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     entry["browserJourneys"] = "browser-" + label + ".json"

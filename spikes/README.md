@@ -44,7 +44,7 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 
 | State | Spike | Decision and remaining work |
 | --- | --- | --- |
-| Frozen | [consumer-testing](consumer-testing/) | ADRs [0112](../docs/adr/0112-consumer-testing-layers.md) and [0114](../docs/adr/0114-webmcp-managed-form-experiment.md); parser/browser and negative WebMCP evidence, scoped upstream/agent-trial follow-ups |
+| Frozen | [consumer-testing](consumer-testing/) | ADRs [0112](../docs/adr/0112-consumer-testing-layers.md) and [0114](../docs/adr/0114-webmcp-managed-form-experiment.md); parser, bounded runner failure/parallel/repetition and negative WebMCP evidence |
 | Frozen | [development-mcp-clients](development-mcp-clients/) | ADR [0113](../docs/adr/0113-retain-experimental-development-mcp.md); two real SDK clients and lifecycle checks, no productivity claim |
 | Active | [todo-framework-comparison](todo-framework-comparison/) | Bounded JVM comparison under #269; informational measurements, no throughput release gate |
 

@@ -1,0 +1,61 @@
+{
+  "recorded": "2026-10-20",
+  "scope": "bounded additional runner evidence; not a general flake-rate or speed estimate",
+  "playwrightVersion": "1.63.0",
+  "sourceSha256": {
+    "spikes/consumer-testing/run.py": "779bffc9e5529d38702f0de8231b0465ed242052e530707ff4a804534cd8ffac",
+    "spikes/consumer-testing/pointer-probe.mjs": "4032647e4297b0c451a11ab7f56f3cd4aa96ce8db9cef50159f30ef8a121bf51",
+    "spikes/consumer-testing/failure.config.mjs": "83114dc1acf2d8aaa76719ced5c5fe0ec095189df130b0721e5f948968dddb09",
+    "spikes/consumer-testing/src/main/kotlin/experiment/SkrapeProbe.kt": "c7f36b4a8c16947b26da9d25b01b5de3a63b2c2ca196c129dbe0da26ee6d9585",
+    "spikes/consumer-testing/src/main/kotlin/experiment/Journeys.kt": "5c012685e7b537f5de0e47c6cbc954118f5339c65e7559f50dc3598df3614082"
+  },
+  "parallelJvm": {
+    "additionalRuns": 4,
+    "applicablePassesPerRun": 30,
+    "retries": 0,
+    "threadConfinedPlaywright": true,
+    "independentApplicationStores": true
+  },
+  "node": {
+    "additionalRuns": 2,
+    "applicablePassesPerRun": 15,
+    "intentionalNativeLiveSkipsPerRun": 3,
+    "retries": 0
+  },
+  "expectedFailures": {
+    "java": "locator diagnostic/source stack and explicit trace verified",
+    "node": "exactly one intended assertion failure, source, screenshot and trace verified"
+  },
+  "sharedStoreFirstTrial": {
+    "outcome": "Firefox activation canceled during concurrent live replacement; no toggle POST in trace",
+    "trackingIssue": 276,
+    "discardedOrRetried": false
+  },
+  "pointerComparison": [
+    {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "nativeReplacement": "activation canceled",
+      "wogeLiveReplacement": "activation canceled; no POST",
+      "deliberateNewClick": "one successful POST"
+    },
+    {
+      "engine": "firefox",
+      "version": "155.0",
+      "nativeReplacement": "activation canceled",
+      "wogeLiveReplacement": "activation canceled; no POST",
+      "deliberateNewClick": "one successful POST"
+    },
+    {
+      "engine": "webkit",
+      "version": "26.6",
+      "nativeReplacement": "activation canceled",
+      "wogeLiveReplacement": "activation canceled; no POST",
+      "deliberateNewClick": "one successful POST"
+    }
+  ],
+  "productionJar": {
+    "sha256": "f95b7213b7a5b4f325c8480c9c2aa53af0822f1560b16bf2165db41b9f80223b",
+    "forbiddenTestDependencies": []
+  }
+}
