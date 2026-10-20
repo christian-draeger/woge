@@ -86,6 +86,8 @@ class PublicationGuardsTest(unittest.TestCase):
             with self.subTest(status=status, conclusion=conclusion), self.assertRaises(ValueError):
                 commit.validate_checks(checks + [{"name": "extra", "status": status, "conclusion": conclusion}])
         commit.validate_checks(checks + [{"name": "Publication gate", "status": "in_progress", "conclusion": None}])
+        for name in ("Todo image gate", "Publish Todo image"):
+            commit.validate_checks(checks + [{"name": name, "status": "in_progress", "conclusion": None}])
 
     def test_workflow_is_dispatch_only_and_write_is_job_scoped(self):
         workflow = Path(".github/workflows/publish-packages.yml").read_text()

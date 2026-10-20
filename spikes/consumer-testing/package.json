@@ -1,0 +1,7 @@
+{
+  "name": "woge-consumer-testing-spike",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "playwright test --config=node.config.mjs" },
+  "devDependencies": { "@playwright/test": "1.63.0" }
+}

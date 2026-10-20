@@ -1,5 +1,9 @@
 # Executable examples
 
+The [standalone Todo application](todo-spring-boot/README.md) consumes published Woge artifacts and
+demonstrates forms, validation, typed actions and live updates with ordinary HTML/CSS. It has its
+own Gradle wrapper and can be copied outside this repository.
+
 Maintained documentation examples live below this directory and join the root verification build once
 they are executable. They use supported public APIs and compile in `./gradlew check`.
 

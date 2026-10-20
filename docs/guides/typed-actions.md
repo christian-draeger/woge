@@ -1,5 +1,25 @@
 # Typed action descriptors
 
+For data freshness and state ownership, see [server-driven updates](data-freshness.md).
+
+## Request-owned validation updates
+
+This checkout adds the convenience method from [ADR 0110](../adr/0110-request-owned-validation-convenience.md).
+Use a release containing that API; the published-alpha Todo consumer retains the older explicit API.
+Return a native 400 document and name the same typed error/form region for enhancement:
+
+```kotlin
+return context.render.validation(nativeValidationPage, errorSummary) {
+    replace(FormRegion, errors)
+}
+```
+
+The names are application-owned; see the complete compiled
+[notes validation](../../examples/reference-application/shared/src/main/kotlin/dev/woge/example/notes/NoteValidation.kt).
+Woge retains request revisions/interaction, prepares replacements once and gives the native document
+an independent identity registration. An initial/success form can use `FormErrors<Command>()`.
+Selected submitted values remain explicit; never preserve passwords or security tokens.
+
 An action is a typed server entry point for a form command. It has a stable public ID, an ordinary
 URL and a direct Kotlin call. It is not a client-selected class or function name.
 

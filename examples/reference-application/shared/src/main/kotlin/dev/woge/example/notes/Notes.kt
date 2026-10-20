@@ -7,7 +7,6 @@ import dev.woge.host.CsrfVerification
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
 import dev.woge.host.FormErrors
-import dev.woge.host.FormValues
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
@@ -80,7 +79,7 @@ public suspend fun addNote(
         context.render.updates(NotesRoute.url(NotesInput)) {
             replace(NoteListRegion, noteStore.all())
             replace(NoteStatusRegion, "Note added")
-            replace(NoteErrorsRegion, FormErrors<AddNote>(FormValues.EMPTY, emptyList()))
+            replace(NoteErrorsRegion, FormErrors<AddNote>())
         }
     }
 }
@@ -91,10 +90,10 @@ public class NotesPage : PageUseCase<NotesInput> {
 
 internal fun notesDocument(
     context: RequestContext,
-    errors: FormErrors<AddNote> = FormErrors(FormValues.EMPTY, emptyList()),
+    errors: FormErrors<AddNote> = FormErrors(),
     status: ResponseStatus = ResponseStatus.OK,
 ): PageResult.Document {
-    val page = context.render.resume(context.render.epoch)
+    val page = context.render
     return htmlPage(ResponseMetadata(status = status)) {
         doctype()
         html(attributes = { attribute("lang", "en") }) {

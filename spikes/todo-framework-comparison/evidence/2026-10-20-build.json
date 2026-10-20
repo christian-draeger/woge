@@ -1,0 +1,69 @@
+{
+  "recorded": "2026-10-20",
+  "sourceRevision": "bdd3b42f39dd8bfdcbd9274f55625b814613d7f5",
+  "scope": "combined four-mode fixture build, not independent framework builds; fixed source and local Woge artifacts; no remote publishing",
+  "jdk": "openjdk version \"21.0.6\" 2025-01-21 LTS\nOpenJDK Runtime Environment (build 21.0.6+10-LTS)\nOpenJDK 64-Bit Server VM (build 21.0.6+10-LTS, mixed mode, sharing)\n",
+  "cachePolicy": "Gradle daemon and dependency caches warm; clean removes this spike build outputs; OS/file caches not reset",
+  "runs": [
+    {
+      "round": 0,
+      "state": "clean outputs, warm dependency caches",
+      "seconds": 8.453962208004668,
+      "tasks": [
+        "clean",
+        "installDist"
+      ],
+      "success": true
+    },
+    {
+      "round": 0,
+      "state": "unchanged incremental",
+      "seconds": 0.6404269159538671,
+      "tasks": [
+        "installDist"
+      ],
+      "success": true
+    },
+    {
+      "round": 1,
+      "state": "clean outputs, warm dependency caches",
+      "seconds": 2.5125694579910487,
+      "tasks": [
+        "clean",
+        "installDist"
+      ],
+      "success": true
+    },
+    {
+      "round": 1,
+      "state": "unchanged incremental",
+      "seconds": 0.5983546249917708,
+      "tasks": [
+        "installDist"
+      ],
+      "success": true
+    },
+    {
+      "round": 2,
+      "state": "clean outputs, warm dependency caches",
+      "seconds": 2.0729952080291696,
+      "tasks": [
+        "clean",
+        "installDist"
+      ],
+      "success": true
+    },
+    {
+      "round": 2,
+      "state": "unchanged incremental",
+      "seconds": 0.6065817089984193,
+      "tasks": [
+        "installDist"
+      ],
+      "success": true
+    }
+  ],
+  "combinedDistributionJarBytes": 51793056,
+  "combinedDistributionJarCount": 110,
+  "distributionMeaning": "all four framework dependencies included; not a minimal production footprint"
+}

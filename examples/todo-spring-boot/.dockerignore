@@ -1,0 +1,5 @@
+**
+!Dockerfile
+!build/
+!build/libs/
+!build/libs/woge-todo-0.1.0.jar

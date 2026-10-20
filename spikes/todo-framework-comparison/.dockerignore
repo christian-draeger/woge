@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!build/
+!build/install/
+!build/install/todo-framework-comparison/
+!build/install/todo-framework-comparison/**

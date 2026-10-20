@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.net.Socket
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -50,6 +51,34 @@ class DevelopmentMcpServerTest {
         assertEquals(200, status)
         assertTrue(body.contains("-32600"))
         assertTrue(post("{not json").second.contains("-32700"))
+    }
+
+    @Test
+    fun `rejects oversized bodies before JSON parsing`() {
+        assertEquals(413, post("x".repeat(1_048_577)).first)
+    }
+
+    @Test
+    fun `rejects a foreign host even with the session credential`() {
+        val address = URI(server.url)
+        Socket("127.0.0.1", address.port).use { socket ->
+            socket.soTimeout = 5000
+            val request =
+                "POST /mcp HTTP/1.1\r\n" +
+                    "Host: attacker.example:${address.port}\r\n" +
+                    "Authorization: Bearer ${server.token}\r\n" +
+                    "Content-Type: application/json\r\n" +
+                    "Content-Length: ${INITIALIZE.length}\r\n" +
+                    "Connection: close\r\n\r\n" + INITIALIZE
+            socket.getOutputStream().write(request.toByteArray())
+            assertTrue(
+                socket
+                    .getInputStream()
+                    .bufferedReader()
+                    .readLine()
+                    .contains("403"),
+            )
+        }
     }
 
     private fun post(

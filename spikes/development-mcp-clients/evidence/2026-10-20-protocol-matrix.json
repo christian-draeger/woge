@@ -1,0 +1,76 @@
+{
+  "recorded": "2026-10-20",
+  "initializeOffer": "explicit request-only SDK subclass override; default negotiation recorded separately",
+  "clients": [
+    {
+      "client": "typescript-sdk-1.32.1",
+      "requestedProtocol": "2025-03-26",
+      "protocol": "2025-03-26",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    },
+    {
+      "client": "typescript-sdk-1.32.1",
+      "requestedProtocol": "2025-06-18",
+      "protocol": "2025-06-18",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    },
+    {
+      "client": "python-sdk-2.3.0",
+      "requestedProtocol": "2025-03-26",
+      "protocol": "2025-03-26",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    },
+    {
+      "client": "python-sdk-2.3.0",
+      "requestedProtocol": "2025-06-18",
+      "protocol": "2025-06-18",
+      "tools": [
+        "status",
+        "await_build",
+        "get_diagnostics",
+        "reload",
+        "restart",
+        "get_manifest",
+        "get_dev_urls"
+      ],
+      "phase": "READY",
+      "manifest": true,
+      "idleWait": "timedOut"
+    }
+  ],
+  "sessionFileRemoved": true,
+  "modelTrials": false
+}

@@ -73,3 +73,8 @@ other setups.
 
 The design and its limits are recorded in
 [ADR 0075](../adr/0075-experimental-development-mcp-endpoint.md).
+
+The [tested SDK/client matrix](../../spikes/development-mcp-clients/README.md) records real
+TypeScript/Python interoperability and the three-host build/fix/restart/cleanup gate.
+[ADR 0113](../adr/0113-retain-experimental-development-mcp.md) retains incubation; this evidence
+does not establish agent productivity or support for every current MCP capability.

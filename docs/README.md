@@ -7,7 +7,9 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Start here
 
 - [Spring Boot WebFlux quickstart](guides/quickstart-spring-boot.md)
+- [Standalone full-stack Todo example](../examples/todo-spring-boot/README.md)
 - [HTML/HTTP mental model and DX doctrine](guides/mental-model.md)
+- [Develop with humans and coding agents](guides/human-and-agent-workflow.md)
 - [Troubleshooting](guides/troubleshooting.md)
 - [Versioned Spring Boot application scaffold](../scaffolds/spring-boot/README.md)
 - [Kotlin for this web task](guides/kotlin-for-web-developers.md)
@@ -46,6 +48,8 @@ The documentation grows with executable product slices. Pages describing unimple
 ## Implemented API guides
 
 - [Build the first Woge page with Spring Boot](guides/quickstart-spring-boot.md)
+- [Keep server-rendered data current](guides/data-freshness.md)
+- [Build and verify a Todo container](guides/todo-container.md)
 - [Kotlin for the first web task](guides/kotlin-for-web-developers.md)
 - [Render safe HTML values](guides/safe-html-values.md)
 - [Write HTML with the generated element DSL](guides/html-elements.md)

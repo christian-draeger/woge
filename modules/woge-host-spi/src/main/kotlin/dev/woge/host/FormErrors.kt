@@ -48,8 +48,8 @@ public class FormError<Command : Any>(
 
 /** One immutable presentation model for decoded errors or application business-rule errors. */
 public class FormErrors<Command : Any>(
-    public val values: FormValues,
-    errors: Iterable<FormError<Command>>,
+    public val values: FormValues = FormValues.EMPTY,
+    errors: Iterable<FormError<Command>> = emptyList(),
 ) {
     public val errors: List<FormError<Command>> = Collections.unmodifiableList(errors.toList())
 
