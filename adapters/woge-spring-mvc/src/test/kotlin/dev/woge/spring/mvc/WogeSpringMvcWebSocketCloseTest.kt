@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class WogeSpringMvcWebSocketCloseTest {
     @Test
@@ -42,7 +43,7 @@ class WogeSpringMvcWebSocketCloseTest {
 
     @Test
     fun `a blocked container close still has a deadline`() {
-        val handler = handler(WebSocketLimits(heartbeat = 10.milliseconds, idleTimeout = 100.milliseconds))
+        val handler = handler(TEST_LIMITS)
         val interrupted = CompletableFuture<Boolean>()
         val blocked = CountDownLatch(1)
         val session =
@@ -67,7 +68,7 @@ class WogeSpringMvcWebSocketCloseTest {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `connection cleanup does not interrupt an in-flight data frame`(binary: Boolean) {
-        val handler = handler(WebSocketLimits(heartbeat = 10.milliseconds, idleTimeout = 100.milliseconds))
+        val handler = handler(TEST_LIMITS)
         val finished = CompletableFuture<Boolean>()
         val session =
             session(send = { socket, message ->
@@ -83,7 +84,7 @@ class WogeSpringMvcWebSocketCloseTest {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `a blocked data frame still has a deadline`(binary: Boolean) {
-        val handler = handler(WebSocketLimits(heartbeat = 10.milliseconds, idleTimeout = 100.milliseconds))
+        val handler = handler(TEST_LIMITS)
         val interrupted = CompletableFuture<Boolean>()
         val blocked = CountDownLatch(1)
         val session =
@@ -170,3 +171,5 @@ class WogeSpringMvcWebSocketCloseTest {
         } as WebSocketSession
     }
 }
+
+private val TEST_LIMITS = WebSocketLimits(heartbeat = 200.milliseconds, idleTimeout = 2.seconds)
