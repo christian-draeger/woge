@@ -9,6 +9,7 @@ import dev.woge.host.WebSocketUseCase
 import dev.woge.host.serveWebSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.http.server.ServletServerHttpRequest
@@ -28,6 +31,7 @@ import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.AbstractWebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
 
 /** Register as both handler and handshake interceptor in WebSocketConfigurer. No endpoint is auto-installed. */
 public class WogeSpringMvcWebSocket(
@@ -76,9 +80,12 @@ public class WogeSpringMvcWebSocket(
             try {
                 serveWebSocket(peer, session.attributes[SOCKET_CONTEXT] as RequestContext, useCase, limits)
             } finally {
-                if (session.isOpen) peer.close(CloseStatus.NORMAL.code, "complete")
-                connections.remove(session.id)
-                peer.scope.cancel()
+                try {
+                    if (session.isOpen) peer.close(CloseStatus.NORMAL.code, "complete")
+                } finally {
+                    connections.remove(session.id)
+                    peer.scope.cancel()
+                }
             }
         }
     }
@@ -122,19 +129,19 @@ private const val SOCKET_CONTEXT = "woge.socket.context"
 
 private class ServletSocketPeer(
     private val session: WebSocketSession,
-    limits: WebSocketLimits,
+    private val limits: WebSocketLimits,
 ) : WebSocketPeer {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val commands = Channel<String>(limits.messagesPerSecond)
     override val incoming: Flow<String> = commands.receiveAsFlow()
 
     override suspend fun binary(bytes: ByteArray): Unit =
-        runInterruptible(Dispatchers.IO) {
+        completingWrite(limits.idleTimeout) {
             session.sendMessage(BinaryMessage(bytes))
         }
 
     override suspend fun text(value: String): Unit =
-        runInterruptible(Dispatchers.IO) {
+        completingWrite(limits.heartbeat) {
             session.sendMessage(TextMessage(value))
         }
 
@@ -142,7 +149,18 @@ private class ServletSocketPeer(
         code: Int,
         reason: String,
     ): Unit =
-        runInterruptible(Dispatchers.IO) {
+        completingWrite(limits.idleTimeout) {
             session.close(CloseStatus(code, reason))
+        }
+
+    private suspend fun completingWrite(
+        timeout: Duration,
+        write: () -> Unit,
+    ): Unit =
+        withContext(NonCancellable) {
+            withTimeout(timeout) {
+                // Finish an in-flight frame before connection cleanup; interruption can corrupt the transport.
+                runInterruptible(Dispatchers.IO, write)
+            }
         }
 }

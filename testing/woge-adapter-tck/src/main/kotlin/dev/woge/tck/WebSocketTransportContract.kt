@@ -45,8 +45,9 @@ internal fun verifyWebSocketTransport(server: AdapterTckServer) {
         check(replay.revision.base.value == 1L && replay.revision.next.value == 2L)
         connection.sendText("""{"op":"unsubscribe","id":"left"}""", true).join()
         connection.sendText("""{"op":"message","id":"left","payload":"12,34"}""", true).join()
-        check(resumed.closed.get(SOCKET_WAIT_SECONDS, TimeUnit.SECONDS) == SOCKET_POLICY_STATUS) {
-            "Unknown subscription was not rejected"
+        val closure = resumed.closed.get(SOCKET_WAIT_SECONDS, TimeUnit.SECONDS)
+        check(closure.first == SOCKET_POLICY_STATUS) {
+            "Unknown subscription must close with $SOCKET_POLICY_STATUS; received ${closure.first}: ${closure.second}"
         }
     }
 }
@@ -72,7 +73,7 @@ private fun connectCursor(
         .get(SOCKET_WAIT_SECONDS, TimeUnit.SECONDS)
 
 private class CursorListener : WebSocket.Listener {
-    val closed = CompletableFuture<Int>()
+    val closed = CompletableFuture<Pair<Int, String>>()
     private val frames = LinkedBlockingQueue<ByteArray>()
     private val pending = ByteArrayOutputStream()
 
@@ -112,7 +113,7 @@ private class CursorListener : WebSocket.Listener {
         statusCode: Int,
         reason: String,
     ): CompletableFuture<Void>? {
-        closed.complete(statusCode)
+        closed.complete(statusCode to reason)
         return null
     }
 
@@ -127,7 +128,7 @@ private class CursorListener : WebSocket.Listener {
         val bytes =
             checkNotNull(
                 frames.poll(SOCKET_WAIT_SECONDS, TimeUnit.SECONDS),
-            ) { "Timed out awaiting a socket patch; closed=${closed.getNow(-1)}" }
+            ) { "Timed out awaiting a socket patch; closed=${closed.getNow(-1 to "pending")}" }
         val length = bytes[0].toInt()
         val id = bytes.copyOfRange(1, length + 1).toString(Charsets.US_ASCII)
         val decoder = PatchStreamV1.decoder()
