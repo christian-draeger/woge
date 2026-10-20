@@ -80,9 +80,12 @@ public class WogeSpringMvcWebSocket(
             try {
                 serveWebSocket(peer, session.attributes[SOCKET_CONTEXT] as RequestContext, useCase, limits)
             } finally {
-                if (session.isOpen) peer.close(CloseStatus.NORMAL.code, "complete")
-                connections.remove(session.id)
-                peer.scope.cancel()
+                try {
+                    if (session.isOpen) peer.close(CloseStatus.NORMAL.code, "complete")
+                } finally {
+                    connections.remove(session.id)
+                    peer.scope.cancel()
+                }
             }
         }
     }
