@@ -30,6 +30,45 @@ Run one command at a time; each uses port 8080. WebFlux is the primary documente
 path, MVC proves Servlet compatibility, and Ktor proves that the Woge application boundary does not
 depend on Spring.
 
+## Try the packaged reference
+
+From the repository root with JDK 21 and Python 3, select `spring-webflux`, `spring-mvc` or `ktor`:
+
+```shell
+python3 scripts/reference-demo.py run spring-webflux
+python3 scripts/reference-demo.py run ktor --port 18083
+```
+
+Each command builds and starts one host on loopback. Spring uses its executable Boot JAR. Ktor
+uses its installed application distribution. Open the URL printed by the runner and stop it with
+Ctrl+C. The project and board start from the same fixture data in each new process. Edits are
+stored in memory for that process. The packaged runner starts the ordinary reference profile.
+
+To verify the shared browser journeys against the packaged artifacts, first install the pinned
+browser tooling in `client/woge-fallback-client` with `npm ci` and
+`npx playwright install chromium firefox webkit`. Then run from the repository root:
+
+```shell
+python3 scripts/reference-demo.py verify spring-webflux
+python3 scripts/reference-demo.py verify spring-mvc
+python3 scripts/reference-demo.py verify ktor
+```
+
+Verification uses a fresh loopback port unless supplied and Playwright shuts down the server.
+The runner stores build and browser logs, JSON and HTML browser results, failure traces and a
+versioned evidence manifest under `build/reference-demo`. The manifest identifies the source
+checkout, dirty state, host, selected browser projects, toolchains and packaged file hashes.
+Use `--project chromium-enhanced --project chromium-no-javascript` for a focused run and retain
+the selected projects in the manifest. The default runs all three engines in both modes.
+
+To collect the existing timing-budget samples, run `python3 scripts/reference-demo.py measure ktor`
+or select a Spring host. The runner verifies correctness first, then starts a fresh packaged process
+and runs the throttled Chromium probe in a separate report directory. The raw samples and conditions
+are in `measurement/browser-budget.json`. These samples describe the selected fixture and checkout.
+Use the [comparison contract](../../docs/performance/comparison-contract.md) for independent
+performance experiments and comparisons. The separate packaged
+[Todo release](../../docs/guides/todo-container.md) has its own version and deployment rules.
+
 ## Follow the web flow
 
 1. `GET /projects/woge` returns the heading, navigation, native complete-page link and three useful

@@ -1,5 +1,7 @@
 import { expect, test } from "../test-support/strict-csp.mjs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const policy = JSON.parse(await readFile(new URL("../../../testing/performance/browser-policy.json", import.meta.url), "utf8"));
 const host = process.env.WOGE_REFERENCE_HOST ?? "spring-webflux";
@@ -56,8 +58,11 @@ test("real adapter production budgets under constrained Chromium", async ({ page
     key, samples.map((value) => value[key]).sort((a, b) => a - b)[Math.floor(samples.length / 2)],
   ]));
   const result = { host, conditions: policy, samples, median };
-  await mkdir(new URL("../build/", import.meta.url), { recursive: true });
-  await writeFile(new URL(`../build/browser-budget-${host}.json`, import.meta.url), `${JSON.stringify(result, null, 2)}\n`);
+  const reportDirectory = process.env.WOGE_REFERENCE_REPORT_DIR;
+  const outputDirectory = reportDirectory ?? fileURLToPath(new URL("../build/", import.meta.url));
+  const outputFile = reportDirectory ? "browser-budget.json" : `browser-budget-${host}.json`;
+  await mkdir(outputDirectory, { recursive: true });
+  await writeFile(join(outputDirectory, outputFile), `${JSON.stringify(result, null, 2)}\n`);
   await testInfo.attach("production-performance", { body: JSON.stringify(result, null, 2), contentType: "application/json" });
   console.log(`[woge-browser-budgets][${host}] ${JSON.stringify(median)}`);
   for (const [key, ceiling] of Object.entries(policy.ceilingsMs)) expect(median[key], key).toBeLessThanOrEqual(ceiling);

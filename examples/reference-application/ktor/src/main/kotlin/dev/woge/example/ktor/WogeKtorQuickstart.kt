@@ -83,7 +83,7 @@ public fun main() {
     require(port in 1..MAX_TCP_PORT) { "PORT must be a valid TCP port" }
     embeddedServer(
         Netty,
-        host = "0.0.0.0",
+        host = System.getenv("WOGE_REFERENCE_BIND_ADDRESS") ?: "0.0.0.0",
         port = port,
         module = Application::wogeReferenceModule,
     ).apply {
