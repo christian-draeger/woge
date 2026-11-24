@@ -62,3 +62,29 @@ checks. Before claiming an improvement, compare both host paths with current art
 the deterministic HTML, protocol and browser checks. Typed decoding, action frame serialization,
 host context and browser latency still need separate attribution.
 [Comparison contract](comparison-contract.md)
+
+## Escape candidate
+
+A shared character-to-replacement mapping now identifies the first change and produces the
+escaped suffix. Strings that need no change are reused. When escaping is needed, the writer
+copies the clean prefix once. The same entity and Unicode normalization rules still apply.
+
+The before/after comparison uses the same two image builds and container conditions. Two
+process pairs per host counterbalance order. Each process runs two warmup requests and twelve
+measured requests to the board endpoint. All requests retain the same 9,251-byte output.
+Current rendered HTML, cross-origin rejection, invalid form, native mutation and enhanced
+patch responses are checked in each process.
+
+| Host | Median B/render before | Median B/render after | Before median µs/render, two starts | After median µs/render, two starts |
+| --- | ---: | ---: | --- | --- |
+| WebFlux | 214,376 | 178,600 | 53.23 / 54.06 | 50.33 / 49.81 |
+| Ktor | 214,376 | 178,600 | 44.24 / 43.94 | 37.58 / 38.83 |
+
+Each process pair allocates **35,776 fewer bytes per board render**, a 16.7% reduction for the
+measured loop. Timing remains descriptive. The core, WebFlux and Ktor JVM suites and the new focused tests passed. The opt-in browser
+fixtures were outside this local validation. A compiled-JAR comparison produced identical text and attribute output for all
+65,536 single UTF-16 code units and 4,096 seeded mixtures. The escaped tail retains valid
+surrogate pairs, normalizes NUL and isolated surrogates and preserves each context's entity rules.
+Bytecode inspection confirmed primitive character appends.
+
+[Source and all eight paired runs](evidence/2026-11-24-board-escape-pairs.json.gz)
