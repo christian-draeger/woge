@@ -59,6 +59,7 @@ To use Woge in your own Gradle build, see the guide for
 ## Project documentation
 
 - [Documentation index](docs/README.md)
+- [Build the static documentation preview](site/generator/README.md)
 - [Production operations and rolling deployment](docs/guides/production-operations.md)
 - [MVP boundary](docs/mvp-boundary.md)
 - [Architecture decisions](docs/adr/README.md)
