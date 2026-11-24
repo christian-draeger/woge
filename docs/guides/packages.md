@@ -150,8 +150,15 @@ and its separate bundling commands remain opt-in; its package.json version is no
 availability.
 
 Each implementation artifact includes a sources JAR and a documentation JAR (`javadoc` classifier).
-The latter contains the maintained Markdown guides and architecture documentation, not a generated
-Kotlin API HTML site. Dependency-only starters include their build definition as source. Plugin
-markers are POM-only pointers to the implementation; plugin sources belong to `woge-gradle-plugin`.
+The documentation JAR contains the maintained Markdown guides and architecture documentation.
+Build the separate [JVM API reference](../../site/api-reference/README.md) from the exact source
+revision. Dependency-only starters include their build definition as source. Plugin markers are
+POM-only pointers to the implementation. Plugin sources belong to `woge-gradle-plugin`.
+
+Use the [Central namespace](https://central.sonatype.com/namespace/dev.woge) for release coordinates
+and the [core snapshot metadata](https://central.sonatype.com/repository/maven-snapshots/dev/woge/woge-core/0.1.0-SNAPSHOT/maven-metadata.xml)
+for timestamped development builds. The [compatibility guide](compatibility-and-upgrades.md) and
+[framework capability index](../ai-dx/woge-framework-index.json) describe the supported and
+experimental surfaces.
 
 For maintainers, see [publication and release checks](../development/publishing.md).

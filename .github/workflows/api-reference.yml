@@ -1,0 +1,41 @@
+name: JVM API reference
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/api-reference.yml"
+      - "site/api-reference/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Generate and verify the public JVM API pages
+        run: |
+          ./gradlew -p site/api-reference dokkaGeneratePublicationHtml --console=plain
+          reference=site/api-reference/build/dokka/html
+          test -s "$reference/index.html"
+          test -s "$reference/-woge/dev.woge.html/div.html"
+          test -s "$reference/-woge/dev.woge.ktor/-woge-ktor-handlers/index.html"
+          test -s "$reference/-woge/dev.woge.spring.mvc/-woge-spring-mvc-handlers/index.html"
+          test -s "$reference/-woge/dev.woge.spring.webflux/-woge-web-flux-handlers/index.html"
+          rg --fixed-strings --quiet "/blob/$GITHUB_SHA/" "$reference/-woge/dev.woge.host/-request-context/index.html"
+      - name: Archive the API reference
+        uses: actions/upload-artifact@v7
+        with:
+          name: woge-jvm-api-reference
+          if-no-files-found: error
+          path: site/api-reference/build/dokka/html/
