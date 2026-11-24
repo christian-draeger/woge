@@ -82,7 +82,7 @@ cp "$repository_root/gradle/wrapper/gradle-wrapper.jar" "$repository_root/gradle
   "$fixture_root/gradle/wrapper/"
 
 cat >"$fixture_root/gradle.properties" <<PROPERTIES
-wogeVersion=$(property wogeVersion)
+wogeVersion=${WOGE_TEST_VERSION:-$(property wogeVersion)}
 kotlinVersion=$(property kotlinVersion)
 kspVersion=$(property kspVersion)
 ktorVersion=$ktor_version
