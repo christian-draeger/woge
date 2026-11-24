@@ -102,6 +102,35 @@ Client body publication proves delivery to the JDK client, not that bytes reache
 Passing attempts establish only that the original timeout was not reproduced; they do not resolve
 [#278](https://github.com/christian-draeger/woge/issues/278).
 
+For a focused Linux investigation of the gap between client publication and Netty reads, run the
+WebFlux TCK in a dedicated network namespace with only loopback enabled. Start `tcpdump` with
+packet-capture permission in that same namespace before running the test:
+
+```shell
+tcpdump -p -i lo -c 10000 --immediate-mode -l -s 96 -nn -tt -S \
+  'ip and tcp and src host 127.0.0.1 and dst host 127.0.0.1 and src portrange 32768-65535 and dst portrange 32768-65535' \
+  > loopback.txt 2> capture.log
+```
+
+With dependencies cached, enable both multipart diagnostic flags and run
+`./gradlew :woge-spring-webflux:test --tests '*WogeWebFluxAdapterTckTest' --rerun --no-build-cache --offline`
+in the same namespace.
+Stop `tcpdump` with an interrupt after the test so it writes its capture counters. Use a complete
+capture with zero kernel drops and fewer than 10,000 captured packets. Keep the text output and
+avoid saving raw captures or dumping payloads.
+
+```shell
+python3 testing/diagnostics/multipart-loopback.py \
+  adapters/woge-spring-webflux/build/test-results/test/TEST-dev.woge.spring.webflux.WogeWebFluxAdapterTckTest.xml \
+  loopback.txt capture.log
+```
+
+Compare client-to-server TCP payload byte counts and server ACKs with the existing `netty.socket`
+and `netty.frame` events. An early packet and ACK followed by a late Netty read place the gap
+after kernel delivery. A late first packet leaves the gap before that boundary. If case 6 never
+decodes a request header, the report can only show traffic on the case 5 socket. Use the merged
+timeline for large gaps and account for wall-clock adjustment when comparing close events.
+
 Each build CI job has a 15-minute limit, including setup and smoke tests. A timeout is a failure,
 not a reason to rerun indefinitely or increase the limit. Locally, use `./gradlew check --console=plain`
 to see progress. If a task stops progressing well beyond its usual duration, inspect its process and
