@@ -4,6 +4,9 @@ The [standalone Todo application](todo-spring-boot/README.md) consumes published
 demonstrates forms, validation, typed actions and live updates with ordinary HTML/CSS. It has its
 own Gradle wrapper and can be copied outside this repository.
 
+The [Spring PetClinic reference](petclinic-woge/README.md) adds owner search and native visit capture
+to a pinned upstream application. Run its standalone verification against the pinned checkout.
+
 Maintained documentation examples live below this directory and join the root verification build once
 they are executable. They use supported public APIs and compile in `./gradlew check`.
 
