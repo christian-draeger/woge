@@ -1,0 +1,69 @@
+name: Documentation preview
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs-preview.yml"
+      - "site/**"
+      - "docs/**"
+      - "build-logic/**"
+      - "config/**"
+      - "gradle/**"
+      - "gradlew"
+      - "gradle.properties"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+      - "modules/woge-core/**"
+      - "modules/**/src/**/*.kt"
+      - "examples/**/src/**/*.kt"
+      - "scaffolds/**/src/**/*.kt"
+      - "examples/todo-spring-boot/package*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  static-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: examples/todo-spring-boot/package-lock.json
+      - name: Build and validate static documentation
+        run: ./gradlew -p site/generator check -PsiteBasePath=/woge/
+      - name: Install pinned browser test tooling
+        working-directory: examples/todo-spring-boot
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Verify the static project subpath in Chromium
+        env:
+          NODE_PATH: ${{ github.workspace }}/examples/todo-spring-boot/node_modules
+        run: |
+          preview="$(mktemp -d)"
+          ln -s "$PWD/site/generator/build/site" "$preview/woge"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory "$preview" &
+          server=$!
+          trap 'kill "$server"; rm -rf "$preview"' EXIT
+          curl --fail --silent --show-error --retry 10 --retry-connrefused http://127.0.0.1:4173/woge/ --output /dev/null
+          node site/generator/browser-check.cjs http://127.0.0.1:4173/woge/
+      - name: Upload static preview
+        uses: actions/upload-artifact@v7
+        with:
+          name: woge-docs-preview
+          path: site/generator/build/site/
+          if-no-files-found: error
+          retention-days: 14
