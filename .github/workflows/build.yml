@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.event_name == 'push' && 'woge-build-main' || format('woge-build-{0}', github.run_id) }}
+  queue: max
+
 jobs:
   todo-consumer:
     runs-on: ubuntu-latest
@@ -208,3 +212,31 @@ jobs:
             build/reports/scaffold-browser/**
             **/build/reports/**
             **/build/test-results/**
+
+  publish-central-snapshot:
+    name: Publish Maven Central snapshot
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check, todo-consumer, production-deployment, reference-browser-smoke, example-browser-smoke]
+    environment: maven-central-snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Publish checked Maven snapshot artifacts
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralSnapshotsUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralSnapshotsPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: |
+          ./gradlew publishMavenCentralSnapshot -PwogePublishCentralSnapshot=true \
+            --no-configuration-cache --console=plain

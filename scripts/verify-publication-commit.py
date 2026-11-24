@@ -9,7 +9,10 @@ from urllib.request import Request, urlopen
 
 REPOSITORY = "christian-draeger/woge"
 REQUIRED_CHECKS = {"check", "production-deployment", "reference-browser-smoke", "example-browser-smoke"}
-PUBLICATION_CHECKS = {"Publication gate", "Publish packages", "Todo image gate", "Publish Todo image"}
+PUBLICATION_CHECKS = {
+    "Publication gate", "Publish packages", "Todo image gate", "Publish Todo image",
+    "Publish Maven Central snapshot",
+}
 
 
 def validate_checks(checks):
