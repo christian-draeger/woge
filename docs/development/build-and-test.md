@@ -83,6 +83,7 @@ retains those windows.
 To run the same sequence locally with Docker available:
 
 ```shell
+export WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS=true
 WOGE_TCK_UPLOAD_DIAGNOSTICS=true ./gradlew clean check --no-build-cache --stacktrace
 docker pull nginx:1.28-alpine
 python3 testing/diagnostics/multipart-ci.py
@@ -93,6 +94,10 @@ Multipart failures print a bounded, request-correlated in-memory timeline in the
 fixtures include Netty connection IDs, body subscription/demand/completion/cancellation, coroutine
 decoder entry/exit, response completion and temporary-file lifecycle. Events contain timings, byte
 counts and exception types, without request bodies, header values, filenames or temporary paths.
+The dedicated workflow enables `WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS` for WebFlux socket reads and
+HTTP framing. Before the next request header is decoded, incoming socket bytes are attributed to
+the preceding fixture ID on the same connection. Compare those arrivals with request framing and
+handler entry to locate a delay. These events add only counts, connection IDs and loopback ports.
 Client body publication proves delivery to the JDK client, not that bytes reached the network.
 Passing attempts establish only that the original timeout was not reproduced; they do not resolve
 [#278](https://github.com/christian-draeger/woge/issues/278).

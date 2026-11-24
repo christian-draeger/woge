@@ -65,6 +65,11 @@ tasks.test {
     val updatingPerformanceBaseline = updatePerformanceBaseline == "true"
     outputs.upToDateWhen { !updatingPerformanceBaseline }
 
+    inputs.property("uploadDiagnostics", providers.environmentVariable("WOGE_TCK_UPLOAD_DIAGNOSTICS").orElse("false"))
+    inputs.property(
+        "uploadTransportDiagnostics",
+        providers.environmentVariable("WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS").orElse("false"),
+    )
     inputs.property("streamProxyProfile", providers.environmentVariable("WOGE_STREAM_PROXY_PROFILE").orElse("nginx"))
     inputs.property("streamProxyScript", providers.environmentVariable("WOGE_STREAM_PROXY_SCRIPT").orElse(""))
     inputs.files(
