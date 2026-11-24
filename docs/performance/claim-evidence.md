@@ -31,12 +31,18 @@ Rows C01–C05 share the archived raw dataset. The earlier unisolated baseline u
 environment and workload behavior and remains a separate historical record.
 [First-stage measurements](../../spikes/todo-framework-comparison/results.md)
 
+## Shared reference deferred project
+
+| ID and status | Use case, metric and result | Limits and revalidation | Supported wording |
+| --- | --- | --- | --- |
+| C09 verified, bounded | Independently packaged Woge WebFlux, MVC and Ktor each completed the same read-only deferred project journey at 8 and 24 scheduled arrivals/s. All 2,304 measured journeys were correct within 750 ms, and median round p95 values across hosts were 380.1–387.7 ms. [Study and raw evidence](reference-project-deferred-2026-11-25.md) | Linux arm64, Temurin 21.0.12.1+1, 2 CPU and 2 GiB, three eight-second blocks per host and rate. The immutable fixture includes a 360 ms regional delay. Revalidate after changing the project fixture, host packages, protocol or runtime. Capacity and renderer comparisons require separate measurements. | The same deferred Woge project completed correctly on all three tested hosts at both declared load points. |
+
 ## Claims awaiting matching evidence
 
 | ID and status | Question and current evidence boundary | Revalidation and supported wording |
 | --- | --- | --- |
 | C06 unmeasured | Independent deployment footprint and build speed. The [recorded build runs](../../spikes/todo-framework-comparison/evidence/2026-10-20-build.json) measured one combined classpath with warm caches. The shared distribution also bounds startup/RSS conclusions. | Require independently packaged equivalent applications and declared build/cache conditions. The archived build timings describe the common fixture. [Independent deployment study](https://github.com/christian-draeger/woge/issues/277) |
-| C07 unmeasured | Arrival-rate capacity and comparable deferred completion under load. The frozen runs used closed-loop load. | Require scheduled-arrival results and equivalent deferred behavior where claimed. Current evidence describes scoped closed-loop resource and timing observations. [Expanded performance study](https://github.com/christian-draeger/woge/issues/293) |
+| C07 unmeasured | Arrival-rate capacity and cross-renderer deferred completion under load. The frozen runs used closed-loop load. C09 covers two offered-load points for the same Woge workload. | Require scheduled-arrival results and equivalent deferred behavior where claimed. Current evidence describes scoped closed-loop resource and timing observations. [Expanded performance study](https://github.com/christian-draeger/woge/issues/293) |
 | C08 unmeasured | Comparative human or agent developer productivity on equivalent current tasks. The [beta Todo agent run](../ai-dx/results/2026-11-24-beta-todo-agent.md) is one candidate engineering run with prior project context. | Require comparable participants, tasks and versions with an unaided control and matching gates. The beta agent run shows completion of three scoped tasks in its setup. [Human control](https://github.com/christian-draeger/woge/issues/181) · [Comparative study](https://github.com/christian-draeger/woge/issues/292) |
 
 Review all affected wording when a workload, published artifact, comparator, platform, support
