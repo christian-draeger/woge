@@ -69,6 +69,29 @@ Use the [comparison contract](../../docs/performance/comparison-contract.md) for
 performance experiments and comparisons. The separate packaged
 [Todo release](../../docs/guides/todo-container.md) has its own version and deployment rules.
 
+### Build a local reference image
+
+With Docker running, build exactly one of the same packaged hosts. The runner uses a pinned
+Java 21 image and records the source revision, Woge version, packaged file hashes, platform
+and image ID under `build/reference-demo`.
+
+```shell
+python3 scripts/reference-demo.py image spring-webflux
+python3 scripts/reference-demo.py image spring-mvc
+python3 scripts/reference-demo.py image ktor
+```
+
+Substitute the image tag printed by the selected build.
+
+```shell
+docker run --rm --cpus 2 --memory 512m --read-only --tmpfs /tmp \
+  -p 127.0.0.1:18083:8080 woge-reference-ktor:<printed-revision>
+```
+
+Open `http://127.0.0.1:18083/projects/woge`. Use the same limits and pin the image ID for a
+controlled study. These images are local source builds. The in-memory fixture resets when
+the container exits. The port mapping keeps the demonstration on loopback.
+
 ## Follow the web flow
 
 1. `GET /projects/woge` returns the heading, navigation, native complete-page link and three useful

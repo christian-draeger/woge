@@ -1,4 +1,5 @@
-FROM eclipse-temurin:21-jre
+ARG BASE_IMAGE=eclipse-temurin:21-jre
+FROM ${BASE_IMAGE}
 ARG HOST
 COPY ${HOST}/ /opt/app/
 USER 10001:10001
