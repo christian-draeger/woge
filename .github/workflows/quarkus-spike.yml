@@ -7,6 +7,9 @@ on:
       - "spikes/quarkus-host/**"
       - "examples/complexity-gradient/**/t01staticpage/**"
       - "examples/complexity-gradient/**/static-page/**"
+      - "examples/complexity-gradient/**/t06deferredregion/**"
+      - "examples/complexity-gradient/**/deferred-region/**"
+      - "client/woge-fallback-client/package-lock.json"
 
 permissions:
   contents: read
@@ -14,7 +17,7 @@ permissions:
 jobs:
   jvm:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -28,6 +31,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
@@ -38,6 +44,11 @@ jobs:
           ./gradlew -p spikes/quarkus-host test quarkusBuild --console=plain \
             -PwogeRepository="$GITHUB_WORKSPACE/build/quarkus-pilot-source/build/scaffold-maven-repository"
           test -s spikes/quarkus-host/build/quarkus-app/quarkus-run.jar
+      - name: Check the packaged Quarkus browser journeys
+        run: |
+          npm --prefix client/woge-fallback-client ci --ignore-scripts
+          npm --prefix client/woge-fallback-client exec -- playwright install --with-deps chromium
+          node spikes/quarkus-host/verify.mjs
       - name: Archive the HTTP test report
         if: always()
         uses: actions/upload-artifact@v7
