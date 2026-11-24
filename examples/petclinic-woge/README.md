@@ -47,6 +47,32 @@ from the Woge repository and pass its absolute `build/scaffold-maven-repository`
 Use the same version for publication and consumption. Verify either build with the same properties
 and the `test` task in place of `bootRun`.
 
+## Try the secured owner suggestions
+
+Enter `Fr` in the Woge search. After two characters, the island asks for up to eight matches and
+renders ordinary links. Use Tab to reach the links, Escape to close the suggestions, or **Find
+owners** to run the regular paged search. A search with JavaScript off can reach every page in the
+fixture. See the [widget decision guide](../../docs/guides/data-display-and-complex-inputs.md#decide-how-much-autocomplete-to-add).
+
+The server applies the existing Spring Security session and returns owner IDs and display names.
+The detail page resolves the ID again. A new query cancels the old browser read, and an older
+response cannot replace current results. The module loads on the Woge search page through the
+existing Island loader, without a separate browser build or a second widget runtime.
+
+Use the same Gradle arguments above with `test bootJar`. For the optional Chromium test, use JDK 21,
+Node 24 and the browser client's pinned Playwright install from the Woge checkout.
+
+```sh
+npm --prefix client/woge-fallback-client ci --ignore-scripts
+npm --prefix client/woge-fallback-client exec -- playwright install chromium
+node examples/petclinic-woge/browser-tests/owner-suggestions.mjs
+```
+
+The browser test starts the JAR on loopback and adds 80 synthetic owner rows to a disposable H2
+database. It checks native paging, keyboard and emulated touch selection, strict CSP, a stale
+response, and fallback after a failed import or unavailable endpoint. Physical touch and
+assistive-technology review remain [manual work](https://github.com/christian-draeger/woge/issues/253).
+
 ## Try the Thymeleaf baseline
 
 Set `PETCLINIC_WOGE_ENABLED=false` before startup and open `/owners/find`. The flag controls the Woge

@@ -2,24 +2,24 @@ package org.springframework.samples.petclinic.woge
 
 import dev.woge.host.FailureCategory
 import dev.woge.host.PageUseCase
+import dev.woge.host.ResponseHeaders
+import dev.woge.host.ResponseMetadata
 import dev.woge.host.WogeRoute
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
+import dev.woge.host.httpHeader
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
 import dev.woge.html.applicationUrl
 import dev.woge.html.body
-import dev.woge.html.button
-import dev.woge.html.form
 import dev.woge.html.h1
 import dev.woge.html.h2
 import dev.woge.html.head
 import dev.woge.html.html
-import dev.woge.html.input
-import dev.woge.html.label
 import dev.woge.html.li
 import dev.woge.html.main
 import dev.woge.html.metadata
+import dev.woge.html.nav
 import dev.woge.html.p
 import dev.woge.html.title
 import dev.woge.html.ul
@@ -28,8 +28,6 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.samples.petclinic.owner.OwnerRepository
@@ -40,7 +38,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping
 
 @WogeRoute("/woge/owners")
-data class ClinicSearchInput(val lastName: String? = null)
+data class ClinicSearchInput(val lastName: String? = null, val page: Int? = null)
 
 @WogeRoute("/woge/owners/{ownerId}")
 data class ClinicOwnerInput(val ownerId: Int)
@@ -51,32 +49,35 @@ class ClinicPages {
     @Bean
     fun clinicRoutes(
         owners: OwnerRepository,
+        directory: ClinicOwnerDirectory,
         handlers: WogeSpringMvcHandlers,
     ): SimpleUrlHandlerMapping {
         val search = PageUseCase<ClinicSearchInput> { request ->
             val lastName = request.input.lastName.orEmpty()
-            val matches = owners.findByLastNameStartingWith(
-                lastName,
-                PageRequest.of(0, 20, Sort.by("lastName", "firstName", "id")),
-            )
-            htmlPage {
-                clinicDocument("Find owners") {
-                    form(attributes = { url("action", ClinicSearchRoute.url(ClinicSearchInput())) }) {
-                        label(attributes = { attribute("for", "last-name") }) { text("Last name") }
-                        input(attributes = {
-                            attribute("id", "last-name")
-                            attribute("name", "lastName")
-                            attribute("value", lastName)
-                        })
-                        button { text("Find owners") }
-                    }
-                    if (matches.isEmpty) p { text("No matching owners.") }
-                    ul {
-                        for (owner in matches) {
+            val page = request.input.page ?: 0
+            if (lastName.length > MAX_OWNER_PREFIX || page !in 0..MAX_OWNER_PAGE) {
+                return@PageUseCase failure(FailureCategory.BAD_REQUEST, request.context.correlationId)
+            }
+            val matches = directory.lookup(lastName.trim(), page * OWNER_PAGE_SIZE, OWNER_PAGE_SIZE + 1)
+            htmlPage(ResponseMetadata(headers = ownerSearchHeaders)) {
+                clinicDocument("Find owners", headExtras = { clinicOwnerSearchAssets() }) {
+                    clinicOwnerSearchForm(lastName)
+                    if (matches.isEmpty()) p { text("No matching owners.") }
+                    ul(attributes = { attribute("aria-label", "Owner search results") }) {
+                        for (owner in matches.take(OWNER_PAGE_SIZE)) {
                             li {
                                 a(attributes = {
-                                    url("href", ClinicOwnerRoute.url(ClinicOwnerInput(requireNotNull(owner.id))))
-                                }) { text("${owner.firstName} ${owner.lastName}") }
+                                    url("href", ClinicOwnerRoute.url(ClinicOwnerInput(owner.id)))
+                                }) { text(owner.label) }
+                            }
+                        }
+                    }
+                    val hasNext = page < MAX_OWNER_PAGE && matches.size > OWNER_PAGE_SIZE
+                    if (page > 0 || hasNext) {
+                        nav(attributes = { attribute("aria-label", "Owner search pages") }) {
+                            ul {
+                                if (page > 0) li { ownerPageLink(lastName, page - 1, "Previous page") }
+                                if (hasNext) li { ownerPageLink(lastName, page + 1, "Next page") }
                             }
                         }
                     }
@@ -137,6 +138,7 @@ class ClinicVisitBridge(
 
 private fun HtmlWriter.clinicDocument(
     heading: String,
+    headExtras: HtmlWriter.() -> Unit = {},
     content: HtmlWriter.() -> Unit,
 ) {
     doctype()
@@ -144,6 +146,7 @@ private fun HtmlWriter.clinicDocument(
         head {
             metadata("viewport", "width=device-width, initial-scale=1")
             title("$heading · PetClinic")
+            headExtras()
         }
         body {
             main {
@@ -153,3 +156,16 @@ private fun HtmlWriter.clinicDocument(
         }
     }
 }
+
+private fun HtmlWriter.ownerPageLink(lastName: String, page: Int, label: String) {
+    a(attributes = { url("href", ClinicSearchRoute.url(ClinicSearchInput(lastName, page))) }) { text(label) }
+}
+
+private const val OWNER_PAGE_SIZE = 20
+private const val MAX_OWNER_PAGE = 1_000
+private val ownerSearchHeaders = ResponseHeaders.of(
+    httpHeader(
+        "Content-Security-Policy",
+        "default-src 'none'; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    ),
+)

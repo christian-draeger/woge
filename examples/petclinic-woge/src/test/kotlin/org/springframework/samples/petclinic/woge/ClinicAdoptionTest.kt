@@ -5,6 +5,10 @@ import dev.woge.host.ACTION_VALIDATION_HEADER
 import dev.woge.protocol.PatchStreamEvent
 import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.ReplacePatch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.jsoup.Jsoup
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,6 +17,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.web.server.context.ConfigurableWebServerApplicationContext
 import org.springframework.samples.petclinic.PetClinicApplication
+import org.springframework.samples.petclinic.owner.Owner
 import org.springframework.samples.petclinic.owner.OwnerRepository
 import java.net.CookieManager
 import java.net.URI
@@ -102,6 +107,7 @@ class ClinicAdoptionTest {
             client.login()
 
             assertEquals(404, client.get("/woge/owners").statusCode())
+            assertEquals(404, client.get("/woge/owner-suggestions?lastName=Fr", "application/json").statusCode())
             assertEquals(404, client.get("/woge$ownerPath").statusCode())
             assertEquals(404, client.get(wogeVisitPath).statusCode())
             val owner = client.get(ownerPath)
@@ -224,6 +230,63 @@ class ClinicAdoptionTest {
             assertTrue(owner.text().contains(visit))
             assertTrue(client.get("/woge/owners/1").body().contains("Check &lt;and&gt; review"))
             assertEquals(1, visitCount(app, visit))
+        }
+    }
+
+    @Test
+    fun `secured suggestions project eight owners and native paging reaches the rest`(@TempDir database: Path) {
+        val databaseUrl = "jdbc:h2:file:${database.resolve("petclinic").toAbsolutePath()}"
+        val path = "/woge/owner-suggestions"
+        startClinic(databaseUrl, wogeEnabled = true, initMode = "always").use { app ->
+            val owners = app.getBean(OwnerRepository::class.java)
+            owners.saveAll((1..80).map { number ->
+                Owner().apply {
+                    firstName = "Resident " + number.toString().padStart(2, '0')
+                    lastName = "North"
+                    address = "Fixture street"
+                    city = "Fixture town"
+                    telephone = "1234567890"
+                }
+            })
+            val client = ClinicClient(app)
+            val anonymous = client.get("$path?lastName=No", accept = "application/json")
+            assertTrue(anonymous.statusCode() in setOf(302, 401))
+            assertTrue(!anonymous.body().contains("Resident"))
+            client.login()
+
+            val suggestion = client.get("$path?lastName=No", accept = "application/json")
+            assertEquals(200, suggestion.statusCode())
+            assertTrue(suggestion.headers().firstValue("Cache-Control").orElseThrow().contains("no-store"))
+            val matches = Json.parseToJsonElement(suggestion.body()).jsonArray
+            assertEquals(8, matches.size)
+            assertEquals(setOf("id", "label"), matches.first().jsonObject.keys)
+            assertEquals("Resident 01 North", matches.first().jsonObject["label"]?.jsonPrimitive?.content)
+            for (prefix in listOf("N", "Nor%25", "No_")) {
+                val result = client.get("$path?lastName=$prefix", accept = "application/json")
+                assertEquals(200, result.statusCode())
+                assertEquals(0, Json.parseToJsonElement(result.body()).jsonArray.size)
+            }
+            assertEquals(400, client.get("$path?lastName=${"x".repeat(41)}", "application/json").statusCode())
+            assertEquals(400, client.get("/woge/owners?page=-1").statusCode())
+
+            var pagePath = "/woge/owners?lastName=No"
+            repeat(4) { pageIndex ->
+                val response = client.get(pagePath)
+                assertEquals(200, response.statusCode())
+                assertTrue(
+                    response.headers().firstValue("Content-Security-Policy").orElseThrow().contains("script-src 'self'"),
+                )
+                val page = Jsoup.parse(response.body())
+                val results = page.select("ul[aria-label=Owner search results] a")
+                assertEquals(20, results.size)
+                if (pageIndex < 3) {
+                    pagePath = requireNotNull(page.selectFirst("a:containsOwn(Next page)")).attr("href")
+                } else {
+                    assertEquals("Resident 80 North", results.last()!!.text())
+                    assertTrue(page.select("a:containsOwn(Next page)").isEmpty())
+                    assertEquals(200, client.get(results.last()!!.attr("href")).statusCode())
+                }
+            }
         }
     }
 

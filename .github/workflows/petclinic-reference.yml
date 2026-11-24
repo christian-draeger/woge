@@ -1,0 +1,62 @@
+name: PetClinic reference
+
+on:
+  pull_request:
+    paths:
+      - "examples/petclinic-woge/**"
+      - ".github/workflows/petclinic-reference.yml"
+  push:
+    branches: [main]
+    paths:
+      - "examples/petclinic-woge/**"
+      - ".github/workflows/petclinic-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  petclinic-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: spring-projects/spring-petclinic
+          ref: 500158f732419217507c7656904b8e6aa1bcc0d6
+          path: build/petclinic-upstream
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: client/woge-fallback-client/package-lock.json
+      - name: Build and test the isolated consumer with source-matched artifacts
+        run: |
+          ./gradlew publishScaffoldArtifacts -PwogeVersion=0.1.0-SNAPSHOT --console=plain
+          ./gradlew -p examples/petclinic-woge test bootJar --console=plain \
+            -PpetclinicSource="$GITHUB_WORKSPACE/build/petclinic-upstream" \
+            -PwogeRepository="$GITHUB_WORKSPACE/build/scaffold-maven-repository" \
+            -PwogeVersion=0.1.0-SNAPSHOT
+      - name: Verify the packaged owner search with Chromium
+        run: |
+          npm --prefix client/woge-fallback-client ci --ignore-scripts
+          npm --prefix client/woge-fallback-client exec -- playwright install --with-deps chromium
+          node examples/petclinic-woge/browser-tests/owner-suggestions.mjs
+      - name: Retain the consumer test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: petclinic-reference-reports
+          if-no-files-found: warn
+          path: |
+            examples/petclinic-woge/build/reports/tests/**
+            examples/petclinic-woge/build/test-results/**
