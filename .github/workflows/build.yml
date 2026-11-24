@@ -61,6 +61,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS: "true"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -140,6 +142,8 @@ jobs:
       - name: Run the reference application browser gate
         run: ./gradlew referenceBrowserSmoke --stacktrace
       - name: Run native form browser contracts on all hosts
+        env:
+          WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS: "true"
         run: |
           WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
             ./gradlew :woge-spring-mvc:test :woge-spring-webflux:test :woge-ktor:test \
