@@ -88,3 +88,6 @@ surrogate pairs, normalizes NUL and isolated surrogates and preserves each conte
 Bytecode inspection confirmed primitive character appends.
 
 [Source and all eight paired runs](../../testing/performance/evidence/2026-11-24-board-escape-pairs.json.gz)
+
+The [enhanced Todo action profile](todo-action-profile-2026-11-25.md) follows
+this renderer work with the real HTTP action, frame and process measurements.
