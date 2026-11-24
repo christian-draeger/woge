@@ -5,7 +5,7 @@ HTML updates. Start with a small workflow that works through links and forms, th
 enhancement helps. If an existing template and fragment setup already meets the same requirements
 with less change, keep it. For a screen dominated by offline work or rich client-owned editing,
 evaluate a client-owned approach against that workflow.
-[MVP scope](../mvp-boundary.md) · [What is tested on each host](../architecture/server-adapter-parity.md)
+[MVP scope](../mvp-boundary.md) · [What is tested on each host](../architecture/server-adapter-parity.md) · [Content and browser-owned work](product-boundaries.md)
 
 This first product evidence review is dated **2026-11-24**. Confidence below describes the tested
 fixture and use case. The [claim register](../performance/claim-evidence.md) supplies scoped wording
