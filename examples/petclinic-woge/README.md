@@ -59,6 +59,38 @@ in `ClinicPages.kt` use the MVC starter, the MVC adapter, and KSP for typed page
 test restarts the application on the same test database and checks that a saved visit remains visible
 and that another visit can be booked with the Thymeleaf form.
 
+## What the integration adds
+
+The integration adds three Kotlin production source files alongside the shared security and
+JSON fixture. The Gradle build adds KSP and the Woge plugin for typed routes, the MVC starter
+and adapter, and the version-matched browser assets. Existing application routes, the visit
+controller, and the repository are reused.
+
+A paired package build used PetClinic revision `500158f`, Spring Boot 4.1.1, Gradle 8.14.4,
+JDK 21.0.6 on macOS arm64, and the local `0.1.0-beta.1` pilot artifacts.
+The baseline kept the same Kotlin toolchain, Spring Security and JSON fixture, H2 seed,
+and Thymeleaf CSRF wiring. It omitted the three integration source files, their tests,
+the two Woge/KSP build plugins and the Woge runtime declarations.
+
+| Spring Boot archive | Whole JAR size | Nested runtime JARs |
+| --- | ---: | ---: |
+| Secured Thymeleaf baseline | 65,792,964 bytes | 90 |
+| Same application with Woge MVC integration | 70,583,189 bytes | 104 |
+| Difference | 4,790,225 bytes (7.3%) | 14 |
+
+Both packaged applications completed real HTTP checks for login, authenticated JSON, rejected
+missing CSRF, native invalid-date validation and a corrected visit saved once. Eight Woge
+artifacts and seven other runtime jars were added. A newer JetBrains annotations jar replaced
+the baseline version. These counts apply to the configured packaged MVC application. Startup,
+memory, load, and first-feature development time were outside this measurement.
+
+To reproduce the package comparison, build the application with the properties above, then
+duplicate the example directory. In the copy, keep `ClinicBaseline.kt` and the shared settings,
+dependencies and resources. Remove the Woge production and test files, the Woge/KSP plugin
+declarations, the three `dev.woge` dependencies and the Woge repository/version configuration.
+Build both copies with `bootJar` and the same upstream checkout. Compare the executable file
+sizes in `build/libs` and the archive entries under `BOOT-INF/lib/`.
+
 The reference uses synthetic data. Every signed-in user may access the seeded owners. Deferred
 refresh, live reconnect, reverse-proxy and WebFlux adoption evidence are tracked in
 [the follow-up integration work](https://github.com/christian-draeger/woge/issues/286).
