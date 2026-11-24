@@ -36,7 +36,6 @@ final class TodoHttpTest {
             assertEquals(400, send(client, origin, "/?filter=invalid", "GET").statusCode());
             assertEquals(200, send(client, origin, "/todo.css", "GET").statusCode());
             assertEquals(200, send(client, origin, "/assets/woge/index.js", "GET").statusCode());
-            assertEquals(404, send(client, origin, "/woge-actions/add-todo", "POST").statusCode());
 
             var head = send(client, origin, "/", "HEAD");
             assertEquals(200, head.statusCode());

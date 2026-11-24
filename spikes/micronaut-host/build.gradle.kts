@@ -38,16 +38,19 @@ dependencies {
     implementation(platform(micronautPlatform))
     annotationProcessor(platform(micronautPlatform))
     implementation("io.micronaut:micronaut-http-server-netty")
+    implementation("io.micronaut.security:micronaut-security")
     runtimeOnly("io.micronaut:micronaut-jackson-databind")
     annotationProcessor("io.micronaut:micronaut-inject-java")
 
     implementation("dev.woge:woge-host-spi:$wogeVersion")
+    implementation("dev.woge:woge-server-runtime:$wogeVersion")
     ksp("dev.woge:woge-ksp:$wogeVersion")
     runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testImplementation("org.jsoup:jsoup:1.23.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
 }
 
