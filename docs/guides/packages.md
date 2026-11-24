@@ -1,7 +1,22 @@
-# Use Woge from GitHub Packages
+# Install Woge in a Gradle project
 
-Woge's first Maven registry is `https://maven.pkg.github.com/christian-draeger/woge`.
-Version `0.1.0-alpha.1` is available; check the repository's Packages page for newer versions.
+The Spring Boot scaffold resolves `0.1.0-SNAPSHOT` anonymously from Maven Central. The checked
+`main` build publishes a new snapshot after a successful push. The `0.1.0-alpha.1` release is
+available from GitHub Packages with authentication.
+
+## Consume Maven Central snapshots
+
+From a materialized [Spring Boot scaffold](../../scaffolds/spring-boot/README.md) with JDK 21:
+
+```shell
+./gradlew check bootJar
+```
+
+The scaffold reads `wogeVersion` from `gradle.properties`. Use `-PwogeSpringAdapter=mvc` to select
+Spring MVC. In other builds, use `https://central.sonatype.com/repository/maven-snapshots/` in
+`pluginManagement.repositories` for Woge plugin markers and in
+`dependencyResolutionManagement.repositories` for Woge libraries. Use the same snapshot version for
+plugins, libraries and browser assets. A snapshot can change between builds.
 
 ## Authenticate once in your shell
 
@@ -23,7 +38,7 @@ Clear both variables when finished. CI consumers may use a repository secret or 
 with `packages:read` and explicit package access; a token from another repository does not
 automatically have access.
 
-## Configure a standalone Gradle application
+## Configure GitHub Packages in a standalone application
 
 Add the registry in **both** sections of your application's `settings.gradle.kts`.
 You do not need the Woge checkout, an included Woge build or a local Maven repository.
@@ -60,23 +75,8 @@ The first repository resolves plugin markers such as `dev.woge.spring-boot`; the
 libraries such as `dev.woge:woge-spring-boot-starter`. Set the same published `wogeVersion` for
 the Woge plugins, libraries and `dev.woge:woge-fallback-client-assets`.
 The [Spring Boot scaffold](../../scaffolds/spring-boot/README.md) already has both sections.
-Its `-PwogeRepository=/path/to/repository` override still uses only the build-local registry for
-Woge and does not require GitHub credentials.
-
-## Consume Maven Central snapshots
-
-To try the latest Woge snapshot from the configured Spring Boot scaffold, point both its dependency
-and plugin lookups at the public snapshot repository with `wogeRepository`. Set `wogeVersion` to
-the version on Woge's `main` branch.
-
-```shell
-./gradlew check \
-  -PwogeRepository=https://central.sonatype.com/repository/maven-snapshots/ \
-  -PwogeVersion=0.1.0-SNAPSHOT
-```
-
-For other builds, add the same URL to `pluginManagement.repositories` and
-`dependencyResolutionManagement.repositories` for Woge artifact and marker groups.
+Set `wogeVersion` to `0.1.0-alpha.1` to select that registry with the scaffold. You can point the
+scaffold at an explicit Maven repository with `-PwogeRepository=/path/to/repository`.
 
 ## Minimal Gradle project
 

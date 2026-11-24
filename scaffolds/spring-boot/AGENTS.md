@@ -7,7 +7,7 @@ use the same public APIs, compiler feedback, examples and documentation.
 
 ## Version-matched baseline
 
-- Scaffold: `spring-boot` 0.3.1
+- Scaffold: `spring-boot` 0.3.2
 - Woge: 0.1.0-SNAPSHOT
 - Kotlin: 2.4.10
 - Spring Boot: 4.1.1

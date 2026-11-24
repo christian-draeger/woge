@@ -43,9 +43,8 @@ For a small standalone starting point, see the
 coordinates, defaults to WebFlux, can select MVC explicitly and starts with type-safe semantic HTML and
 ordinary modern CSS without requiring Node.js.
 
-To use Woge in your own Gradle build, see the
-[minimal Gradle project](docs/guides/packages.md#minimal-gradle-project) (GitHub Packages, version
-`0.1.0-alpha.1`).
+To use Woge in your own Gradle build, see the guide for
+[anonymous Maven Central snapshots](docs/guides/packages.md#consume-maven-central-snapshots).
 
 ## Direction
 
@@ -76,4 +75,4 @@ Woge is licensed under the [Apache License 2.0](LICENSE).
 
 | Area | Current delivery and next step |
 | --- | --- |
-| Packages | [Authenticated GitHub Packages consumption](docs/guides/packages.md) and [explicit Maven publication](docs/development/publishing.md); Maven Central remains later work. |
+| Packages | [Maven Central snapshots and GitHub Packages alpha](docs/guides/packages.md), [publication workflow](docs/development/publishing.md) |

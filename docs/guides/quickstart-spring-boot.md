@@ -22,8 +22,8 @@ Spring Boot's WebFlux starter, or `woge-spring-mvc` and its web starter. Boot su
 The scaffold applies KSP and the matching Woge processor; commands also need Kotlin's serialization
 plugin. Add the version-matched `woge-fallback-client-assets` dependency for enhancement. This
 [example build](../../examples/reference-application/shared/build.gradle.kts) already includes it.
-Until artifacts are published, use the scaffold's documented local repository setup. The planned
-Gradle setup is in [Minimal Gradle project](packages.md#minimal-gradle-project).
+The scaffold can [resolve snapshots anonymously from Maven Central](packages.md#consume-maven-central-snapshots).
+The [minimal Gradle project](packages.md#minimal-gradle-project) shows the dependency setup.
 
 ## First, submit without JavaScript
 

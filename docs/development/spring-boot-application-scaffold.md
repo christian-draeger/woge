@@ -15,8 +15,8 @@ From the Woge checkout:
 ```
 
 The target must be absent or empty. The script copies the versioned application files and the checked-in
-Gradle wrapper; it does not create links back to Woge source. Before public Woge artifacts exist, use
-the repository verification tasks below rather than hand-editing dependency coordinates.
+Gradle wrapper into a standalone application. Its pinned Woge snapshot resolves from Maven Central.
+The repository verification tasks below can also exercise a locally built candidate.
 
 WebFlux is the default. The optional `mvc` argument persists MVC as `wogeSpringAdapter`. Both choices
 compile the same `src/main` application and exactly one small host source set. The materializer also

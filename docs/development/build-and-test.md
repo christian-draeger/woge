@@ -158,6 +158,6 @@ role and dependencies. The production projects and allowed edges are documented 
 
 The scaffold contains no saved publishing credentials, automatic snapshots or template-specific release assumptions.
 The root build now reuses its local Maven publications for
-[explicit GitHub Packages publication](publishing.md); Maven Central remains later work.
+[the GitHub Packages and Maven Central publishing workflows](publishing.md).
 Its selectively adopted template patterns and deliberate omissions are recorded in
 [Repository scaffold provenance](scaffold-provenance.md).
