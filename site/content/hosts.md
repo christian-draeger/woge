@@ -24,7 +24,7 @@ Each host has an independent launcher for the shared reference application. Use 
 
 [Install Woge](https://github.com/christian-draeger/woge/blob/main/docs/guides/packages.md) · [Pilot and release decision](https://github.com/christian-draeger/woge/issues/50) · [Compatibility and upgrades](https://github.com/christian-draeger/woge/blob/main/docs/guides/compatibility-and-upgrades.md)
 
-For public APIs, start with the guide for your host and task and follow its compiled source links. The publication's documentation JAR contains maintained guides. [Canonical documentation](https://github.com/christian-draeger/woge/blob/main/docs/README.md) · [Published artifact contents](https://github.com/christian-draeger/woge/blob/main/docs/development/publishing.md)
+For public APIs, start with the guide for your host and task and follow its compiled source links. The publication's documentation JAR contains maintained guides. [Canonical documentation](https://github.com/christian-draeger/woge/blob/main/docs/README.md) · [Build the JVM API reference](https://github.com/christian-draeger/woge/tree/main/site/api-reference) · [Published artifact contents](https://github.com/christian-draeger/woge/blob/main/docs/development/publishing.md)
 
 ## Plan a real deployment
 

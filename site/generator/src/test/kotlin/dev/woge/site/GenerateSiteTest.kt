@@ -46,6 +46,9 @@ class GenerateSiteTest {
 
             Try [Start](start.md#shared-heading).
 
+            [Pinned source](https://github.com/christian-draeger/woge/blob/main/docs/README.md#guide)
+            and [issue](https://github.com/christian-draeger/woge/issues/301).
+
             | Host | Setup |
             | ---- | ----- |
             | Ktor | From source |
@@ -65,6 +68,10 @@ class GenerateSiteTest {
             document.select("nav a").eachText())
         assertEquals("/woge/index.html", document.selectFirst("nav a[aria-current=page]")!!.attr("href"))
         assertEquals("/woge/start.html#shared-heading", document.selectFirst("main a")!!.attr("href"))
+        assertEquals("https://github.com/christian-draeger/woge/blob/$revision/docs/README.md#guide",
+            document.select("main a").first { it.text() == "Pinned source" }.attr("href"))
+        assertEquals("https://github.com/christian-draeger/woge/issues/301",
+            document.select("main a").first { it.text() == "issue" }.attr("href"))
         assertEquals("Use Kotlin", document.selectFirst("#use-kotlin")!!.text())
         assertEquals(listOf("Host", "Setup"), document.select("thead th[scope=col]").eachText())
         assertEquals(workspace.resolve(sourcePath).readText(), document.selectFirst("pre > code.language-kotlin")!!.wholeText())
@@ -79,6 +86,11 @@ class GenerateSiteTest {
             document.selectFirst("link[rel=stylesheet]")!!.attr("href"),
             document.selectFirst("script[type=module]")!!.attr("src"),
         ).map { it.removePrefix("/woge/assets/") }.toSet())
+
+        val missing = Jsoup.parse(output.resolve("404.html").readText())
+        assertEquals("Page not found", missing.selectFirst("main h1")!!.text())
+        assertEquals("/woge/index.html", missing.selectFirst(".site-brand")!!.attr("href"))
+        assertTrue(missing.select("nav a[aria-current]").isEmpty())
     }
 
     @Test

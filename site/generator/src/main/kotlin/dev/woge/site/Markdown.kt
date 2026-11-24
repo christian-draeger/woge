@@ -49,6 +49,7 @@ private val headingSeparator = Regex("[^\\p{L}\\p{N}]+")
 private val snippetMarker = Regex("""<!-- snippet: ([A-Za-z0-9_./-]+[.]kt) -->""")
 private val snippetRoots = setOf("examples", "scaffolds", "modules")
 private val languageToken = Regex("[A-Za-z0-9_+-]+")
+private val sourceLink = Regex("^https://github[.]com/christian-draeger/woge/(blob|tree)/main/")
 
 internal fun headingAnchors(body: Node, filename: String): Map<Heading, String> {
     val headings = linkedMapOf<Heading, String>()
@@ -69,6 +70,7 @@ internal fun headingAnchors(body: Node, filename: String): Map<Heading, String> 
 internal class Markdown(
     private val repository: Path,
     private val basePath: String,
+    private val revision: String,
     private val pageAnchors: Map<String, Set<String>>,
 ) {
     fun render(writer: HtmlWriter, page: String, root: Node, headings: Map<Heading, String>) {
@@ -126,7 +128,11 @@ internal class Markdown(
 
     private fun linkUrl(page: String, destination: String): HtmlUrl {
         val uri = URI(destination)
-        if (uri.isAbsolute) return externalUrl(destination)
+        if (uri.isAbsolute) {
+            val source = sourceLink.find(destination) ?: return externalUrl(destination)
+            val pinned = source.value.replace("/main/", "/$revision/")
+            return externalUrl(pinned + destination.substring(source.value.length))
+        }
         require(uri.rawAuthority == null && uri.rawQuery == null && !destination.startsWith('/')) {
             "$page.md: expected an absolute external URL or a documentation page link, got '$destination'"
         }

@@ -49,8 +49,9 @@ internal fun generateSite(repository: Path, output: Path, basePath: String, vers
     require(versionFormat.matches(version)) { "Invalid Woge version" }
     require(revisionFormat.matches(revision)) { "siteRevision must be a full lowercase Git commit hash" }
 
-    val pages = navigation.keys.associateWith { readPage(repository.resolve("site/content/$it.md")) }
-    val markdown = Markdown(repository.toRealPath(), basePath, pages.mapValues { (_, page) -> page.anchors.values.toSet() })
+    val pages = navigation.keys.associateWith { readPage(repository.resolve("site/content/$it.md")) } +
+        ("404" to Page("Page not found", "Use the documentation navigation to find what you need.", contentParser.parse(""), emptyMap()))
+    val markdown = Markdown(repository.toRealPath(), basePath, revision, pages.mapValues { (_, page) -> page.anchors.values.toSet() })
     val static = repository.resolve("site/static")
     val css = readAsset(static.resolve("site.css"))
     val copy = static.resolve("copy.js").takeIf(Path::exists)?.let(::readAsset)
