@@ -76,5 +76,7 @@ The design and its limits are recorded in
 
 The [tested SDK/client matrix](../../spikes/development-mcp-clients/README.md) records real
 TypeScript/Python interoperability and the three-host build/fix/restart/cleanup gate.
+The [matched Todo feedback trial](../ai-dx/results/2026-11-25-beta-todo-mcp.md) compares two
+independent Codex sessions using terminal feedback and the real MCP endpoint.
 [ADR 0113](../adr/0113-retain-experimental-development-mcp.md) retains incubation; this evidence
 does not establish agent productivity or support for every current MCP capability.
