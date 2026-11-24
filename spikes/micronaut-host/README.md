@@ -1,6 +1,6 @@
-# Micronaut Todo action spike
+# Micronaut Todo spike
 
-Run the same Woge Todo page, generated filter and add action on an isolated Micronaut Netty server.
+Run the Woge Todo page, generated filter, add action and deferred counts on an isolated Micronaut Netty server.
 This is an opt-in JVM experiment for [#302](https://github.com/christian-draeger/woge/issues/302).
 
 ## Run the proof
@@ -16,7 +16,9 @@ with this spike present. It compiles the existing portable Todo page, commands a
 ```
 
 Open [the completed filter](http://127.0.0.1:8080/?filter=completed) and follow the ordinary
-filter links. The server listens on loopback. For an intentional local write, restart it with a
+filter links. Open [deferred Todo counts](http://127.0.0.1:8080/deferred) for an HTML shell with
+two independent regions. The shell links to the complete Todo list for visitors without JavaScript.
+The server listens on loopback. For an intentional local write, restart it with a
 fixture password supplied through the environment.
 
 ```sh
@@ -45,7 +47,7 @@ and real-server tests.
 | --- | --- |
 | Woge | Fixed local `0.1.0-beta.1` artifacts built at `7bf1e3e53aa8f4332828eec9231882aae1aee275`. The unchanged Todo source at `ab4028eaf88df1d48523583abc2aa0e9e91cf3e4` matches that candidate. |
 | Micronaut | Platform 4.10.25, resolved Core and HTTP server 4.10.37, Security 4.18.3 and Netty 4.2.20.Final. |
-| Kotlin and build | Kotlin/serialization plugin 2.4.10, Woge KSP on 2.3.12, coroutines and serialization runtime 1.11.0, Gradle 8.14.4. |
+| Kotlin and build | Kotlin/serialization plugin 2.4.10, Woge KSP on 2.3.12, coroutines, its Reactor bridge and serialization runtime 1.11.0, Reactor 3.7.12, Gradle 8.14.4. |
 | JVM and test environment | JDK 21.0.6 on macOS arm64 against a real Netty server on loopback. |
 
 Micronaut Java annotation processing and Woge Kotlin KSP run separately. The Micronaut platform
@@ -96,12 +98,36 @@ observes Reactor's cancellation signal and release of the running producer
 before opening the work gate. Both cases have bounded waits. The fixture is in
 the test source set and is excluded from the installed spike.
 
-The Todo add mutation still serves buffered HTML and patch responses. The raw
-stream proof is a Netty transport check. Woge deferred and live response wiring,
-context across suspend/subscribe boundaries, cookie/session lifecycle, browser
-enhancement, TLS/proxy behavior, other disconnect modes, sustained backpressure
-and the full adapter TCK need further evidence.
+## Woge deferred Todo document
 
+`GET /deferred` uses a portable Woge page over the existing in-memory Todo store.
+`InitialDocumentRuntime` renders the HTML shell and the original response carries
+Woge's framed fallback patches. The spike renders UTF-8 through Woge's shared
+per-frame renderer with one cumulative HTML budget per subscription. A cold
+coroutine-to-Reactor bridge collects the document off Netty's event loop.
+
+The real-server tests read the shell and patch preamble while both regions are
+held. They release the completed region first, decode its patch while the active
+region is still held, and check the page epoch from the original HTML. They
+observe the request-scoped Woge trace and authenticated reader across suspension.
+A controlled load failure produces safe replacement text and the normal protocol
+terminator. A late patch-budget failure omits the successful protocol terminator.
+A TCP reset after the shell cancels both suspended regions and runs their cleanup.
+In Chromium, the installed spike applied both fallback patches. With JavaScript
+disabled, the complete-list link opened the ordinary Todo page.
+
+```sh
+./gradlew -p spikes/micronaut-host -PwogeRepository=/absolute/path/to/pilot/repository \
+  --offline test --tests '*DeferredTodoHttpTest'
+```
+
+The Todo add mutation still serves buffered HTML and patch responses. This slice
+uses framed fallback on loopback HTTP/1.1. Native DPU, separate patch endpoints,
+live subscriptions, ambient Micronaut context, cookie/session lifecycle,
+TLS/proxy behavior, other disconnect modes, sustained backpressure and the full
+adapter TCK need further evidence.
+
+[Kotlin Flow-to-Reactor bridge](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-reactor/kotlinx.coroutines.reactor/as-flux.html) ·
 [Micronaut Netty source](https://repo.maven.apache.org/maven2/io/micronaut/micronaut-http-server-netty/4.10.37/micronaut-http-server-netty-4.10.37-sources.jar) ·
 [Spike acceptance criteria](https://github.com/christian-draeger/woge/issues/302) ·
 [Woge host boundary](../../docs/adr/0002-framework-neutral-host-boundary.md)

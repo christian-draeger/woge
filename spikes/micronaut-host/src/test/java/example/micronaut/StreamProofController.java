@@ -1,11 +1,17 @@
 package example.micronaut;
 
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import jakarta.annotation.PreDestroy;
 import reactor.core.publisher.Flux;
@@ -23,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Requires(property = "woge.stream-proof", value = "true")
 public final class StreamProofController {
     static final String PATH = "/stream-proof";
+    static final String DEFERRED_PATH = "/stream-proof/deferred";
     static final byte[] FIRST = {0, 60, (byte) 255, 10};
     static final byte[] LAST = {5, (byte) 128, 0};
 
@@ -33,6 +40,7 @@ public final class StreamProofController {
     final CountDownLatch terminated = new CountDownLatch(1);
     final AtomicReference<String> workerThread = new AtomicReference<>();
     final AtomicReference<SignalType> terminalSignal = new AtomicReference<>();
+    final DeferredTodoProbe deferred = new DeferredTodoProbe();
     private final Scheduler workers = Schedulers.newBoundedElastic(1, 1, "woge-stream-proof");
 
     @Get(value = PATH, produces = MediaType.APPLICATION_OCTET_STREAM)
@@ -46,6 +54,16 @@ public final class StreamProofController {
             terminated.countDown();
         });
         return HttpResponse.ok(bytes).contentType(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
+    @Get(value = DEFERRED_PATH, produces = MediaType.TEXT_HTML)
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    @ExecuteOn(TaskExecutors.IO)
+    public HttpResponse<Flux<byte[]>> deferred(
+            HttpRequest<?> request, @Nullable Authentication authentication,
+            @QueryValue(defaultValue = "false") boolean limited
+    ) {
+        return deferred.render(request, authentication, limited);
     }
 
     private byte[] produceLast() throws InterruptedException {
