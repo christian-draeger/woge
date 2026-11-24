@@ -38,15 +38,10 @@ import dev.woge.html.moduleScript
 import dev.woge.html.p
 import dev.woge.html.title
 import kotlinx.serialization.Serializable
-import java.math.BigDecimal
-import java.text.DecimalFormatSymbols
 import java.text.MessageFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.time.format.ResolverStyle
-import java.util.Locale
-import java.util.ResourceBundle
 
 /** The command preserves the wire text. The action turns that text into application values. */
 @Serializable
@@ -54,6 +49,7 @@ public data class LocalizedInvoiceFields(
     val amount: String,
     val serviceDay: String,
     val dueDay: String,
+    val paymentTime: String,
     val formLanguage: String,
 ) {
     internal fun submittedText(): FormValues =
@@ -62,6 +58,7 @@ public data class LocalizedInvoiceFields(
                 "amount" to listOf(amount),
                 "serviceDay" to listOf(serviceDay),
                 "dueDay" to listOf(dueDay),
+                "paymentTime" to listOf(paymentTime),
                 "formLanguage" to listOf(formLanguage),
             ),
         )
@@ -82,42 +79,15 @@ private val dueDayField =
         LocalizedInvoiceFields::dueDay,
         FormElementId.of("invoice-due-day"),
     )
+private val paymentTimeField =
+    localizedInvoiceDecoder.field(LocalizedInvoiceFields::paymentTime, FormElementId.of("invoice-payment-time"))
 private val errorSummary = FormElementId.of("invoice-errors")
-
-internal enum class InvoiceLanguage(
-    val locale: Locale,
-    val datePattern: String,
-) {
-    GERMAN(Locale.GERMANY, "dd.MM.uuuu"),
-    ENGLISH(Locale.US, "MM/dd/uuuu"),
-    ;
-
-    val tag = locale.toLanguageTag()
-    val date: DateTimeFormatter =
-        DateTimeFormatter
-            .ofPattern(
-                datePattern,
-                locale,
-            ).withResolverStyle(ResolverStyle.STRICT)
-    val separator = DecimalFormatSymbols.getInstance(locale).decimalSeparator
-    private val amountPattern = Regex("[0-9]+(?:${Regex.escape(separator.toString())}[0-9]{1,2})?")
-    val messages: ResourceBundle =
-        ResourceBundle.getBundle(
-            "dev.woge.examples.m1.InvoiceMessages",
-            locale,
-            ResourceBundle.Control.getNoFallbackControl(
-                ResourceBundle.Control.FORMAT_PROPERTIES,
-            ),
-        )
-
-    fun amount(raw: String): BigDecimal? =
-        if (amountPattern.matches(raw)) raw.replace(separator, '.').toBigDecimal().setScale(2) else null
-}
 
 private fun RequestContext.invoiceLanguage(): InvoiceLanguage? =
     when (language.value) {
         "de", "de-de" -> InvoiceLanguage.GERMAN
         "en", "en-us" -> InvoiceLanguage.ENGLISH
+        "ar", "ar-eg" -> InvoiceLanguage.ARABIC
         else -> null
     }
 
@@ -149,22 +119,28 @@ private fun validateInvoiceValues(
     val amount = language.amount(command.amount)
     val serviceDay = parseDay(command.serviceDay, DateTimeFormatter.ISO_LOCAL_DATE)
     val dueDay = parseDay(command.dueDay, language.date)
-    if (amount == null || serviceDay == null || dueDay == null) {
+    val payment = parsePaymentTime(command.paymentTime)
+    val validDates = serviceDay != null && dueDay != null
+    if (amount == null || !validDates || payment !is PaymentTime.Valid) {
         val messages = language.messages
         val errors =
             buildList {
                 if (amount == null) add(FormError(amountField, messages.getString("amountError")))
                 if (serviceDay == null) add(FormError(serviceDayField, messages.getString("serviceDayError")))
                 if (dueDay == null) add(FormError(dueDayField, messages.getString("dueDayError")))
+                if (payment is PaymentTime.Invalid) {
+                    add(FormError(paymentTimeField, messages.getString(payment.messageKey)))
+                }
             }
         return invalidInvoice(context, language, command.submittedText(), errors)
     }
+    val instant = payment.instant
     val text =
         MessageFormat(language.messages.getString("accepted"), language.locale).format(
-            arrayOf(amount.toPlainString().replace('.', language.separator), serviceDay, language.date.format(dueDay)),
+            arrayOf(language.formatAmount(amount), serviceDay, language.date.format(dueDay), instant),
         )
     return context.render.updates(applicationUrl("/localized-invoice")) {
-        replace(InvoiceStatusRegion, text)
+        replace(InvoiceStatusRegion, InvoiceStatusView(language, text))
     }
 }
 
@@ -200,6 +176,7 @@ private val invoiceDecoderErrors =
                             amountField.name -> amountField
                             serviceDayField.name -> serviceDayField
                             dueDayField.name -> dueDayField
+                            paymentTimeField.name -> paymentTimeField
                             else -> null
                         }
                     FormError(field, messages.getString("invalidField"))
@@ -235,7 +212,10 @@ private fun invoiceDocument(
 ): PageResult.Document =
     htmlPage(ResponseMetadata(status = status)) {
         doctype()
-        html(attributes = { attribute("lang", view.language.tag) }) {
+        html(attributes = {
+            attribute("lang", view.language.tag)
+            attribute("dir", view.language.direction)
+        }) {
             head {
                 context.render.metadata(this)
                 title(view.language.messages.getString("title"))
@@ -243,10 +223,15 @@ private fun invoiceDocument(
             }
             body {
                 region(context.render.target(InvoiceFormRegion), view)
-                region(context.render.target(InvoiceStatusRegion), "", elementName = "p", attributes = {
-                    attribute("id", "invoice-status")
-                    attribute("role", "status")
-                })
+                region(
+                    context.render.target(InvoiceStatusRegion),
+                    InvoiceStatusView(view.language, ""),
+                    elementName = "p",
+                    attributes = {
+                        attribute("id", "invoice-status")
+                        attribute("role", "status")
+                    },
+                )
                 p(attributes = {
                     attribute("id", "invoice-alert")
                     attribute("role", "alert")
@@ -264,6 +249,8 @@ internal data class InvoiceFormView(
 internal fun HtmlWriter.invoiceForm(view: InvoiceFormView) {
     val messages = view.language.messages
     actionForm(ValidateLocalizedInvoiceAction, attributes = {
+        attribute("lang", view.language.tag)
+        attribute("dir", view.language.direction)
         data("woge-action", "")
         data("woge-status", "invoice-status")
         data("woge-alert", "invoice-alert")
@@ -274,6 +261,7 @@ internal fun HtmlWriter.invoiceForm(view: InvoiceFormView) {
         invoiceInput(amountField, view.errors, messages.getString("amount"), "text", inputMode = "decimal")
         invoiceInput(serviceDayField, view.errors, messages.getString("serviceDay"), "date")
         invoiceInput(dueDayField, view.errors, messages.getString("dueDay"), "text")
+        invoiceInput(paymentTimeField, view.errors, messages.getString("paymentTime"), "text")
         input(attributes = {
             attribute("type", "hidden")
             attribute("name", "formLanguage")
@@ -294,13 +282,22 @@ private fun HtmlWriter.invoiceInput(
     input(attributes = {
         formField(field, errors)
         attribute("type", type)
+        if (field == serviceDayField || field == paymentTimeField) attribute("dir", "ltr")
         inputMode?.let { attribute("inputmode", it) }
         attribute("value", errors.value(field).orEmpty())
     })
     formFieldErrors(field, errors)
 }
 
+internal data class InvoiceStatusView(
+    val language: InvoiceLanguage,
+    val message: String,
+)
+
 @WogeRegion
-internal fun HtmlWriter.invoiceStatus(message: String) {
-    text(message)
+internal fun HtmlWriter.invoiceStatus(view: InvoiceStatusView) {
+    element("span", attributes = {
+        attribute("lang", view.language.tag)
+        attribute("dir", view.language.direction)
+    }) { text(view.message) }
 }
