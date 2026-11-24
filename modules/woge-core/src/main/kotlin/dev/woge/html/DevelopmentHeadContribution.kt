@@ -22,7 +22,7 @@ public annotation class WogeDevelopmentHook
  * `-Dwoge.development=true`, which only the `wogeDev` command sets. Contributions use the normal
  * typed DSL; they cannot replace or rewrite application markup.
  *
- * [nonce] is the CSP nonce the page already gave one of its own head assets (`moduleScript`,
+ * `nonce` is the CSP nonce the page already gave one of its own head assets (`moduleScript`,
  * `stylesheet` or `style`), or `null`. Contributions reuse it so a strict policy accepts them.
  */
 @WogeDevelopmentHook

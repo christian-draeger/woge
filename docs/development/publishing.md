@@ -124,5 +124,6 @@ production JARs by this publication setup.
 
 - Review the complete resolved dependency license inventory before a public release; do not treat
   this limited notice inventory as legal clearance.
-- Consider generated Kotlin API documentation separately; current documentation JARs contain
-  real maintained guides rather than empty Java Javadoc output.
+- Archive the [JVM API reference](../../site/api-reference/README.md) from the same checked release
+  revision and version when publishing a release. The Maven documentation JAR contains the maintained
+  guides.

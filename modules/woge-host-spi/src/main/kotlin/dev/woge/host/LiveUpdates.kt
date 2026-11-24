@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Opens a live-update stream (Server-Sent Events) for one page.
  *
- * Authorize [request] here, exactly like a page GET. Return [liveSubscription] to allow the stream
+ * Authorize the request here, exactly like a page GET. Return [liveSubscription] to allow the stream
  * or [liveRefused] with a failure status. The browser reconnects automatically, so this runs again
  * at least once per [LiveLimits.maxLifetime].
  */
