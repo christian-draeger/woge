@@ -1,6 +1,8 @@
 package dev.woge.html
 
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -20,7 +22,11 @@ class HtmlCompilerBoundaryTest {
 
     @Test
     fun `generic event attribute escape hatch requires unsafe API opt-in`() {
-        assertFixtureHasDiagnostics("unsafe-attribute-without-opt-in", "opt-in", "UnsafeWogeHtmlApi")
+        assertFixtureHasDiagnostics(
+            "unsafe-attribute-without-opt-in",
+            "[WOGE-HTML-UNSAFE-001]",
+            "@OptIn(UnsafeWogeHtmlApi::class)",
+        )
     }
 
     @Test
@@ -127,12 +133,23 @@ class HtmlCompilerBoundaryTest {
                 .readText()
         sourceDirectory.resolve("Fixture.kt").writeText(fixtureSource)
 
-        return GradleRunner
-            .create()
-            .withProjectDir(fixtureDirectory.toFile())
-            .withArguments("compileKotlin", "--stacktrace", "--no-configuration-cache")
-            .buildAndFail()
-            .output
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(fixtureDirectory.toFile())
+                .withArguments("compileKotlin", "--stacktrace", "--no-configuration-cache")
+                .buildAndFail()
+
+        // Settings and included-build errors cannot prove a compiler boundary in the fixture.
+        assertEquals(TaskOutcome.FAILED, result.task(":compileKotlin")?.outcome, result.output)
+        val fixturePath = "/src/main/kotlin/fixture/Fixture.kt:"
+        val diagnostics =
+            result.output
+                .lineSequence()
+                .filter { it.startsWith("e: file:") && fixturePath in it }
+                .joinToString("\n") { it.substringAfter(fixturePath) }
+        assertTrue(diagnostics.isNotBlank(), result.output)
+        return diagnostics
     }
 }
 
