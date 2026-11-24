@@ -54,13 +54,14 @@ jobs:
       - name: Verify two independently routed nodes with PostgreSQL
         run: |
           docker pull postgres@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+          docker pull nginx@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
           ./gradlew -p examples/petclinic-woge test bootJar --console=plain \
             -PpetclinicCluster=true \
             -PpetclinicSource="$GITHUB_WORKSPACE/build/petclinic-upstream" \
             -PwogeRepository="$GITHUB_WORKSPACE/build/scaffold-maven-repository" \
             -PwogeVersion=0.1.0-SNAPSHOT
           python3 examples/petclinic-woge/cluster/run.py \
-            examples/petclinic-woge/build/libs/woge-petclinic.jar "$GITHUB_WORKSPACE/build/petclinic-upstream"
+            examples/petclinic-woge/build/libs/woge-petclinic.jar "$GITHUB_WORKSPACE/build/petclinic-upstream" --tls-ingress
       - name: Retain the consumer test reports
         if: always()
         uses: actions/upload-artifact@v7

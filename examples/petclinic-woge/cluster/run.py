@@ -25,6 +25,8 @@ import uuid
 import zipfile
 from html.parser import HTMLParser
 
+from tls_ingress import start_ingress
+
 POSTGRES_IMAGE = "postgres@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
 UPSTREAM = "500158f732419217507c7656904b8e6aa1bcc0d6"
 LIVE = "/woge/cluster/owners/1"
@@ -127,6 +129,8 @@ class Page(HTMLParser):
         self.csrf = None
         self.fields = {}
         self.region = {}
+        self.render_epoch = None
+        self.render_region = None
         self.feed(body.decode())
 
     def handle_starttag(self, tag, attrs):
@@ -137,6 +141,10 @@ class Page(HTMLParser):
                 self.csrf = values["value"]
         if values.get("id") == "clinic-live-visits":
             self.region = values
+        if tag == "meta" and values.get("name") == "woge-page-epoch":
+            self.render_epoch = values["content"]
+        if "data-woge-region" in values and self.render_region is None:
+            self.render_region = values["data-woge-region"]
 
     @property
     def live_path(self):
@@ -386,10 +394,65 @@ def exercise(container, a, b, password):
           "external write recovered on peer reconnect; owner grant revocation, logout and session expiry enforced")
 
 
+def exercise_tls_ingress(ingress, password):
+    tls_version = ingress.wait_for_tls()
+    ingress.require_untrusted_ca_rejection()
+    login = Page(ingress.request("a", "/login", 200)[1])
+    signed_in, _ = ingress.request("a", "/login", 302, fields={
+        "username": USERNAME, "password": password, "_csrf": login.csrf,
+    })
+    require(any(cookie.startswith("SESSION=") and "secure" in cookie.lower().split("; ")
+                for cookie in signed_in.get_all("Set-Cookie", [])),
+            "Login through nginx did not issue a Secure Spring Session cookie")
+    live = Page(ingress.request("a", LIVE, 200)[1])
+    ingress.request("b", LIVE, 200)
+    ingress.request("b", live.live_path, 302, with_session=False)
+    form = Page(ingress.request("a", "/woge" + NATIVE_VISIT, 200)[1])
+    fields = {
+        "date": (datetime.date.today() + datetime.timedelta(days=7)).isoformat(),
+        "description": "Visit booked over the HTTP/2 ingress",
+        "_csrf": form.csrf,
+    }
+    common = {
+        "Accept": PATCH, "Woge-Page-Epoch": form.render_epoch,
+        "Woge-Interaction": "1", "Woge-Region-Revisions": f"{form.render_region}:0",
+        # Incoming forwarding data must never define the public authority.
+        "Forwarded": "proto=https;host=foreign.invalid",
+        "X-Forwarded-Host": "foreign.invalid",
+        "X-Forwarded-Port": "443",
+    }
+    ingress.request("b", NATIVE_VISIT, 403, headers={
+        **common, "Origin": "https://foreign.invalid", "Woge-Request-Identity": str(uuid.uuid4()),
+    }, fields={**fields, "description": "Rejected foreign ingress visit"})
+    ingress.request("b", NATIVE_VISIT, 403, headers={
+        **common, "Origin": ingress.origin, "Woge-Request-Identity": str(uuid.uuid4()),
+    }, fields={name: value for name, value in fields.items() if name != "_csrf"})
+
+    began = time.monotonic()
+    region = live.region["data-woge-region"]
+    with ingress.stream("a", live.live_path) as (stream, process):
+        next_event(stream, "invalidate", region)
+        first = time.monotonic()
+        posted, _ = ingress.request("b", NATIVE_VISIT, 200, headers={
+            **common, "Origin": ingress.origin, "Woge-Request-Identity": str(uuid.uuid4()),
+        }, fields=fields)
+        require(posted.get("Woge-Navigate") == "/owners/1", "Enhanced ingress POST did not navigate to the owner")
+        next_event(stream, "invalidate", region)
+        changed = time.monotonic()
+        require(process.poll() is None, "Both events must flush before the HTTP/2 SSE response finishes")
+        headers, patch = ingress.request("b", live.refresh_path(0, 1), 200, headers={"Accept": PATCH})
+        require(headers.get_content_type() == "application/vnd.woge.patch-stream"
+                and fields["description"].encode() in patch and b"Rejected foreign ingress visit" not in patch,
+                "Peer refresh behind nginx did not reconcile the committed visit and denied origin")
+    print(f"nginx {tls_version}/HTTP/2: distinct routed nodes, shared Secure session and CSRF, forwarded origin "
+          f"enforced; first SSE {(first - began) * 1000:.1f} ms, POST to peer SSE {(changed - first) * 1000:.1f} ms")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("jar", type=Path)
     parser.add_argument("upstream", type=Path)
+    parser.add_argument("--tls-ingress", action="store_true", help="also verify nginx TLS and HTTP/2 ingress")
     args = parser.parse_args()
     jar, upstream = args.jar.resolve(), args.upstream.resolve()
     require(command("git", "-C", str(upstream), "rev-parse", "HEAD") == UPSTREAM
@@ -407,6 +470,8 @@ def main():
                        "SPRING_SECURITY_USER_PASSWORD": password, "SPRING_APPLICATION_JSON": json.dumps({
                            "woge": {"render-identity": {"secret": base64.b64encode(secrets.token_bytes(32)).decode()}},
                        })}
+                if args.tls_ingress:
+                    env["SERVER_FORWARD_HEADERS_STRATEGY"] = "framework"
                 a, b = [
                     start_node(cleanup, directory, jar, node, {
                         **env, "SPRING_DATASOURCE_URL":
@@ -416,6 +481,9 @@ def main():
                 ]
                 require(a != b, "Expected two independent loopback listeners")
                 exercise(container, a, b, password)
+                if args.tls_ingress:
+                    with start_ingress(directory, a, b) as ingress:
+                        exercise_tls_ingress(ingress, password)
         except Exception:
             for log in sorted(directory.glob("*.log")):
                 print(f"\nLast lines from {log.name}:\n" + "\n".join(log.read_text().splitlines()[-28:]))
