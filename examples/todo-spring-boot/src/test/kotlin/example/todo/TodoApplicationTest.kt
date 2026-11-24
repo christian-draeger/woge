@@ -36,12 +36,11 @@ class TodoApplicationTest {
                 .apply {
                     setDefaultProperties(
                         mapOf(
-                            "server.port" to "0",
                             "spring.main.banner-mode" to "off",
                             "logging.level.root" to "WARN",
                         ),
                     )
-                }.run()
+                }.run("--server.port=0")
         val server = requireNotNull((application as ConfigurableWebServerApplicationContext).webServer)
         origin = "http://127.0.0.1:${server.port}"
     }

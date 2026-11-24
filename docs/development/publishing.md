@@ -88,6 +88,23 @@ not persist Git credentials. No tag, GitHub Release, npm publish or Maven Centra
 Main can still advance after the last gate: the upload remains pinned to the already verified SHA,
 never to newly fetched unverified code.
 
+## Prepare a Maven Central bundle
+
+Verify `dev.woge` in the [Central Portal](https://central.sonatype.org/register/namespace/) and
+set up a local [GPG signing key](https://central.sonatype.org/publish/requirements/gpg/).
+Set `WOGE_CENTRAL_SIGNING_KEY` to that key's public fingerprint. Use your normal GPG
+agent for passphrase entry.
+
+```shell
+./gradlew prepareMavenCentralBundle -PwogeVersion=0.1.0-beta.1
+```
+
+The task verifies the complete local Maven repository and writes a signed bundle to
+`build/maven-central/woge-0.1.0-beta.1.zip`. It includes implementation artifacts, Gradle metadata,
+sources, documentation and plugin markers with the required checksums. Use the
+[Central Portal upload workflow](https://central.sonatype.org/publish/publish-portal-upload/)
+for the separately approved validation and release.
+
 ## Licenses and notices
 
 Woge-owned code is Apache-2.0; its POM license is **not** a license claim about dependencies.
@@ -107,6 +124,5 @@ production JARs by this publication setup.
 
 - Review the complete resolved dependency license inventory before a public release; do not treat
   this limited notice inventory as legal clearance.
-- Add Maven Central signing, namespace verification and release staging only in a later decision.
 - Consider generated Kotlin API documentation separately; current documentation JARs contain
   real maintained guides rather than empty Java Javadoc output.

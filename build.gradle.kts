@@ -270,6 +270,23 @@ val verifyPublicationContract = tasks.register<Exec>("verifyPublicationContract"
         publicationModules.sorted().joinToString(","),
     )
 }
+tasks.register<Exec>("prepareMavenCentralBundle") {
+    group = "publishing"
+    description = "Signs the checked Maven publications and prepares a local Central Portal bundle."
+    dependsOn(verifyPublicationContract)
+    val releaseVersion = project.version.toString()
+    val bundle = layout.buildDirectory.file("maven-central/woge-$releaseVersion.zip")
+    commandLine(
+        "python3",
+        "-B",
+        "scripts/prepare-maven-central-bundle.py",
+        scaffoldMavenRepository.get().asFile.absolutePath,
+        project.group.toString(),
+        releaseVersion,
+        publicationModules.sorted().joinToString(","),
+        bundle.get().asFile.absolutePath,
+    )
+}
 val testPublicationGuards = tasks.register<Exec>("testPublicationGuards") {
     group = "verification"
     description = "Tests publication channels, credential errors and fail-closed release/check guards without network access."
