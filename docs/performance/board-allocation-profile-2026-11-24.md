@@ -32,7 +32,7 @@ all rounds. Browser and parser probes were outside this replay.
 The thread-allocation counter covers snapshot creation, board rendering and the harness's UTF-8
 conversion in 2,000 iterations after 1,000 warmups. Different markup sizes remain part of the
 result. Full HTTP and process measurements are retained as separate records.
-[Raw replay and profile evidence](evidence/2026-11-24-board-allocation.json.gz)
+[Raw replay and profile evidence](../../testing/performance/evidence/2026-11-24-board-allocation.json.gz)
 
 ## Allocation attribution
 
@@ -87,4 +87,4 @@ fixtures were outside this local validation. A compiled-JAR comparison produced 
 surrogate pairs, normalizes NUL and isolated surrogates and preserves each context's entity rules.
 Bytecode inspection confirmed primitive character appends.
 
-[Source and all eight paired runs](evidence/2026-11-24-board-escape-pairs.json.gz)
+[Source and all eight paired runs](../../testing/performance/evidence/2026-11-24-board-escape-pairs.json.gz)
