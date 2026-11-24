@@ -120,6 +120,48 @@ locale fail during configuration. Bad calendar dates, partial numbers and invali
 normal field errors, never silently use the machine's default locale. Keep locale selection tied to your
 application's explicit preferences rather than guessing from the runtime environment.
 
+## Validate a localized invoice
+
+The [compiled invoice example](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt)
+uses Woge's typed form decoder and error renderers. It keeps text in the command until the application
+can validate it against the server-selected language. English uses US formats and German uses German
+formats. Both presentations use the same currency.
+
+<!-- snippet: examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt -->
+
+| Field | German wire value | English wire value | Application value |
+| --- | --- | --- | --- |
+| EUR amount in a text input | `1234,50` | `1234.50` | Exact `BigDecimal("1234.50")` |
+| Service date in a native date input | `2026-10-11` | `2026-10-11` | `LocalDate` |
+| Due date in a localized text input | `11.10.2026` | `10/11/2026` | `LocalDate` |
+
+The amount parser allows up to two fractional digits and rejects grouping separators, mixed
+separators and scientific notation. This keeps ambiguous amounts such as `1,234` out of the action.
+Calendar dates use strict parsing. A date-only value does not require an instant or time zone.
+
+Resolve the language on the server. Spring hosts already use the
+[resolved Spring locale](spring-boot-starter.md#use-spring-locale-identity-and-sessions). The form
+posts its display language as a stale-form check. If the server language changed since rendering,
+the action asks the user to review the fields and keeps the submitted text. The body cannot select
+the parsing locale. The example uses JDK resource bundles for labels, errors and announcements.
+
+Mount `localizedInvoicePage` at `/localized-invoice` and the submission action at
+`ValidateLocalizedInvoiceAction.path`. Use the decoder's submission binding from the
+[typed actions guide](typed-actions.md#render-native-field-errors) so the action
+receives both the decoded command and bounded submitted text.
+
+The same validation result provides a 400 native document or an enhanced replacement with a
+focusable summary. Invalid text is escaped and remains associated with its field. Browsers can make
+an invalid date control appear empty even when a tampered request's date string was retained in the
+HTML value attribute. A successful result provides a native 303 or an enhanced confirmation. The
+fixture validates the invoice and prepares that response. Applications supply their own persistence.
+
+Run `./gradlew :woge-m1-api-corpus:test --tests '*LocalizedInvoiceTest'` to verify both locale
+contracts and response shapes. For the [manual reference review](https://github.com/christian-draeger/woge/issues/253),
+check that keyboard users can reach and correct every linked field and that assistive technology
+reads the summary and field errors in the chosen language. Browser and RTL review, instant or DST
+handling, and combining this sample with nested uploads remain follow-up work.
+
 ## Evidence and limits
 
 [ADR 0104](../adr/0104-enhanced-uploads-and-dynamic-forms.md) records the policy.
