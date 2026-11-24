@@ -1,0 +1,33 @@
+@import example.todo.TodoSnapshot
+@import example.todo.FILTERS
+@param snapshot: TodoSnapshot
+@param title: String
+@param hasError: Boolean
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
+    <title>Todos</title>
+    <link rel="stylesheet" href="/todo.css">
+    <script defer src="/htmx.min.js"></script>
+    <script defer src="/todo-htmx.js"></script>
+</head>
+<body>
+    <main>
+        <h1>Todos</h1>
+        <nav aria-label="Filter todos">
+            @for(choice in FILTERS)
+                <a href="/?filter=${choice}" aria-current="${if (choice == snapshot.filter) "page" else null}">
+                    ${choice.replaceFirstChar(Char::uppercase)}
+                </a>
+            @endfor
+        </nav>
+        @template.form(snapshot.filter, title, hasError)
+        @template.board(snapshot)
+        <p id="todo-status" role="status"></p>
+        <p id="todo-alert" role="alert"></p>
+    </main>
+</body>
+</html>

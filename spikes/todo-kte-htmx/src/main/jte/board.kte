@@ -1,0 +1,11 @@
+@import example.todo.TodoSnapshot
+@param snapshot: TodoSnapshot
+@param outOfBand: Boolean = false
+<div id="todo-board" hx-swap-oob="${if (outOfBand) "outerHTML" else null}">
+    <p id="todo-count">${snapshot.remaining} remaining · ${snapshot.todos.size} total</p>
+    <ul>
+        @for(todo in snapshot.visible)
+            <li data-todo-id="${todo.id}"><span>${todo.title}</span>@if(todo.completed) (completed)@endif</li>
+        @endfor
+    </ul>
+</div>
