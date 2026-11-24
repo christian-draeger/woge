@@ -22,6 +22,7 @@ internal fun uploadDiagnosticServer(handler: HttpHandler): DisposableServer {
         .create()
         .host("127.0.0.1")
         .port(0)
+        .withUploadTransportDiagnostics()
         .handle { request, response ->
             val id = request.requestHeaders().get(TckUploadDiagnostics.HEADER)
             request.withConnection {

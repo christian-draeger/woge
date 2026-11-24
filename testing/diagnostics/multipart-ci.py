@@ -43,8 +43,13 @@ def verify_executed(destination, result):
         output = "\n".join(node.text or "" for node in suite.iter("system-out"))
         if "case-6]" not in output or "client.response.headers status=413" not in output:
             return f"Missing multipart limit timeline for {project}"
-        if project == "woge-spring-webflux" and "netty.request connection=" not in output:
-            return "Missing WebFlux server-side timeline"
+        if project == "woge-spring-webflux":
+            markers = ["netty.request connection="]
+            if os.environ.get("WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS") == "true":
+                markers += ["netty.socket.bytes.after count=", "netty.frame.request.end bytes="]
+            for marker in markers:
+                if marker not in output:
+                    return f"Missing WebFlux diagnostic boundary: {marker}"
         windows.append({"project": project, "start": datetime.fromisoformat(suite.get("timestamp")).timestamp(),
                         "seconds": float(suite.get("time"))})
     result["testWindows"] = windows
