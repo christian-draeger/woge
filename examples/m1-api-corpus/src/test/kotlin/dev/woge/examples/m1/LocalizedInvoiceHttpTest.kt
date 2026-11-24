@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.coRouter
@@ -30,10 +32,16 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 import java.util.Locale
 
-class LocalizedInvoiceWebFluxTest {
-    @Test
-    fun `Spring locale selection drives native and enhanced invoice validation and correction`() {
-        InvoiceHost().use { host ->
+internal enum class InvoiceHttpAdapter {
+    WEBFLUX,
+    KTOR,
+}
+
+internal class LocalizedInvoiceHttpTest {
+    @ParameterizedTest
+    @EnumSource(InvoiceHttpAdapter::class)
+    fun `resolved locale drives native and enhanced invoice validation and correction`(adapter: InvoiceHttpAdapter) {
+        withInvoiceHost(adapter) { host ->
             for (invoice in InvoiceCase.entries) {
                 val page = host.page(invoice.preferences)
                 assertEquals(invoice.language, page.required("html").attr("lang"))
@@ -81,15 +89,16 @@ class LocalizedInvoiceWebFluxTest {
         }
     }
 
-    @Test
-    fun `a German GET followed by an English POST gets a translated stale-form error before parsing`() {
-        InvoiceHost().use { host ->
+    @ParameterizedTest
+    @EnumSource(InvoiceHttpAdapter::class)
+    fun `a German form submitted in English gets a translated stale-form error`(adapter: InvoiceHttpAdapter) {
+        withInvoiceHost(adapter) { host ->
             val page = host.page(InvoiceCase.GERMAN.preferences)
             val displayedLanguage = page.required("input[name=formLanguage]").attr("value")
             assertEquals("de-DE", displayedLanguage)
             val stale = InvoiceCase.GERMAN.form() + ("formLanguage" to displayedLanguage)
 
-            // None of these preferred locales is supported. Spring uses the configured US default.
+            // None of these preferred locales is supported. The host uses the configured US default.
             val unsupportedPreferences = "de-AT,fr-FR;q=0.8"
             val native = host.submit(unsupportedPreferences, stale)
             assertEquals(400, native.statusCode())
@@ -117,6 +126,25 @@ class LocalizedInvoiceWebFluxTest {
 
             val accepted = host.submit(unsupportedPreferences, corrected, page.enhancement(validation)).singlePatch(200)
             assertEquals(InvoiceCase.ENGLISH.accepted, Jsoup.parseBodyFragment(accepted.html.value).text())
+        }
+    }
+
+    @Test
+    fun `Ktor skips excluded preferences and retains same-origin verification`() {
+        withInvoiceHost(InvoiceHttpAdapter.KTOR) { host ->
+            val german = host.page("en-US;q=0,DE-de;q=0.2")
+            assertEquals("de-DE", german.required("html").attr("lang"))
+            val fallback = host.page("de-DE;q=0,fr-FR")
+            assertEquals("en-US", fallback.required("html").attr("lang"))
+
+            val rejected =
+                host.submit(
+                    InvoiceCase.GERMAN.preferences,
+                    InvoiceCase.GERMAN.form(),
+                    german.enhancement(),
+                    requestOrigin = "https://other.example",
+                )
+            assertEquals(403, rejected.statusCode())
         }
     }
 
@@ -177,15 +205,34 @@ class LocalizedInvoiceWebFluxTest {
     }
 }
 
-private class InvoiceHost : AutoCloseable {
-    private val server =
-        HttpServer
-            .create()
-            .host("127.0.0.1")
-            .port(0)
-            .handle(invoiceHttpHandler())
-            .bindNow()
-    private val origin = "http://127.0.0.1:${server.port()}"
+private fun withInvoiceHost(
+    adapter: InvoiceHttpAdapter,
+    verify: (InvoiceHost) -> Unit,
+) {
+    when (adapter) {
+        InvoiceHttpAdapter.WEBFLUX -> {
+            val server =
+                HttpServer
+                    .create()
+                    .host("127.0.0.1")
+                    .port(0)
+                    .handle(invoiceHttpHandler())
+                    .bindNow()
+            try {
+                InvoiceHost(server.port()).use(verify)
+            } finally {
+                server.disposeNow(Duration.ofSeconds(5))
+            }
+        }
+
+        InvoiceHttpAdapter.KTOR -> withKtorInvoiceServer { port -> InvoiceHost(port).use(verify) }
+    }
+}
+
+private class InvoiceHost(
+    port: Int,
+) : AutoCloseable {
+    private val origin = "http://127.0.0.1:$port"
     private val client =
         HttpClient
             .newBuilder()
@@ -203,11 +250,12 @@ private class InvoiceHost : AutoCloseable {
         preferences: String,
         fields: Map<String, String>,
         enhanced: Map<String, String> = emptyMap(),
+        requestOrigin: String = origin,
     ): HttpResponse<ByteArray> {
         val body = fields.entries.joinToString("&") { (key, value) -> "$key=${URLEncoder.encode(value, UTF_8)}" }
         val request =
             request(ValidateLocalizedInvoiceAction.path, preferences)
-                .header("Origin", origin)
+                .header("Origin", requestOrigin)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .apply { enhanced.forEach(::header) }
                 .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -215,10 +263,7 @@ private class InvoiceHost : AutoCloseable {
         return send(request)
     }
 
-    override fun close() {
-        client.close()
-        server.disposeNow(Duration.ofSeconds(5))
-    }
+    override fun close() = client.close()
 
     private fun request(
         path: String,
@@ -308,7 +353,7 @@ private fun HttpResponse<*>.header(name: String): String = headers().firstValue(
 
 private fun Element.required(selector: String): Element = requireNotNull(selectFirst(selector)) { "Missing $selector" }
 
-private const val INVOICE_PATH = "/localized-invoice"
+internal const val INVOICE_PATH = "/localized-invoice"
 private const val INVALID_DUE_DAY = "31/31/2026 ñ<&"
 private val FIELD_IDS =
     mapOf("amount" to "invoice-amount", "serviceDay" to "invoice-service-day", "dueDay" to "invoice-due-day")
