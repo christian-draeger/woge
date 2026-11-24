@@ -26,6 +26,7 @@ import dev.woge.html.title
 import dev.woge.html.ul
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.PageRequest
@@ -33,9 +34,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.samples.petclinic.owner.OwnerRepository
-import org.springframework.security.config.Customizer
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -51,17 +49,8 @@ data class ClinicSearchInput(val lastName: String? = null)
 data class ClinicOwnerInput(val ownerId: Int)
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnBooleanProperty(prefix = "petclinic.woge", name = ["enabled"], matchIfMissing = true)
 class ClinicPages {
-    @Bean
-    fun referenceSecurity(http: HttpSecurity): SecurityFilterChain =
-        http
-            .authorizeHttpRequests { requests ->
-                requests.requestMatchers("/webjars/**", "/resources/**").permitAll()
-                requests.anyRequest().authenticated()
-            }
-            .formLogin(Customizer.withDefaults())
-            .build()
-
     @Bean
     fun clinicRoutes(
         owners: OwnerRepository,
@@ -132,6 +121,7 @@ class ClinicPages {
 }
 
 @RestController
+@ConditionalOnBooleanProperty(prefix = "petclinic.woge", name = ["enabled"], matchIfMissing = true)
 class ClinicVisitBridge(private val owners: OwnerRepository) {
     @GetMapping("/woge/owners/{ownerId}/pets/{petId}/visits/new", produces = [MediaType.TEXT_HTML_VALUE])
     fun visitForm(
@@ -173,15 +163,7 @@ class ClinicVisitBridge(private val owners: OwnerRepository) {
             }
         }
     }
-
-    @GetMapping("/api/reference/owners/{ownerId}", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun owner(@PathVariable ownerId: Int): OwnerSummary {
-        val owner = owners.findById(ownerId).orElse(null) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        return OwnerSummary(ownerId, owner.firstName, owner.lastName)
-    }
 }
-
-data class OwnerSummary(val id: Int, val firstName: String, val lastName: String)
 
 private fun HtmlWriter.clinicDocument(
     heading: String,

@@ -48,6 +48,15 @@ dependencies {
 }
 
 tasks.processResources {
+    val visitAction = "@{/owners/{ownerId}/pets/{petId}/visits/new(ownerId=\${owner.id},petId=\${pet.id})}"
+    inputs.property("petclinicVisitAction", visitAction)
+    filesMatching("templates/pets/createOrUpdateVisitForm.html") {
+        // Thymeleaf invokes Spring's hidden-field processor for a form with th:action.
+        filter { line: String ->
+            line.replace("th:object=\"\${visit}\"", "th:object=\"\${visit}\" th:action=\"$visitAction\"")
+        }
+    }
+
     from(upstream.resolve("LICENSE.txt")) {
         into("META-INF")
         rename { "LICENSE-petclinic.txt" }
