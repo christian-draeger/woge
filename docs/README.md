@@ -6,6 +6,7 @@ The documentation grows with executable product slices. Pages describing unimple
 
 ## Start here
 
+- [When to try Woge](product/choosing-woge.md)
 - [Spring Boot WebFlux quickstart](guides/quickstart-spring-boot.md)
 - [Standalone full-stack Todo example](../examples/todo-spring-boot/README.md)
 - [HTML/HTTP mental model and DX doctrine](guides/mental-model.md)
