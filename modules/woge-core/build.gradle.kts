@@ -33,14 +33,24 @@ kotlin {
 dependencies {
     compileOnlyApi(libs.jetbrainsAnnotations)
 
-    testImplementation(gradleTestKit())
+    testImplementation(libs.kotlinCompilerEmbeddable)
     testImplementation(libs.junitJupiter)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
+abstract class FixtureCompilerClasspath : CommandLineArgumentProvider {
+    @get:Classpath
+    abstract val entries: ConfigurableFileCollection
+
+    override fun asArguments(): Iterable<String> = listOf("-Dwoge.core.fixture.classpath=${entries.asPath}")
+}
+
 tasks.test {
     dependsOn(tasks.named("jar"))
-    systemProperty("woge.repository.root", rootProject.layout.projectDirectory.asFile.absolutePath)
+    jvmArgumentProviders +=
+        objects.newInstance<FixtureCompilerClasspath>().apply {
+            entries.from(configurations.compileClasspath)
+        }
     systemProperty(
         "woge.core.jar",
         layout.buildDirectory
