@@ -76,3 +76,9 @@ receives its own JUL provider on the isolated `wogeDevTooling` classpath so loca
 stay visible. Production applications and their restartable development children retain their own
 logging setup. See [production operations](../guides/production-operations.md#framework-diagnostic-logging)
 and the [development loop](../guides/development-loop.md#troubleshooting).
+
+## Follow-up
+
+When upgrading the facade, repeat the isolated provider and level-filtering checks. Confirm that
+initialization emits no unconditional output and that published runtime metadata remains
+provider-free. Keep request correlation explicit when adding diagnostics to another host.
