@@ -112,6 +112,37 @@ Checkbox groups submit repeated parameters (`tags=html&tags=css`); a `List<Strin
 No JavaScript or custom ARIA widget is added. See [ADR 0101](../adr/0101-native-data-display-and-complex-input-components.md)
 for the evaluation.
 
+## Decide how much autocomplete to add
+
+The [PetClinic owner search](../../examples/petclinic-woge/README.md#try-the-secured-owner-suggestions)
+needs to find an owner in a directory larger than the native 50-option recipe. Selecting a
+suggestion opens a server-owned record. A display name can repeat, so the suggestion links to
+the owner's ID. The server sends at most eight suggestions after a two-character prefix and
+the native search renders 20 per page.
+
+| Need | Choose |
+| --- | --- |
+| A few text hints whose value the server can validate | Native `datalist` |
+| A large filtered result set with server sorting, selection and pagination | A GET form, typed page URLs and ordinary links |
+| Quick authorised suggestions leading to a specific record | A small local island over the same GET form, with ordinary suggestion links |
+| Local editing over a large grid or a specialized stateful widget | Measure a compatible third-party component in a separate case. Keep server ownership and a useful fallback explicit. |
+
+The island has no nested Woge regions. It keeps search controls stable and updates suggestions
+only for a new input. This follows [the live interaction policy](data-freshness.md) for #276.
+A failed import or request leaves the native form available. The server validates input and
+authorizes reads. JavaScript only renders link text and chooses when to fetch.
+
+With Woge `0.1.0-beta.1` the framework loader is 7,619 raw bytes and the application module is
+3,244 raw bytes, or 3,712 gzip bytes combined. These are file sizes from the built artifacts
+compressed at gzip level 9. The small module has zero added browser dependencies and uses the
+existing JVM application build. For a case that needs shared validation rules, see the
+[Kotlin/JS notes island](local-islands.md#sharing-rules-a-practical-note-draft-not-another-application-framework).
+Its [target measurements](../../spikes/local-island-target/evidence.md) used a different workload.
+
+The automated results cover the owned search form. They leave widget replacement, BFCache,
+third-party widgets and the [human review](https://github.com/christian-draeger/woge/issues/253)
+as separate evidence under [#288](https://github.com/christian-draeger/woge/issues/288).
+
 ## Styling
 
 Plain CSS ships with each recipe; the `tailwind` variant has the same markup with utility classes. Both
