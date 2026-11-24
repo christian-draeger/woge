@@ -12,12 +12,18 @@ on:
       - adapters/woge-spring-webflux/src/test/kotlin/dev/woge/spring/webflux/UploadTransportDiagnostics.kt
       - adapters/woge-spring-webflux/src/test/kotlin/dev/woge/spring/webflux/WogeWebFluxAdapterTckTest.kt
   workflow_dispatch:
+    inputs:
+      loopback_kernel_control:
+        description: Run only the isolated WebFlux TCP metadata control
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   native-amd64:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.loopback_kernel_control }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -56,3 +62,45 @@ jobs:
         with:
           name: multipart-diagnostic-attempts
           path: build/multipart-diagnostics/**
+
+  loopback-kernel-control:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.loopback_kernel_control }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Prepare native runner tools
+        run: |
+          test "$(uname -m)" = x86_64
+          if ! command -v ip >/dev/null || ! command -v tcpdump >/dev/null; then
+            sudo -n apt-get update -qq
+            sudo -n apt-get install -y --no-install-recommends iproute2 tcpdump
+          fi
+      - name: Prepare the offline WebFlux test runtime
+        run: |
+          mkdir -p build/multipart-loopback
+          ./gradlew --no-daemon --no-build-cache --console=plain \
+            :woge-spring-webflux:test --tests '*WebFluxSecurityFormTest' \
+            2>&1 | tee build/multipart-loopback/prepare.log
+        shell: bash
+      - name: Run bounded TCP metadata control
+        timeout-minutes: 5
+        run: python3 testing/diagnostics/multipart-kernel-control.py
+      - name: Retain loopback metadata and first failure evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: multipart-loopback-kernel-control
+          path: build/multipart-loopback/**

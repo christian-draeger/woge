@@ -102,34 +102,44 @@ Client body publication proves delivery to the JDK client, not that bytes reache
 Passing attempts establish only that the original timeout was not reproduced; they do not resolve
 [#278](https://github.com/christian-draeger/woge/issues/278).
 
-For a focused Linux investigation of the gap between client publication and Netty reads, run the
-WebFlux TCK in a dedicated network namespace with only loopback enabled. Start `tcpdump` with
-packet-capture permission in that same namespace before running the test:
+For a focused check of the gap between client publication and Netty reads, enable
+`loopback_kernel_control` when manually dispatching the **Multipart diagnostics** workflow.
+The ordinary PR and manual diagnostics paths retain their existing behavior. The opt-in job
+runs the same WebFlux shared TCK on native Linux amd64, with a dedicated namespace containing
+only loopback. It excludes browser, Docker proxy and concurrent host fixtures.
+
+Run the control from a fresh Linux checkout as an unprivileged user with passwordless sudo,
+JDK 21, Node 24, Python 3, `iproute2` and `tcpdump`. Prepare the test runtime outside the
+namespace first, so Gradle can resolve the pinned dependencies and build the test classes.
 
 ```shell
-tcpdump -p -i lo -c 10000 --immediate-mode -l -s 96 -nn -tt -S \
-  'ip and tcp and src host 127.0.0.1 and dst host 127.0.0.1 and src portrange 32768-65535 and dst portrange 32768-65535' \
-  > loopback.txt 2> capture.log
+./gradlew --no-daemon --no-build-cache --console=plain \
+  :woge-spring-webflux:test --tests '*WebFluxSecurityFormTest'
+python3 testing/diagnostics/multipart-kernel-control.py
 ```
 
-With dependencies cached, enable both multipart diagnostic flags and run
-`./gradlew :woge-spring-webflux:test --tests '*WogeWebFluxAdapterTckTest' --rerun --no-build-cache --offline`
-in the same namespace.
-Stop `tcpdump` with an interrupt after the test so it writes its capture counters. Use a complete
-capture with zero kernel drops and fewer than 10,000 captured packets. Keep the text output and
-avoid saving raw captures or dumping payloads.
+The script creates a unique namespace, brings up only `lo`, and starts
+the capture before launching the test. Gradle runs as the invoking user with the
+prepared JDK and dependency cache, offline and without reusing an outside daemon.
+There are at most three attempts, each with a 75-second test deadline and a
+10,000-packet ceiling. On exit the script interrupts the capture to flush counters,
+stops remaining fixture processes and deletes its namespace.
 
-```shell
-python3 testing/diagnostics/multipart-loopback.py \
-  adapters/woge-spring-webflux/build/test-results/test/TEST-dev.woge.spring.webflux.WogeWebFluxAdapterTckTest.xml \
-  loopback.txt capture.log
-```
+The capture retains only timestamp, loopback ports, TCP flags, sequence and acknowledgment
+numbers, and TCP payload length. Payload contents and raw packet captures are excluded.
+`build/multipart-loopback` retains each attempt's test log, fresh JUnit XML when
+available, filtered TCP text, capture counters and the existing
+[correlation report](../../testing/diagnostics/multipart-loopback.py). An incomplete,
+dropped or capped capture cannot support a correlation. The run stops on the
+first failed test or evidence check.
 
-Compare client-to-server TCP payload byte counts and server ACKs with the existing `netty.socket`
-and `netty.frame` events. An early packet and ACK followed by a late Netty read place the gap
-after kernel delivery. A late first packet leaves the gap before that boundary. If case 6 never
-decodes a request header, the report can only show traffic on the case 5 socket. Use the merged
-timeline for large gaps and account for wall-clock adjustment when comparing close events.
+Compare client-to-server byte counts and server ACKs with the `netty.socket` and
+`netty.frame` events. An early packet and ACK followed by a late Netty read places
+the gap after kernel delivery. A late first packet leaves the gap before that boundary.
+If case 6 never decodes a request header, the report can only attribute packets to
+the case 5 socket. Use the timeline for large gaps and account for wall-clock
+adjustment when comparing close events. A passing single-host control leaves
+the original parallel-host failure and the separate Ktor symptom open.
 
 Each build CI job has a 15-minute limit, including setup and smoke tests. A timeout is a failure,
 not a reason to rerun indefinitely or increase the limit. Locally, use `./gradlew check --console=plain`
