@@ -31,15 +31,22 @@ managed request. Off-loop code cannot depend on implicit access to an ambient CD
 [Quarkus LTS releases](https://quarkus.io/releases/) ·
 [Framework-neutral host boundary](0002-framework-neutral-host-boundary.md)
 
-## Verification and follow-up
+## Alternatives considered
+
+Quarkus REST can stream a Mutiny publisher and cancel it when a request disconnects. A REST bridge
+could simplify integration for an application whose routes are already JAX-RS resources. Its response
+filter and exception behavior after streaming begins need the same tests. A custom Quarkus extension
+would add a deployment module and augmentation lifecycle before either is needed by this consumer.
+
+## Consequences
 
 The pinned JVM app serves the unmodified portable static page and classpath stylesheet. Real
 HTTP tests cover HEAD, metadata, early bytes, concurrent responsiveness, the same request trace
 after suspension, late HTML byte-budget termination and TCP reset cancellation.
 [Quarkus spike](../../spikes/quarkus-host/README.md)
 
-A Quarkus REST bridge remains an option if CDI and REST constraints show a consumer advantage.
-Its response filter and exception behavior after streaming begins need the same tests.
+## Follow-up
+
 The supported adapter decision needs typed actions, authenticated requests, deferred and live
 responses, the shared TCK, a standalone consumer outside the spike and explicit native-image
 results. JVM evidence applies to the tested matrix.
