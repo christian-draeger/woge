@@ -17,6 +17,8 @@ dependencies {
     api(project(":woge-core"))
     api(project(":woge-dev-client"))
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)

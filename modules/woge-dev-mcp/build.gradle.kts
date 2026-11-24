@@ -8,6 +8,8 @@ dependencies {
     api(project(":woge-dev-model"))
     implementation(libs.kotlinxCoroutinesCore)
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)

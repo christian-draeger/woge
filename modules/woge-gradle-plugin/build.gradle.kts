@@ -73,6 +73,7 @@ val generatePluginVersion =
     tasks.register<WriteProperties>("generatePluginVersion") {
         destinationFile = pluginVersionResource.map { it.file("dev/woge/gradle/woge-gradle-plugin.properties") }
         property("version", project.version.toString())
+        property("slf4jVersion", libs.versions.slf4j.get())
     }
 
 sourceSets.main {

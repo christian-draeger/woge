@@ -68,6 +68,33 @@ handler factory. The reference maps `WogeOperationFinished` to safe operation/ou
 logs. No inputs, bodies, cookies or secrets are logged. Use only bounded operation/outcome names as
 metric labels; correlation IDs belong in secured traces. HTTP health is not a metrics endpoint.
 
+## Framework diagnostic logging
+
+Woge uses an internal JVM logging facade through SLF4J. Spring Boot follows the application's
+normal logging configuration, including its default Logback setup. A standalone Ktor or JVM
+application can select a compatible SLF4J 2 provider at runtime, such as Logback or
+`org.slf4j:slf4j-jdk14`. Keep one provider on the application's runtime classpath. The framework
+library supplies the facade and SLF4J API. With no provider, SLF4J reports the missing provider
+and drops log messages.
+
+Set the `dev.woge` category in your provider. For example, this Spring Boot property shows warnings
+and errors while filtering the startup summary.
+
+```properties
+logging.level.dev.woge=WARN
+```
+
+For Ktor with the JUL provider, configure the same category with `dev.woge.level=WARNING` in the
+application's JUL configuration. INFO covers the Spring startup summary, WARN covers a recoverable
+configuration issue such as an unset shared render identity secret, and ERROR covers unexpected
+adapter failures.
+
+An adapter failure can include a safe value such as `correlationId=checkout-83`. Match it against
+the request correlation ID exposed in [semantic observations](semantic-observability.md) when
+diagnosing the same operation. Keep correlation IDs in private logs and traces. Avoid using input
+headers, credentials or raw exceptions as extra log context. See the
+[diagnostic logging ADR](../adr/0118-internal-jvm-diagnostic-logging.md) for the category inventory.
+
 ## Rolling update and shutdown order
 
 1. Upload the new immutable assets **without removing the old ones**.

@@ -61,8 +61,8 @@ public class WogeKtorDeferredHandler<Input : Any> internal constructor(
                 return
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (cause: Throwable) {
-                call.respondWogePreStreamFailure(cause)
+            } catch (_: Throwable) {
+                call.respondWogePreStreamFailure(context.correlationId)
                 return
             }
         var patchNumber = 0

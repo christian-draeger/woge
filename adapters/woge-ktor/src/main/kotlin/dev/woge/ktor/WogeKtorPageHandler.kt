@@ -84,8 +84,8 @@ public class WogeKtorPageHandler<Input : Any> internal constructor(
                 failure(FailureCategory.FORBIDDEN, context.correlationId)
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (failure: Throwable) {
-                call.respondWogePreStreamFailure(failure)
+            } catch (_: Throwable) {
+                call.respondWogePreStreamFailure(context.correlationId)
                 return
             }
         val accept =

@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import dev.woge.development.ExperimentalWogeDevelopmentApi
 import dev.woge.development.WogeDevelopmentCapabilities
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -19,6 +20,8 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.HexFormat
 import java.util.concurrent.Executors
+
+private val logger = KotlinLogging.logger("dev.woge.development.mcp.DevelopmentMcpServer")
 
 /**
  * Experimental MCP endpoint for coding agents (ADR 0075), using the Streamable HTTP transport with
@@ -63,8 +66,8 @@ public class DevelopmentMcpServer(
     private fun safely(exchange: HttpExchange) {
         try {
             handle(exchange)
-        } catch (failure: Exception) {
-            System.getLogger("woge.dev.mcp").log(System.Logger.Level.ERROR, "MCP request failed", failure)
+        } catch (_: Exception) {
+            logger.error { "MCP request failed" }
             if (exchange.responseCode < 0) text(exchange, INTERNAL_ERROR, "MCP request failed; see the wogeDev log.")
         } finally {
             exchange.close()

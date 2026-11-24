@@ -2,6 +2,7 @@ package dev.woge.ktor
 
 import dev.woge.host.ACTION_NAVIGATION_HEADER
 import dev.woge.host.ACTION_VALIDATION_HEADER
+import dev.woge.host.CorrelationId
 import dev.woge.host.PageResult
 import dev.woge.host.ResponseCookie
 import dev.woge.host.ResponseMetadata
@@ -18,6 +19,7 @@ import dev.woge.runtime.LiveEventStream
 import dev.woge.runtime.encodeActionPatchStream
 import dev.woge.runtime.observeCollection
 import dev.woge.runtime.renderByteChunks
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -25,7 +27,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.withCharset
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.log
 import io.ktor.server.request.httpMethod
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytesWriter
@@ -33,6 +34,8 @@ import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import java.io.IOException
+
+private val logger = KotlinLogging.logger("dev.woge.ktor.KtorResponses")
 
 internal suspend fun ApplicationCall.respondWogePage(
     result: PageResult,
@@ -107,8 +110,8 @@ internal suspend fun Flow<EncodedPatchChunk>.writeAndFlushKtorChunks(writeAndFlu
     collect { chunk -> writeAndFlush(chunk.bytes) }
 }
 
-internal suspend fun ApplicationCall.respondWogePreStreamFailure(failure: Throwable) {
-    application.log.error("Woge request failed before response streaming", failure)
+internal suspend fun ApplicationCall.respondWogePreStreamFailure(correlationId: CorrelationId) {
+    logger.error { "Woge request failed before response streaming (correlationId=${correlationId.value})" }
     response.status(HttpStatusCode.InternalServerError)
     response.headers.append(HttpHeaders.CacheControl, "no-store")
     respond(BodylessContent)

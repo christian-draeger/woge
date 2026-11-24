@@ -66,6 +66,10 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
     }
 
     static String wogeVersion() {
+        return pluginProperty("version");
+    }
+
+    static String pluginProperty(String name) {
         Properties properties = new Properties();
         try (InputStream input = WogeSpringBootPlugin.class.getResourceAsStream("woge-gradle-plugin.properties")) {
             if (input == null) {
@@ -75,7 +79,11 @@ public final class WogeSpringBootPlugin implements Plugin<Project> {
         } catch (IOException error) {
             throw new UncheckedIOException(error);
         }
-        return properties.getProperty("version");
+        String value = properties.getProperty(name);
+        if (value == null) {
+            throw new GradleException("The Woge Gradle plugin version resource is missing " + name + ".");
+        }
+        return value;
     }
 
     private static String springBootVersion(Project project) {

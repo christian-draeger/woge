@@ -4,6 +4,7 @@
 package dev.woge.development.gradle
 
 import dev.woge.development.ExperimentalWogeDevelopmentApi
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
 import kotlin.system.exitProcess
+
+private val logger = KotlinLogging.logger("dev.woge.development.gradle.WogeDevelopmentMain")
 
 /** Entry point of `./gradlew wogeDev`. The only argument is the settings file written by the plugin. */
 public fun main(args: Array<String>) {
@@ -36,7 +39,7 @@ public fun main(args: Array<String>) {
             exitProcess(1)
         }
         else -> {
-            error.printStackTrace()
+            logger.error { "Development session failed" }
             exitProcess(1)
         }
     }

@@ -7,7 +7,7 @@ import dev.woge.host.RenderIdentitySecret
 import dev.woge.host.WogeObserver
 import dev.woge.html.AssetUrls
 import dev.woge.protocol.PatchProtocolVersion
-import org.apache.commons.logging.LogFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -34,10 +34,10 @@ public class WogeAutoConfiguration {
     public fun wogeRenderIdentitySecret(properties: WogeProperties): RenderIdentitySecret {
         val configured = properties.renderIdentity.secret
         if (configured == null) {
-            logger.warn(
+            logger.warn {
                 "woge.render-identity.secret is unset; using a process-local secret. " +
-                    "Configure a shared secret before running multiple instances or restarting enhanced pages.",
-            )
+                    "Configure a shared secret before running multiple instances or restarting enhanced pages."
+            }
             return RenderIdentitySecret.random()
         }
         return RenderIdentitySecret.of(Base64.getDecoder().decode(configured))
@@ -110,15 +110,15 @@ public class WogeAutoConfiguration {
                 pageUseCases = catalog.pageUseCases.size,
                 deferredRegionUseCases = catalog.deferredRegionUseCases.size,
             )
-        logger.info(
+        logger.info {
             "Woge initialized: adapter=${runtimeInfo.adapter}, " +
                 "protocol=${runtimeInfo.protocolVersion}, runtime=${runtimeInfo.runtimeVersion}, " +
-                "pages=${runtimeInfo.pageUseCases}, deferred=${runtimeInfo.deferredRegionUseCases}",
-        )
+                "pages=${runtimeInfo.pageUseCases}, deferred=${runtimeInfo.deferredRegionUseCases}"
+        }
         return runtimeInfo
     }
 
     private companion object {
-        private val logger = LogFactory.getLog(WogeAutoConfiguration::class.java)
+        private val logger = KotlinLogging.logger(WogeAutoConfiguration::class.java.name)
     }
 }

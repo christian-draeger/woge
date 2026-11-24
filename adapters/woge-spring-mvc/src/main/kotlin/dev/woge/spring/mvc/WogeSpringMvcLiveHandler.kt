@@ -42,7 +42,7 @@ public class WogeSpringMvcLiveHandler<Input : Any> internal constructor(
                 return
             }
         val lastEventId = request.getHeader(LiveEventStream.LAST_EVENT_ID_HEADER)
-        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
+        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis, context.correlationId) {
             when (val live = admission.open(useCase, PageRequest(decoded, context), lastEventId, observer)) {
                 is LiveResponse.Refused ->
                     finish {

@@ -75,6 +75,12 @@ Do not put secrets in source identifiers or filenames. Raw compiler details and 
 secrets: only inspect them locally, and remove sensitive text before sharing. Production has neither
 the diagnostic server nor the client/overlay or relaxed development CSP.
 
+The isolated `wogeDev` launcher uses its own SLF4J-to-JUL provider for local browser-channel and MCP
+endpoint failures. Its terminal also shows the development lifecycle and application child output.
+Set the application's `dev.woge` level in the child application's normal logging configuration.
+See [framework diagnostic logging](production-operations.md#framework-diagnostic-logging) for levels,
+backend selection and safe request correlation.
+
 The [experimental MCP adapter](development-mcp.md) remains **incubating**, opt-in with `--mcp`, and
 outside the stable beta API. [ADR 0085](../adr/0085-development-loop-beta-evidence.md) records the review.
 

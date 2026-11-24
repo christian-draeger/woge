@@ -9,6 +9,7 @@ import dev.woge.development.ReloadApplied
 import dev.woge.development.ReloadLevel
 import dev.woge.development.ServerReady
 import dev.woge.development.orchestrator.DevelopmentOrchestrator
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -31,6 +32,8 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+
+private val logger = KotlinLogging.logger("dev.woge.development.browser.DevelopmentBrowserChannel")
 
 /** Optional privileged raw build details, separate from the redacted SSE protocol. */
 public fun interface DevelopmentBuildDetails {
@@ -148,8 +151,8 @@ public class DevelopmentBrowserChannel(
     private fun safelyHandle(exchange: HttpExchange) {
         try {
             handle(exchange)
-        } catch (failure: Exception) {
-            System.getLogger("woge.dev.browser").log(System.Logger.Level.ERROR, "Development endpoint failed", failure)
+        } catch (_: Exception) {
+            logger.error { "Development endpoint failed" }
             if (exchange.responseCode < 0) {
                 respond(exchange, HTTP_INTERNAL_ERROR, "Development endpoint failed; see the development log.")
             } else {

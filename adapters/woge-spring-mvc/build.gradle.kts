@@ -23,6 +23,8 @@ dependencies {
     api(project(":woge-server-runtime"))
     implementation(libs.springContext)
     implementation(libs.kotlinxCoroutinesCore)
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":woge-adapter-tck"))
     testImplementation(libs.junitJupiter)
