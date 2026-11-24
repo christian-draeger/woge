@@ -102,6 +102,55 @@ for (const input of ["pointer", "keyboard"]) {
   });
 }
 
+test("a retained form accepts a touch after cancellation while the live board converges", async ({ page, context }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-enhanced", "Split touchscreen gestures use Chromium CDP.");
+  const draft = `Touch draft ${randomUUID()}`;
+  const cancelledUpdate = `During cancelled touch ${randomUUID()}`;
+  const completedUpdate = `During completed touch ${randomUUID()}`;
+  const input = page.getByLabel("New todo");
+  const button = page.getByRole("button", { name: "Add todo", exact: true });
+  const other = await context.newPage();
+  await page.goto("/");
+  await other.goto("/");
+  await input.fill(draft);
+  await button.scrollIntoViewIfNeeded();
+  const bounds = await button.boundingBox();
+  expect(bounds).not.toBeNull();
+  const touchPoints = [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }];
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  await button.evaluate((element) => {
+    element.addEventListener("pointercancel", (event) => {
+      if (event.isTrusted && event.pointerType === "touch") element.dataset.touchCancelled = "true";
+    }, { once: true });
+  });
+
+  const submissions = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname === "/woge-actions/add-todo") {
+      submissions.push(request);
+    }
+  });
+
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints });
+  await other.getByLabel("New todo").fill(cancelledUpdate);
+  await other.getByRole("button", { name: "Add todo", exact: true }).click();
+  await expect(page.locator("[data-todo-id]").filter({ hasText: cancelledUpdate })).toHaveCount(1);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect(button).toHaveAttribute("data-touch-cancelled", "true");
+  await expect(input).toHaveValue(draft);
+  expect(submissions).toHaveLength(0);
+
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints });
+  await other.getByLabel("New todo").fill(completedUpdate);
+  await other.getByRole("button", { name: "Add todo", exact: true }).click();
+  await expect(page.locator("[data-todo-id]").filter({ hasText: completedUpdate })).toHaveCount(1);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(page.locator("[data-todo-id]").filter({ hasText: draft })).toHaveCount(1);
+  expect(submissions).toHaveLength(1);
+  await other.close();
+});
+
 test("removing a pressed live row cancels activation without submitting", async ({ page, context }, testInfo) => {
   test.skip(testInfo.project.name.endsWith("-native"), "Native pages refresh through ordinary navigation.");
   const title = `Removed ${randomUUID()}`;

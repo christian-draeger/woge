@@ -45,12 +45,17 @@ Reconnect reauthorizes and resynchronizes. The live event stream is not a durabl
 Keep loaders side-effect-free, and enforce the same access rule on the document, refresh and every
 subscription/reconnect. See [live regions](live-updates.md).
 
-Choose live-region boundaries around interactions deliberately. Replacing a button between pointer
-down and pointer up can cancel its activation before any POST, just as ordinary HTML replacement
-does. Keeping the add form outside the board protects its draft; it does not preserve every
-interaction inside the board. The [three-engine comparison](../../spikes/consumer-testing/results.md#bounded-runner-follow-up-2026-10-20)
-records this limitation. Do not compensate by replaying a mutation; further interaction-preservation
-policy is tracked in [#276](https://github.com/christian-draeger/woge/issues/276).
+Keep controls that remain actionable outside the live region that refreshes their data. The board
+can then display new server data while a user holds a pointer, key or touch contact on the add form.
+If a live update removes a pressed control, the browser can cancel its activation before sending a
+POST. A valid control can accept a new deliberate gesture after cancellation. Server actions still
+check current authorization and domain state.
+
+The [Todo browser journeys](../../examples/todo-spring-boot/browser-tests/todos.spec.mjs) verify
+stable pointer and keyboard activation and legitimate removal across three engines. Chromium's
+emulated touchscreen also checks explicit cancellation, a new touch submission and continued board
+updates. The [native HTML comparison](../../spikes/consumer-testing/results.md#bounded-runner-follow-up-2026-10-20)
+shows why placing a control inside a replaced ancestor can cancel its activation.
 
 ## Ordering and recovery
 
