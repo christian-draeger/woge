@@ -36,6 +36,11 @@ final class TodoHttpTest {
             assertEquals(400, send(client, origin, "/?filter=invalid", "GET").statusCode());
             assertEquals(200, send(client, origin, "/todo.css", "GET").statusCode());
             assertEquals(200, send(client, origin, "/assets/woge/index.js", "GET").statusCode());
+            assertEquals(200, send(client, origin, "/assets/woge/dpu.js", "GET").statusCode());
+            var deferred = send(client, origin, "/deferred", "GET");
+            assertEquals(200, deferred.statusCode());
+            assertTrue(deferred.body().contains("View the complete Todo list"));
+            assertTrue(deferred.body().contains("data-woge-dpu-frame=\"end\""));
 
             var head = send(client, origin, "/", "HEAD");
             assertEquals(200, head.statusCode());
