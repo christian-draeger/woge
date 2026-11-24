@@ -43,6 +43,7 @@ async function check(base) {
       ]);
       assert.equal(loaded.status(), 200);
       assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
       assert.equal(await nav.locator('[aria-current=page]').textContent(), name);
       const stylesheet = await page.locator('link[rel=stylesheet]').getAttribute('href');
       assert.match(new URL(stylesheet, base).pathname, /\/assets\/site-[a-f0-9]{64}[.]css$/);
@@ -56,7 +57,20 @@ async function check(base) {
     assert.equal((await page.goto(new URL('404.html', base).href)).status(), 200);
     assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Page not found');
     assert.equal(await page.locator('.site-brand').getAttribute('href'), new URL('index.html', base).pathname);
-    console.log(`Static navigation, keyboard, stylesheet and snippets passed with JavaScript disabled at ${base}`);
+    const context = await browser.newContext({
+      permissions: ['clipboard-read', 'clipboard-write'],
+      reducedMotion: 'reduce',
+    });
+    const enhanced = await context.newPage();
+    await enhanced.goto(new URL('tasks.html', base).href);
+    assert.equal(await enhanced.locator('html').evaluate((element) => getComputedStyle(element).scrollBehavior), 'auto');
+    const copy = enhanced.getByRole('button', { name: 'Copy code' }).first();
+    await copy.focus();
+    await copy.press('Enter');
+    await enhanced.getByRole('status').filter({ hasText: 'Copied.' }).waitFor();
+    const snippet = await enhanced.locator('pre > code').first().textContent();
+    assert.equal(await enhanced.evaluate(() => navigator.clipboard.readText()), snippet);
+    console.log(`Static navigation, mobile layout, keyboard, stylesheet and copy checks passed at ${base}`);
   } finally {
     await browser.close();
   }
