@@ -78,6 +78,11 @@ class ClinicLiveVisits {
                             text("Open owner details and record a visit")
                         }
                     }
+                    p {
+                        a(attributes = { url("href", applicationUrl(followUpPath(owner.id))) }) {
+                            text("Schedule an owner follow-up")
+                        }
+                    }
                 }
             }
         }

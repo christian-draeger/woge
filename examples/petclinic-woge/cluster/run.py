@@ -3,6 +3,7 @@
 
 import argparse
 import base64
+import concurrent.futures
 import contextlib
 import datetime
 import http.client
@@ -15,10 +16,12 @@ import re
 import secrets
 import subprocess
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 import zipfile
 from html.parser import HTMLParser
 
@@ -26,6 +29,7 @@ POSTGRES_IMAGE = "postgres@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c5202
 UPSTREAM = "500158f732419217507c7656904b8e6aa1bcc0d6"
 LIVE = "/woge/cluster/owners/1"
 NATIVE_VISIT = "/owners/1/pets/1/visits/new"
+FOLLOW_UP = LIVE + "/follow-up"
 PATCH = "application/vnd.woge.patch-stream; version=1"
 USERNAME = "reference"
 
@@ -121,13 +125,16 @@ class Page(HTMLParser):
     def __init__(self, body):
         super().__init__()
         self.csrf = None
+        self.fields = {}
         self.region = {}
         self.feed(body.decode())
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
-        if tag == "input" and values.get("name") == "_csrf":
-            self.csrf = values["value"]
+        if tag == "input" and "name" in values:
+            self.fields[values["name"]] = values.get("value", "")
+            if values["name"] == "_csrf":
+                self.csrf = values["value"]
         if values.get("id") == "clinic-live-visits":
             self.region = values
 
@@ -202,6 +209,80 @@ def next_event(stream, name, region):
     raise RuntimeError(f"SSE did not produce {name} within the local test budget")
 
 
+def post_follow_up(port, cookie, fields, discard_response=False):
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    try:
+        connection.request("POST", FOLLOW_UP, body=urllib.parse.urlencode(fields), headers={
+            "Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie,
+        })
+        if not discard_response:
+            with connection.getresponse() as response:
+                response.read(128 * 1024)
+                if response.status == 303:
+                    require(response.headers.get("Location") == FOLLOW_UP, "Follow-up POST did not redirect to a safe GET")
+                return response.status
+    finally:
+        connection.close()
+
+
+def race_follow_up(cookie, operations):
+    ready = threading.Barrier(len(operations))
+
+    def send(operation):
+        ready.wait(timeout=5)
+        return post_follow_up(operation[0], cookie, operation[1])
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(operations)) as pool:
+        return list(pool.map(send, operations))
+
+
+def exercise_follow_up(container, browser, cookie, a, b, date):
+    def form(port):
+        return Page(request(browser, port, FOLLOW_UP, 200)[1]).fields
+
+    def state_matches(port, revision, date_value):
+        view = form(port)
+        return view["expectedRevision"] == str(revision) and view["followUpOn"] == date_value
+
+    same = form(a)
+    same["followUpOn"] = date.isoformat()
+    require(same["expectedRevision"] == "0", "Follow-up fixture must start at revision zero")
+    without_csrf = {name: value for name, value in same.items() if name != "_csrf"}
+    require(post_follow_up(b, cookie, without_csrf) == 403, "Follow-up must enforce Spring CSRF")
+    require(race_follow_up(cookie, [(a, same), (b, same)]) == [303, 303],
+            "Duplicate submissions to both nodes must share one durable result")
+    require(state_matches(b, 1, same["followUpOn"]), "Duplicate requests advanced the revision more than once")
+    changed_replay = {**same, "followUpOn": (date + datetime.timedelta(days=1)).isoformat()}
+    require(post_follow_up(b, cookie, changed_replay) == 409, "A used identity accepted different command data")
+
+    competitors = [form(a), form(b)]
+    for offset, fields in enumerate(competitors, start=1):
+        fields["followUpOn"] = (date + datetime.timedelta(days=offset)).isoformat()
+    outcomes = race_follow_up(cookie, list(zip((a, b), competitors)))
+    require(sorted(outcomes) == [303, 409], f"Competing writes at the same revision returned {outcomes}")
+    winner = competitors[outcomes.index(303)]
+    stale = competitors[outcomes.index(409)]
+    require(state_matches(a, 2, winner["followUpOn"]), "A stale request overwrote the winning date")
+    require(post_follow_up(b, cookie, same) == 303 and state_matches(a, 2, winner["followUpOn"]),
+            "Replaying an earlier receipt overwrote a newer date")
+
+    lost = form(a)
+    lost["followUpOn"] = (date + datetime.timedelta(days=3)).isoformat()
+    post_follow_up(a, cookie, lost, discard_response=True)
+    await_value(lambda: state_matches(b, 3, lost["followUpOn"]),
+                "Safe GET on B did not observe the write whose response was dropped", timeout=5)
+    require(post_follow_up(b, cookie, lost) == 303, "Deliberate retry on B did not resolve the stored receipt")
+    require(state_matches(a, 3, lost["followUpOn"]), "Retry after a lost response produced another mutation")
+    require(psql(container, "SELECT count(*) FROM clinic_follow_up_receipt;") == "3",
+            "Expected one durable receipt per committed revision")
+    stale_id = uuid.UUID(stale["requestId"])
+    require(psql(container, f"SELECT count(*) FROM clinic_follow_up_receipt WHERE request_id = '{stale_id}';") == "0",
+            "The stale command did not roll back its reservation")
+    print("Follow-up writes: one commit for simultaneous duplicate IDs, one winner at a shared revision, "
+          "safe peer GET before retry after a discarded response")
+    return lost
+
+
 def exercise(container, a, b, password):
     cookies = http.cookiejar.CookieJar()
     browser = urllib.request.build_opener(
@@ -266,7 +347,14 @@ def exercise(container, a, b, password):
         require(recovered.encode() in patch, "Node A did not recover the visit after its database listener restarted")
         print(f"Database listener disconnect → recovery patch: {(time.monotonic() - began) * 1000:.1f} ms")
 
+    identity = urllib.request.Request(f"http://127.0.0.1:{a}{FOLLOW_UP}")
+    cookies.add_cookie_header(identity)
+    cookie = identity.get_header("Cookie")
+    follow_up_receipt = exercise_follow_up(container, browser, cookie, a, b, date)
     psql(container, "DELETE FROM clinic_live_owner_access WHERE username = 'reference' AND owner_id = 1;")
+    request(browser, b, FOLLOW_UP, 404)
+    require(post_follow_up(b, cookie, follow_up_receipt) == 404,
+            "A previous successful receipt bypassed the revoked owner grant")
     request(browser, a, LIVE, 404)
     request(browser, b, page.live_path, 404)
     request(browser, b, page.refresh_path(3, 4), 404, headers={"Accept": PATCH})
