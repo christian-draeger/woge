@@ -43,10 +43,12 @@ would add a deployment module and augmentation lifecycle before either is needed
 The pinned JVM app serves the unmodified portable static page and classpath stylesheet. Real
 HTTP tests cover HEAD, metadata, early bytes, concurrent responsiveness, the same request trace
 after suspension, late HTML byte-budget termination and TCP reset cancellation.
+The portable forecast adds a generated route binding, a native full-page fallback and the
+framed deferred patch stream. Chromium exercises both paths on the packaged JVM.
 [Quarkus spike](../../spikes/quarkus-host/README.md)
 
 ## Follow-up
 
-The supported adapter decision needs typed actions, authenticated requests, deferred and live
+The supported adapter decision needs typed actions, authenticated requests, live
 responses, the shared TCK, a standalone consumer outside the spike and explicit native-image
 results. JVM evidence applies to the tested matrix.

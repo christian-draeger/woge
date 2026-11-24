@@ -56,6 +56,16 @@ internal fun <Input : Any> serve(
     input: Input,
     observer: WogeObserver = WogeObserver.NONE,
 ) {
+    exchange(call) { response, context ->
+        val result = withContext(Dispatchers.Default) { useCase.open(PageRequest(input, context)) }
+        reply(response, result, context.method, observer, context.trace)
+    }
+}
+
+internal fun exchange(
+    call: RoutingContext,
+    handle: suspend (HttpServerResponse, RequestContext) -> Unit,
+) {
     val response = call.response()
     val method = RequestMethod.of(call.request().method().name())
     val requestId = UUID.randomUUID().toString()
@@ -64,8 +74,7 @@ internal fun <Input : Any> serve(
     val eventLoop = checkNotNull(Vertx.currentContext())
     val job = CoroutineScope(eventLoop.dispatcher()).launch(start = CoroutineStart.LAZY) {
         try {
-            val result = withContext(Dispatchers.Default) { useCase.open(PageRequest(input, context)) }
-            reply(response, result, method, observer, trace)
+            handle(response, context)
         } catch (cancelled: CancellationException) {
             if (!response.closed() && !response.ended()) response.reset()
             throw cancelled

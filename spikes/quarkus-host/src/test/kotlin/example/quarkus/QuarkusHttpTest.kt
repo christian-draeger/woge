@@ -7,6 +7,9 @@ import dev.woge.host.ResponseMetadata
 import dev.woge.host.httpHeader
 import dev.woge.host.responseCookie
 import dev.woge.host.streamingHtmlPage
+import dev.woge.protocol.PatchStreamEvent
+import dev.woge.protocol.PatchStreamV1
+import dev.woge.protocol.ReplacePatch
 import dev.woge.protocol.htmlFrame
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
@@ -179,6 +182,46 @@ class QuarkusHttpTest {
             assertFalse(plan.resumed.isCompleted)
         } finally {
             plan.release.complete(Unit)
+        }
+    }
+
+    @Test
+    fun `portable forecast serves native content and framed patches with the shell epoch`() {
+        newClient().use { client ->
+            val shell = client.send(request("/forecast"), HttpResponse.BodyHandlers.ofString())
+            assertEquals(200, shell.statusCode())
+            assertTrue("Loading the forecast" in shell.body())
+            assertTrue("View the complete forecast" in shell.body())
+            assertFalse("Saturday: sunny" in shell.body())
+            val complete = client.send(request("/forecast?complete=true"), HttpResponse.BodyHandlers.ofString())
+            assertEquals(200, complete.statusCode())
+            assertTrue("Saturday: sunny" in complete.body())
+            assertEquals(400, client.send(request("/forecast?complete=maybe"), HttpResponse.BodyHandlers.discarding()).statusCode())
+
+            val pattern = Regex("data-woge-patch-url=\"([^\"]+)\"")
+            val patchPath = requireNotNull(pattern.find(shell.body())).groupValues[1]
+            val patches = client.send(request(patchPath), HttpResponse.BodyHandlers.ofByteArray())
+            assertEquals(200, patches.statusCode())
+            assertEquals("no-store, no-transform", patches.headers().firstValue("Cache-Control").orElseThrow())
+            val decoder = PatchStreamV1.decoder()
+            val events = decoder.feed(patches.body())
+            decoder.finish()
+            val frame = events.filterIsInstance<PatchStreamEvent.PatchFrame>().single()
+            val patch = frame.patch as ReplacePatch
+            assertEquals(patchPath.substringAfterLast('/'), patch.target.pageEpoch.value)
+            assertTrue("Sunday: light rain" in patch.html.value)
+            assertEquals(PatchStreamEvent.Complete(1), events.last())
+            val invalidTarget = client.send(request("/forecast/woge-patches/%24"), HttpResponse.BodyHandlers.discarding())
+            assertEquals(404, invalidTarget.statusCode())
+
+            val futureProtocol = HttpRequest.newBuilder(base.toURI().resolve(patchPath))
+                .header("Accept", "application/vnd.woge.patch-stream; version=999")
+                .timeout(Duration.ofSeconds(3))
+                .build()
+            assertEquals(406, client.send(futureProtocol, HttpResponse.BodyHandlers.discarding()).statusCode())
+            for (asset in listOf("/assets/deferred-region/app.js", "/assets/woge/index.js")) {
+                assertEquals(200, client.send(request(asset), HttpResponse.BodyHandlers.discarding()).statusCode())
+            }
         }
     }
 
