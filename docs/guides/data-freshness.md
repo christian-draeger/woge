@@ -25,9 +25,9 @@ One action changes application state and returns typed replacements through
 Native submissions receive a 303 redirect to that URL. Enhanced submissions receive patches.
 The Todo board contains list and count together, so one snapshot renders both.
 
-The add form is outside the live board. Another visitor's update therefore cannot replace a local
-draft. Explicit form validation replaces the form/error region and focuses its document-owned
-summary; it does not add a second application handler.
+The add form sits above and outside the live board. Board updates preserve the draft, and changes in
+the height of the list leave the submit button in place. Explicit form validation replaces the
+form/error region and focuses its error summary through the same application handler.
 
 Use the actual generated region and route names from your application. The complete
 [Todo actions](../../examples/todo-spring-boot/src/main/kotlin/example/todo/TodoActions.kt) target the

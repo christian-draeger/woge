@@ -109,6 +109,7 @@ fun todoDocument(
                             }) { text(choice.replaceFirstChar(Char::uppercase)) }
                         }
                     }
+                    region(render.target(TodoFormRegion), TodoFormView(filter, errors))
                     liveRegion(
                         render,
                         TodoBoardRegion,
@@ -124,7 +125,6 @@ fun todoDocument(
                         attribute("id", "todo-alert")
                         attribute("role", "alert")
                     }) {}
-                    region(render.target(TodoFormRegion), TodoFormView(filter, errors))
                     p { text("Public demo: todos are shared and stored in memory. Restarting clears them.") }
                     noscript {
                         p {
