@@ -171,3 +171,4 @@ indexes and assembles these decisions rather than adding one.
 | [0116](0116-bounded-multipart-test-diagnostics.md) | Proposed | Bound request-correlated multipart diagnostics to test fixtures and finite CI investigations |
 | [0117](0117-main-snapshots-to-maven-central.md) | Proposed | Publish checked main snapshots to Maven Central |
 | [0118](0118-internal-jvm-diagnostic-logging.md) | Proposed | Standardize internal JVM diagnostic logging |
+| [0119](0119-defer-application-feature-generator.md) | Accepted | Retain one application-owned feature recipe and defer a generator |

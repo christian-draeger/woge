@@ -47,6 +47,7 @@ Frozen spikes stay in the repository as small, executable evidence. Retired spik
 | Frozen | [consumer-testing](consumer-testing/) | ADRs [0112](../docs/adr/0112-consumer-testing-layers.md) and [0114](../docs/adr/0114-webmcp-managed-form-experiment.md); parser, bounded runner failure/parallel/repetition and negative WebMCP evidence |
 | Frozen | [development-mcp-clients](development-mcp-clients/) | ADR [0113](../docs/adr/0113-retain-experimental-development-mcp.md); two real SDK clients and lifecycle checks, no productivity claim |
 | Frozen | [todo-framework-comparison](todo-framework-comparison/) | Bounded JVM comparison under #269 / ADR [0115](../docs/adr/0115-bounded-framework-comparison-evidence.md); full-deployment/Next.js study scoped separately in #277, no throughput release gate |
+| Frozen | [vertical-feature-recipe](vertical-feature-recipe/) | Fixed Todo feature recipe and conflict evidence in [ADR 0119](../docs/adr/0119-defer-application-feature-generator.md) |
 
 ## Pre-1.0 audit (2026-10-11)
 

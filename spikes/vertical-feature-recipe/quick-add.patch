@@ -1,0 +1,191 @@
+diff --git a/src/main/kotlin/example/todo/QuickAdd.kt b/src/main/kotlin/example/todo/QuickAdd.kt
+new file mode 100644
+index 0000000..5cc20eb
+--- /dev/null
++++ b/src/main/kotlin/example/todo/QuickAdd.kt
+@@ -0,0 +1,87 @@
++package example.todo
++
++import dev.woge.host.CsrfVerification
++import dev.woge.host.FailureCategory
++import dev.woge.host.FormDecoder
++import dev.woge.host.FormElementId
++import dev.woge.host.FormError
++import dev.woge.host.FormErrors
++import dev.woge.host.FormValues
++import dev.woge.host.PageResult
++import dev.woge.host.PageUseCase
++import dev.woge.host.RequestContext
++import dev.woge.host.ResponseMetadata
++import dev.woge.host.ResponseStatus
++import dev.woge.host.WogeAction
++import dev.woge.host.WogeRoute
++import dev.woge.host.actionForm
++import dev.woge.host.failure
++import dev.woge.host.formErrorSummary
++import dev.woge.host.formField
++import dev.woge.host.formFieldErrors
++import dev.woge.host.htmlPage
++import dev.woge.host.redirect
++import dev.woge.html.body
++import dev.woge.html.button
++import dev.woge.html.h1
++import dev.woge.html.head
++import dev.woge.html.html
++import dev.woge.html.input
++import dev.woge.html.label
++import dev.woge.html.main
++import dev.woge.html.title
++import kotlinx.serialization.Serializable
++
++@WogeRoute("/quick-add")
++internal data object QuickAddInput
++
++@Serializable
++internal data class QuickAddTodo(val title: String)
++
++internal val quickAddDecoder = FormDecoder(QuickAddTodo.serializer())
++private val quickAddTitle = quickAddDecoder.field(QuickAddTodo::title, FormElementId.of("quick-add-title"))
++private val quickAddSummary = FormElementId.of("quick-add-errors")
++
++internal val quickAddPage = PageUseCase<QuickAddInput> {
++    quickAddDocument(FormErrors(FormValues.EMPTY, emptyList()), ResponseStatus.OK)
++}
++
++@WogeAction("quick-add-todo")
++internal suspend fun quickAddTodo(command: QuickAddTodo, context: RequestContext): PageResult {
++    if (context.csrf != CsrfVerification.VERIFIED) return failure(FailureCategory.FORBIDDEN, context.correlationId)
++    val title = command.title.trim()
++    if (title.isEmpty() || title.length > MAX_TITLE_LENGTH) {
++        val errors = FormErrors(
++            FormValues.of(mapOf(quickAddTitle.name to listOf(command.title))),
++            listOf(FormError(quickAddTitle, "Enter a title of 1 to $MAX_TITLE_LENGTH characters.")),
++        )
++        return quickAddDocument(errors, ResponseStatus.BAD_REQUEST)
++    }
++    todos.add(title)
++    return redirect(TodosRoute.url(TodosInput()), ResponseStatus.SEE_OTHER)
++}
++
++private fun quickAddDocument(errors: FormErrors<QuickAddTodo>, status: ResponseStatus): PageResult.Document =
++    htmlPage(ResponseMetadata(status = status)) {
++        doctype()
++        html(attributes = { attribute("lang", "en") }) {
++            head { title("Quick add todo") }
++            body {
++                main {
++                    h1 { text("Quick add todo") }
++                    formErrorSummary(errors, quickAddSummary, "Check your todo")
++                    actionForm(QuickAddTodoAction) {
++                        label(attributes = { attribute("for", quickAddTitle.id.value) }) { text("Todo title") }
++                        input(attributes = {
++                            formField(quickAddTitle, errors)
++                            attribute("value", errors.value(quickAddTitle).orEmpty())
++                            attribute("maxlength", MAX_TITLE_LENGTH.toString())
++                            boolean("required")
++                        })
++                        formFieldErrors(quickAddTitle, errors)
++                        button { text("Add todo") }
++                    }
++                }
++            }
++        }
++    }
+diff --git a/src/main/kotlin/example/todo/QuickAddRoutes.kt b/src/main/kotlin/example/todo/QuickAddRoutes.kt
+new file mode 100644
+index 0000000..f1081a6
+--- /dev/null
++++ b/src/main/kotlin/example/todo/QuickAddRoutes.kt
+@@ -0,0 +1,18 @@
++package example.todo
++
++import dev.woge.spring.webflux.WogeWebFluxHandlers
++import dev.woge.spring.webflux.webFluxInput
++import org.springframework.context.annotation.Bean
++import org.springframework.context.annotation.Configuration
++import org.springframework.web.reactive.function.server.coRouter
++
++@Configuration(proxyBeanMethods = false)
++internal class QuickAddRoutes {
++    @Bean
++    fun quickAddRouter(handlers: WogeWebFluxHandlers) = coRouter {
++        val page = handlers.page(quickAddPage, QuickAddRoute)
++        val action = handlers.action(QuickAddTodoAction, quickAddDecoder.webFluxInput())
++        GET(QuickAddRoute.path, page::handle)
++        POST(QuickAddTodoAction.path, action::handle)
++    }
++}
+diff --git a/src/test/kotlin/example/todo/QuickAddApplicationTest.kt b/src/test/kotlin/example/todo/QuickAddApplicationTest.kt
+new file mode 100644
+index 0000000..2425b77
+--- /dev/null
++++ b/src/test/kotlin/example/todo/QuickAddApplicationTest.kt
+@@ -0,0 +1,68 @@
++package example.todo
++
++import org.jsoup.Jsoup
++import org.junit.jupiter.api.Assertions.assertEquals
++import org.junit.jupiter.api.Assertions.assertTrue
++import org.junit.jupiter.api.Test
++import org.springframework.boot.SpringApplication
++import org.springframework.boot.web.server.context.ConfigurableWebServerApplicationContext
++import java.net.URI
++import java.net.URLEncoder
++import java.net.http.HttpClient
++import java.net.http.HttpRequest
++import java.net.http.HttpResponse
++import java.nio.charset.StandardCharsets.UTF_8
++import java.time.Duration
++
++class QuickAddApplicationTest {
++    @Test
++    fun `native quick add validates then redirects to the existing list`() {
++        todos.reset()
++        SpringApplication.run(Application::class.java, "--server.port=0", "--logging.level.root=WARN").use { context ->
++            val port = requireNotNull((context as ConfigurableWebServerApplicationContext).webServer).port
++            val origin = "http://127.0.0.1:$port"
++            val client = HttpClient.newHttpClient()
++
++            fun get(path: String) = client.send(
++                HttpRequest.newBuilder(URI.create(origin + path)).timeout(Duration.ofSeconds(10)).GET().build(),
++                HttpResponse.BodyHandlers.ofString(),
++            )
++
++            val formResponse = get("/quick-add")
++            assertEquals(200, formResponse.statusCode())
++            val form = Jsoup.parse(formResponse.body())
++            assertEquals("Quick add todo", form.selectFirst("h1")?.text())
++            assertEquals("post", form.selectFirst("form")?.attr("method"))
++            val action = requireNotNull(form.selectFirst("form")).attr("action")
++            assertEquals("quick-add-title", form.selectFirst("label")?.attr("for"))
++            assertTrue(form.select("script").isEmpty())
++
++            fun submit(value: String, requestOrigin: String = origin) = client.send(
++                HttpRequest.newBuilder(URI.create(origin + action)).timeout(Duration.ofSeconds(10))
++                    .header("Origin", requestOrigin)
++                    .header("Content-Type", "application/x-www-form-urlencoded")
++                    .POST(HttpRequest.BodyPublishers.ofString("title=" + URLEncoder.encode(value, UTF_8)))
++                    .build(),
++                HttpResponse.BodyHandlers.ofString(),
++            )
++
++            assertEquals(403, submit("Rejected title", "https://other.example").statusCode())
++            val invalid = submit("   ")
++            assertEquals(400, invalid.statusCode())
++            val rejection = Jsoup.parse(invalid.body())
++            assertEquals("   ", rejection.selectFirst("#quick-add-title")?.attr("value"))
++            assertEquals("true", rejection.selectFirst("#quick-add-title")?.attr("aria-invalid"))
++            assertEquals("#quick-add-title", rejection.selectFirst("#quick-add-errors a")?.attr("href"))
++            assertTrue(todos.snapshot().todos.isEmpty())
++
++            val valid = submit("  Read <HTML>  ")
++            assertEquals(303, valid.statusCode())
++            val location = valid.headers().firstValue("Location").orElseThrow()
++            assertEquals("/", location)
++            val redirected = get(location)
++            assertEquals(200, redirected.statusCode())
++            assertTrue(redirected.body().contains("Read &lt;HTML&gt;"))
++            assertEquals(listOf("Read <HTML>"), todos.snapshot().todos.map { it.title })
++        }
++    }
++}
