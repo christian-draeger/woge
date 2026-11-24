@@ -19,14 +19,13 @@ The default host is Spring Boot WebFlux:
 Open `http://localhost:8080/`. The first run needs JDK 21. It does not need Node.js, Vite, Tailwind or
 a JavaScript application build.
 
-The scaffold pins Woge, Kotlin, Spring Boot, selected host, build-JDK and JVM-target versions in
-`gradle.properties`.
-Woge is pre-release. Its Maven registry is GitHub Packages, which requires authentication even for
-public packages. Follow the
-[repository and credential recipe](https://github.com/christian-draeger/woge/blob/main/docs/guides/packages.md)
-and select an actually published `wogeVersion`. No Woge checkout is needed for package consumption.
-Repository CI still supplies `-PwogeRepository=/path/to/local/repository` for credential-free
-build-local acceptance.
+The scaffold pins Woge, Kotlin, Spring Boot, the selected host, build JDK and JVM target in
+`gradle.properties`. It resolves snapshot versions anonymously from Maven Central. The checked
+`main` build updates `0.1.0-SNAPSHOT` after a successful push. For the published GitHub Packages alpha,
+follow the [credential recipe](https://github.com/christian-draeger/woge/blob/main/docs/guides/packages.md#authenticate-once-in-your-shell).
+Use `-PwogeRepository=/path/to/repository` to select an explicit repository, such as the local Maven
+repository shipped with a fixed pilot build. The materialized application builds independently of
+the Woge source checkout.
 
 ## Develop with live reload
 

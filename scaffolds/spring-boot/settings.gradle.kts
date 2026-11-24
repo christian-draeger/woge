@@ -16,9 +16,14 @@ pluginManagement {
         id("dev.woge.spring-boot") version wogeVersion
     }
     repositories {
-        val localRepository = providers.gradleProperty("wogeRepository").orNull
-        if (localRepository != null) {
-            maven { url = uri(localRepository) }
+        val wogeRepository = providers.gradleProperty("wogeRepository").orNull
+        if (wogeRepository != null) {
+            maven { url = uri(wogeRepository) }
+        } else if (wogeVersion.endsWith("-SNAPSHOT")) {
+            maven {
+                url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                content { includeGroupByRegex("dev\\.woge(\\..*)?") }
+            }
         } else {
             maven {
                 name = "githubPackages"
@@ -34,10 +39,16 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    val wogeVersion: String by settings
     repositories {
-        val localRepository = providers.gradleProperty("wogeRepository").orNull
-        if (localRepository != null) {
-            maven { url = uri(localRepository) }
+        val wogeRepository = providers.gradleProperty("wogeRepository").orNull
+        if (wogeRepository != null) {
+            maven { url = uri(wogeRepository) }
+        } else if (wogeVersion.endsWith("-SNAPSHOT")) {
+            maven {
+                url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                content { includeGroup("dev.woge") }
+            }
         } else {
             maven {
                 name = "githubPackages"
