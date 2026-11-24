@@ -43,3 +43,10 @@ The [explicit SDK matrix](../../spikes/development-mcp-clients/evidence/2026-10-
 now covers both clients against both supported negotiated versions. Only the outgoing initialize
 offer is pinned; SDK result validation and transport remain intact. The integration stays incubating:
 these successful protocol operations do not replace the controlled model-family/human trials.
+
+## Subsequent evidence, 2026-11-25
+
+The [controlled Todo trial](../ai-dx/results/2026-11-25-beta-todo-mcp.md) exercised one compile
+failure and repair through terminal feedback and the real MCP endpoint. Both fresh agents restored
+the same behavior with unchanged checks. This supports keeping both feedback paths available.
+Broader model-family and human evidence is required before a stability or productivity claim.
