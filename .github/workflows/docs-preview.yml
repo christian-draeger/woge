@@ -18,18 +18,54 @@ on:
       - "examples/**/src/**/*.kt"
       - "scaffolds/**/src/**/*.kt"
       - "examples/todo-spring-boot/package*.json"
+  workflow_dispatch:
+    inputs:
+      source_revision:
+        description: "Approved full commit SHA contained in main"
+        required: true
+        type: string
+      expected_version:
+        description: "Woge version recorded in that commit"
+        required: true
+        type: string
+      base_path:
+        description: "Documentation site base path"
+        type: choice
+        options:
+          - "/woge/"
+          - "/"
+        default: "/woge/"
+      publish:
+        description: "Deploy the checked artifact to GitHub Pages"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   static-preview:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DOCS_BASE_PATH: ${{ inputs.base_path || '/woge/' }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: ${{ github.event_name == 'pull_request' && '1' || '0' }}
+      - name: Select the approved source revision
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          REQUESTED_REVISION: ${{ inputs.source_revision }}
+        run: |
+          if ! [[ "$REQUESTED_REVISION" =~ ^[0-9a-f]{40}$ ]] ||
+             ! git merge-base --is-ancestor "$REQUESTED_REVISION" "$GITHUB_SHA"; then
+            echo "::error::Use a full source commit SHA contained in main."
+            exit 1
+          fi
+          git switch --detach "$REQUESTED_REVISION"
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -43,23 +79,30 @@ jobs:
           cache: npm
           cache-dependency-path: examples/todo-spring-boot/package-lock.json
       - name: Build and validate static documentation
-        run: ./gradlew -p site/generator check -PsiteBasePath=/woge/
+        run: ./gradlew -p site/generator check "-PsiteBasePath=$DOCS_BASE_PATH"
       - name: Install pinned browser test tooling
         working-directory: examples/todo-spring-boot
         run: |
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
-      - name: Verify the static project subpath in Chromium
+      - name: Verify the static site in Chromium
         env:
+          DOCS_EXPECTED_VERSION: ${{ inputs.expected_version }}
           NODE_PATH: ${{ github.workspace }}/examples/todo-spring-boot/node_modules
         run: |
           preview="$(mktemp -d)"
-          ln -s "$PWD/site/generator/build/site" "$preview/woge"
-          python3 -m http.server 4173 --bind 127.0.0.1 --directory "$preview" &
+          docroot="$PWD/site/generator/build/site"
+          webroot="$docroot"
+          if [[ "$DOCS_BASE_PATH" != / ]]; then
+            ln -s "$docroot" "$preview${DOCS_BASE_PATH%/}"
+            webroot="$preview"
+          fi
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory "$webroot" &
           server=$!
           trap 'kill "$server"; rm -rf "$preview"' EXIT
-          curl --fail --silent --show-error --retry 10 --retry-connrefused http://127.0.0.1:4173/woge/ --output /dev/null
-          node site/generator/browser-check.cjs http://127.0.0.1:4173/woge/
+          url="http://127.0.0.1:4173$DOCS_BASE_PATH"
+          curl --fail --silent --show-error --retry 10 --retry-connrefused "$url" --output /dev/null
+          DOCS_EXPECTED_REVISION="$(git rev-parse HEAD)" node site/generator/browser-check.cjs "$url"
       - name: Upload static preview
         uses: actions/upload-artifact@v7
         with:
@@ -67,3 +110,42 @@ jobs:
           path: site/generator/build/site/
           if-no-files-found: error
           retention-days: 14
+      - name: Package the checked site for Pages
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site/generator/build/site
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish
+    needs: static-preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: woge-docs-pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - name: Read the configured Pages site
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: false
+      - name: Verify the target base path
+        env:
+          EXPECTED: ${{ inputs.base_path }}
+          CONFIGURED: ${{ steps.pages.outputs.base_path }}
+        run: |
+          if [[ "${EXPECTED%/}" != "${CONFIGURED%/}" ]]; then
+            echo "::error::The reviewed artifact has a different base path than the configured Pages site."
+            exit 1
+          fi
+      - name: Deploy the checked artifact
+        id: publish
+        uses: actions/deploy-pages@v4
