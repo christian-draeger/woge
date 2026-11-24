@@ -32,7 +32,7 @@ jobs:
           test -s "$reference/-woge/dev.woge.ktor/-woge-ktor-handlers/index.html"
           test -s "$reference/-woge/dev.woge.spring.mvc/-woge-spring-mvc-handlers/index.html"
           test -s "$reference/-woge/dev.woge.spring.webflux/-woge-web-flux-handlers/index.html"
-          rg --fixed-strings --quiet "/blob/$GITHUB_SHA/" "$reference/-woge/dev.woge.host/-request-context/index.html"
+          grep -Fq "/blob/$GITHUB_SHA/" "$reference/-woge/dev.woge.host/-request-context/index.html"
       - name: Archive the API reference
         uses: actions/upload-artifact@v7
         with:
