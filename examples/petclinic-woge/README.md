@@ -87,12 +87,13 @@ and that another visit can be booked with the Thymeleaf form.
 
 ## What the integration adds
 
-The integration adds three Kotlin production source files alongside the shared security and
-JSON fixture. The Gradle build adds KSP and the Woge plugin for typed routes, the MVC starter
-and adapter, and the version-matched browser assets. Existing application routes, the visit
-controller, and the repository are reused.
+The measured integration at Woge commit `8ca617b56eebe9108708ea24d4cd571e98dd515c` added three
+Kotlin production source files alongside the shared security and JSON fixture. The Gradle build
+added KSP and the Woge plugin for typed routes, the MVC starter and adapter, and the version-matched
+browser assets. It reused the existing routes, visit controller and repository. The owner-suggestions
+island was added after this measurement.
 
-A paired package build used PetClinic revision `500158f`, Spring Boot 4.1.1, Gradle 8.14.4,
+The paired package build used PetClinic revision `500158f`, Spring Boot 4.1.1, Gradle 8.14.4,
 JDK 21.0.6 on macOS arm64, and the local `0.1.0-beta.1` pilot artifacts.
 The baseline kept the same Kotlin toolchain, Spring Security and JSON fixture, H2 seed,
 and Thymeleaf CSRF wiring. It omitted the three integration source files, their tests,
@@ -110,8 +111,8 @@ artifacts and seven other runtime jars were added. A newer JetBrains annotations
 the baseline version. These counts apply to the configured packaged MVC application. Startup,
 memory, load, and first-feature development time were outside this measurement.
 
-To reproduce the package comparison, build the application with the properties above, then
-duplicate the example directory. In the copy, keep `ClinicBaseline.kt` and the shared settings,
+To reproduce the package comparison, check out the measured Woge revision above and build
+the application with the same properties, then duplicate the example directory. In the copy, keep `ClinicBaseline.kt` and the shared settings,
 dependencies and resources. Remove the Woge production and test files, the Woge/KSP plugin
 declarations, the three `dev.woge` dependencies and the Woge repository/version configuration.
 Build both copies with `bootJar` and the same upstream checkout. Compare the executable file
