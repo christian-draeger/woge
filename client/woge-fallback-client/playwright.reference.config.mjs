@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { join } from "node:path";
 
 const browsers = ["chromium", "firefox", "webkit"];
 const hostName = process.env.WOGE_REFERENCE_HOST ?? "spring-webflux";
@@ -7,6 +8,8 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error("WOGE_REFERENCE_PORT must be a valid TCP port");
 }
 const origin = `http://127.0.0.1:${port}`;
+const packaged = process.env.WOGE_REFERENCE_PACKAGED === "1";
+const reportDirectory = process.env.WOGE_REFERENCE_REPORT_DIR;
 const hosts = {
   "spring-webflux": {
     command: "../../gradlew -p ../.. :woge-reference-spring-webflux:bootRun --console=plain",
@@ -30,10 +33,14 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: 1,
-  outputDir: `test-results/reference-application/${hostName}`,
+  outputDir: reportDirectory ? join(reportDirectory, "test-results") : `test-results/reference-application/${hostName}`,
   reporter: [
     ["line"],
-    ["html", { open: "never", outputFolder: `playwright-report/reference-application/${hostName}` }],
+    ["html", {
+      open: "never",
+      outputFolder: reportDirectory ? join(reportDirectory, "html") : `playwright-report/reference-application/${hostName}`,
+    }],
+    ...(reportDirectory ? [["json", { outputFile: join(reportDirectory, "browser.json") }]] : []),
   ],
   use: {
     baseURL: origin,
@@ -42,7 +49,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: host.command,
+    command: packaged ? `python3 -B ../../scripts/reference-demo.py serve ${hostName} --port ${port}` : host.command,
     url: `${origin}/projects/woge`,
     env: { SERVER_PORT: String(port), PORT: String(port) },
     reuseExistingServer: false,

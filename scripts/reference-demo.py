@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""Run a packaged reference host or verify its shared browser journeys."""
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import socket
+import subprocess
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+BROWSER = ROOT / "client/woge-fallback-client"
+HOSTS = ("spring-webflux", "spring-mvc", "ktor")
+PROJECTS = tuple(
+    f"{engine}-{mode}"
+    for engine in ("chromium", "firefox", "webkit")
+    for mode in ("enhanced", "no-javascript")
+)
+BROWSER_TIMEOUT_MS = 300_000
+
+
+def version():
+    return next(
+        line.split("=", 1)[1]
+        for line in (ROOT / "gradle.properties").read_text().splitlines()
+        if line.startswith("wogeVersion=")
+    )
+
+
+def package(host, woge_version, java):
+    name = f"woge-reference-{host}"
+    output = ROOT / "examples/reference-application" / host / "build"
+    if host == "ktor":
+        distribution = output / "install" / name
+        return f":{name}:installDist", distribution, [str(distribution / "bin" / name)]
+    jar = output / "libs" / f"{name}-{woge_version}.jar"
+    return f":{name}:bootJar", jar, [java, "-jar", str(jar)]
+
+
+def free_port():
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        return listener.getsockname()[1]
+
+
+def output(*args):
+    return subprocess.check_output(args, cwd=ROOT, stderr=subprocess.STDOUT, text=True).strip()
+
+
+def artifact_hashes(path):
+    files = [path] if path.is_file() else sorted(path.rglob("*"))
+    hashes = {}
+    for file in files:
+        if file.is_file():
+            checksum = hashlib.sha256()
+            with file.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    checksum.update(chunk)
+            hashes[str(file.relative_to(ROOT))] = checksum.hexdigest()
+    if not hashes:
+        raise RuntimeError(f"No packaged artifact found at {path}.")
+    return hashes
+
+
+def verify(args, port, woge_version, java, package_path, build):
+    directory = ROOT / "build/reference-demo"
+    directory.mkdir(parents=True, exist_ok=True)
+    evidence = Path(tempfile.mkdtemp(prefix=f"{args.host}-", dir=directory))
+    print(f"Evidence directory {evidence}", flush=True)
+    lock = json.loads((BROWSER / "package-lock.json").read_text())
+    report = {
+        "schemaVersion": 1,
+        "kind": "source-correctness",
+        "sourceCommit": output("git", "rev-parse", "HEAD"),
+        "sourceDirty": bool(output("git", "status", "--porcelain")),
+        "wogeVersion": woge_version,
+        "host": args.host,
+        "origin": f"http://127.0.0.1:{port}",
+        "platform": platform.platform(),
+        "java": output(java, "-version"),
+        "node": output("node", "--version"),
+        "playwright": lock["packages"]["node_modules/@playwright/test"]["version"],
+        "browserProjects": args.project or list(PROJECTS),
+        "dataset": "shared project and task-board fixtures, reset by a new server process",
+        "instrumentation": "browser contract trace on failure",
+        "browserTimeoutMs": BROWSER_TIMEOUT_MS,
+        "status": "failed",
+    }
+    environment = {
+        **os.environ,
+        "WOGE_REFERENCE_HOST": args.host,
+        "WOGE_REFERENCE_PORT": str(port),
+        "WOGE_REFERENCE_PACKAGED": "1",
+        "WOGE_REFERENCE_REPORT_DIR": str(evidence),
+    }
+    command = [
+        "npm", "run", "test:reference", "--",
+        "--grep-invert", "real adapter production budgets",
+        "--global-timeout", str(BROWSER_TIMEOUT_MS),
+    ]
+    for project in args.project:
+        command += ["--project", project]
+    try:
+        with (evidence / "build.log").open("w") as log:
+            subprocess.run(
+                ["node", "scripts/build-reference-theme.mjs"], cwd=BROWSER,
+                stdout=log, stderr=subprocess.STDOUT, check=True,
+            )
+            subprocess.run(build, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+        report["artifactSha256"] = artifact_hashes(package_path)
+        with (evidence / "browser.log").open("w") as log:
+            result = subprocess.run(command, cwd=BROWSER, env=environment, stdout=log, stderr=subprocess.STDOUT)
+        report["browserExitCode"] = result.returncode
+        if result.returncode == 0:
+            report["status"] = "passed"
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        report["error"] = str(error)
+    except KeyboardInterrupt:
+        report["status"] = "cancelled"
+    finally:
+        (evidence / "manifest.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(report.get("error", f"Browser verification {report['status']}."))
+    return 0 if report["status"] == "passed" else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=("run", "verify", "serve"))
+    parser.add_argument("host", choices=HOSTS)
+    parser.add_argument("--port", type=int)
+    parser.add_argument("--project", action="append", choices=PROJECTS, default=[])
+    args = parser.parse_args()
+    if args.port is not None and not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    if args.project and args.mode != "verify":
+        parser.error("--project applies to verify")
+    port = args.port or (free_port() if args.mode == "verify" else 8080)
+    java_home = os.environ.get("JAVA_HOME")
+    java = str(Path(java_home) / "bin/java") if java_home else "java"
+    woge_version = version()
+    task, package_path, launch = package(args.host, woge_version, java)
+    build = [str(ROOT / "gradlew"), task, f"-PwogeVersion={woge_version}", "--console=plain"]
+    if args.mode == "verify":
+        return verify(args, port, woge_version, java, package_path, build)
+    if args.mode == "run":
+        subprocess.run(build, cwd=ROOT, check=True)
+        print(f"Open http://127.0.0.1:{port}/projects/woge", flush=True)
+    environment = {
+        **os.environ,
+        "PORT": str(port),
+        "SERVER_PORT": str(port),
+        "SERVER_ADDRESS": "127.0.0.1",
+        "WOGE_REFERENCE_BIND_ADDRESS": "127.0.0.1",
+        "WOGE_DEPLOYMENT": "false",
+    }
+    os.execvpe(launch[0], launch, environment)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
