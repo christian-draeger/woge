@@ -9,6 +9,8 @@ dependencies {
     api(project(":woge-dev-browser"))
     implementation(project(":woge-dev-mcp"))
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinxCoroutinesTest)

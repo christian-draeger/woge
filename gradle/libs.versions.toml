@@ -9,8 +9,10 @@ ksp = "2.3.12"
 jetbrainsAnnotations = "26.1.0"
 ktor = "3.5.2"
 kotlin = "2.4.10"
+kotlinLogging = "7.0.14"
 ktlintGradle = "14.2.0"
 serialization = "1.11.0"
+slf4j = "2.0.18"
 springBoot = "4.1.1"
 
 [plugins]
@@ -31,6 +33,7 @@ jetbrainsAnnotations = { module = "org.jetbrains:annotations", version.ref = "je
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform" }
+kotlinLoggingJvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
 kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinxCoroutinesReactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "coroutines" }
 kotlinxCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -51,6 +54,9 @@ springBoot = { module = "org.springframework.boot:spring-boot" }
 springBootAutoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 springBootConfigurationProcessor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
 springBootDependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4jJdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
+springBootStarterLogging = { module = "org.springframework.boot:spring-boot-starter-logging" }
 springBootStarterWebflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 springBootStarterWeb = { module = "org.springframework.boot:spring-boot-starter-web" }
 springBootTest = { module = "org.springframework.boot:spring-boot-test" }

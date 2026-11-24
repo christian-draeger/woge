@@ -1,5 +1,9 @@
 package dev.woge.spring.boot.autoconfigure
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import dev.woge.host.DeferredRegionsUseCase
 import dev.woge.host.FailurePages
 import dev.woge.host.PageUseCase
@@ -10,12 +14,15 @@ import dev.woge.spring.mvc.WogeSpringMvcHandlers
 import dev.woge.spring.webflux.SameOriginWebFluxRequestContextFactory
 import dev.woge.spring.webflux.WebFluxRequestContextFactory
 import dev.woge.spring.webflux.WogeWebFluxHandlers
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
+import org.slf4j.spi.SLF4JServiceProvider
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.FilteredClassLoader
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -24,6 +31,7 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
+import java.util.ServiceLoader
 
 class WogeAutoConfigurationTest {
     @Test
@@ -273,6 +281,45 @@ class WogeAutoConfigurationTest {
         mvcRunner().run { context ->
             assertNull(context.startupFailure)
             assertNotNull(context.getBean(dev.woge.host.RenderIdentitySecret::class.java))
+        }
+    }
+
+    @Test
+    fun `Boot logs one startup summary per host using its only provider and honors filtered levels`() {
+        val providers = ServiceLoader.load(SLF4JServiceProvider::class.java).map { it.javaClass.name }
+        assertEquals(listOf("ch.qos.logback.classic.spi.LogbackServiceProvider"), providers)
+        val name = WogeAutoConfiguration::class.java.name
+        val logger = LoggerFactory.getLogger(name) as Logger
+        val previousLevel = logger.level
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+        try {
+            logger.level = Level.INFO
+            mvcRunner().run { assertNull(it.startupFailure) }
+            webFluxRunner().run { assertNull(it.startupFailure) }
+            assertEquals(2, appender.list.count { it.level == Level.WARN })
+            assertEquals(4, appender.list.size)
+            val summaries = appender.list.filter { it.level == Level.INFO }.map { it.formattedMessage }
+            assertTrue(summaries[0].startsWith("Woge initialized: adapter=MVC"))
+            assertTrue(summaries[1].startsWith("Woge initialized: adapter=WEBFLUX"))
+
+            appender.list.clear()
+            logger.level = Level.WARN
+            val configured = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+            webFluxRunner().withPropertyValues("woge.render-identity.secret=$configured").run {
+                assertNull(it.startupFailure)
+            }
+            var evaluated = false
+            KotlinLogging.logger(name).info {
+                evaluated = true
+                "disabled startup diagnostic"
+            }
+            assertTrue(appender.list.isEmpty())
+            assertEquals(false, evaluated)
+        } finally {
+            logger.detachAppender(appender)
+            logger.level = previousLevel
+            appender.stop()
         }
     }
 

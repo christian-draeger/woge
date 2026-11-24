@@ -23,6 +23,8 @@ dependencies {
     compileOnly(project(":woge-spring-webflux"))
 
     compileOnly(libs.micrometerObservation)
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     kapt(libs.springBootConfigurationProcessor)
 
@@ -34,6 +36,7 @@ dependencies {
     testImplementation(libs.junitJupiter)
     testImplementation(libs.springBoot)
     testImplementation(libs.springBootTest)
+    testImplementation(libs.springBootStarterLogging)
     testImplementation(libs.springWebmvc)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }

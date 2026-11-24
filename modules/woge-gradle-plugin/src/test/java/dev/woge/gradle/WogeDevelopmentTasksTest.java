@@ -37,6 +37,10 @@ class WogeDevelopmentTasksTest {
         assertNotNull(project.getConfigurations().findByName(WogeDevelopmentTasks.RUNTIME_CONFIGURATION));
         assertTrue(project.getConfigurations().getByName(WogeDevelopmentTasks.RUNTIME_CONFIGURATION)
                 .getDependencies().stream().anyMatch(dependency -> "woge-dev-client".equals(dependency.getName())));
+        assertTrue(project.getConfigurations().getByName(WogeDevelopmentTasks.TOOLING_CONFIGURATION)
+                .getDependencies().stream().anyMatch(dependency -> "slf4j-jdk14".equals(dependency.getName())));
+        assertFalse(project.getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
+                .anyMatch(dependency -> "slf4j-jdk14".equals(dependency.getName())));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package dev.woge.spring.mvc
 
+import dev.woge.host.CorrelationId
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -17,8 +19,6 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
-import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.concurrent.withLock
 
 /**
@@ -33,6 +33,7 @@ internal fun HttpServletRequest.launchWogeResponse(
     response: HttpServletResponse,
     dispatcher: CoroutineDispatcher,
     timeoutMillis: Long,
+    correlationId: CorrelationId,
     block: suspend ServletResponseHandoff.() -> Unit,
 ) {
     check(isAsyncSupported) {
@@ -52,8 +53,8 @@ internal fun HttpServletRequest.launchWogeResponse(
                 handoff.block()
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (failure: Throwable) {
-                logger.log(Level.SEVERE, "Woge Spring MVC response failed", failure)
+            } catch (_: Throwable) {
+                logger.error { "Woge Spring MVC response failed (correlationId=${correlationId.value})" }
                 failed = true
             } finally {
                 handoff.close(failed)
@@ -211,4 +212,4 @@ internal fun HttpServletResponse.writeSafeServerFailure() {
 
 private val HANDOFF_ATTRIBUTE = ServletResponseHandoff::class.java.name
 
-private val logger: Logger = Logger.getLogger("dev.woge.spring.mvc")
+private val logger = KotlinLogging.logger("dev.woge.spring.mvc")

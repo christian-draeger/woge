@@ -50,7 +50,7 @@ public class WogeSpringMvcPageHandler<Input : Any> internal constructor(
         if (request.resumeWogeResponse(response)) return
         if (rejectRequest(request, response)) return
         val context = contexts.create(request)
-        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
+        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis, context.correlationId) {
             val decoded =
                 runCatching {
                     val actionContext =

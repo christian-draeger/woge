@@ -57,7 +57,7 @@ public class WogeSpringMvcDeferredHandler<Input : Any> internal constructor(
                 return
             }
         val pageRequest = PageRequest(decoded, context)
-        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis) {
+        request.launchWogeResponse(response, dispatcher, asyncTimeoutMillis, context.correlationId) {
             val declaredRegions =
                 try {
                     executor.prepare(regions.regions(pageRequest), context.trace)

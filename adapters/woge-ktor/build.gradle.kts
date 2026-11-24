@@ -20,11 +20,14 @@ dependencies {
     api(libs.ktorServerCore)
 
     api(project(":woge-server-runtime"))
+    implementation(libs.kotlinLoggingJvm)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":woge-adapter-tck"))
     testImplementation(libs.junitJupiter)
     testImplementation(libs.ktorServerNetty)
     testRuntimeOnly(libs.junitPlatformLauncher)
+    testRuntimeOnly(libs.slf4jJdk14)
 }
 
 tasks.named("check") {

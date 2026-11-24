@@ -1,5 +1,10 @@
 package dev.woge.spring.mvc
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.ResponseHeaders
@@ -15,9 +20,12 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
+import kotlinx.coroutines.yield
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -31,24 +39,13 @@ import java.net.http.HttpResponse
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 /** Regression for #238: Woge must not write the response head while a filter is still writing headers. */
 class SpringMvcResponseHandoffTest {
     @Test
     fun `filter headers added after the chain returns never race with Woge headers`() {
-        val context =
-            SpringApplication(HandoffConfiguration::class.java)
-                .apply {
-                    setDefaultProperties(
-                        mapOf(
-                            "server.address" to "127.0.0.1",
-                            "server.port" to "0",
-                            "spring.main.banner-mode" to "off",
-                            "logging.level.root" to "WARN",
-                        ),
-                    )
-                }.run() as ConfigurableWebServerApplicationContext
-        context.use {
+        startApplication().use { context ->
             val origin = "http://127.0.0.1:${requireNotNull(context.webServer).port}"
             val client = HttpClient.newHttpClient()
             repeat(ITERATIONS) {
@@ -65,6 +62,45 @@ class SpringMvcResponseHandoffTest {
             assertEquals(0, EARLY_WOGE_WRITES.get(), "Woge wrote headers while the original dispatch was running")
         }
     }
+
+    @Test
+    fun `pre response failures log one redacted error with the request correlation ID`() {
+        startApplication().use { context ->
+            val logger = LoggerFactory.getLogger("dev.woge.spring.mvc") as Logger
+            val appender = ListAppender<ILoggingEvent>().apply { start() }
+            logger.addAppender(appender)
+            try {
+                val origin = "http://127.0.0.1:${requireNotNull(context.webServer).port}"
+                val response = HttpClient.newHttpClient().get("$origin/failure")
+                assertEquals(500, response.statusCode())
+                assertEquals("", response.body())
+                assertEquals("no-store", response.headers().firstValue("Cache-Control").orElseThrow())
+                val error = appender.list.single()
+                assertEquals(Level.ERROR, error.level)
+                assertEquals(
+                    "Woge Spring MVC response failed (correlationId=${FAILURE_CORRELATION.get()})",
+                    error.formattedMessage,
+                )
+                assertNull(error.throwableProxy)
+            } finally {
+                logger.detachAppender(appender)
+                appender.stop()
+            }
+        }
+    }
+
+    private fun startApplication(): ConfigurableWebServerApplicationContext =
+        SpringApplication(HandoffConfiguration::class.java)
+            .apply {
+                setDefaultProperties(
+                    mapOf(
+                        "server.address" to "127.0.0.1",
+                        "server.port" to "0",
+                        "spring.main.banner-mode" to "off",
+                        "logging.level.root" to "WARN",
+                    ),
+                )
+            }.run() as ConfigurableWebServerApplicationContext
 
     private fun HttpClient.get(url: String): HttpResponse<String> =
         send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString())
@@ -89,12 +125,12 @@ private class HandoffConfiguration {
         val handlers = WogeSpringMvcHandlers()
         val input = SpringMvcPageInput { request -> request.getAttribute(LATCH_ATTRIBUTE) as CountDownLatch }
 
-        fun page(result: () -> PageResult) =
+        fun page(result: suspend (PageRequest<CountDownLatch>) -> PageResult) =
             handlers.page(
                 PageUseCase<CountDownLatch> { request ->
                     // Finish the use case exactly while the filter is still adding its own headers.
                     request.input.await(LATCH_SECONDS, TimeUnit.SECONDS)
-                    result()
+                    result(request)
                 },
                 input,
             )
@@ -102,6 +138,12 @@ private class HandoffConfiguration {
             mapOf(
                 "/redirect" to page { redirect(applicationUrl("/done"), headers = wogeHeaders()) },
                 "/document" to page { htmlPage(ResponseMetadata(headers = wogeHeaders())) { text("handed off") } },
+                "/failure" to
+                    page { request ->
+                        FAILURE_CORRELATION.set(request.context.correlationId.value)
+                        yield()
+                        error("private application failure")
+                    },
             ),
             0,
         )
@@ -161,3 +203,5 @@ private const val LATCH_SECONDS = 5L
 private const val HEADER_COUNT = 100
 private const val ITERATIONS = 40
 private const val RACE_WAIT_MILLIS = 5L
+
+private val FAILURE_CORRELATION = AtomicReference<String>()

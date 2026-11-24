@@ -41,7 +41,8 @@ final class WogeDevelopmentTasks {
     /** Registers the task, or reconfigures it when another Woge plugin registered it first. */
     static void register(Project project, Host host, String wogeVersion) {
         Configuration tooling = configuration(project, TOOLING_CONFIGURATION,
-                "The wogeDev launcher. Never part of the application.", "dev.woge:woge-dev-gradle:" + wogeVersion);
+                "The wogeDev launcher. Never part of the application.", "dev.woge:woge-dev-gradle:" + wogeVersion,
+                "org.slf4j:slf4j-jdk14:" + WogeSpringBootPlugin.pluginProperty("slf4jVersion"));
         Action<WogeDevTask> action = task -> configure(project, task, host, tooling, wogeVersion);
         if (project.getTasks().getNames().contains(WogeSpringBootPlugin.DEV_TASK)) {
             project.getTasks().named(WogeSpringBootPlugin.DEV_TASK, WogeDevTask.class, action);
@@ -100,7 +101,7 @@ final class WogeDevelopmentTasks {
         task.getChildClasspath().set(project.provider(() -> paths(classpath)));
     }
 
-    private static Configuration configuration(Project project, String name, String description, String dependency) {
+    private static Configuration configuration(Project project, String name, String description, String... dependencies) {
         Configuration existing = project.getConfigurations().findByName(name);
         if (existing != null) {
             return existing;
@@ -111,7 +112,9 @@ final class WogeDevelopmentTasks {
             configuration.setCanBeResolved(true);
             configuration.setVisible(false);
         });
-        project.getDependencies().add(name, dependency);
+        for (String dependency : dependencies) {
+            project.getDependencies().add(name, dependency);
+        }
         return created;
     }
 
