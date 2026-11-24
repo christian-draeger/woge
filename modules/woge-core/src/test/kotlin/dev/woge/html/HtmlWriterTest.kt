@@ -1,7 +1,10 @@
 package dev.woge.html
 
 import dev.woge.css.declarations
+import dev.woge.html.internal.escapeHtmlAttribute
+import dev.woge.html.internal.escapeHtmlText
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -66,6 +69,24 @@ class HtmlWriterTest {
                 "�&lt;script&gt;alert('x')&lt;/script&gt; &amp; 😀</p>",
             html,
         )
+    }
+
+    @Test
+    fun `unchanged text and attributes reuse the input string`() {
+        val ordinary = "Ordinary café 😀"
+        assertSame(ordinary, escapeHtmlText(ordinary))
+        assertSame(ordinary, escapeHtmlAttribute(ordinary))
+
+        val textOnly = "Keep \"quotes\" and 'apostrophes'\r in text"
+        assertSame(textOnly, escapeHtmlText(textOnly))
+    }
+
+    @Test
+    fun `escaping copies a clean Unicode prefix before normalizing the remainder`() {
+        val value = "Prefix 😀 \uD800\uD83D\uDE00&'\"\r\u0000\uDC00"
+
+        assertEquals("Prefix 😀 �😀&amp;'\"\r��", escapeHtmlText(value))
+        assertEquals("Prefix 😀 �😀&amp;&#39;&quot;&#13;��", escapeHtmlAttribute(value))
     }
 
     @Test

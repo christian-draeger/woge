@@ -7,48 +7,45 @@ internal fun escapeHtmlAttribute(value: String): String = escapeHtml(value, attr
 private fun escapeHtml(
     value: String,
     attribute: Boolean,
-): String =
-    buildString(value.length) {
-        var index = 0
-        while (index < value.length) {
-            val character = value[index]
-            if (character.isHighSurrogate()) {
-                index += appendSurrogatePair(value, index)
-            } else {
-                appendEscaped(character, attribute)
-            }
-            index += 1
+): String {
+    var index = 0
+    while (index < value.length) {
+        if (value.hasSurrogatePairAt(index)) {
+            index += 2
+        } else {
+            if (value[index].htmlReplacement(attribute) != null) break
+            index++
         }
     }
+    if (index == value.length) return value
 
-private fun StringBuilder.appendSurrogatePair(
-    value: String,
-    index: Int,
-): Int {
-    val highSurrogate = value[index]
-    val lowSurrogate = value.getOrNull(index + 1)
-    if (lowSurrogate?.isLowSurrogate() == true) {
-        append(highSurrogate)
-        append(lowSurrogate)
-        return 1
+    return buildString(value.length) {
+        append(value, 0, index)
+        while (index < value.length) {
+            if (value.hasSurrogatePairAt(index)) {
+                append(value[index])
+                append(value[index + 1])
+                index += 2
+            } else {
+                val character = value[index++]
+                val replacement = character.htmlReplacement(attribute)
+                if (replacement == null) append(character) else append(replacement)
+            }
+        }
     }
-
-    append('\uFFFD')
-    return 0
 }
 
-private fun StringBuilder.appendEscaped(
-    character: Char,
-    attribute: Boolean,
-) {
+private fun String.hasSurrogatePairAt(index: Int): Boolean =
+    this[index].isHighSurrogate() && index + 1 < length && this[index + 1].isLowSurrogate()
+
+private fun Char.htmlReplacement(attribute: Boolean): String? =
     when {
-        character == '\u0000' || character.isLowSurrogate() -> append('\uFFFD')
-        character == '&' -> append("&amp;")
-        character == '<' -> append("&lt;")
-        character == '>' -> append("&gt;")
-        attribute && character == '"' -> append("&quot;")
-        attribute && character == '\'' -> append("&#39;")
-        attribute && character == '\r' -> append("&#13;")
-        else -> append(character)
+        this == '\u0000' || isSurrogate() -> "\uFFFD"
+        this == '&' -> "&amp;"
+        this == '<' -> "&lt;"
+        this == '>' -> "&gt;"
+        attribute && this == '"' -> "&quot;"
+        attribute && this == '\'' -> "&#39;"
+        attribute && this == '\r' -> "&#13;"
+        else -> null
     }
-}
