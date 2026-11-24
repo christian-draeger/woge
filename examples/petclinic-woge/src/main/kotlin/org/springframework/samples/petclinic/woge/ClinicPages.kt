@@ -21,7 +21,6 @@ import dev.woge.html.li
 import dev.woge.html.main
 import dev.woge.html.metadata
 import dev.woge.html.p
-import dev.woge.html.renderHtml
 import dev.woge.html.title
 import dev.woge.html.ul
 import dev.woge.spring.mvc.WogeSpringMvcHandlers
@@ -34,13 +33,11 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.samples.petclinic.owner.OwnerRepository
-import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping
-import java.time.LocalDate
 
 @WogeRoute("/woge/owners")
 data class ClinicSearchInput(val lastName: String? = null)
@@ -122,7 +119,10 @@ class ClinicPages {
 
 @RestController
 @ConditionalOnBooleanProperty(prefix = "petclinic.woge", name = ["enabled"], matchIfMissing = true)
-class ClinicVisitBridge(private val owners: OwnerRepository) {
+class ClinicVisitBridge(
+    private val owners: OwnerRepository,
+    private val enhancement: ClinicVisitEnhancement,
+) {
     @GetMapping("/woge/owners/{ownerId}/pets/{petId}/visits/new", produces = [MediaType.TEXT_HTML_VALUE])
     fun visitForm(
         @PathVariable ownerId: Int,
@@ -131,37 +131,7 @@ class ClinicVisitBridge(private val owners: OwnerRepository) {
     ): String {
         val owner = owners.findById(ownerId).orElse(null)
         val pet = owner?.getPet(petId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        val csrf = request.getAttribute(CsrfToken::class.java.name) as CsrfToken
-        return renderHtml {
-            clinicDocument("Record a visit for ${pet.name}") {
-                form(attributes = {
-                    attribute("method", "post")
-                    url("action", applicationUrl("/owners/$ownerId/pets/$petId/visits/new"))
-                }) {
-                    input(attributes = {
-                        attribute("type", "hidden")
-                        attribute("name", csrf.parameterName)
-                        attribute("value", csrf.token)
-                    })
-                    label(attributes = { attribute("for", "visit-date") }) { text("Date") }
-                    input(attributes = {
-                        attribute("id", "visit-date")
-                        attribute("name", "date")
-                        attribute("type", "date")
-                        attribute("min", LocalDate.now().plusDays(1).toString())
-                        boolean("required")
-                    })
-                    label(attributes = { attribute("for", "visit-description") }) { text("Description") }
-                    input(attributes = {
-                        attribute("id", "visit-description")
-                        attribute("name", "description")
-                        attribute("maxlength", "255")
-                        boolean("required")
-                    })
-                    button { text("Add visit") }
-                }
-            }
-        }
+        return enhancement.visitPage(request, ownerId, petId, pet.name)
     }
 }
 
