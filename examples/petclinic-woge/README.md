@@ -108,9 +108,26 @@ page reads the same state with JavaScript disabled. References:
 The runner measures a write on node B reaching SSE on node A, a patch served by B for an A-issued
 render target, and recovery of a database listener after its connection is terminated. It checks
 external writes across client reconnect, missing CSRF, anonymous access, a revoked owner grant,
-and rejection of captured cookies after logout on another node or JDBC session expiry. Timings describe local
-single-client samples. Proxy and TLS behavior, load and lifetime limits, write idempotency and
-conflicts, rolling upgrades, rollback and production operations are tracked in
+and rejection of captured cookies after logout on another node or JDBC session expiry. Timings
+describe local single-client samples.
+
+### Verify an uncertain write and a conflict
+
+The cluster-only **Schedule an owner follow-up** form uses a single PostgreSQL slot for the seeded
+owner. It is rendered as native HTML with Woge's HTML writer. The ordinary Spring MVC POST checks
+Spring CSRF, the current owner grant and the database revision. Each submitted UUID is scoped to
+the authenticated account and owner. PostgreSQL commits the receipt and the versioned date update
+together. A matching duplicate redirects to the same GET. A reused UUID with different values or
+a new command based on an old revision returns 409 with a link to the current form. Failed writes
+roll back their receipts. The fixture retains successful receipts for the lifetime of its temporary
+database. [PostgreSQL Read Committed behavior](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-READ-COMMITTED)
+
+The same runner submits concurrent native requests to both nodes, then closes a POST connection
+without reading its response. It verifies the committed date on the peer with a safe GET before
+explicitly resending the same command. The resend changes neither the date nor the database revision.
+The runner also checks that a successful receipt cannot bypass a revoked owner grant. PetClinic's
+original visit booking follows its upstream behavior. Proxy and TLS behavior, load and lifetime
+limits, rolling upgrades, rollback and production operations remain tracked in
 [the multi-instance milestone](https://github.com/christian-draeger/woge/issues/289).
 
 ## Try the Thymeleaf baseline
