@@ -126,9 +126,36 @@ The same runner submits concurrent native requests to both nodes, then closes a 
 without reading its response. It verifies the committed date on the peer with a safe GET before
 explicitly resending the same command. The resend changes neither the date nor the database revision.
 The runner also checks that a successful receipt cannot bypass a revoked owner grant. PetClinic's
-original visit booking follows its upstream behavior. Proxy and TLS behavior, load and lifetime
-limits, rolling upgrades, rollback and production operations remain tracked in
+original visit booking follows its upstream behavior. Load and lifetime limits, rolling upgrades,
+rollback and production operations remain tracked in
 [the multi-instance milestone](https://github.com/christian-draeger/woge/issues/289).
+
+### Verify TLS and HTTP/2 ingress
+
+Use OpenSSL and a curl build that lists `HTTP2` in `curl --version`. The optional ingress check uses
+the same cluster JAR and PostgreSQL image. It also needs the pinned nginx 1.28.3 image in the local
+Docker cache.
+
+```sh
+docker pull nginx@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+python3 examples/petclinic-woge/cluster/run.py \
+  examples/petclinic-woge/build/libs/woge-petclinic.jar /tmp/petclinic-reference --tls-ingress
+```
+
+nginx serves TLS on a random loopback port and forwards HTTP/1.1 to the separate JVMs. Linux uses
+Docker host networking. The macOS Docker runtime needs the `host.docker.internal` mapping. The
+runner generates a short-lived CA and an IP certificate for `127.0.0.1`, tests rejection without
+the CA, then verifies the certificate chain and `h2` negotiation using the temporary CA.
+[nginx HTTP/2 configuration](https://nginx.org/en/docs/http/ngx_http_v2_module.html)
+
+The test routes requests to each JVM, signs in on the first and books a visit on the second using
+the same Secure Spring Session cookie and CSRF token. The proxy replaces incoming forwarded
+authority headers with its configured loopback authority. Spring enables forwarded headers for
+this isolated ingress mode. An enhanced POST with a foreign Origin is rejected even if it supplies
+its own forwarding headers. An authorized POST produces a Woge SSE invalidation on the first JVM
+and a fresh patch from the second. Both SSE events arrive while one HTTP/2 stream stays open.
+The test routing header and loopback certificate are fixture settings. Mobile networks, a managed
+ingress and CDN behavior remain outside this test. [Spring MVC origin handling](../../docs/guides/spring-mvc-adapter.md#protect-form-actions)
 
 ## Try the Thymeleaf baseline
 
