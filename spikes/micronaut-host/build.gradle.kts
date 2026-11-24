@@ -49,6 +49,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
+    testAnnotationProcessor(platform(micronautPlatform))
+    testAnnotationProcessor("io.micronaut:micronaut-inject-java")
+    testImplementation("io.projectreactor:reactor-core")
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
     testImplementation("org.jsoup:jsoup:1.23.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")

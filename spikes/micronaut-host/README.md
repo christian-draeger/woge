@@ -75,9 +75,33 @@ the request principal. The spike copies the authenticated subject and roles into
 context and permits the write capability. The configured I/O executor performs the bounded body
 read. The same-origin check uses the local Netty listener address and runs before decoding.
 
-The proof covers one add mutation with buffered HTML and patch responses. Open work includes
-cookies and session lifecycle, browser execution of the enhanced flow, proxy and TLS context,
-deferred/live transport, cancellation, cleanup and context across suspend/subscribe boundaries.
-The full adapter TCK and an operating-cost comparison still require separate evidence.
+## Raw response streaming
+
+Run the transport proof independently with the same pilot repository.
+
+```sh
+./gradlew -p spikes/micronaut-host -PwogeRepository=/absolute/path/to/pilot/repository \
+  --offline test --tests '*StreamProofHttpTest'
+```
+
+A test-only route on the pinned Netty server returns a cold `Flux<byte[]>` as
+`application/octet-stream`. A loopback HTTP/1.1 peer reads the exact first chunk
+(`00 3c ff 0a`) while the remaining producer work is held. A separate GET completes
+on the server's single Netty worker event loop. The held work runs on a Reactor
+scheduler with one worker and a queue of one. Releasing it delivers the exact
+second chunk (`05 80 00`) and a normal terminal chunk.
+
+A second peer closes the socket with a TCP reset after the first chunk. The test
+observes Reactor's cancellation signal and release of the running producer
+before opening the work gate. Both cases have bounded waits. The fixture is in
+the test source set and is excluded from the installed spike.
+
+The Todo add mutation still serves buffered HTML and patch responses. The raw
+stream proof is a Netty transport check. Woge deferred and live response wiring,
+context across suspend/subscribe boundaries, cookie/session lifecycle, browser
+enhancement, TLS/proxy behavior, other disconnect modes, sustained backpressure
+and the full adapter TCK need further evidence.
+
+[Micronaut Netty source](https://repo.maven.apache.org/maven2/io/micronaut/micronaut-http-server-netty/4.10.37/micronaut-http-server-netty-4.10.37-sources.jar) ·
 [Spike acceptance criteria](https://github.com/christian-draeger/woge/issues/302) ·
 [Woge host boundary](../../docs/adr/0002-framework-neutral-host-boundary.md)
