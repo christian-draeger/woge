@@ -17,6 +17,7 @@ dependencies {
 
     testImplementation(libs.jsoup)
     testImplementation(libs.junitJupiter)
+    testImplementation(libs.ktorServerNetty)
     testImplementation(libs.kotlinCompilerEmbeddable)
     testImplementation(libs.kotlinxSerializationJson)
     testImplementation(libs.reactorNettyHttp)
