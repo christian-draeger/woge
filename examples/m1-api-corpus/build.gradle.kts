@@ -15,9 +15,11 @@ dependencies {
     implementation(project(":woge-ktor"))
     ksp(project(":woge-ksp"))
 
+    testImplementation(libs.jsoup)
     testImplementation(libs.junitJupiter)
     testImplementation(libs.kotlinCompilerEmbeddable)
     testImplementation(libs.kotlinxSerializationJson)
+    testImplementation(libs.reactorNettyHttp)
     testRuntimeOnly(libs.junitPlatformLauncher)
 }
 

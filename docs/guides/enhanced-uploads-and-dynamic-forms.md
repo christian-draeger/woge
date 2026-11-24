@@ -156,11 +156,19 @@ an invalid date control appear empty even when a tampered request's date string 
 HTML value attribute. A successful result provides a native 303 or an enhanced confirmation. The
 fixture validates the invoice and prepares that response. Applications supply their own persistence.
 
-Run `./gradlew :woge-m1-api-corpus:test --tests '*LocalizedInvoiceTest'` to verify both locale
-contracts and response shapes. For the [manual reference review](https://github.com/christian-draeger/woge/issues/253),
-check that keyboard users can reach and correct every linked field and that assistive technology
-reads the summary and field errors in the chosen language. Browser and RTL review, instant or DST
-handling, and combining this sample with nested uploads remain follow-up work.
+Run `./gradlew :woge-m1-api-corpus:test --tests '*LocalizedInvoice*Test'` to verify the portable
+fixture and the [WebFlux HTTP binding](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceWebFluxTest.kt).
+The WebFlux fixture uses Spring's `AcceptHeaderLocaleContextResolver` with German and US English
+as supported locales and US English as the default. It opens the form in German, submits after
+Spring resolves the request to English, and verifies the preserved values and translated message
+in the native error document and the enhanced form patch. It tests the subsequent corrected
+submission in both modes.
+
+For the [manual reference review](https://github.com/christian-draeger/woge/issues/253), check that
+keyboard users can reach and correct every linked field and that assistive technology reads the
+summary and field errors in the chosen language. The HTTP test verifies the markup and patch
+protocol. Browser behavior, RTL, Ktor locale selection, instant or DST handling, and combining this
+sample with nested uploads remain follow-up work.
 
 ## Evidence and limits
 
