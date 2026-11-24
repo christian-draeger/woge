@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run, verify or measure a packaged reference host."""
+"""Run, verify, measure or build a local image for a packaged reference host."""
 
 import argparse
 import hashlib
@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import socket
 import subprocess
 import tempfile
@@ -20,6 +21,8 @@ PROJECTS = tuple(
     for mode in ("enhanced", "no-javascript")
 )
 BROWSER_TIMEOUT_MS = 300_000
+IMAGE_DOCKERFILE = ROOT / "testing/deployment/Dockerfile"
+IMAGE_BASE = "eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5"
 
 
 def version():
@@ -63,6 +66,64 @@ def artifact_hashes(path):
     if not hashes:
         raise RuntimeError(f"No packaged artifact found at {path}.")
     return hashes
+
+
+def build_image(host, woge_version, package_path, build):
+    directory = ROOT / "build/reference-demo"
+    directory.mkdir(parents=True, exist_ok=True)
+    evidence = Path(tempfile.mkdtemp(prefix=f"{host}-image-", dir=directory))
+    print(f"Evidence directory {evidence}", flush=True)
+    revision = output("git", "rev-parse", "HEAD")
+    dirty = bool(output("git", "status", "--porcelain"))
+    qualifier = "-dirty" if dirty else ""
+    tag = f"woge-reference-{host}:{revision[:12]}{qualifier}"
+    report = {
+        "schemaVersion": 1,
+        "kind": "source-container",
+        "host": host,
+        "sourceCommit": revision,
+        "sourceDirty": dirty,
+        "wogeVersion": woge_version,
+        "baseImage": IMAGE_BASE,
+        "tag": tag,
+        "status": "failed",
+    }
+    try:
+        with tempfile.TemporaryDirectory(prefix="woge-reference-context-") as work:
+            context = Path(work)
+            payload = context / host
+            image_id = context / "image-id"
+            with (evidence / "build.log").open("w") as log:
+                subprocess.run(build, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+                report["artifactSha256"] = artifact_hashes(package_path)
+                report["recipeSha256"] = artifact_hashes(IMAGE_DOCKERFILE)
+                if package_path.is_file():
+                    payload.mkdir()
+                    shutil.copy2(package_path, payload / "server.jar")
+                else:
+                    shutil.copytree(package_path, payload)
+                command = [
+                    "docker", "build", "--iidfile", str(image_id),
+                    "--file", str(IMAGE_DOCKERFILE),
+                    "--build-arg", f"HOST={host}", "--build-arg", f"BASE_IMAGE={IMAGE_BASE}",
+                    "--label", f"org.opencontainers.image.revision={revision}",
+                    "--label", f"org.opencontainers.image.version={woge_version}",
+                    "--label", f"dev.woge.source.dirty={str(dirty).lower()}",
+                    "--tag", tag, str(context),
+                ]
+                subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=300)
+            report["imageId"] = image_id.read_text().strip()
+        report["platform"] = output("docker", "image", "inspect", "--format", "{{.Os}}/{{.Architecture}}", report["imageId"])
+        report["status"] = "passed"
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        report["error"] = str(error)
+    finally:
+        (evidence / "manifest.json").write_text(json.dumps(report, indent=2) + "\n")
+    if report["status"] != "passed":
+        print(f"Image build failed. See {evidence / 'build.log'}.")
+        return 1
+    print(f"Built {tag} ({report['imageId']})")
+    return 0
 
 
 def verify(args, port, woge_version, java, package_path, build):
@@ -137,13 +198,15 @@ def verify(args, port, woge_version, java, package_path, build):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("run", "verify", "measure", "serve"))
+    parser.add_argument("mode", choices=("run", "verify", "measure", "serve", "image"))
     parser.add_argument("host", choices=HOSTS)
     parser.add_argument("--port", type=int)
     parser.add_argument("--project", action="append", choices=PROJECTS, default=[])
     args = parser.parse_args()
     if args.port is not None and not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
+    if args.port is not None and args.mode == "image":
+        parser.error("--port only applies to a running reference host")
     checks = args.mode in ("verify", "measure")
     if args.project and not checks:
         parser.error("--project applies to verify and measure")
@@ -153,6 +216,8 @@ def main():
     woge_version = version()
     task, package_path, launch = package(args.host, woge_version, java)
     build = [str(ROOT / "gradlew"), task, f"-PwogeVersion={woge_version}", "--console=plain"]
+    if args.mode == "image":
+        return build_image(args.host, woge_version, package_path, build)
     if checks:
         return verify(args, port, woge_version, java, package_path, build)
     if args.mode == "run":

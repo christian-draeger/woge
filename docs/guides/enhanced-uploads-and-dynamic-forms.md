@@ -124,20 +124,31 @@ application's explicit preferences rather than guessing from the runtime environ
 
 The [compiled invoice example](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt)
 uses Woge's typed form decoder and error renderers. It keeps text in the command until the application
-can validate it against the server-selected language. English uses US formats and German uses German
-formats. Both presentations use the same currency.
+can validate it against the server-selected language. US English, German, and Egyptian Arabic use
+the same EUR currency. Arabic uses Arabic-Indic digits and sets right-to-left direction on the
+document, the form, and the enhanced confirmation.
 
 <!-- snippet: examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt -->
 
-| Field | German wire value | English wire value | Application value |
-| --- | --- | --- | --- |
-| EUR amount in a text input | `1234,50` | `1234.50` | Exact `BigDecimal("1234.50")` |
-| Service date in a native date input | `2026-10-11` | `2026-10-11` | `LocalDate` |
-| Due date in a localized text input | `11.10.2026` | `10/11/2026` | `LocalDate` |
+| Field | German wire | English wire | Arabic wire | Application value |
+| --- | --- | --- | --- | --- |
+| EUR amount in a text input | `1234,50` | `1234.50` | `١٢٣٤٫٥٠` | Exact `BigDecimal("1234.50")` |
+| Service date in a native date input | `2026-10-11` | `2026-10-11` | `2026-10-11` | `LocalDate` |
+| Due date in a localized text input | `11.10.2026` | `10/11/2026` | `١١/١٠/٢٠٢٦` | `LocalDate` |
+| Berlin payment time in a text input | `2026-10-11T12:30` | `2026-10-11T12:30` | `2026-10-11T12:30` | `Instant` displayed as `2026-10-11T10:30:00Z` |
 
-The amount parser allows up to two fractional digits and rejects grouping separators, mixed
-separators and scientific notation. This keeps ambiguous amounts such as `1,234` out of the action.
-Calendar dates use strict parsing. A date-only value does not require an instant or time zone.
+The amount parser accepts the active locale's digits and decimal separator, with up to two fractional
+digits. It rejects grouping separators, mixed digit systems, and scientific notation. The service
+date's native control sends an ISO calendar value. The due date uses a strict localized calendar
+pattern. Both represent dates independently of time zones.
+
+The [invoice localization policy](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/InvoiceLocalization.kt)
+fixes the payment zone to `Europe/Berlin`. The left-to-right text input sends
+an ASCII local date and time at minute precision and keeps malformed submissions visible. The server
+requires exactly one valid offset under the JDK zone rules. It rejects missing times during the spring
+transition and repeated times during the autumn transition with distinct translated field errors.
+For example, both `2026-03-29T02:30` and `2026-10-25T02:30` require a correction. Posted offsets and
+zone identifiers are invalid in this field. The confirmation displays the resulting UTC instant.
 
 Resolve the language on the server. Spring hosts already use the
 [resolved Spring locale](spring-boot-starter.md#use-spring-locale-identity-and-sessions). The form
@@ -158,19 +169,26 @@ fixture validates the invoice and prepares that response. Applications supply th
 
 Run `./gradlew :woge-m1-api-corpus:test --tests '*LocalizedInvoice*Test'` to verify the portable
 fixture and the [shared WebFlux and Ktor HTTP journey](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceHttpTest.kt).
-WebFlux uses Spring's `AcceptHeaderLocaleContextResolver` with German and US English as supported
-locales and US English as the default. The [Ktor binding](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceKtorBinding.kt)
-selects the highest-weight supported exact tag and uses the same default. Its request context
-keeps the adapter's same-origin security facts and applies the locale policy to both routes.
-Both servers open the form in German, then accept a submit request whose language preferences
-resolve to English. The tests verify preserved values and the translated error in the native
-document and enhanced patch, followed by a successful corrected submission in each mode.
+WebFlux uses Spring's `AcceptHeaderLocaleContextResolver` for the three supported locales.
+The [Ktor binding](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceKtorBinding.kt)
+selects the highest-weight supported exact tag and retains the adapter's same-origin security facts.
+Both default to US English. Tests on both hosts cover preserved values, translated errors and
+corrected native and enhanced submissions, including locale changes to English and Arabic. An
+enhanced stale-form replacement carries its own language and direction until the next full document
+navigation. Tests on both sides of each Berlin transition check exact UTC instants.
 
-For the [manual reference review](https://github.com/christian-draeger/woge/issues/253), check that
-keyboard users can reach and correct every linked field and that assistive technology reads the
-summary and field errors in the chosen language. The HTTP test verifies the markup and patch
-protocol. Browser behavior, RTL, instant or DST handling, and combining this
-sample with nested uploads remain follow-up work.
+For the [manual reference review](https://github.com/christian-draeger/woge/issues/253):
+
+- Open the Arabic form. Check right-to-left labels, tab order, readable Arabic-Indic amounts, and the
+  left-to-right ISO fields. Switch the browser's preferred language before submitting and review the
+  direction and preserved input after replacement.
+- Submit a payment time inside a Berlin gap or overlap. With a keyboard, follow the summary link,
+  correct the value, and submit again. Repeat with JavaScript disabled through the native response.
+- With a screen reader, verify the form language, summary and linked field error, and the accepted
+  announcement with the UTC instant.
+
+The automated checks cover HTTP, markup, and patch data. Browser and assistive-technology behavior,
+repeated fields with nested uploads, and saved create/edit round trips need additional evidence.
 
 ## Evidence and limits
 

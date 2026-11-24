@@ -45,17 +45,22 @@ internal class LocalizedInvoiceHttpTest {
             for (invoice in InvoiceCase.entries) {
                 val page = host.page(invoice.preferences)
                 assertEquals(invoice.language, page.required("html").attr("lang"))
+                assertEquals(invoice.direction, page.required("html").attr("dir"))
+                assertEquals(invoice.direction, page.required("form").attr("dir"))
                 assertEquals(invoice.amountLabel, page.required("label[for=invoice-amount]").text())
                 assertEquals("date", page.required("#invoice-service-day").attr("type"))
+                assertEquals("text", page.required("#invoice-payment-time").attr("type"))
+                assertEquals("ltr", page.required("#invoice-payment-time").attr("dir"))
                 assertEquals(ValidateLocalizedInvoiceAction.path, page.required("form").attr("action"))
                 assertEquals(invoice.language, page.required("input[name=formLanguage]").attr("value"))
 
-                val invalid = invoice.form(invoice.invalidAmount, "2026-02-29", INVALID_DUE_DAY)
+                val invalid = invoice.form(invoice.invalidAmount, "2026-02-29", INVALID_DUE_DAY, INVALID_PAYMENT_TIME)
                 val native = host.submit(invoice.preferences, invalid)
                 assertEquals(400, native.statusCode())
                 assertTrue(native.header("Content-Type").startsWith("text/html"))
                 val nativeForm = native.document()
                 assertEquals(invoice.language, nativeForm.required("html").attr("lang"))
+                assertEquals(invoice.direction, nativeForm.required("html").attr("dir"))
 
                 val enhanced = host.submit(invoice.preferences, invalid, page.enhancement())
                 assertEquals("invoice-errors", enhanced.header(ACTION_VALIDATION_HEADER))
@@ -64,8 +69,11 @@ internal class LocalizedInvoiceHttpTest {
                 val enhancedForm = Jsoup.parseBodyFragment(validation.html.value)
                 for (wireHtml in listOf(native.body().toString(UTF_8), validation.html.value)) {
                     assertTrue(wireHtml.contains("31/31/2026 ñ&lt;&amp;"))
+                    assertTrue(wireHtml.contains("2026-03-29T02:30&lt;&amp;"))
                 }
                 for (rendered in listOf(nativeForm, enhancedForm)) {
+                    assertEquals(invoice.language, rendered.required("form").attr("lang"))
+                    assertEquals(invoice.direction, rendered.required("form").attr("dir"))
                     assertEquals(invoice.summary, rendered.required("#invoice-errors h2").text())
                     assertEquals("-1", rendered.required("#invoice-errors").attr("tabindex"))
                     assertFieldErrors(rendered, invalid)
@@ -84,7 +92,10 @@ internal class LocalizedInvoiceHttpTest {
                     host.submit(invoice.preferences, corrected, page.enhancement(validation)).singlePatch(200)
                 assertEquals(page.required("#invoice-status").attr("data-woge-region"), accepted.target.region.value)
                 assertEquals(2L, accepted.interactionSequence.value)
-                assertEquals(invoice.accepted, Jsoup.parseBodyFragment(accepted.html.value).text())
+                val confirmation = Jsoup.parseBodyFragment(accepted.html.value)
+                assertEquals(invoice.accepted, confirmation.text())
+                assertEquals(invoice.language, confirmation.required("span").attr("lang"))
+                assertEquals(invoice.direction, confirmation.required("span").attr("dir"))
             }
         }
     }
@@ -126,6 +137,73 @@ internal class LocalizedInvoiceHttpTest {
 
             val accepted = host.submit(unsupportedPreferences, corrected, page.enhancement(validation)).singlePatch(200)
             assertEquals(InvoiceCase.ENGLISH.accepted, Jsoup.parseBodyFragment(accepted.html.value).text())
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(InvoiceHttpAdapter::class)
+    fun `Berlin rejects DST gaps and overlaps and keeps the submitted payment time`(adapter: InvoiceHttpAdapter) {
+        withInvoiceHost(adapter) { host ->
+            val invoice = InvoiceCase.ARABIC
+            val page = host.page(invoice.preferences)
+            for ((time, message) in listOf(
+                "2026-03-29T02:30" to "هذا الوقت المحلي غير موجود في برلين بسبب تقديم الساعة. اختر وقتًا آخر.",
+                "2026-10-25T02:30" to "يتكرر هذا الوقت المحلي في برلين بسبب تأخير الساعة. اختر وقتًا لا يتكرر.",
+            )) {
+                val fields = invoice.form(paymentTime = time)
+                val native = host.submit(invoice.preferences, fields)
+                assertEquals(400, native.statusCode())
+                val enhanced = host.submit(invoice.preferences, fields, page.enhancement())
+                val patch = enhanced.singlePatch(400)
+                for (rendered in listOf(native.document(), Jsoup.parseBodyFragment(patch.html.value))) {
+                    assertValues(rendered, fields)
+                    assertEquals(listOf("invoice-payment-time"), rendered.select("[aria-invalid=true]").map { it.id() })
+                    assertEquals(message, rendered.required("#invoice-payment-time-error").text())
+                    assertEquals("#invoice-payment-time", rendered.required("#invoice-errors a").attr("href"))
+                }
+                assertEquals("invoice-errors", enhanced.header(ACTION_VALIDATION_HEADER))
+            }
+
+            for ((time, utc) in listOf(
+                "2026-03-29T01:30" to "2026-03-29T00:30:00Z",
+                "2026-03-29T03:30" to "2026-03-29T01:30:00Z",
+                "2026-10-25T01:30" to "2026-10-24T23:30:00Z",
+                "2026-10-25T03:30" to "2026-10-25T02:30:00Z",
+            )) {
+                val corrected = invoice.form(paymentTime = time)
+                assertEquals(303, host.submit(invoice.preferences, corrected).statusCode())
+                val accepted = host.submit(invoice.preferences, corrected, page.enhancement()).singlePatch(200)
+                assertTrue(Jsoup.parseBodyFragment(accepted.html.value).text().contains(utc))
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(InvoiceHttpAdapter::class)
+    fun `changing the resolved language to Arabic preserves LTR literals and changes the replaced form direction`(
+        adapter: InvoiceHttpAdapter,
+    ) {
+        withInvoiceHost(adapter) { host ->
+            val page = host.page(InvoiceCase.ENGLISH.preferences)
+            val invoice = InvoiceCase.ARABIC
+            val stale = InvoiceCase.ENGLISH.form()
+            val native = host.submit(invoice.preferences, stale)
+            assertEquals(400, native.statusCode())
+            assertEquals("rtl", native.document().required("html").attr("dir"))
+
+            val enhanced = host.submit(invoice.preferences, stale, page.enhancement()).singlePatch(400)
+            for (rendered in listOf(native.document(), Jsoup.parseBodyFragment(enhanced.html.value))) {
+                assertValues(rendered, stale)
+                assertEquals("rtl", rendered.required("form").attr("dir"))
+                assertEquals(invoice.language, rendered.required("form").attr("lang"))
+                assertEquals(invoice.language, rendered.required("[name=formLanguage]").attr("value"))
+                assertTrue(rendered.select("[aria-invalid=true]").isEmpty())
+            }
+
+            val corrected = invoice.form()
+            assertEquals(303, host.submit(invoice.preferences, corrected).statusCode())
+            val accepted = host.submit(invoice.preferences, corrected, page.enhancement(enhanced)).singlePatch(200)
+            assertEquals(invoice.accepted, Jsoup.parseBodyFragment(accepted.html.value).text())
         }
     }
 
@@ -289,7 +367,7 @@ private fun invoiceHttpHandler(): ReactorHttpHandlerAdapter {
         }
     val localeResolver =
         AcceptHeaderLocaleContextResolver().apply {
-            supportedLocales = listOf(Locale.GERMANY, Locale.US)
+            supportedLocales = InvoiceLanguage.entries.map { it.locale }
             defaultLocale = Locale.US
         }
     val httpHandler =
@@ -324,25 +402,42 @@ private enum class InvoiceCase(
         "Amount (EUR)",
         "Check your entries",
     ),
+    ARABIC(
+        "ar-EG",
+        "٩٠٠٧١٩٩٢٥٤٧٤٠٩٫٩٣",
+        "١١/١٠/٢٠٢٦",
+        "١٬٢٣٤٫٥٦",
+        "المبلغ (EUR)",
+        "راجع البيانات المدخلة",
+    ),
     ;
 
     val preferences = "fr-FR,$language;q=0.8"
+    val direction: String get() = if (this == ARABIC) "rtl" else "ltr"
     val accepted: String
         get() =
             when (this) {
-                GERMAN -> "Geprüft: $amount EUR, Leistungsdatum 2026-02-28, fällig am $dueDay."
-                ENGLISH -> "Validated: $amount EUR, service date 2026-02-28, due on $dueDay."
+                GERMAN ->
+                    "Geprüft: $amount EUR, Leistungsdatum 2026-02-28, fällig am $dueDay. " +
+                        "Zahlungszeitpunkt: $PAYMENT_INSTANT."
+                ENGLISH ->
+                    "Validated: $amount EUR, service date 2026-02-28, due on $dueDay. " +
+                        "Payment instant: $PAYMENT_INSTANT."
+                ARABIC ->
+                    "تم التحقق: $amount EUR، تاريخ الخدمة 2026-02-28، الاستحقاق $dueDay. وقت الدفع: $PAYMENT_INSTANT."
             }
 
     fun form(
         amount: String = this.amount,
         serviceDay: String = "2026-02-28",
         dueDay: String = this.dueDay,
+        paymentTime: String = "2026-10-11T12:30",
     ): Map<String, String> =
         mapOf(
             "amount" to amount,
             "serviceDay" to serviceDay,
             "dueDay" to dueDay,
+            "paymentTime" to paymentTime,
             "formLanguage" to language,
         )
 }
@@ -355,5 +450,12 @@ private fun Element.required(selector: String): Element = requireNotNull(selectF
 
 internal const val INVOICE_PATH = "/localized-invoice"
 private const val INVALID_DUE_DAY = "31/31/2026 ñ<&"
+private const val INVALID_PAYMENT_TIME = "2026-03-29T02:30<&"
+private const val PAYMENT_INSTANT = "2026-10-11T10:30:00Z"
 private val FIELD_IDS =
-    mapOf("amount" to "invoice-amount", "serviceDay" to "invoice-service-day", "dueDay" to "invoice-due-day")
+    mapOf(
+        "amount" to "invoice-amount",
+        "serviceDay" to "invoice-service-day",
+        "dueDay" to "invoice-due-day",
+        "paymentTime" to "invoice-payment-time",
+    )

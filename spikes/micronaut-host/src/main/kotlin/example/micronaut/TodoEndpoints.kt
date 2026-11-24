@@ -67,10 +67,14 @@ internal object TodoEndpoints {
 
             override fun query(name: String): String? = request.parameters[name]
         })
-        val facts = authentication?.let { AuthenticationFacts.Authenticated(it.toPrincipal()) }
-            ?: AuthenticationFacts.Anonymous
-        response(page.open(PageRequest(input, request.context(facts))))
+        response(page.open(PageRequest(input, requestContext(request, authentication))))
     }
+
+    fun requestContext(request: HttpRequest<*>, authentication: Authentication?): RequestContext =
+        request.context(
+            authentication?.let { AuthenticationFacts.Authenticated(it.toPrincipal()) }
+                ?: AuthenticationFacts.Anonymous,
+        )
 
     @JvmStatic
     fun add(request: HttpRequest<*>, authentication: Authentication): HttpResponse<ByteArray> = runBlocking {

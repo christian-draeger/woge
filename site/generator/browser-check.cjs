@@ -18,6 +18,14 @@ async function check(base) {
     });
     const response = await page.goto(base);
     assert.equal(response.status(), 200);
+    if (process.env.DOCS_EXPECTED_VERSION) {
+      assert.equal(await page.locator('meta[name="woge-version"]').getAttribute('content'),
+        process.env.DOCS_EXPECTED_VERSION);
+    }
+    if (process.env.DOCS_EXPECTED_REVISION) {
+      assert.equal(await page.locator('meta[name="woge-revision"]').getAttribute('content'),
+        process.env.DOCS_EXPECTED_REVISION);
+    }
     const nav = page.getByRole('navigation', { name: 'Documentation' });
     assert.deepEqual(await nav.getByRole('link').allTextContents(), navigation.map(([name]) => name));
 
@@ -44,6 +52,10 @@ async function check(base) {
     await nav.getByRole('link', { name: 'Everyday tasks' }).click();
     assert.ok(await page.locator('pre[tabindex="0"] > code.language-kotlin').first().isVisible());
     assert.equal(await page.getByRole('button', { name: /copy/i }).count(), 0);
+    assert.equal((await page.request.get(new URL('missing-docs-probe.html', base).href)).status(), 404);
+    assert.equal((await page.goto(new URL('404.html', base).href)).status(), 200);
+    assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), 'Page not found');
+    assert.equal(await page.locator('.site-brand').getAttribute('href'), new URL('index.html', base).pathname);
     console.log(`Static navigation, keyboard, stylesheet and snippets passed with JavaScript disabled at ${base}`);
   } finally {
     await browser.close();

@@ -13,10 +13,13 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
+import reactor.core.publisher.Flux;
 
 @Controller
 @ExecuteOn(TaskExecutors.IO)
 public final class TodoController {
+    private final TodoDeferredEndpoint deferred = new TodoDeferredEndpoint();
+
     public static void main(String[] args) {
         Micronaut.run(TodoController.class, args);
     }
@@ -25,6 +28,12 @@ public final class TodoController {
     @Get(value = "/", produces = MediaType.TEXT_HTML)
     public HttpResponse<byte[]> todo(HttpRequest<?> request, @Nullable Authentication authentication) {
         return TodoEndpoints.render(request, authentication);
+    }
+
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    @Get(value = "/deferred", produces = MediaType.TEXT_HTML)
+    public HttpResponse<Flux<byte[]>> deferred(HttpRequest<?> request, @Nullable Authentication authentication) {
+        return deferred.render(request, authentication);
     }
 
     @Secured(SecurityRule.IS_AUTHENTICATED)
