@@ -136,7 +136,7 @@ class ClinicVisitBridge(
     }
 }
 
-private fun HtmlWriter.clinicDocument(
+internal fun HtmlWriter.clinicDocument(
     heading: String,
     headExtras: HtmlWriter.() -> Unit = {},
     content: HtmlWriter.() -> Unit,
