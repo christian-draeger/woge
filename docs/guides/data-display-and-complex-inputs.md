@@ -139,9 +139,22 @@ existing JVM application build. For a case that needs shared validation rules, s
 [Kotlin/JS notes island](local-islands.md#sharing-rules-a-practical-note-draft-not-another-application-framework).
 Its [target measurements](../../spikes/local-island-target/evidence.md) used a different workload.
 
-The automated results cover the owned search form. They leave widget replacement, BFCache,
-third-party widgets and the [human review](https://github.com/christian-draeger/woge/issues/253)
-as separate evidence under [#288](https://github.com/christian-draeger/woge/issues/288).
+## Add a local chart when the table is insufficient
+
+The [warehouse backlog spike](../../spikes/backlog-chart/README.md) retains a server-rendered
+table and native date range. Its optional Chart.js island overlays two queues and lets an operator
+focus on the last four days or hide a series. A Woge parent replacement keeps the keyed chart and
+its local choices while loading the new server totals. The spike measures the extra browser bytes
+and records the supported lifecycle and fallback.
+
+Server paging and ordinary edit links remain sufficient when people browse, sort, and edit discrete
+records. Consider virtualization or a local editing grid only after a workflow requires many
+simultaneously visible or edited rows. Measure that workflow with its real data, keyboard and focus
+requirements before selecting a dependency.
+
+Back/forward cache, live parent replacement and the
+[human review](https://github.com/christian-draeger/woge/issues/253) remain separate evidence for
+[#288](https://github.com/christian-draeger/woge/issues/288).
 
 ## Styling
 

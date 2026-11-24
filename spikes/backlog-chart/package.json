@@ -1,0 +1,16 @@
+{
+  "name": "woge-backlog-chart-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node widget/build.mjs",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "chart.js": "4.6.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "esbuild": "0.28.2"
+  }
+}
