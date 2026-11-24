@@ -36,6 +36,7 @@ dependencies {
     implementation("jakarta.xml.bind:jakarta.xml.bind-api")
     implementation("dev.woge:woge-spring-boot-starter:$wogeVersion")
     implementation("dev.woge:woge-spring-mvc:$wogeVersion")
+    runtimeOnly("dev.woge:woge-fallback-client-assets:$wogeVersion")
     runtimeOnly("org.webjars:webjars-locator-lite:1.1.3")
     runtimeOnly("org.webjars.npm:bootstrap:5.3.8")
     runtimeOnly("org.webjars.npm:font-awesome:4.7.0")

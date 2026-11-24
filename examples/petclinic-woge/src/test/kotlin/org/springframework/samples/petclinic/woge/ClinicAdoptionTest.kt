@@ -1,5 +1,10 @@
 package org.springframework.samples.petclinic.woge
 
+import dev.woge.host.ACTION_NAVIGATION_HEADER
+import dev.woge.host.ACTION_VALIDATION_HEADER
+import dev.woge.protocol.PatchStreamEvent
+import dev.woge.protocol.PatchStreamV1
+import dev.woge.protocol.ReplacePatch
 import org.jsoup.Jsoup
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -18,6 +23,7 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.time.LocalDate
+import java.util.UUID
 
 class ClinicAdoptionTest {
     @Test
@@ -120,6 +126,107 @@ class ClinicAdoptionTest {
         }
     }
 
+    @Test
+    fun `enhanced visit uses the secured upstream validation and saves exactly once`(@TempDir database: Path) {
+        val databaseUrl = "jdbc:h2:file:${database.resolve("petclinic").toAbsolutePath()}"
+        val action = "/owners/1/pets/1/visits/new"
+        val visit = "Check <and> review"
+        val due = LocalDate.now().plusDays(2).toString()
+        startClinic(databaseUrl, wogeEnabled = true, initMode = "always").use { app ->
+            val client = ClinicClient(app)
+            client.login()
+            val page = Jsoup.parse(client.get("/woge$action").body())
+            assertEquals(200, client.get("/assets/woge/index.js", "*/*").statusCode())
+            val form = requireNotNull(page.selectFirst("form[data-woge-action]"))
+            assertEquals(action, form.attr("action"))
+            val csrf = requireNotNull(form.selectFirst("input[name=_csrf]")).`val`()
+            val epoch = requireNotNull(page.selectFirst("meta[name=woge-page-epoch]")).attr("content")
+            val region = requireNotNull(form.closest("[data-woge-region]")).attr("data-woge-region")
+            val headers = mapOf(
+                "Accept" to PatchStreamV1.MEDIA_TYPE,
+                "Woge-Page-Epoch" to epoch,
+                "Woge-Interaction" to "1",
+                "Woge-Region-Revisions" to "$region:0",
+                "Origin" to client.origin,
+            )
+
+            fun submit(
+                date: String,
+                token: String? = csrf,
+                overrides: Map<String, String> = emptyMap(),
+                path: String = action,
+                extraFields: Map<String, String> = emptyMap(),
+                knownLength: Boolean = true,
+            ): HttpResponse<ByteArray> {
+                val fields = mapOf("date" to date, "description" to visit) + extraFields
+                return client.postEnhanced(
+                    path,
+                    if (token == null) fields else fields + ("_csrf" to token),
+                    headers + ("Woge-Request-Identity" to UUID.randomUUID().toString()) + overrides,
+                    knownLength,
+                )
+            }
+
+            assertEquals(403, submit(due, token = null).statusCode())
+            assertEquals(403, submit(due, overrides = mapOf("Origin" to "https://other.example")).statusCode())
+            assertEquals(400, submit(due, overrides = mapOf("Woge-Request-Identity" to "malformed")).statusCode())
+            assertEquals(400, submit(due, overrides = mapOf("Woge-Region-Revisions" to "unknown:0")).statusCode())
+            assertEquals(404, submit(due, path = "/owners/1/pets/2/visits/new").statusCode())
+            val unsupported = submit(due, overrides = mapOf("Accept" to "application/vnd.woge.patch-stream; version=2"))
+            assertEquals(406, unsupported.statusCode())
+            assertEquals("unsupported-version", unsupported.headers().firstValue("Woge-Protocol-Error").orElseThrow())
+
+            assertEquals(413, submit(due, extraFields = mapOf("extra" to "x".repeat(4096))).statusCode())
+            assertEquals(
+                413,
+                submit(
+                    due,
+                    extraFields = mapOf("extra" to "é".repeat(1500), "ü".repeat(700) to "x"),
+                    knownLength = false,
+                ).statusCode(),
+            )
+
+            val invalid = submit(LocalDate.now().minusDays(1).toString(), knownLength = false)
+            assertEquals(400, invalid.statusCode())
+            assertEquals("visit-errors", invalid.headers().firstValue(ACTION_VALIDATION_HEADER).orElseThrow())
+            assertTrue(invalid.headers().firstValue("Cache-Control").orElseThrow().contains("no-store"))
+            val decoder = PatchStreamV1.decoder()
+            val events = decoder.feed(invalid.body())
+            decoder.finish()
+            val patch = events.filterIsInstance<PatchStreamEvent.PatchFrame>().single().patch as ReplacePatch
+            assertEquals(PatchStreamEvent.Complete(1), events.last())
+            assertEquals(epoch, patch.target.pageEpoch.value)
+            assertEquals(region, patch.target.region.value)
+            assertEquals(1L, patch.revision.next.value)
+            val validation = Jsoup.parseBodyFragment(patch.html.value)
+            assertEquals(
+                "Visit date must be in the future",
+                requireNotNull(validation.selectFirst("#visit-errors [href=#visit-date]")).text(),
+            )
+            assertEquals(visit, requireNotNull(validation.selectFirst("#visit-description")).`val`())
+            for (id in listOf("visit-date", "visit-description")) {
+                assertEquals(id, requireNotNull(form.selectFirst("#$id")).attr("data-woge-state-key"))
+                assertEquals(id, requireNotNull(validation.selectFirst("#$id")).attr("data-woge-state-key"))
+            }
+            assertEquals(0, visitCount(app, visit))
+
+            val correctedToken = requireNotNull(validation.selectFirst("input[name=_csrf]")).`val`()
+            val saved = submit(
+                due,
+                token = correctedToken,
+                overrides = mapOf("Woge-Interaction" to "2", "Woge-Region-Revisions" to "$region:1"),
+            )
+            assertEquals(200, saved.statusCode())
+            assertTrue(saved.body().isEmpty())
+            assertEquals("/owners/1", saved.headers().firstValue(ACTION_NAVIGATION_HEADER).orElseThrow())
+            val owner = Jsoup.parse(client.get("/owners/1").body())
+            assertEquals("Your visit has been booked", requireNotNull(owner.selectFirst("#success-message")).text())
+            assertTrue(owner.text().contains(visit))
+            assertTrue(client.get("/woge/owners/1").body().contains("Check &lt;and&gt; review"))
+            assertEquals(1, visitCount(app, visit))
+        }
+    }
+
     private fun startClinic(
         databaseUrl: String,
         wogeEnabled: Boolean,
@@ -148,7 +255,7 @@ class ClinicAdoptionTest {
 }
 
 private class ClinicClient(app: ConfigurableWebServerApplicationContext) {
-    private val origin = "http://127.0.0.1:${requireNotNull(app.webServer).port}"
+    val origin = "http://127.0.0.1:${requireNotNull(app.webServer).port}"
     private val client = HttpClient.newBuilder().cookieHandler(CookieManager()).build()
 
     fun get(path: String, accept: String = "text/html"): HttpResponse<String> =
@@ -160,15 +267,37 @@ private class ClinicClient(app: ConfigurableWebServerApplicationContext) {
             HttpResponse.BodyHandlers.ofString(),
         )
 
-    fun postForm(path: String, fields: Map<String, String>): HttpResponse<String> {
-        val body = fields.entries.joinToString("&") { (name, value) -> "$name=" + URLEncoder.encode(value, UTF_8) }
+    fun postForm(path: String, fields: Map<String, String>): HttpResponse<String> =
+        post(path, fields, emptyMap(), HttpResponse.BodyHandlers.ofString())
+
+    fun postEnhanced(
+        path: String,
+        fields: Map<String, String>,
+        headers: Map<String, String>,
+        knownLength: Boolean,
+    ): HttpResponse<ByteArray> =
+        post(path, fields, headers, HttpResponse.BodyHandlers.ofByteArray(), knownLength)
+
+    private fun <Body> post(
+        path: String,
+        fields: Map<String, String>,
+        headers: Map<String, String>,
+        responseBody: HttpResponse.BodyHandler<Body>,
+        knownLength: Boolean = true,
+    ): HttpResponse<Body> {
+        val body = fields.entries.joinToString("&") { (name, value) ->
+            URLEncoder.encode(name, UTF_8) + "=" + URLEncoder.encode(value, UTF_8)
+        }
+        val publisher = if (knownLength) HttpRequest.BodyPublishers.ofString(body) else
+            HttpRequest.BodyPublishers.ofInputStream { body.byteInputStream(UTF_8) }
         return client.send(
             HttpRequest.newBuilder(URI.create(origin + path))
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Accept-Language", "en")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .apply { headers.forEach { (name, value) -> header(name, value) } }
+                .POST(publisher)
                 .build(),
-            HttpResponse.BodyHandlers.ofString(),
+            responseBody,
         )
     }
 
