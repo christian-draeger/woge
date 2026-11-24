@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a packaged reference host or verify its shared browser journeys."""
+"""Run, verify or measure a packaged reference host."""
 
 import argparse
 import hashlib
@@ -73,7 +73,7 @@ def verify(args, port, woge_version, java, package_path, build):
     lock = json.loads((BROWSER / "package-lock.json").read_text())
     report = {
         "schemaVersion": 1,
-        "kind": "source-correctness",
+        "kind": "source-browser-budget" if args.mode == "measure" else "source-correctness",
         "sourceCommit": output("git", "rev-parse", "HEAD"),
         "sourceDirty": bool(output("git", "status", "--porcelain")),
         "wogeVersion": woge_version,
@@ -96,11 +96,9 @@ def verify(args, port, woge_version, java, package_path, build):
         "WOGE_REFERENCE_PACKAGED": "1",
         "WOGE_REFERENCE_REPORT_DIR": str(evidence),
     }
-    command = [
-        "npm", "run", "test:reference", "--",
-        "--grep-invert", "real adapter production budgets",
-        "--global-timeout", str(BROWSER_TIMEOUT_MS),
-    ]
+    browser = ["npm", "run", "test:reference", "--", "--global-timeout", str(BROWSER_TIMEOUT_MS)]
+    budget_case = "real adapter production budgets"
+    command = [*browser, "--grep-invert", budget_case]
     for project in args.project:
         command += ["--project", project]
     try:
@@ -114,8 +112,19 @@ def verify(args, port, woge_version, java, package_path, build):
         with (evidence / "browser.log").open("w") as log:
             result = subprocess.run(command, cwd=BROWSER, env=environment, stdout=log, stderr=subprocess.STDOUT)
         report["browserExitCode"] = result.returncode
-        if result.returncode == 0:
-            report["status"] = "passed"
+        if result.returncode != 0:
+            raise RuntimeError("The shared browser journeys failed. See browser.log.")
+        if args.mode == "measure":
+            measurement = evidence / "measurement"
+            measurement.mkdir()
+            report["measurementSamples"] = "measurement/browser-budget.json"
+            with (measurement / "browser.log").open("w") as log:
+                subprocess.run(
+                    [*browser, "--grep", budget_case, "--project", "chromium-enhanced"],
+                    cwd=BROWSER, env={**environment, "WOGE_REFERENCE_REPORT_DIR": str(measurement)},
+                    stdout=log, stderr=subprocess.STDOUT, check=True,
+                )
+        report["status"] = "passed"
     except (OSError, RuntimeError, subprocess.SubprocessError) as error:
         report["error"] = str(error)
     except KeyboardInterrupt:
@@ -128,22 +137,23 @@ def verify(args, port, woge_version, java, package_path, build):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("run", "verify", "serve"))
+    parser.add_argument("mode", choices=("run", "verify", "measure", "serve"))
     parser.add_argument("host", choices=HOSTS)
     parser.add_argument("--port", type=int)
     parser.add_argument("--project", action="append", choices=PROJECTS, default=[])
     args = parser.parse_args()
     if args.port is not None and not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
-    if args.project and args.mode != "verify":
-        parser.error("--project applies to verify")
-    port = args.port or (free_port() if args.mode == "verify" else 8080)
+    checks = args.mode in ("verify", "measure")
+    if args.project and not checks:
+        parser.error("--project applies to verify and measure")
+    port = args.port or (free_port() if checks else 8080)
     java_home = os.environ.get("JAVA_HOME")
     java = str(Path(java_home) / "bin/java") if java_home else "java"
     woge_version = version()
     task, package_path, launch = package(args.host, woge_version, java)
     build = [str(ROOT / "gradlew"), task, f"-PwogeVersion={woge_version}", "--console=plain"]
-    if args.mode == "verify":
+    if checks:
         return verify(args, port, woge_version, java, package_path, build)
     if args.mode == "run":
         subprocess.run(build, cwd=ROOT, check=True)

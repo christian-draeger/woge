@@ -61,9 +61,12 @@ checkout, dirty state, host, selected browser projects, toolchains and packaged 
 Use `--project chromium-enhanced --project chromium-no-javascript` for a focused run and retain
 the selected projects in the manifest. The default runs all three engines in both modes.
 
-This runner records correctness for the source checkout. The timing-budget probe and independent
-performance experiments use their existing commands. The [comparison contract](../../docs/performance/comparison-contract.md)
-defines the evidence needed for measurements. The separate packaged
+To collect the existing timing-budget samples, run `python3 scripts/reference-demo.py measure ktor`
+or select a Spring host. The runner verifies correctness first, then starts a fresh packaged process
+and runs the throttled Chromium probe in a separate report directory. The raw samples and conditions
+are in `measurement/browser-budget.json`. These samples describe the selected fixture and checkout.
+Use the [comparison contract](../../docs/performance/comparison-contract.md) for independent
+performance experiments and comparisons. The separate packaged
 [Todo release](../../docs/guides/todo-container.md) has its own version and deployment rules.
 
 ## Follow the web flow
