@@ -4,6 +4,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.Exec
+import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.jvm.tasks.Jar
 
 plugins {
@@ -43,6 +44,13 @@ val scaffoldPluginModules = setOf("woge-gradle-plugin")
 val scaffoldMavenRepository = layout.buildDirectory.dir("scaffold-maven-repository")
 val wogeTagline = "HTML-first reactive web development for Kotlin."
 val publicationModules = scaffoldPublicationModules + scaffoldPluginModules
+val publishCentralSnapshot = providers.gradleProperty("wogePublishCentralSnapshot").orNull == "true"
+if (publishCentralSnapshot) {
+    require(group == "dev.woge") { "Maven Central snapshots require the canonical dev.woge group." }
+    require(version.toString().matches(Regex("""[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*)?-SNAPSHOT"""))) {
+        "Maven Central snapshot publishing requires a version ending in -SNAPSHOT."
+    }
+}
 val verifyGitHubPackagesPublication = tasks.register<Exec>("verifyGitHubPackagesPublication") {
     group = "publishing"
     description = "Checks explicit channel, credentials and unused release coordinates before any upload."
@@ -102,10 +110,19 @@ subprojects {
                     url = uri("https://maven.pkg.github.com/christian-draeger/woge")
                     credentials(PasswordCredentials::class)
                 }
+                if (publishCentralSnapshot) {
+                    repositories.maven {
+                        name = "mavenCentralSnapshots"
+                        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                        credentials(PasswordCredentials::class)
+                        authentication { create<BasicAuthentication>("basic") }
+                    }
+                }
             }
             tasks.withType<PublishToMavenRepository>().configureEach {
-                if (name.endsWith("ToGithubPackagesRepository")) {
-                    dependsOn(verifyGitHubPackagesPublication)
+                when {
+                    name.endsWith("ToGithubPackagesRepository") -> dependsOn(verifyGitHubPackagesPublication)
+                    name.endsWith("ToMavenCentralSnapshotsRepository") -> dependsOn(":verifyPublicationContract")
                 }
             }
         }
@@ -257,6 +274,13 @@ val testPublicationGuards = tasks.register<Exec>("testPublicationGuards") {
     group = "verification"
     description = "Tests publication channels, credential errors and fail-closed release/check guards without network access."
     commandLine("python3", "-B", "scripts/test-publication-guards.py")
+}
+if (publishCentralSnapshot) {
+    tasks.register("publishMavenCentralSnapshot") {
+        group = "publishing"
+        description = "Publishes the checked Woge snapshot and plugin markers to Maven Central."
+        dependsOn(publicationModules.map { ":$it:publishAllPublicationsToMavenCentralSnapshotsRepository" })
+    }
 }
 for (channel in listOf("snapshot", "release")) {
     tasks.register("publishGitHubPackages${channel.replaceFirstChar { it.uppercase() }}") {

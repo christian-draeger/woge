@@ -169,3 +169,4 @@ indexes and assembles these decisions rather than adding one.
 | [0114](0114-webmcp-managed-form-experiment.md) | Accepted | Defer WebMCP managed forms after a real rejected tool result |
 | [0115](0115-bounded-framework-comparison-evidence.md) | Accepted | Bound comparisons to measured equivalent journeys and preserve separate deployment questions |
 | [0116](0116-bounded-multipart-test-diagnostics.md) | Proposed | Bound request-correlated multipart diagnostics to test fixtures and finite CI investigations |
+| [0117](0117-main-snapshots-to-maven-central.md) | Proposed | Publish checked main snapshots to Maven Central |

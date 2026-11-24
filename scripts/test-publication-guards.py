@@ -86,8 +86,20 @@ class PublicationGuardsTest(unittest.TestCase):
             with self.subTest(status=status, conclusion=conclusion), self.assertRaises(ValueError):
                 commit.validate_checks(checks + [{"name": "extra", "status": status, "conclusion": conclusion}])
         commit.validate_checks(checks + [{"name": "Publication gate", "status": "in_progress", "conclusion": None}])
-        for name in ("Todo image gate", "Publish Todo image"):
+        for name in ("Todo image gate", "Publish Todo image", "Publish Maven Central snapshot"):
             commit.validate_checks(checks + [{"name": name, "status": "in_progress", "conclusion": None}])
+
+    def test_central_snapshot_workflow_is_main_push_only_and_secrets_are_job_scoped(self):
+        workflow = Path(".github/workflows/build.yml").read_text()
+        verification, publish = workflow.split("\n  publish-central-snapshot:")
+        self.assertIn("queue: max", verification)
+        self.assertNotIn("MAVEN_CENTRAL_", verification)
+        self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/main'", publish)
+        self.assertIn("needs: [check, todo-consumer, production-deployment, reference-browser-smoke, example-browser-smoke]",
+                      publish)
+        self.assertIn("environment: maven-central-snapshots", publish)
+        self.assertIn("persist-credentials: false", publish)
+        self.assertIn("publishMavenCentralSnapshot -PwogePublishCentralSnapshot=true", publish)
 
     def test_workflow_is_dispatch_only_and_write_is_job_scoped(self):
         workflow = Path(".github/workflows/publish-packages.yml").read_text()

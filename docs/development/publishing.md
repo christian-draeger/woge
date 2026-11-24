@@ -1,8 +1,8 @@
 # Publish Maven packages
 
 The root build reuses `scaffoldPublicationModules` and `scaffoldPluginModules`. The same publications
-feed the build-local consumer tests and GitHub Packages; no second set of POMs or plugin markers
-exists. `wogeGroup=dev.woge` and `wogeVersion` in `gradle.properties` are the defaults.
+feed the build-local consumer tests, GitHub Packages and Maven Central snapshots.
+`wogeGroup=dev.woge` and `wogeVersion` in `gradle.properties` are the defaults.
 `-PwogeVersion=...` selects one version for libraries, development tools, plugin implementations,
 markers and bundled browser metadata. Test-support projects and examples are not published.
 
@@ -19,6 +19,29 @@ The contract checks sources, actual documentation, Apache-2.0/owner/SCM metadata
 variants, plugin markers, coherent project dependencies and the versioned classpath assets.
 It rejects development-tool dependencies in production libraries. The external Spring Boot
 acceptance test compiles WebFlux/MVC consumers and checks their production Boot JARs too.
+
+## Automatic Maven Central snapshots
+
+The Build workflow publishes the `wogeVersion` from `gradle.properties` after the checks for each
+push to `main` pass. Main builds queue so their snapshot uploads run one at a time. The publication
+job checks out the push SHA and verifies the complete local publication contract before uploading
+the same JVM modules and plugin markers to the [Central snapshot repository](https://central.sonatype.org/publish/publish-portal-snapshots/).
+See [ADR 0117](../adr/0117-main-snapshots-to-maven-central.md) for the publishing boundary.
+
+The GitHub Actions environment `maven-central-snapshots` is restricted to `main`. Set
+`MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD` there to the two parts of a
+[Central Portal user token](https://central.sonatype.org/publish/generate-portal-token/).
+
+For a manual snapshot upload, provide those token parts locally through
+`ORG_GRADLE_PROJECT_mavenCentralSnapshotsUsername` and
+`ORG_GRADLE_PROJECT_mavenCentralSnapshotsPassword`.
+
+```shell
+./gradlew publishMavenCentralSnapshot -PwogePublishCentralSnapshot=true --no-configuration-cache
+```
+
+The snapshot target requires `dev.woge` and a version ending in `-SNAPSHOT`. The build uses
+the dedicated snapshot endpoint. [Configure a snapshot consumer](../guides/packages.md#consume-maven-central-snapshots).
 
 ## Explicit snapshots and releases
 
