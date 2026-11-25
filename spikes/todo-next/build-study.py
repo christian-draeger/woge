@@ -11,12 +11,13 @@ import time
 
 from study import CPU, NODE, ROOT, ROUNDS, command
 
-JDK = "eclipse-temurin@sha256:db5cc6341a1d7bc40cdb51e1f0d9824f3bb2cc8107d29da421dc4df7d11f05f1"
+JDK = "eclipse-temurin@sha256:9919f7eb065001785f3c6491886b871385d9b9039f1c0efa0d0bb2c57b6e1b62"
 BUILD_MEMORY = 3 * 1024 ** 3
 CONTENDERS = ("next", "kte", "woge")
 GRADLE = [
     "/opt/gradle/bin/gradle", "--no-daemon", "--max-workers=2", "--no-build-cache",
-    "--no-configuration-cache", "-Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=768m",
+    "--no-configuration-cache", "--project-cache-dir", "/dependency-cache/study-project",
+    "-Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=768m",
     "-Pkotlin.compiler.execution.strategy=in-process",
 ]
 
@@ -79,6 +80,8 @@ def main():
         parser.add_argument(f"--{option}", type=lambda argument: Path(argument).resolve(), required=True)
     parser.add_argument("--warm-dependencies-only", action="store_true", help="Repeat builds with populated caches")
     args = parser.parse_args()
+    if not args.warm_dependencies_only and (ROOT / "spikes/todo-next/node_modules").exists():
+        parser.error("Use a fresh Next.js checkout for cold setup without preinstalled node_modules")
     args.output.mkdir(parents=True, exist_ok=False)
     candidates = set(CONTENDERS)
     for kind in CONTENDERS:

@@ -13,6 +13,17 @@ gradle.projectsEvaluated {
                 def files = rootProject.configurations.getByName(name).files
                 println("${name}: ${files.size()} resolved files")
             }
+            if (rootProject.name == 'woge-todo') {
+                // KSP 2.3.12 resolves these implementation JARs in a detached configuration at execution time.
+                def ksp = rootProject.property('kspVersion')
+                def dependencies = [
+                    "com.google.devtools.ksp:symbol-processing-common-deps:${ksp}",
+                    "com.google.devtools.ksp:symbol-processing-aa-embeddable:${ksp}",
+                    'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2',
+                ].collect { rootProject.dependencies.create(it) }
+                def files = rootProject.configurations.detachedConfiguration(*dependencies).files
+                println("KSP execution: ${files.size()} resolved files")
+            }
         }
     }
 }
