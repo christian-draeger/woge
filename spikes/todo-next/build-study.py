@@ -9,8 +9,9 @@ import secrets
 import subprocess
 import time
 
-from study import CPU, JAVA, NODE, ROOT, ROUNDS, command
+from study import CPU, NODE, ROOT, ROUNDS, command
 
+JDK = "eclipse-temurin@sha256:db5cc6341a1d7bc40cdb51e1f0d9824f3bb2cc8107d29da421dc4df7d11f05f1"
 BUILD_MEMORY = 3 * 1024 ** 3
 CONTENDERS = ("next", "kte", "woge")
 GRADLE = [
@@ -51,7 +52,7 @@ def build_command(kind, args, cache, name, cold):
     options = ["-I", "/workspace/spikes/todo-next/resolve-study.gradle", "resolveStudyDependencies"] if cold else [
         "--offline", "clean", "bootJar",
     ]
-    return docker + ["-w", project, JAVA, *GRADLE, *flags, *options]
+    return docker + ["-w", project, JDK, *GRADLE, *flags, *options]
 
 
 def sample(kind, args, label, cold):
@@ -90,7 +91,7 @@ def main():
         "host": platform.platform(), "dockerVersion": command("docker", "version", "--format", "{{.Server.Version}}"),
         "sourceCommit": command("git", "-C", str(ROOT), "rev-parse", "HEAD"),
         "sourceSeed": json.loads((args.woge_stage / "woge-seed.json").read_text()),
-        "toolchains": {"nodeImage": NODE, "jvmImage": JAVA, "gradle": args.gradle.name},
+        "toolchains": {"nodeImage": NODE, "jdkImage": JDK, "gradle": args.gradle.name},
         "environment": {"architecture": "linux/arm64", "cpus": CPU, "memoryBytes": BUILD_MEMORY,
                         "warmNetwork": "none", "warmOutputCaches": False},
         "coldDependencySetup": [], "warmCleanBuilds": [],
