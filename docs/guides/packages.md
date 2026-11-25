@@ -91,7 +91,7 @@ Pick a version that exists on the repository's Packages page and use it everywhe
 wogeVersion=0.1.0-alpha.1
 kotlinVersion=2.4.10
 kspVersion=2.3.12
-springBootVersion=4.1.1
+springBootVersion=4.1.2
 ```
 
 `settings.gradle.kts`: use the two repository sections from above, plus the plugin versions:
