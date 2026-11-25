@@ -192,7 +192,9 @@ workloads a new study identity and preserve the old manifests and raw results. T
 comparison retains its own workload and artifacts. [Frozen Todo comparison](../../spikes/todo-framework-comparison/isolated-results.md)
 
 This executable reference consumes root projects and uses the public `woge-fallback-client-assets`
-integration for its browser runtime.
+integration for its browser runtime. The Ktor reference gives its unversioned `/assets/` files
+60 seconds of public freshness and a content ETag for conditional GET and HEAD. The cache policy
+applies only to the reference app's static file route.
 
 The same Playwright source verifies enhanced and no-JavaScript journeys on all three hosts in
 Chromium, Firefox and WebKit:
