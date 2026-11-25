@@ -41,6 +41,28 @@ The installed server serves the chart, its MIT notices, and all Woge assets from
   The new instance starts with the default viewport and visible packing series. A failed import
   leaves table navigation and date selection usable, including subsequent server patches.
 
+## Live replacement and browser history
+
+Open [the shared live report](http://127.0.0.1:8080/backlog/live) in two tabs. A native date
+selection updates the process-local snapshot choice. Subscribers receive a Woge SSE invalidation
+and fetch the current server-rendered panel. This fixture uses the same table and chart with
+read-only backlog counts. To see deliberate disposal, open the second tab in
+[reset mode](http://127.0.0.1:8080/backlog/live?reset=1).
+
+The live test verifies two real SSE connections and follow-up patch responses. On the keyed tab,
+the server table is replaced and the same chart redraws with both local settings intact. The
+reset tab detaches the old canvas, restores its pre-mount display state via Chart.js disposal,
+and mounts a chart with its default settings.
+
+The [history test](browser/history.spec.mjs) follows ordinary document navigation and lets the
+browser choose whether to restore the document. It removes Playwright’s default Chromium switch
+that disables the back/forward cache. With Chromium 151.0.7922.34 in full headless mode on macOS
+arm64, the browser reported `pageshow.persisted=true`, kept the same chart root and local choice,
+and the chart still responded to its controls. The next date selection completed through native
+303 navigation. The test also accepts a fresh document with a working chart at its default
+settings. Continued SSE delivery on a restored live document remains a separate case.
+[Chromium back/forward cache diagnostics](https://developer.chrome.com/docs/devtools/application/back-forward-cache)
+
 ## Measured cost and decision
 
 | Asset | Raw bytes | Gzip bytes | Brotli bytes |
@@ -77,8 +99,8 @@ patch, deliberate disposal and remount, failed import, emulated touch, and inval
 submissions. This example uses read-only data and exercises no mutation retry or authentication policy.
 
 Check physical touch, visible keyboard focus, chart control labels, and the table's reading order
-with the [manual review](https://github.com/christian-draeger/woge/issues/253). Back/forward cache,
-live Server-Sent Events parent replacement, other browser engines, and human assistive-technology
+with the [manual review](https://github.com/christian-draeger/woge/issues/253). The automated live
+replacement and history checks cover Chromium. Firefox, WebKit and human assistive-technology
 behavior need separate verification.
 
 [Chart.js release and license](https://github.com/chartjs/Chart.js/releases/tag/v4.6.2) ·

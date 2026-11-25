@@ -2,15 +2,21 @@ package example.backlog
 
 import dev.woge.host.FailureCategory
 import dev.woge.host.FormDecoder
+import dev.woge.host.LiveRegionPage
 import dev.woge.host.PageResult
 import dev.woge.host.PageUseCase
 import dev.woge.host.RequestContext
 import dev.woge.host.WogeAction
 import dev.woge.host.WogeRegion
+import dev.woge.host.WogeRoute
 import dev.woge.host.actionForm
 import dev.woge.host.failure
 import dev.woge.host.htmlPage
+import dev.woge.host.liveRegion
+import dev.woge.host.redirect
 import dev.woge.host.region
+import dev.woge.html.ApplicationUrl
+import dev.woge.html.Attributes
 import dev.woge.html.HtmlWriter
 import dev.woge.html.IslandModule
 import dev.woge.html.IslandProps
@@ -36,6 +42,8 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
@@ -85,7 +93,23 @@ internal suspend fun selectSnapshot(command: SelectSnapshot, context: RequestCon
     }
 }
 
-private fun document(context: RequestContext, snapshot: Snapshot, reset: Boolean): PageResult =
+@WogeRoute("/backlog/live")
+internal data class LiveBacklogInput(val reset: String? = null)
+
+private val liveSnapshot = MutableStateFlow(Snapshot.EARLY)
+
+@WogeAction("select-live-backlog-snapshot")
+internal suspend fun selectLiveSnapshot(command: SelectSnapshot, context: RequestContext): PageResult {
+    liveSnapshot.value = snapshot(command.window) ?: return failure(FailureCategory.BAD_REQUEST, context.correlationId)
+    return redirect(LiveBacklogRoute.url(LiveBacklogInput()))
+}
+
+private fun document(
+    context: RequestContext,
+    snapshot: Snapshot,
+    reset: Boolean,
+    liveUrl: ApplicationUrl? = null,
+): PageResult =
     htmlPage {
         doctype()
         element("html", { attribute("lang", "en") }) {
@@ -102,11 +126,14 @@ private fun document(context: RequestContext, snapshot: Snapshot, reset: Boolean
             element("body") {
                 element("main") {
                     element("h1") { text("Warehouse backlog") }
-                    actionForm(SelectSnapshotAction, attributes = {
-                        data("woge-action", "")
-                        data("woge-status", "backlog-status")
-                        data("woge-alert", "backlog-alert")
-                        data("woge-failure-message", "The backlog could not be loaded. Use the date range to try again.")
+                    val action = if (liveUrl == null) SelectSnapshotAction else SelectLiveSnapshotAction
+                    actionForm(action, attributes = {
+                        if (liveUrl == null) {
+                            data("woge-action", "")
+                            data("woge-status", "backlog-status")
+                            data("woge-alert", "backlog-alert")
+                            data("woge-failure-message", "The backlog could not be loaded. Use the date range to try again.")
+                        }
                     }) {
                         element("label", { attribute("for", "backlog-window") }) { text("Date range") }
                         element("select", {
@@ -122,28 +149,40 @@ private fun document(context: RequestContext, snapshot: Snapshot, reset: Boolean
                         }
                         element("button", { attribute("type", "submit") }) { text("Show backlog") }
                     }
-                    region(
-                        context.render.target(BacklogStatusRegion),
-                        snapshot.label,
-                        elementName = "p",
-                        attributes = {
-                            attribute("id", "backlog-status")
-                            attribute("role", "status")
-                        },
-                    )
-                    element("p", {
-                        attribute("id", "backlog-alert")
-                        attribute("role", "alert")
-                    })
-                    region(
-                        context.render.target(BacklogPanelRegion),
-                        snapshot,
-                        elementName = "section",
-                        attributes = {
-                            attribute("id", "backlog-panel")
-                            if (reset) data("woge-state", "reset")
-                        },
-                    )
+                    val panelAttributes: Attributes.() -> Unit = {
+                        attribute("id", "backlog-panel")
+                        if (reset) data("woge-state", "reset")
+                    }
+                    if (liveUrl == null) {
+                        region(
+                            context.render.target(BacklogStatusRegion),
+                            snapshot.label,
+                            elementName = "p",
+                            attributes = {
+                                attribute("id", "backlog-status")
+                                attribute("role", "status")
+                            },
+                        )
+                        element("p", {
+                            attribute("id", "backlog-alert")
+                            attribute("role", "alert")
+                        })
+                        region(
+                            context.render.target(BacklogPanelRegion),
+                            snapshot,
+                            elementName = "section",
+                            attributes = panelAttributes,
+                        )
+                    } else {
+                        liveRegion(
+                            context.render,
+                            BacklogPanelRegion,
+                            snapshot,
+                            liveUrl,
+                            elementName = "section",
+                            attributes = panelAttributes,
+                        )
+                    }
                 }
             }
         }
@@ -229,10 +268,30 @@ private fun Application.backlog() {
             BacklogInput(call.request.queryParameters["window"] ?: Snapshot.EARLY.wire, call.request.queryParameters["reset"] == "1")
         },
     )
-    val select = handlers.action(SelectSnapshotAction, FormDecoder(SelectSnapshot.serializer()).ktorInput())
+    val selection = FormDecoder(SelectSnapshot.serializer()).ktorInput()
+    val select = handlers.action(SelectSnapshotAction, selection)
+    val selectLive = handlers.action(SelectLiveSnapshotAction, selection)
+    val live = handlers.liveRegion(
+        LiveRegionPage(
+            page = PageUseCase<LiveBacklogInput> { request ->
+                document(
+                    request.context,
+                    liveSnapshot.value,
+                    request.input.reset == "1",
+                    LiveBacklogRoute.url(request.input),
+                )
+            },
+            region = BacklogPanelRegion,
+            load = { liveSnapshot.value },
+            changes = { liveSnapshot.map { } },
+        ),
+        LiveBacklogRoute,
+    )
     routing {
         get(DOCUMENT_PATH) { page.handle(call) }
+        get(LiveBacklogRoute.path) { live.handle(call) }
         post(SelectSnapshotAction.path) { select.handle(call) }
+        post(SelectLiveSnapshotAction.path) { selectLive.handle(call) }
         staticResources("/assets", "static/assets")
     }
 }
