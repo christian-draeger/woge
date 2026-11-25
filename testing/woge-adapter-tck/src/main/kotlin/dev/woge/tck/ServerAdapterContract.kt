@@ -910,7 +910,7 @@ internal class AdapterTckHttpClient(
             method,
             path,
             headers,
-            HttpResponse.BodyHandlers.ofInputStream(),
+            streamingBodyWithDeadline(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS)),
             // Browsers send form posts with Content-Length; chunked uploads are covered over a raw socket.
             body?.let { HttpRequest.BodyPublishers.ofString(it) }
                 ?: HttpRequest.BodyPublishers.noBody(),
