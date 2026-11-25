@@ -22,28 +22,28 @@ Use [the product-fit guide](choosing-woge.md) for the server-owned business work
   Evaluate serialization, downloads, restoration, keyboard behavior and server reconciliation
   for the actual task. When a team already uses Vue, Svelte or Kotlin/JS, those ecosystems offer
   implementation routes for the client work. A chart alone can stay an integration, and
-  URL-backed pagination can precede an external grid.
-  [Complex inputs and displays](../guides/data-display-and-complex-inputs.md)
+  URL-backed pagination can precede an external grid. When repeated inline edits and a filtered
+  grid are the main task, compare the [Vaadin form and grid options below](#dense-grid-and-form-work).
 
 ## Capability and adoption matrix
 
 The table reports documented approaches available in the named lines as of the review date.
-The two cases below verify specific artifacts. Other rows are architecture inferences from the
-linked upstream documentation, with adoption work identified so teams can check it directly.
+The two prototype sections and the linked Woge studies report observations from specific
+artifacts. The remaining capabilities and adoption costs come from the cited upstream docs.
 
 | Approach and release boundary | Suitable work and adoption cost | Sources |
 | --- | --- | --- |
 | Woge source and fixed pre-1.0 beta pilot | Kotlin server-owned HTML, action validation, region updates and optional islands. The docs generator is project tooling. Native declarative updates have a separate experimental browser boundary. Select a verified server adapter and pin source or kit artifacts. | [Woge compatibility](../guides/compatibility-and-upgrades.md), [browser boundary](../guides/browser-support.md#experimental-native-dpu) |
 | templ released Go components | Compile HTML components into Go for SSR or static output. Good for a Go team that wants explicit templates and hosts. Add the appropriate Markdown, browser interactivity and deployment tools for the application. | [templ SSR and static rendering](https://templ.guide/) |
-| Vaadin Flow 25 and Hilla 25 | Flow provides a JVM-owned component UI and server interaction. Hilla provides React screens and generated clients for Java endpoints. An existing Grid and form tooling justify an evaluation for a dense editable grid. Check client tooling, session or API ownership, authorization and component terms. | [Flow](https://vaadin.com/docs/latest/flow), [Hilla](https://vaadin.com/docs/latest/hilla), [Grid](https://vaadin.com/docs/latest/components/grid) |
+| Vaadin Flow and Hilla 25.3 released | Flow keeps the component tree and form behavior on the JVM. Hilla uses React and generated TypeScript clients for Java services. Their existing Grid and form tooling justify evaluation for dense editing. The 25.4 preview stays outside this review. | [Supported platforms](https://vaadin.com/docs/latest/compatibility), [Flow](https://vaadin.com/docs/latest/flow), [Hilla](https://vaadin.com/docs/latest/hilla) |
 | Phoenix LiveView 1.2 | Starts with an HTTP document and upgrades to a server process delivering diffs over a connection. Consider it for server-owned realtime UI on Elixir/BEAM. Budget for connection/state operation and explicitly verify the native workflow and recovery. | [LiveView lifecycle](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html) |
 | Astro 7.4.13 and Node adapter 11.1.14 tested here | Markdown/content collections, static pages and on-demand rendering. Server islands move request-specific data behind an independent fetch. Actions support native forms. Keeping those dynamic features requires an adapter/runtime and explicit private cache policy. | [Content collections](https://docs.astro.build/en/guides/content-collections/), [server islands](https://docs.astro.build/en/guides/server-islands/), [actions](https://docs.astro.build/en/guides/actions/) |
 | Qwik and Qwik City released line | Resumability supports a client UI with deferred activation. Qwik City includes routes, loaders and actions. Assess serialization boundaries, local interactivity and the optimizer/toolchain. Track the Qwik v2 next channel separately from the released guide. | [Qwik resumability](https://qwik.dev/docs/concepts/resumable/), [Qwik City](https://qwik.dev/docs/qwikcity/) |
 | Kobweb 0.25.1 | Pre-1.0 released Kotlin/JS and Compose HTML framework with browser-owned state, static export and optional API routes. Consider it when Compose skills or Kotlin source sharing matter. Check browser bundle, JS interop and Kotlin/Compose compatibility. | [Kobweb project](https://github.com/varabyte/kobweb), [0.25.1 release](https://github.com/varabyte/kobweb/releases/tag/v0.25.1) |
-| Next.js App Router 16 | React server and client component boundaries, server routes and a static export option. Assess React/Node adoption, deployment mode, caching and which features require runtime server support. The standalone Todo comparison is tracked separately. | [Server and client components](https://nextjs.org/docs/app/getting-started/server-and-client-components), [static export](https://nextjs.org/docs/app/guides/static-exports), [#277](https://github.com/christian-draeger/woge/issues/277) |
+| Next.js 16 released, Pages Router 16.4.6 tested separately | App Router offers React server and client component boundaries and a static export option. Assess deployment, caching and features that require a server. The measured standalone Todo uses Pages Router SSR and a Node runtime. | [App Router](https://nextjs.org/docs/app/getting-started/server-and-client-components), [static export](https://nextjs.org/docs/app/guides/static-exports), [matched Todo study](../../spikes/todo-next/matched-draft-study.md) |
 | SvelteKit 3.4.0 tested here | Route-level prerender, SSR and client rendering. A Svelte component can own local state and load a widget on demand. Static adapter works for the measured read-only report. Server actions need a supporting deployment and explicit serialization boundary. | [Page options](https://svelte.dev/docs/kit/page-options), [adapters](https://svelte.dev/docs/kit/adapters) |
 | Nuxt 4 | Vue SSR, client rendering and route-level hybrid modes. Consider for a Vue team that needs a rich local app alongside public content. Choose runtime target, hydration, serialized data and caching per route. | [Nuxt render modes](https://nuxt.com/docs/4.x/guide/concepts/rendering) |
-| ASP.NET Core Blazor Web Apps | Static SSR supplies server HTML. Interactive Server uses a server connection, WebAssembly runs in the browser, and Auto can switch on subsequent visits. A shared C# language leaves those distribution, server resources and serialization choices in place. | [Blazor render modes](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/render-modes?view=aspnetcore-10.0) |
+| ASP.NET Core Blazor Web Apps on .NET 10 LTS | Static Server, Interactive Server, Interactive WebAssembly and Interactive Auto define where UI logic, assets and state live. Compare the selected mode with the actual workflow. | [Blazor render modes](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/render-modes?view=aspnetcore-10.0), [supported .NET releases](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) |
 | KVision 9.7 | Released Kotlin/JS component framework. Consider when Kotlin browser ownership and its widget integrations fit the team. Account for the JS build, Kotlin/JS runtime and interop, and choose the API and deployment boundary. | [KVision guide](https://kvision.gitbook.io/kvision-guide/) |
 | Thymeleaf 3.1, `kotlinx.html`, jte/KTE | Direct server template or Kotlin HTML alternatives on existing JVM hosts. The team owns HTTP/action semantics and picks a compatible enhancement layer. Compare the complete workflow on the same host when deciding a migration. | [Thymeleaf](https://www.thymeleaf.org/doc/tutorials/3.1/usingthymeleaf.html), [Kotlin HTML DSL](https://github.com/Kotlin/kotlinx.html), [jte and Kotlin templates](https://jte.gg/) |
 | htmx and Datastar released integrations | htmx requests and swaps fragments. Datastar offers server patches and client-side signals. Both can integrate with an existing JVM renderer. Test native fallbacks, security and connection behavior on the application rather than treating fragment primitives as the complete workflow. | [htmx documentation](https://htmx.org/docs/), [Datastar guide](https://data-star.dev/guide/getting_started) |
@@ -137,6 +137,83 @@ exceed ordinary tables and URL-backed pagination. The present evidence supports 
 expansion into a SPA, offline data layer, broad component suite, content platform, ORM or identity
 system.
 
+## Dense grid and form work
+
+**Evidence type: Woge integration recipes and documented Vaadin capabilities.** Keep the native
+search and linked edit page for workflows where a user finds a record and edits it individually.
+In the secured PetClinic fixture, the native path reached the last of 80 same-prefix synthetic
+owners at 20 per page. The optional module returned at most eight authorised links. Its 3,244
+raw bytes add zero browser dependencies and use the existing JVM build. Chromium covered stale
+responses, keyboard, emulated touch, strict CSP and fallback. [Owner search recipe](../../examples/petclinic-woge/README.md#try-the-secured-owner-suggestions)
+· [Autocomplete measurements](../guides/data-display-and-complex-inputs.md#decide-how-much-autocomplete-to-add)
+
+The separate [#288 Chart.js recipe](../../spikes/backlog-chart/README.md) keeps exact values in the
+native table and assigns the canvas and controls to the island. The lazy bundle is 143,634 raw
+bytes and 51,159 gzip bytes. One npm build adds Chart.js and its color dependency. Its Chromium
+checks apply to lazy mount, keyed replacement, explicit disposal and reset, failed import and live
+parent patches. Full-headless Chromium observed restoration of the same usable chart after a
+back/forward-cache return. Continued live delivery after restoration, other engines for this spike,
+physical touch and human assistive-technology behavior remain separate questions.
+
+If staff instead need to find a row in a large sorted or filtered owner directory, repeatedly
+correct records in place, and move to the next row with the keyboard, evaluate a grid and form
+as one workflow. The benchmark prototype covers a read-only chart, so this is a deployment and
+ownership decision from documented capabilities.
+
+| Option | Ownership and adoption decision |
+| --- | --- |
+| Woge pages or a supplied grid | Choose pages when URL-backed filters, paging and an ordinary record form meet the task. An external grid is a reasonable integration when scrolling or editing must stay local. Give the component its own subtree. Keep query limits, record permissions, validation, authoritative saves and conflict handling in the application's service. |
+| Vaadin Flow Grid and Binder | Choose this for a JVM team that wants an existing component suite and can operate server-held UI sessions. Grid supports lazy queries and a buffered row editor with validation and save/cancel. UI events that invoke Java listeners need a round trip. Size server UI state and validate affinity and session recovery for the actual deployment. [Lazy data](https://vaadin.com/docs/latest/flow/binding-data/data-provider) · [Grid editor](https://vaadin.com/docs/latest/components/grid/inline-editing) · [Flow runtime model](https://vaadin.com/docs/latest/building-apps/architecture/runtime-model) |
+| Hilla Auto CRUD and React forms | Choose this when staff need local React editing behavior and the team can own React/TypeScript and its build. Auto CRUD supplies a lazy, sortable, filterable grid and a form over a Java service. The client binder consumes generated models and validation metadata. Endpoint permission and domain validation stay on the server. Keep the browser-facing service narrow and test row permissions separately. [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud) · [Hilla form binding](https://vaadin.com/docs/latest/hilla/guides/forms/binder) · [Hilla service security](https://vaadin.com/docs/latest/hilla/guides/security/best-practices) |
+
+Before choosing a grid, run the same authorised selection, keyboard edit/cancel, rejected edit,
+confirmed save and stale-record recovery on the real data. Compare initial and lazy assets,
+keystroke response, serialized requests, focus, keyboard operation and failure recovery. Check the
+supported Java, Spring and Node build versions and the terms for the specific components. Vaadin
+25.3 lists Chrome 154 as its minimum. A Vaadin comparison needs a supported browser and its own
+measurements. [Supported platforms](https://vaadin.com/docs/latest/compatibility)
+· [Vaadin component and tool licensing](https://vaadin.com/docs/latest/flow/configuration/licenses)
+
+The existing cases support Woge pages and a chart integration. A Woge grid implementation or a
+local-editing latency, productivity or offline claim needs independent consumer evidence.
+A real operator need can justify evaluating the existing component stack.
+
+## Blazor render modes and application ownership
+
+**Evidence type: documented architecture.** The supported .NET 10 LTS Blazor Web App gives
+teams one C# UI language, with distinct operating costs for each render mode.
+
+| Render mode | What the team must own |
+| --- | --- |
+| Static Server | Render Razor components as HTTP HTML. Use server form posts for the static workflow and validate their inputs on the server. This fits server-owned request-driven work. |
+| Interactive Server | Keep interactive component state on the server in a circuit. Evaluate round-trip behavior, per-user resources and reconnection. |
+| Interactive WebAssembly | Run the UI in the browser and download the .NET runtime and application bundle. Measure first and repeat use and put protected data access behind a server boundary. |
+| Interactive Auto | Provide the server circuit and WebAssembly client. The server can handle the first visit while the browser downloads the runtime for later visits. A mounted component keeps its selected mode for that visit. |
+
+Prerendering and interactive state transfer are explicit decisions. Use public or appropriate
+application data across that boundary, and validate authoritative writes on the server. Sharing C#
+leaves differences in startup, serialization, resource use and recovery to measure. Collaboration
+and offline conflict handling require application evidence. [Render modes](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/render-modes?view=aspnetcore-10.0)
+· [Static form binding](https://learn.microsoft.com/en-us/aspnet/core/blazor/forms/binding?view=aspnetcore-10.0)
+· [Prerendered state persistence](https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management/prerendered-state-persistence?view=aspnetcore-10.0)
+
+## Packaged Todo deployment
+
+**Evidence type: matched deployment and browser task.** The [#277 Next.js/JVM follow-up](../../spikes/todo-next/matched-draft-study.md)
+built independent Next.js Pages Router, KTE/htmx WebFlux and Woge WebFlux distributions. All
+nine measured journeys kept a newer draft, selection and focus in both tabs while the accepted
+Add changed the list and count. The earlier no-new-draft case exposed different clear-on-success
+behavior. Woge retained the dirty keyed value, while Next.js and KTE cleared the submitted value.
+[Original parity report](../../spikes/todo-next/README.md#parity-decision)
+
+The packaged applications measured 39,198,618 bytes for Next.js, 39,164,455 for KTE/htmx and
+43,658,895 for Woge. On the tested Linux arm64 host, Next.js reached the initial board sooner and
+used less post-browser process memory. KTE/htmx transferred the fewest script bytes. Woge shipped
+additional controls and Actuator, alongside the largest package and initial HTML. The study
+records cold dependency setup, offline clean builds and all timing rounds separately. These
+measurements inform standalone deployment choices for the scoped Todo task. They leave richer
+application workflow parity, renderer-only costs and developer change effort open.
+
 ## Evidence and remaining comparisons
 
 The archive contains the predeclared criteria, actual source/toolchain and artifact manifest,
@@ -145,8 +222,6 @@ Woge content test used a small harness for the settings API and a study-only pre
 The chart local comparison depends on the pinned #340 source and the fixed beta artifact kit.
 [Reproduction and evidence](../../testing/performance/evidence/2026-11-25-product-boundaries.tar.gz)
 
-The Next.js/JVM packaged Todo study is owned by [#277](https://github.com/christian-draeger/woge/issues/277)
-and remains open. Its missing full-deployment results prevent a whole-application comparison here.
 The [change-safety and participant work](choosing-woge.md#criteria-for-the-next-decision) owns
 evidence about developer change effort and usability. Revisit this guide when those results or
 the chosen deployment and ownership boundaries change.
