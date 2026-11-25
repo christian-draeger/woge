@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <%= csrf_meta_tags %>
+    <title>Todos · Hotwire</title>
+    <link rel="stylesheet" href="/todo.css">
+    <script type="module" src="/turbo.min.js"></script>
+    <% if ENV["STUDY_STABLE_FORM"] == "1" %>
+      <script type="module" src="/stable-form.js"></script>
+    <% end %>
+  </head>
+  <body><%= yield %></body>
+</html>
