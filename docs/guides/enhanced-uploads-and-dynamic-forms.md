@@ -187,8 +187,55 @@ For the [manual reference review](https://github.com/christian-draeger/woge/issu
 - With a screen reader, verify the form language, summary and linked field error, and the accepted
   announcement with the UTC instant.
 
-The automated checks cover HTTP, markup, and patch data. Browser and assistive-technology behavior,
-repeated fields with nested uploads, and saved create/edit round trips need additional evidence.
+## Save and edit a localized invoice with a receipt
+
+The [saved-invoice application](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceForm.kt)
+reuses the same locale policy, strict invoice parsing, and property bundles. Its two nested rows
+have stable keys `7` and `42`. Each row sends two controls with the same typed `amounts` field name.
+Those repeated values follow the total amount's decimal rules. The keys are explicitly checked
+before saving. The service receipt uses the nested multipart field `rows[7].receipt`. The upload
+policy permits only that field and bounds the request and temporary file. The action checks UTF-8
+text contents and stores the accepted bytes without using the supplied filename or media type.
+
+The [application-owned JDBC store](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceStore.kt)
+uses an embedded H2 file, exact `DECIMAL(18,2)` amounts, calendar dates, and UTC instants. Its
+atomic update includes the displayed domain revision. A stale edit returns 409 and the saved record
+keeps its previous values and receipt. An edit without a new file retains the stored receipt.
+The store has a fixed two-row schema for the example, and it runs off the host event loop.
+The list pages and file/status labels come from the same three application `ResourceBundle`s.
+[H2 data types](https://h2database.com/html/datatypes.html)
+
+<!-- snippet: examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceForm.kt -->
+
+Both hosts bind the typed multipart input and use the existing same-origin request facts. The
+fixture runs on loopback and has a shared application store. A private deployment also needs
+its usual sign-in and per-invoice authorization. The optional upload module sends XHR and follows
+the normal 303 redirect after successful creation or editing. A 400 leaves the enhanced draft and
+selected file in place and announces that the user can submit natively to see the validation page.
+That deliberate native submission renders the translated summary and field errors with the
+bounded literal text. A native navigation requires selecting the file again. File bytes stay out
+of response patches in both modes.
+
+Run the [same real-server tests on WebFlux and Ktor](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/SavedInvoiceHttpTest.kt).
+They check all three locales, the exact stored receipt bytes, a rejected stale edit, and data
+reopened through the other host after the first server stops. The extra browser run uses the
+installed Playwright Chromium and checks all three languages in both JavaScript modes on both hosts.
+
+```sh
+./gradlew :woge-m1-api-corpus:test --tests '*SavedInvoiceHttpTest' --tests '*LocalizedInvoice*Test'
+npm --prefix client/woge-fallback-client ci --ignore-scripts
+npm --prefix client/woge-fallback-client exec -- playwright install chromium
+WOGE_INVOICE_BROWSER=true ./gradlew :woge-m1-api-corpus:test --tests '*SavedInvoiceHttpTest'
+```
+
+For [the manual reference review](https://github.com/christian-draeger/woge/issues/253), navigate
+both repeated Arabic allocation inputs and the services receipt using the keyboard. Check that the
+summary link takes the user to the appropriate allocation or file control. With a screen reader,
+check both repeated controls announce the shared row error, the upload-failure message and upload
+cancellation are announced in Arabic, and the next-page link and record values are understandable.
+Repeat with JavaScript disabled. The browser checks exercise visible behavior on Chromium. This
+checklist records the remaining human assistive-technology review. The saved-invoice sample does
+not add a locale-aware formatter to the core DSL or translate the browser's built-in file picker.
 
 ## Evidence and limits
 

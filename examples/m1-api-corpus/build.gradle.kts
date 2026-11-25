@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":woge-spring-webflux"))
     implementation(project(":woge-spring-mvc"))
     implementation(project(":woge-ktor"))
+    implementation(project(":woge-ui-headless"))
     ksp(project(":woge-ksp"))
 
     testImplementation(libs.jsoup)
@@ -22,11 +23,13 @@ dependencies {
     testImplementation(libs.kotlinxSerializationJson)
     testImplementation(libs.reactorNettyHttp)
     testRuntimeOnly(libs.junitPlatformLauncher)
+    testRuntimeOnly("com.h2database:h2:2.4.240")
 }
 
 tasks.test {
     val root = rootProject.layout.projectDirectory
     systemProperty("woge.repository.root", root.asFile.absolutePath)
+    inputs.property("invoiceBrowser", providers.environmentVariable("WOGE_INVOICE_BROWSER").orElse("false"))
     // The index tests read these repository files directly; changes must rerun them.
     inputs
         .files(
@@ -35,6 +38,7 @@ tasks.test {
             root.file("gradle.properties"),
             root.file("gradle/libs.versions.toml"),
             root.file("client/woge-fallback-client/package.json"),
+            root.file("client/woge-fallback-client/scripts/test-saved-invoices.mjs"),
             root.dir("scaffolds/spring-boot"),
         ).withPathSensitivity(PathSensitivity.RELATIVE)
         .withPropertyName("repositoryIndexFiles")

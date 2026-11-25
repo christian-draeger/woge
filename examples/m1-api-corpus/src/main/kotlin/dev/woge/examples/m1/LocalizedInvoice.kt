@@ -38,10 +38,6 @@ import dev.woge.html.moduleScript
 import dev.woge.html.p
 import dev.woge.html.title
 import kotlinx.serialization.Serializable
-import java.text.MessageFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 /** The command preserves the wire text. The action turns that text into application values. */
 @Serializable
@@ -83,7 +79,7 @@ private val paymentTimeField =
     localizedInvoiceDecoder.field(LocalizedInvoiceFields::paymentTime, FormElementId.of("invoice-payment-time"))
 private val errorSummary = FormElementId.of("invoice-errors")
 
-private fun RequestContext.invoiceLanguage(): InvoiceLanguage? =
+internal fun RequestContext.invoiceLanguage(): InvoiceLanguage? =
     when (language.value) {
         "de", "de-de" -> InvoiceLanguage.GERMAN
         "en", "en-us" -> InvoiceLanguage.ENGLISH
@@ -115,44 +111,26 @@ private fun validateInvoiceValues(
     command: LocalizedInvoiceFields,
     context: RequestContext,
     language: InvoiceLanguage,
-): PageResult {
-    val amount = language.amount(command.amount)
-    val serviceDay = parseDay(command.serviceDay, DateTimeFormatter.ISO_LOCAL_DATE)
-    val dueDay = parseDay(command.dueDay, language.date)
-    val payment = parsePaymentTime(command.paymentTime)
-    val validDates = serviceDay != null && dueDay != null
-    if (amount == null || !validDates || payment !is PaymentTime.Valid) {
-        val messages = language.messages
-        val errors =
-            buildList {
-                if (amount == null) add(FormError(amountField, messages.getString("amountError")))
-                if (serviceDay == null) add(FormError(serviceDayField, messages.getString("serviceDayError")))
-                if (dueDay == null) add(FormError(dueDayField, messages.getString("dueDayError")))
-                if (payment is PaymentTime.Invalid) {
-                    add(FormError(paymentTimeField, messages.getString(payment.messageKey)))
-                }
+): PageResult =
+    when (val parsed = parseInvoiceFields(command, language)) {
+        is InvoiceValidation.Invalid ->
+            invalidInvoice(
+                context,
+                language,
+                command.submittedText(),
+                parsed.issues.map { (name, message) ->
+                    FormError(invoiceFields.getValue(name), language.messages.getString(message))
+                },
+            )
+        is InvoiceValidation.Valid -> {
+            val text = language.accepted(parsed.values)
+            context.render.updates(applicationUrl("/localized-invoice")) {
+                replace(InvoiceStatusRegion, InvoiceStatusView(language, text))
             }
-        return invalidInvoice(context, language, command.submittedText(), errors)
+        }
     }
-    val instant = payment.instant
-    val text =
-        MessageFormat(language.messages.getString("accepted"), language.locale).format(
-            arrayOf(language.formatAmount(amount), serviceDay, language.date.format(dueDay), instant),
-        )
-    return context.render.updates(applicationUrl("/localized-invoice")) {
-        replace(InvoiceStatusRegion, InvoiceStatusView(language, text))
-    }
-}
 
-private fun parseDay(
-    raw: String,
-    formatter: DateTimeFormatter,
-): LocalDate? =
-    try {
-        LocalDate.parse(raw, formatter)
-    } catch (_: DateTimeParseException) {
-        null
-    }
+private val invoiceFields = listOf(amountField, serviceDayField, dueDayField, paymentTimeField).associateBy { it.name }
 
 private val invoiceDecoderErrors =
     PageUseCase<FormValidation> { request ->
@@ -171,15 +149,7 @@ private val invoiceDecoderErrors =
                 listOf(FormError(null, messages.getString("languageChanged")))
             } else {
                 request.input.errors.map { error ->
-                    val field =
-                        when (error.field) {
-                            amountField.name -> amountField
-                            serviceDayField.name -> serviceDayField
-                            dueDayField.name -> dueDayField
-                            paymentTimeField.name -> paymentTimeField
-                            else -> null
-                        }
-                    FormError(field, messages.getString("invalidField"))
+                    FormError(invoiceFields[error.field], messages.getString("invalidField"))
                 }
             }
         invalidInvoice(context, language, values, errors)
