@@ -57,3 +57,35 @@ python3 spikes/todo-next/study.py --matched-draft \
 The build runner logs complete argument arrays. `npm ci` installs from an empty npm cache. The Gradle setup task resolves named runtime, build and compiler dependencies from two separate empty Gradle user and project caches. It also resolves implementation JARs used by the pinned KSP execution and the development-only configurations Spring Boot inspects to exclude dependencies from the package. The following offline `clean bootJar` rounds check that the captured dependencies suffice. Cold setup measures each ecosystem's normal setup work, including Gradle configuration or npm unpacking. Local Woge framework publication, preinstalled packages or tools, browser installation and container image pulls sit outside these timings.
 
 All clean builds use two CPUs, 3 GiB, no network, and fresh outputs. Gradle task and configuration caches are disabled and each invocation uses a new single-use daemon. Next.js retains installed dependencies and removes `.next` before rebuilding. Application processes use their separate deployment limits. Startup uses a 50 ms polling interval and stops at the first full initial board. No OS page-cache reset, heap profile, artificial network latency, tracing collector or competing benchmark load is added by the runner. The browser times start when the held request is released. The Playwright route affects browser caching during the interaction. All asset observations are captured before routing, from a fresh browser context with default response compression.
+
+## Results from 2026-11-25
+
+All three independent distributions passed the same Chromium preflight and all nine measured journeys. A newer draft, selection and focus survived in both tabs while the new row appeared and the counts advanced. The closed-loop probe returned 540 correct measured responses and 135 correct warmups. The [raw builds, deployment rounds, inputs and diagnostic failures](evidence/2026-11-25-matched-drafts.tar.gz) include per-round orders, durations, resource timings, artifact hashes and nested JVM dependency names.
+
+The source base is [`7382a75fa026b5445fef238a0f9427186672f6c7`](https://github.com/christian-draeger/woge/tree/7382a75fa026b5445fef238a0f9427186672f6c7). Next.js 16.4.6, React 19.3.1, Node 24.22.3 and npm 11.19.1 are pinned. Both JVM applications use Spring Boot 4.1.1, Kotlin 2.4.10, Gradle 8.14.4 and Linux Temurin 21.0.13+9. The KTE deployment uses KTE 3.2.5 with htmx 2.0.11. Woge uses source-matched `0.1.0-SNAPSHOT` packages and KSP 2.3.12. OrbStack Docker 29.8.2 ran on Apple M3 Max with macOS 27.2.1. Playwright 1.62.1 drove Chromium 151.0.7922.34 on the same machine.
+
+| Deployment observation | Next.js | KTE/htmx | Woge |
+| --- | ---: | ---: | ---: |
+| Packaged application bytes | 39,198,618 | 39,164,455 | 43,658,895 |
+| Nested JVM runtime JARs | — | 67 | 86 |
+| Useful initial HTML bytes, identity encoding | 3,544 | 2,474 | 11,156 |
+| Startup to the full initial board, median ms | 321 | 1,335 | 1,659 |
+| Application process RSS after browser, median MiB | 115.07 | 173.59 | 210.18 |
+| Initial GET p95 across the three rounds, ms | 1.023–1.815 | 1.282–1.647 | 2.378–3.604 |
+| Scripts transferred to fresh browser, bytes | 120,609 | 55,913 | 70,105 |
+| Decoded script bodies, bytes | 378,814 | 55,313 | 67,105 |
+| Release to in-tab Add outcomes, median ms | 9.70 | 10.29 | 15.24 |
+| Release to peer row and count, median ms | 23.32 | 25.11 | 23.62 |
+
+Application package bytes exclude container images. Browser source HTML and script measurements use the fresh enhanced context after one successful native Add has brought the list to 11 rows. The independent closed-loop HTTP samples have ten rows, with `Accept-Encoding: identity`. GET p95 is nearest-rank within each process. In-tab completion includes checks for the row, count, status, absent error summary and retained draft focus and selection. Chromium tracks peer row and count in parallel. The three observation rounds report the browser results descriptively.
+
+| Dependency and clean-build observation | Next.js | KTE/htmx | Woge |
+| --- | ---: | ---: | ---: |
+| Cold dependency setup, one sample, seconds | 5.99 | 43.93 | 55.94 |
+| Offline clean build, round 1, seconds | 3.42 | 15.78 | 18.33 |
+| Offline clean build, round 2, seconds | 3.21 | 8.74 | 11.38 |
+| Offline clean build, round 3, seconds | 2.78 | 8.45 | 11.30 |
+
+The archive retains two earlier build passes. The first used the runtime-only JRE and KTE could not find a JDK. The subsequent build attempt exposed the Spring Boot development-only configuration that `bootJar` resolves to exclude libraries from the executable. The KSP detached dependency resolution failure and both fixes are visible in the evidence and rerun recipe. All three final builds succeeded offline from caches filled by their own cold setup. Woge's prerequisite local framework publication is recorded separately.
+
+Next.js reached useful HTML sooner and used less post-browser process RSS in these nine runs. KTE transferred the fewest script bytes. Woge shipped the largest package and initial HTML, used the most process RSS and had the highest closed-loop GET p95 in every round. Its peer completion was near 24 ms twice and about 76 ms once. Woge and KTE share the same web host and JVM, while the packages, features, rendered markup, script delivery and patch paths differ. The outcomes bound a comparison of the selected deployments. Broader Todo parity, causal renderer costs, a browser latency ranking and production capacity remain inconclusive. Rerun the relevant slice after changes to seeds, packaging, hosts, browser, caching or interaction behavior.

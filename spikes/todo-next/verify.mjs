@@ -163,21 +163,23 @@ try {
     const draftValue = "Draft from the second tab";
     await enterDraft(draft, draftValue, 5, 10);
     const expected = "Enhanced <strong> & Todo";
+    const began = performance.now();
     if (matchedDraft) {
         await addWithNewerDraft(tab, second, expected);
     } else {
-        const began = performance.now();
         await time("enhancedAddVisible", async () => {
             await add(tab, expected, 200);
             await waitForAdd(tab, expected, "");
         });
-        assert.equal(await tab.getByLabel("New todo").inputValue(), "");
-        await second.getByText(expected, { exact: true }).waitFor();
-        timings.peerSseVisible = performance.now() - began;
     }
     assert.equal(tab.url(), `${origin}/`);
     assert.equal(await tab.locator("#todo-status").textContent(), "Todo added.");
     assert.equal(await tab.locator("#todo-count").textContent(), "12 remaining · 12 total");
+    if (!matchedDraft) {
+        assert.equal(await tab.getByLabel("New todo").inputValue(), "");
+        await second.getByText(expected, { exact: true }).waitFor();
+        timings.peerSseVisible = performance.now() - began;
+    }
     await checkDraft(draft, draftValue, 5, 10);
     assert.deepEqual(browserErrors, []);
     await enhanced.close();
