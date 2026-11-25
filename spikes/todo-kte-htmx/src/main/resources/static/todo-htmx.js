@@ -41,7 +41,9 @@ document.addEventListener("htmx:afterSwap", ({ detail }) => {
 document.addEventListener("htmx:afterRequest", ({ detail }) => {
     if (!submitted || detail.xhr !== submitted.xhr) return;
     submitted = undefined;
-    report(detail.failed ? "Could not confirm the result. Reload before submitting again." : "");
+    // htmx fires afterRequest on a transport failure without setting detail.failed.
+    const failed = detail.failed || detail.xhr.status === 0;
+    report(failed ? "Could not confirm the result. Reload before submitting again." : "");
     if (refreshPending) void refreshBoard();
 });
 

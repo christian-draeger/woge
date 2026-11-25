@@ -8,8 +8,7 @@ import gg.jte.TemplateEngine
 import gg.jte.output.StringOutput
 import kotlinx.coroutines.flow.map
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -31,8 +30,7 @@ fun main(args: Array<String>) {
         .run(*args)
 }
 
-@SpringBootConfiguration(proxyBeanMethods = false)
-@EnableAutoConfiguration
+@SpringBootApplication(proxyBeanMethods = false)
 class TodoApplication {
     @Bean
     fun routes() = coRouter {
@@ -104,7 +102,7 @@ private suspend fun page(filter: String, title: String = "", hasError: Boolean =
         if (hasError) HttpStatus.BAD_REQUEST else HttpStatus.OK,
     )
 
-private suspend fun fragment(name: String, model: Map<String, Any>, status: HttpStatus = HttpStatus.OK): ServerResponse {
+internal suspend fun fragment(name: String, model: Map<String, Any>, status: HttpStatus = HttpStatus.OK): ServerResponse {
     val output = StringOutput()
     templates.render(name, model, output)
     val response = ServerResponse.status(status)

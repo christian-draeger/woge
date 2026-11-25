@@ -1,6 +1,6 @@
-# ADR 0120: Probe a Quarkus JVM host at the Vert.x HTTP boundary
+# ADR 0120: Use the Quarkus-managed Vert.x HTTP router for Woge
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-25
 - Decision owners: Woge maintainers
 - Related issues: [#298](https://github.com/christian-draeger/woge/issues/298)
@@ -8,47 +8,56 @@
 ## Context
 
 Woge's portable host boundary carries final response metadata and cold HTML or patch frames.
-An adapter needs to send raw chunks, enforce the response budget and tie collection to the
-request's cancellation. Quarkus can expose the Vert.x Router through CDI. Its REST facade also
-streams Mutiny publishers with a cancellation policy for disconnected clients.
-[Quarkus Reactive Routes](https://quarkus.io/guides/reactive-routes/) ·
-[Quarkus REST streaming](https://quarkus.io/guides/rest/#streaming-support)
+An adapter needs to commit metadata before the first chunk, enforce the byte budget and tie
+collection to cancellation. The isolated JVM spike exercised early Unicode HTML, a failed write,
+active TCP reset, bounded rendering and streamed portable deferred regions over a real connection.
+[Quarkus JVM spike](../../spikes/quarkus-host/README.md)
 
 ## Decision
 
-Start the JVM integration at the stock Quarkus Vert.x Router, on platform 3.40.1.2 LTS
-with Vert.x 4.5.35, Kotlin 2.4.10 and JDK 21. Register routes through a small application CDI
-bean. Capture Woge request values before leaving the Netty event loop. Portable work receives
-the immutable Woge context and runs on a coroutine worker. Retain host request and response
-objects at the adapter edge. Render with Woge's existing UTF-8 budget and transfer one chunk
-at a time across a rendezvous to the event loop. Await each socket write and cancel the request
-job on disconnect. Reset a committed response after an unexpected generation failure.
+Use the managed Vert.x Router in `io.quarkus:quarkus-vertx-http`. Ship `woge-quarkus` as a peer
+runtime library using the same Woge host SPI, protocol and server runtime as the other adapters.
+Pin the JVM candidate to Quarkus 3.40.1.2 LTS, Vert.x 4.5.35, Kotlin 2.4.10 and JDK 21.
+Register routes through an application CDI observer. Quarkus owns the HTTP server, authentication,
+request scope, trusted proxies and logging providers. Woge owns portable request facts, application
+execution, transport encoding and streaming cancellation. [Module graph](../architecture/module-graph.md) ·
+[Quarkus HTTP reference](https://quarkus.io/version/3.40/guides/http-reference/)
 
-The initial module is an isolated consumer spike. It uses Quarkus HTTP and the existing Woge SPI
-and server runtime. There is no augmentation extension or Spring and Ktor runtime dependency.
-Integrating Quarkus security must explicitly derive immutable principal and origin facts from the
-managed request. Off-loop code cannot depend on implicit access to an ambient CDI request scope.
-[Quarkus LTS releases](https://quarkus.io/releases/) ·
-[Framework-neutral host boundary](0002-framework-neutral-host-boundary.md)
+Run request and response I/O on the owning event loop. Resolve CDI identity and origin there,
+then hand the worker an immutable portable snapshot. Move rendering through a rendezvous channel,
+await each socket write and wait for drain when the write queue is full. Cancel the request job on
+close. Reset a committed response after an unexpected generation failure. Decode bounded form
+and multipart input after portable action security has passed, and stage temporary files off the
+event loop. Applications schedule their own blocking business I/O. [Quarkus Router security](https://quarkus.io/version/3.40/guides/security-customization)
+
+Use the same `WogeObserver` port and Kotlin Logging facade with the Quarkus-provided provider.
+Keep Quarkus, Jakarta, Vert.x and Mutiny types out of portable modules. Enable WebSockets explicitly
+with a server subprotocol and an application upgrade policy. Serve ordinary HTTP actions and SSE
+by default.
 
 ## Alternatives considered
 
-Quarkus REST can stream a Mutiny publisher and cancel it when a request disconnects. A REST bridge
-could simplify integration for an application whose routes are already JAX-RS resources. Its response
-filter and exception behavior after streaming begins need the same tests. A custom Quarkus extension
-would add a deployment module and augmentation lifecycle before either is needed by this consumer.
+Quarkus REST can stream a Mutiny publisher and cancel it when a request disconnects. Supporting it
+would require a second bridge from suspending frame producers to publishers and tests for raw-byte
+flushing, response filters and late termination across that bridge. The Router supplies explicit
+write completion, queue drain, close and reset with one Kotlin coroutine per exchange. The consumer
+needs a CDI observer and no build-time integration, so use a runtime library. The independent
+Native Image build also works with the ordinary Quarkus application build.
+[Quarkus REST streaming](https://quarkus.io/version/3.40/guides/rest/#streaming-support) ·
+[Quarkus extension development](https://quarkus.io/version/3.40/guides/building-my-first-extension)
 
 ## Consequences
 
-The pinned JVM app serves the unmodified portable static page and classpath stylesheet. Real
-HTTP tests cover HEAD, metadata, early bytes, concurrent responsiveness, the same request trace
-after suspension, late HTML byte-budget termination and TCP reset cancellation.
-The portable forecast adds a generated route binding, a native full-page fallback and the
-framed deferred patch stream. Chromium exercises both paths on the packaged JVM.
-[Quarkus spike](../../spikes/quarkus-host/README.md)
+The shared real-server TCK exercises the binding against Vert.x HTTP, and the standalone packaged
+application checks actual managed Quarkus identity, classpath assets and user journeys. The native
+smoke configuration was tested separately on Linux ARM64 with Mandrel JDK 25. The JVM TCK and
+separate native job define the scope of the candidate. The dependency closure, transport support
+and focused CI are documented with the adapter. [Quarkus adapter](../../adapters/woge-quarkus/README.md) ·
+[Standalone consumer](../../examples/quarkus-consumer/README.md)
 
 ## Follow-up
 
-The supported adapter decision needs typed actions, authenticated requests, live
-responses, the shared TCK, a standalone consumer outside the spike and explicit native-image
-results. JVM evidence applies to the tested matrix.
+Use these bindings in the [multi-host showcase](https://github.com/christian-draeger/woge/issues/299)
+when adding Quarkus to its correctly matched measurement matrix. Public distribution and version
+commitments follow [the release work](https://github.com/christian-draeger/woge/issues/285) and
+[the compatibility policy](https://github.com/christian-draeger/woge/issues/62).

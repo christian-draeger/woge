@@ -1,0 +1,6 @@
+<div id="todo-errors" tabindex="-1" th:hidden="${!hasError}" th:attr="data-init=${focus ? 'el.focus()' : null}">
+    <th:block th:if="${hasError}">
+        <h2>Check your todo</h2>
+        <p><a href="#todo-title">Enter a title of 1 to 120 characters.</a></p>
+    </th:block>
+</div>

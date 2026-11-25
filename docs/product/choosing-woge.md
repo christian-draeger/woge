@@ -50,8 +50,9 @@ sessions diagnosed and repaired the same seeded rename with terminal and local M
 independently packaged KTE/htmx reference also passed the scoped Add, validation and live-refresh
 journeys. In the separate Next.js/KTE study, the Woge fixture kept its dirty keyed input after
 Add. That journey required clearing the input, so the Woge arm supplied parity findings only.
-Comparative feature effort and independent human usability remain open.
-[Todo change evidence](../ai-dx/results/2026-11-24-beta-todo-agent.md) ·
+The deterministic change-safety corpus identifies which incomplete Todo edits each compiler and
+browser check detects. Comparative feature effort and independent human usability remain open.
+[Cross-application change-safety checks](../../spikes/todo-change-safety/README.md) · [Todo change evidence](../ai-dx/results/2026-11-24-beta-todo-agent.md) ·
 [Matched feedback trial](../ai-dx/results/2026-11-25-beta-todo-mcp.md) ·
 [KTE/htmx fixture](../../spikes/todo-kte-htmx/README.md) ·
 [Next.js/KTE deployment study](../../spikes/todo-next/README.md)
@@ -73,6 +74,17 @@ released versions and trying it in an independent application remain separate de
 [PetClinic run and scope](../../examples/petclinic-woge/README.md) ·
 [Adoption study](https://github.com/christian-draeger/woge/issues/286) ·
 [Persistent multi-instance study](https://github.com/christian-draeger/woge/issues/289)
+
+## Keep a shared board current while someone edits
+
+In the two-person Woge and Hotwire trial, both applications supported ordinary native filtering
+and forms. Woge's stable form kept its draft and held activation during peer updates. The Hotwire
+arm kept them once it used a permanent form with explicit handling of its own submission. Review
+reconnect and uncertain writes separately. In this fixture Woge caught up automatically. The
+Hotwire arms used an explicit GET and committed a duplicate during the controlled lost-response
+case. Rails used less process memory on the tested workstation. Apply the result to this bounded
+workload and verify matching storage and recovery rules for a production system.
+[Collaborative board comparison](../performance/collaborative-todo-2026-11-25.md)
 
 ## Show a useful page while slow sections load
 

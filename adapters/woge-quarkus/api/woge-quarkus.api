@@ -1,0 +1,38 @@
+public abstract interface class dev/woge/quarkus/QuarkusPageInput {
+	public abstract fun decode (Lio/vertx/ext/web/RoutingContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/woge/quarkus/QuarkusPageInputKt {
+	public static final fun quarkusInput (Ldev/woge/host/FormDecoder;)Ldev/woge/quarkus/QuarkusPageInput;
+	public static final fun quarkusInput (Ldev/woge/host/PageRoute;)Ldev/woge/quarkus/QuarkusPageInput;
+	public static final fun quarkusMultipart (Ldev/woge/host/FormDecoder;Ldev/woge/host/UploadPolicy;)Ldev/woge/quarkus/QuarkusPageInput;
+	public static final fun quarkusSubmission (Ldev/woge/host/FormDecoder;)Ldev/woge/quarkus/QuarkusPageInput;
+}
+
+public abstract interface class dev/woge/quarkus/QuarkusRequestContextFactory {
+	public abstract fun create (Lio/vertx/ext/web/RoutingContext;)Ldev/woge/host/RequestContext;
+}
+
+public final class dev/woge/quarkus/QuarkusRequestContextFactoryKt {
+	public static final fun quarkusRequestContext (Lio/vertx/ext/web/RoutingContext;Ldev/woge/host/AuthenticationFacts;)Ldev/woge/host/RequestContext;
+	public static final fun quarkusRequestContext (Lio/vertx/ext/web/RoutingContext;Ldev/woge/host/RequestSecurity;)Ldev/woge/host/RequestContext;
+	public static synthetic fun quarkusRequestContext$default (Lio/vertx/ext/web/RoutingContext;Ldev/woge/host/AuthenticationFacts;ILjava/lang/Object;)Ldev/woge/host/RequestContext;
+}
+
+public final class dev/woge/quarkus/QuarkusWebSocketKt {
+	public static final fun wogeQuarkusWebSocket (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/quarkus/QuarkusRequestContextFactory;Ldev/woge/host/WebSocketLimits;)Lio/vertx/core/Handler;
+	public static synthetic fun wogeQuarkusWebSocket$default (Ldev/woge/host/WebSocketUpgradePolicy;Ldev/woge/host/WebSocketUseCase;Ldev/woge/quarkus/QuarkusRequestContextFactory;Ldev/woge/host/WebSocketLimits;ILjava/lang/Object;)Lio/vertx/core/Handler;
+}
+
+public final class dev/woge/quarkus/WogeQuarkusHandlers {
+	public fun <init> ()V
+	public fun <init> (Ldev/woge/quarkus/QuarkusRequestContextFactory;Ldev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Ldev/woge/runtime/NativeDpuMode;)V
+	public synthetic fun <init> (Ldev/woge/quarkus/QuarkusRequestContextFactory;Ldev/woge/host/WogeObserver;Ldev/woge/host/FailurePages;Ldev/woge/runtime/DeferredRegionPolicy;Ldev/woge/host/PatchStreamLimits;Ldev/woge/host/LiveLimits;Ldev/woge/host/RenderIdentitySecret;Ldev/woge/runtime/NativeDpuMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun action (Ldev/woge/host/ActionExecutor;Ldev/woge/quarkus/QuarkusPageInput;)Lio/vertx/core/Handler;
+	public final fun deferred (Ldev/woge/host/DeferredRegionsUseCase;Ldev/woge/quarkus/QuarkusPageInput;)Lio/vertx/core/Handler;
+	public final fun live (Ldev/woge/host/LiveUseCase;Ldev/woge/host/PageRoute;)Lio/vertx/core/Handler;
+	public final fun liveRegion (Ldev/woge/host/LiveRegionPage;Ldev/woge/host/PageRoute;)Lio/vertx/core/Handler;
+	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/host/PageRoute;)Lio/vertx/core/Handler;
+	public final fun page (Ldev/woge/host/PageUseCase;Ldev/woge/quarkus/QuarkusPageInput;)Lio/vertx/core/Handler;
+}
+

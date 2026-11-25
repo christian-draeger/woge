@@ -1,0 +1,39 @@
+<a href="#main">Skip to todos</a>
+<main id="main">
+  <h1>Todos</h1>
+  <p>HTML and forms. Updates arrive without a page reload when JavaScript is available.</p>
+  <nav aria-label="Filter todos">
+    <% TodoBoard::FILTERS.each do |filter| %>
+      <%= link_to filter.capitalize, root_path(filter: filter), aria: { current: filter == @filter ? "page" : nil } %>
+    <% end %>
+  </nav>
+  <%= turbo_stream_from "collaboration-board" %>
+  <% if @draft %>
+    <h2 id="todo-errors">Check your todo</h2>
+    <p id="todo-title-error">Enter a todo title from 1 to 120 characters.</p>
+  <% end %>
+  <% form_data = ENV["STUDY_STABLE_FORM"] == "1" ? { turbo_permanent: true } : {} %>
+  <%= form_with url: "/woge-actions/add-todo", id: "add-todo", data: form_data do |form| %>
+    <%= form.label :title, "New todo", for: "todo-title" %>
+    <%= form.text_field :title, id: "todo-title", maxlength: 120, required: true, value: @draft,
+                        aria: @draft ? { invalid: "true", describedby: "todo-title-error" } : {} %>
+    <%= hidden_field_tag :filter, @filter %>
+    <%= form.button "Add todo" %>
+  <% end %>
+  <section id="todo-board">
+    <p id="todo-count"><%= @remaining %> remaining · <%= @total %> total</p>
+    <% if @todos.empty? %><p>No todos in this view.</p><% end %>
+    <ul>
+      <% @todos.each do |todo| %>
+        <li id="todo-<%= todo.id %>" data-todo-id="<%= todo.id %>">
+          <span><%= todo.title %><%= " (completed)" if todo.completed %></span>
+          <%= button_to todo.completed ? "Mark active" : "Complete", "/woge-actions/toggle-todo",
+                        params: { id: todo.id, filter: @filter } %>
+          <%= button_to "Delete", "/woge-actions/delete-todo", params: { id: todo.id, filter: @filter } %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+  <p>Study fixture: todos are shared and stored in memory. Restarting clears them.</p>
+  <noscript><p>Forms and filters work without JavaScript. Reload to see changes from other tabs.</p></noscript>
+</main>

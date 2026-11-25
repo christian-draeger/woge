@@ -13,7 +13,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.net.Socket
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.nio.file.Path
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -97,7 +96,7 @@ private fun verifyDirectTiming(
                         .header("Accept-Encoding", encoding)
                         .GET()
                         .build(),
-                    HttpResponse.BodyHandlers.ofInputStream(),
+                    streamingBodyWithDeadline(Duration.ofSeconds(STREAM_TIMEOUT_SECONDS)),
                 )
             response.body().use { body ->
                 check(response.statusCode() == HTTP_OK)

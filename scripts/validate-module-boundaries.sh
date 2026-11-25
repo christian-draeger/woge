@@ -157,7 +157,7 @@ for module in woge-core woge-ui-headless woge-protocol woge-host-spi woge-server
   main_source_path="$repository_root/$source_path/src/main"
   [[ -d "$main_source_path" ]] || continue
 
-  forbidden_types='(org\.gradle|org\.springframework|reactor\.|jakarta\.servlet|javax\.servlet|io\.ktor|io\.modelcontextprotocol)'
+  forbidden_types='(org\.gradle|org\.springframework|reactor\.|jakarta\.servlet|javax\.servlet|io\.ktor|io\.quarkus|io\.vertx|io\.smallrye\.mutiny|jakarta\.(enterprise|inject|ws\.rs)|io\.modelcontextprotocol)'
   if command -v rg >/dev/null 2>&1; then
     matches=$(rg -n --glob '*.kt' --glob '*.java' "$forbidden_types" "$main_source_path" || true)
   else
