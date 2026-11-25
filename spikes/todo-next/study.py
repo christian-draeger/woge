@@ -64,7 +64,7 @@ def request(connection, path="/", method="GET", body=None, headers=None):
 
 
 @contextlib.contextmanager
-def running(kind, path, logs):
+def running(kind, path, logs, matched_draft):
     name = "woge-todo-study-" + secrets.token_hex(6)
     next_app = kind == "next"
     image = NODE if next_app else JAVA
@@ -90,7 +90,10 @@ def running(kind, path, logs):
             with contextlib.closing(http.client.HTTPConnection("127.0.0.1", port, timeout=2)) as connection:
                 try:
                     status, body = request(connection)
-                    if status == 200 and b"remaining" in body:
+                    ready = correct_board(status, body, all_rows=True) if matched_draft else (
+                        status == 200 and b"remaining" in body
+                    )
+                    if ready:
                         break
                 except (OSError, http.client.HTTPException):
                     pass
@@ -121,43 +124,49 @@ def prepare(kind, connection, origin):
             require(status == 303, f"Woge seed returned {status}")
 
 
-def correct_board(status, body):
+def correct_board(status, body, all_rows=False):
     rendered = re.sub(rb"<!--.*?-->", b"", body)
+    row_count = 10 if all_rows else 1
     return (status == 200 and b"10 remaining" in rendered and b"10 total" in rendered
-            and b"Todo &lt;1&gt; &amp; Kotlin" in rendered)
+            and all(f"Todo &lt;{index}&gt; &amp; Kotlin".encode() in rendered
+                    for index in range(1, row_count + 1)))
 
 
-def browser(origin, log):
-    result = subprocess.run(["node", str(Path(__file__).with_name("verify.mjs")), origin],
-                            cwd=ROOT, capture_output=True, text=True, timeout=90)
+def browser(origin, log, matched_draft):
+    args = ["node", str(Path(__file__).with_name("verify.mjs")), origin]
+    if matched_draft:
+        args.append("matched-draft")
+    result = subprocess.run(args, cwd=ROOT, capture_output=True, text=True, timeout=90)
     log.write_text(result.stdout + result.stderr)
     require(result.returncode == 0, f"Browser parity failed. See {log.name}")
     return json.loads(result.stdout)
 
 
-def run(kind, path, output, label, measure):
+def run(kind, path, output, label, measure, matched_draft):
     result = {"contender": kind, "phase": label, "httpSamples": []}
     try:
-        with running(kind, path, output / f"{label}-{kind}.server.log") as (name, port, startup):
-            result["startupBeforeSeedingMs"] = startup
+        with running(kind, path, output / f"{label}-{kind}.server.log", matched_draft) as (name, port, startup):
+            result["startupUsefulHtmlMs" if matched_draft else "startupBeforeSeedingMs"] = startup
             origin = f"http://127.0.0.1:{port}"
             with contextlib.closing(http.client.HTTPConnection("127.0.0.1", port, timeout=5)) as connection:
-                began = time.monotonic()
-                prepare(kind, connection, origin)
-                result["seedPreparationMs"] = (time.monotonic() - began) * 1000
-                require(correct_board(*request(connection)), f"{kind} initial board did not pass parity")
+                if not matched_draft:
+                    began = time.monotonic()
+                    prepare(kind, connection, origin)
+                    result["seedPreparationMs"] = (time.monotonic() - began) * 1000
+                require(correct_board(*request(connection), all_rows=matched_draft),
+                        f"{kind} initial board did not pass parity")
                 if measure:
                     for index in range(WARMUP + SAMPLES):
                         began = time.monotonic()
                         status, body = request(connection)
                         elapsed = (time.monotonic() - began) * 1000
-                        correct = correct_board(status, body)
+                        correct = correct_board(status, body, all_rows=matched_draft)
                         result["httpSamples"].append({
                             "phase": "warmup" if index < WARMUP else "sample",
                             "elapsedMs": elapsed, "status": status, "bodyBytes": len(body), "correct": correct,
                         })
                         require(correct, f"Initial board HTTP sample {index + 1} failed with {status}")
-            result["browser"] = browser(origin, output / f"{label}-{kind}.browser.log")
+            result["browser"] = browser(origin, output / f"{label}-{kind}.browser.log", matched_draft)
             rss = command("docker", "exec", name, "grep", "^VmRSS:", "/proc/1/status")
             result["rssAfterBrowserKiB"] = int(rss.split()[1])
         result["status"] = "passed"
@@ -172,7 +181,10 @@ def main():
     parser.add_argument("--kte", type=Path, required=True, help="Independent KTE/htmx executable JAR")
     parser.add_argument("--woge", type=Path, help="Maintained standalone WebFlux Todo executable JAR")
     parser.add_argument("--output", type=Path, required=True, help="New directory for raw evidence")
+    parser.add_argument("--matched-draft", action="store_true", help="Require all three preseeded contenders")
     args = parser.parse_args()
+    if args.matched_draft and not args.woge:
+        parser.error("--matched-draft requires the preseeded --woge JAR")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     entries = {name: getattr(args, name).resolve() for name in ("next", "kte", "woge") if getattr(args, name)}
@@ -188,22 +200,29 @@ def main():
         "preflight": [], "attempts": [],
     }
 
+    if args.matched_draft:
+        evidence["schemaVersion"] = 2
+        evidence["plan"].update(mode="pending-submission-draft", requireAllContenders=True)
+
     def retain():
         (output / "results.json").write_text(json.dumps(evidence, indent=2) + "\n")
 
     for kind, path in entries.items():
-        result = run(kind, path, output, "preflight", measure=False)
+        result = run(kind, path, output, "preflight", measure=False, matched_draft=args.matched_draft)
         evidence["preflight"].append(result)
         print(kind, result["status"], result.get("error", ""), flush=True)
         retain()
 
     passed = [result["contender"] for result in evidence["preflight"] if result["status"] == "passed"]
+    if args.matched_draft and len(passed) != len(entries):
+        raise RuntimeError("Matched parity failed. No three-contender timing performed.")
     if "next" not in passed or not any(kind in passed for kind in ("woge", "kte")):
         raise RuntimeError("No Next.js/JVM pair passed the parity gate. No comparative timing performed.")
     for round_index in range(ROUNDS):
         rotated = passed[round_index % len(passed):] + passed[:round_index % len(passed)]
         for order, kind in enumerate(rotated):
-            result = run(kind, entries[kind], output, f"round-{round_index + 1}", measure=True)
+            result = run(kind, entries[kind], output, f"round-{round_index + 1}",
+                         measure=True, matched_draft=args.matched_draft)
             evidence["attempts"].append({"round": round_index + 1, "order": order + 1, **result})
             print(round_index + 1, kind, result["status"], result.get("error", ""), flush=True)
             retain()

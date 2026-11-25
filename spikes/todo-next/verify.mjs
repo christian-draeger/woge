@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 const require = createRequire(new URL("../../client/woge-fallback-client/package.json", import.meta.url));
 const { chromium } = require("playwright");
 const origin = new URL(process.argv[2]).origin;
+const matchedDraft = process.argv[3] === "matched-draft";
 const addPath = "/woge-actions/add-todo";
 const timings = {};
 
@@ -15,11 +16,68 @@ async function time(name, action) {
 
 async function add(page, value, status) {
     await page.getByLabel("New todo").fill(value);
-    const response = page.waitForResponse(result =>
-        result.request().method() === "POST" && new URL(result.url()).pathname === addPath,
-    );
+    const response = addResponse(page);
     await page.getByRole("button", { name: "Add todo" }).click();
     assert.equal((await response).status(), status);
+}
+
+function addResponse(page) {
+    return page.waitForResponse(result =>
+        result.request().method() === "POST" && new URL(result.url()).pathname === addPath,
+    );
+}
+
+async function waitForAdd(tab, expected, draftValue) {
+    await tab.getByText(expected, { exact: true }).waitFor();
+    await tab.waitForFunction(value =>
+        document.querySelector("#todo-status")?.textContent === "Todo added."
+        && document.querySelector("#todo-count")?.textContent === "12 remaining · 12 total"
+        && document.querySelector("#todo-title")?.value === value,
+    draftValue);
+}
+
+async function enterDraft(input, value, start, end) {
+    await input.fill(value);
+    await input.focus();
+    await input.evaluate((node, [left, right]) => node.setSelectionRange(left, right), [start, end]);
+}
+
+async function checkDraft(input, value, start, end) {
+    assert.deepEqual(await input.evaluate(node => [node.value, node.selectionStart, node.selectionEnd,
+        node === document.activeElement]), [value, start, end, true]);
+}
+
+async function addWithNewerDraft(tab, second, expected) {
+    const input = tab.getByLabel("New todo");
+    const value = "Draft typed while the POST is pending";
+    await input.fill(expected);
+    const response = addResponse(tab);
+    const intercepted = Promise.withResolvers();
+    const release = Promise.withResolvers();
+    await tab.route(`${origin}${addPath}`, async route => {
+        intercepted.resolve(route.request());
+        await release.promise;
+        await route.continue();
+    }, { times: 1 });
+
+    try {
+        await tab.getByRole("button", { name: "Add todo" }).click();
+        const request = await intercepted.promise;
+        assert.equal(request.method(), "POST");
+        assert.equal(new URLSearchParams(request.postData()).get("title"), expected);
+        await enterDraft(input, value, 6, 11);
+        await checkDraft(input, value, 6, 11);
+        const visible = time("enhancedAddVisible", async () => {
+            assert.equal((await response).status(), 200);
+            await waitForAdd(tab, expected, value);
+            await checkDraft(input, value, 6, 11);
+        });
+        const peer = time("peerSseVisible", () => second.getByText(expected, { exact: true }).waitFor());
+        release.resolve();
+        await Promise.all([visible, peer]);
+    } finally {
+        release.resolve();
+    }
 }
 
 const browser = await chromium.launch();
@@ -72,30 +130,36 @@ try {
     });
     assert.equal(await tab.getByLabel("New todo").inputValue(), "  ");
 
-    await second.goto(origin);
-    const draft = second.getByLabel("New todo");
-    await draft.fill("Draft from the second tab");
-    await draft.focus();
-    await draft.evaluate(input => input.setSelectionRange(5, 10));
-    const expected = "Enhanced <strong> & Todo";
-    const began = performance.now();
-    await time("enhancedAddVisible", async () => {
-        await add(tab, expected, 200);
-        await tab.getByText(expected, { exact: true }).waitFor();
-        await tab.waitForFunction(() =>
-            document.querySelector("#todo-status")?.textContent === "Todo added."
-            && document.querySelector("#todo-count")?.textContent === "12 remaining · 12 total"
-            && document.querySelector("#todo-title")?.value === "",
+    if (matchedDraft) {
+        const subscribed = second.waitForResponse(response =>
+            response.request().resourceType() === "eventsource"
+            && response.headers()["content-type"]?.startsWith("text/event-stream"),
         );
-    });
+        await second.goto(origin);
+        assert.equal((await subscribed).status(), 200);
+    } else {
+        await second.goto(origin);
+    }
+    const draft = second.getByLabel("New todo");
+    const draftValue = "Draft from the second tab";
+    await enterDraft(draft, draftValue, 5, 10);
+    const expected = "Enhanced <strong> & Todo";
+    if (matchedDraft) {
+        await addWithNewerDraft(tab, second, expected);
+    } else {
+        const began = performance.now();
+        await time("enhancedAddVisible", async () => {
+            await add(tab, expected, 200);
+            await waitForAdd(tab, expected, "");
+        });
+        assert.equal(await tab.getByLabel("New todo").inputValue(), "");
+        await second.getByText(expected, { exact: true }).waitFor();
+        timings.peerSseVisible = performance.now() - began;
+    }
     assert.equal(tab.url(), `${origin}/`);
     assert.equal(await tab.locator("#todo-status").textContent(), "Todo added.");
     assert.equal(await tab.locator("#todo-count").textContent(), "12 remaining · 12 total");
-    assert.equal(await tab.getByLabel("New todo").inputValue(), "");
-    await second.getByText(expected, { exact: true }).waitFor();
-    timings.peerSseVisible = performance.now() - began;
-    assert.deepEqual(await draft.evaluate(input => [input.value, input.selectionStart, input.selectionEnd,
-        input === document.activeElement]), ["Draft from the second tab", 5, 10, true]);
+    await checkDraft(draft, draftValue, 5, 10);
     assert.deepEqual(browserErrors, []);
     await enhanced.close();
 
@@ -105,7 +169,10 @@ try {
         body: new URLSearchParams({ title: "Denied", filter: "all" }),
     });
     assert.equal(denied.status, 403);
-    console.log(JSON.stringify({ browser: browser.version(), timingsMs: timings, freshEnhancedContextResources: resources }));
+    console.log(JSON.stringify({
+        browser: browser.version(), timingsMs: timings, freshEnhancedContextResources: resources,
+        ...(matchedDraft && { outcomes: { submittingDraftPreserved: true, peerDraftPreserved: true } }),
+    }));
 } finally {
     await browser.close();
 }
