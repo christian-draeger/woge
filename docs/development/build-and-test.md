@@ -106,7 +106,10 @@ For a focused check of the gap between client publication and Netty reads, enabl
 `loopback_kernel_control` when manually dispatching the **Multipart diagnostics** workflow.
 The ordinary PR and manual diagnostics paths retain their existing behavior. The opt-in job
 runs the same WebFlux shared TCK on native Linux amd64, with a dedicated namespace containing
-only loopback. It excludes browser, Docker proxy and concurrent host fixtures.
+only loopback. Enable `loopback_parallel_hosts` as well to let the unchanged MVC and Ktor
+contracts run concurrently with WebFlux in the same namespace. Both modes exclude browser and
+Docker proxy work. Parallel results record the fresh JUnit windows for each host and require
+both peer contracts to overlap WebFlux.
 
 Run the control from a fresh Linux checkout as an unprivileged user with passwordless sudo,
 JDK 21, Node 24, Python 3, `iproute2` and `tcpdump`. Prepare the test runtime outside the
@@ -117,6 +120,10 @@ namespace first, so Gradle can resolve the pinned dependencies and build the tes
   :woge-spring-webflux:test --tests '*WebFluxSecurityFormTest'
 python3 testing/diagnostics/multipart-kernel-control.py
 ```
+
+For the parallel case, also prepare `:woge-spring-mvc:test --tests '*SpringSecurityFormTest'`
+and `:woge-ktor:test --tests '*KtorSecurityFormTest'` outside the namespace. Then run the
+control with `--parallel-hosts`.
 
 The script creates a unique namespace, brings up only `lo`, and starts
 the capture before launching the test. Gradle runs as the invoking user with the

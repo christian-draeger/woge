@@ -14,7 +14,11 @@ on:
   workflow_dispatch:
     inputs:
       loopback_kernel_control:
-        description: Run only the isolated WebFlux TCP metadata control
+        description: Run the isolated WebFlux TCP metadata control
+        type: boolean
+        default: false
+      loopback_parallel_hosts:
+        description: Run MVC and Ktor alongside WebFlux in the loopback control
         type: boolean
         default: false
 
@@ -67,6 +71,8 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.loopback_kernel_control }}
     runs-on: ubuntu-24.04
     timeout-minutes: 12
+    env:
+      WOGE_LOOPBACK_PARALLEL_HOSTS: ${{ inputs.loopback_parallel_hosts }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -91,13 +97,22 @@ jobs:
       - name: Prepare the offline WebFlux test runtime
         run: |
           mkdir -p build/multipart-loopback
+          tasks=(:woge-spring-webflux:test --tests '*WebFluxSecurityFormTest')
+          if [[ "$WOGE_LOOPBACK_PARALLEL_HOSTS" == true ]]; then
+            tasks+=(:woge-spring-mvc:test --tests '*SpringSecurityFormTest')
+            tasks+=(:woge-ktor:test --tests '*KtorSecurityFormTest')
+          fi
           ./gradlew --no-daemon --no-build-cache --console=plain \
-            :woge-spring-webflux:test --tests '*WebFluxSecurityFormTest' \
-            2>&1 | tee build/multipart-loopback/prepare.log
+            "${tasks[@]}" 2>&1 | tee build/multipart-loopback/prepare.log
         shell: bash
       - name: Run bounded TCP metadata control
         timeout-minutes: 5
-        run: python3 testing/diagnostics/multipart-kernel-control.py
+        run: |
+          arguments=()
+          if [[ "$WOGE_LOOPBACK_PARALLEL_HOSTS" == true ]]; then
+            arguments+=(--parallel-hosts)
+          fi
+          python3 testing/diagnostics/multipart-kernel-control.py "${arguments[@]}"
       - name: Retain loopback metadata and first failure evidence
         if: always()
         uses: actions/upload-artifact@v7
