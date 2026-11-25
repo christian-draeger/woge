@@ -69,13 +69,15 @@ test("compiled Kotlin rules give immediate errors and the server revalidates byp
   expect(await invalid.text()).toContain("text: MISSING — Enter a note.");
   // Native maxlength and all local handlers are bypassed; the server still rejects the same rule.
   await input.evaluate((element) => element.removeAttribute("maxlength"));
-  await input.fill("😀".repeat(61));
+  const oversizedDraft = "😀".repeat(61);
+  await input.fill(oversizedDraft);
   await expect(page.locator("#note-count")).toContainText("text: MALFORMED — Use at most 120 UTF-16 code units.");
   const post = page.waitForResponse((response) => response.request().method() === "POST");
   await page.getByRole("button", { name: "Add note" }).click();
   expect((await post).status()).toBe(400);
   await expect(page.locator("#note-errors")).toBeFocused();
   await expect(page.locator("#note-errors")).toContainText("text: MALFORMED — Use at most 120 UTF-16 code units.");
+  await expect(input).toHaveValue(oversizedDraft);
   await input.fill("Corrected draft");
   await expect(page.locator('[data-draft-phase="READY"]')).toHaveCount(1);
   // READY means locally valid, never saved. Persistence remains a real POST.
