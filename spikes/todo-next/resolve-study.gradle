@@ -3,6 +3,7 @@ gradle.projectsEvaluated {
         doLast {
             def shared = [
                 'compileClasspath', 'runtimeClasspath', 'productionRuntimeClasspath',
+                'developmentOnly', 'testAndDevelopmentOnly',
                 'kotlinBuildToolsApiClasspath', 'kotlinCompilerClasspath',
                 'kotlinCompilerPluginClasspathMain',
             ]
