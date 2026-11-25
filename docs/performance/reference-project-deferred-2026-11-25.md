@@ -99,3 +99,7 @@ This fixture measures three Woge host packages on one small workload under fixed
 Renderer comparisons, general capacity, slow clients, proxies, long-running and cold scenarios,
 and sustained external updates remain separate questions.
 [Expanded performance study](https://github.com/christian-draeger/woge/issues/293)
+
+The [reference workload extension](reference-workloads-2026-11-25.md) adds full
+visible completion, forms, a populated paginated table, peer changes, connection recovery
+and separate higher open-loop arrivals on the same archived packages.
