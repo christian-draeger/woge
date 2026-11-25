@@ -12,7 +12,7 @@ pluginManagement {
     plugins {
         kotlin("jvm") version "2.4.10"
         id("com.google.devtools.ksp") version "2.3.12"
-        id("org.springframework.boot") version "4.1.1"
+        id("org.springframework.boot") version "4.1.2"
         id("dev.woge.spring-boot") version wogeVersion
     }
 }
