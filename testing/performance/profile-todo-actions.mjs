@@ -1,5 +1,5 @@
 // Profile the real toggle endpoint of the unchanged Todo comparison image.
-// Usage: node testing/performance/profile-todo-actions.mjs IMAGE OUTPUT_DIRECTORY
+// Usage: node testing/performance/profile-todo-actions.mjs IMAGE OUTPUT_DIRECTORY [CANDIDATE_IMAGE]
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { setTimeout } from "node:timers/promises";
 import { isPatchStreamMediaType, PatchStreamDecoder, PATCH_STREAM_MEDIA_TYPE } from "../../client/woge-fallback-client/src/protocol.js";
 
-const [image, directory] = process.argv.slice(2);
+const [image, directory, candidate] = process.argv.slice(2);
 assert(image && directory, "Expected the local Todo comparison image and an output directory");
 const output = resolve(directory);
 const recordings = resolve(output, "recordings");
@@ -19,7 +19,12 @@ chmodSync(recordings, 0o777); // The frozen image writes recordings as a non-roo
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const baseFlags = "-Xms128m -Xmx512m -XX:+UseG1GC";
-const plan = [
+const plan = candidate ? [
+  ["spring-woge", true, "before"], ["spring-woge", true, "after"],
+  ["ktor-woge", true, "after"], ["ktor-woge", true, "before"],
+  ["spring-woge", true, "after"], ["spring-woge", true, "before"],
+  ["ktor-woge", true, "before"], ["ktor-woge", true, "after"],
+] : [
   ["spring-woge", false], ["spring-woge", true],
   ["ktor-woge", true], ["ktor-woge", false],
   ["ktor-woge", false], ["ktor-woge", true],
@@ -42,10 +47,17 @@ const fixture = [
   "examples/todo-spring-boot/src/main/kotlin/example/todo/Todos.kt",
 ];
 const metadata = JSON.parse(docker("image", "inspect", image))[0];
+const candidateMetadata = candidate && JSON.parse(docker("image", "inspect", candidate))[0];
+if (candidateMetadata) {
+  assert.notEqual(metadata.Id, candidateMetadata.Id);
+  assert.equal(metadata.Architecture, candidateMetadata.Architecture);
+  assert.equal(metadata.Os, candidateMetadata.Os);
+}
 const results = {
   revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
   sources: Object.fromEntries(fixture.map((path) => [path, sha256(readFileSync(resolve(root, path)))])),
   image: metadata.Id, architecture: metadata.Architecture, os: metadata.Os,
+  ...(candidateMetadata && { candidateImage: candidateMetadata.Id }),
   driver: { platform: process.platform, architecture: process.arch, node: process.version },
   limits: { nanoCpus: 2_000_000_000, memoryBytes: 768 * 1024 * 1024, pidLimit: 256 },
   warmupActions, measuredActions, plan, runs: [],
@@ -169,8 +181,8 @@ function processState(name) {
   };
 }
 
-for (const [index, [mode, profile]] of plan.entries()) {
-  const label = `${index + 1}-${mode}-${profile ? "jfr" : "control"}`;
+for (const [index, [mode, profile, variant]] of plan.entries()) {
+  const label = `${index + 1}-${mode}-${variant ?? (profile ? "jfr" : "control")}`;
   const name = `woge-action-${randomUUID().slice(0, 12)}`;
   const agent = new http.Agent({ keepAlive: true, maxSockets: 1 });
   const flags = profile ? `${baseFlags} -XX:StartFlightRecording=settings=profile,filename=/recordings/${label}.jfr,dumponexit=true,maxsize=32m` : baseFlags;
@@ -180,7 +192,7 @@ for (const [index, [mode, profile]] of plan.entries()) {
     "-p", "127.0.0.1::8080", "-e", `BENCH_MODE=${mode}`, "-e", `JAVA_OPTS=${flags}`,
   ];
   if (profile) args.push("--mount", `type=bind,src=${recordings},dst=/recordings`);
-  docker(...args, image);
+  docker(...args, variant === "after" ? candidate : image);
   try {
     const settings = JSON.parse(docker("inspect", name))[0].HostConfig;
     assert.equal(settings.NanoCpus, results.limits.nanoCpus);
@@ -202,7 +214,7 @@ for (const [index, [mode, profile]] of plan.entries()) {
     const after = processState(name);
     assert.equal(completedOf((await request(agent, port, "GET", "/")).body.toString("utf8")), false);
     console.log(`${label}: ${samples.length} verified actions, ${before.rssKiB} → ${after.rssKiB} KiB RSS`);
-    results.runs.push({ label, mode, profile, flags, ready, before, after, measuredStart, measuredEnd, warmup, samples });
+    results.runs.push({ label, mode, profile, variant, flags, ready, before, after, measuredStart, measuredEnd, warmup, samples });
   } catch (failure) {
     results.failure = { label, message: failure.message };
     throw failure;

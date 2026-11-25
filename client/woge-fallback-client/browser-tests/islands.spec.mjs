@@ -53,12 +53,12 @@ test("dispose happens before replacement; new root mounts; preserved keys retain
   await expect(page.locator('[role="status"]')).toHaveText("0 / 120");
   expect(await patch(page, markup(), 1)).toBeNull();
   await expect.poll(() => page.evaluate(() => disposals)).toEqual([true]);
-  await expect.poll(() => page.evaluate(() => mountCalls)).toBe(2);
+  await expect.poll(() => page.evaluate(() => globalThis.mountCalls)).toBe(2);
   await page.locator("input").fill("Draft");
   await page.locator("main").evaluate((node) => node.setAttribute("data-woge-state", "reset"));
   expect(await patch(page, markup("counter", "counter-1"), 2)).toBeNull();
   await page.locator("main").evaluate((node) => node.removeAttribute("data-woge-state"));
-  await expect.poll(() => page.evaluate(() => mountCalls)).toBe(3);
+  await expect.poll(() => page.evaluate(() => globalThis.mountCalls)).toBe(3);
   await page.locator("input").fill("Local");
   await page.locator("[data-woge-island]").evaluate((root) => { globalThis.originalIsland = root; });
   expect(await patch(page, markup("counter", "counter-1"), 3)).toBeNull();
@@ -69,7 +69,7 @@ test("dispose happens before replacement; new root mounts; preserved keys retain
   await expect(page.locator('[role="status"]')).toHaveText("5 / 150");
   await page.locator("main").evaluate((node) => node.setAttribute("data-woge-state", "reset"));
   expect(await patch(page, markup("counter", "counter-1"), 4)).toBeNull();
-  await expect.poll(() => page.evaluate(() => mountCalls)).toBe(4);
+  await expect.poll(() => page.evaluate(() => globalThis.mountCalls)).toBe(4);
   await expect(page.locator("input")).toHaveValue("");
 });
 
@@ -111,7 +111,7 @@ test("collection removal disposes keyed roots before disconnect; append discover
   await ready(page);
   const html = markup("counter", "row-counter").replace('<div ', '<div data-woge-item="row" ');
   expect(await patch(page, html, 0, { operation: "append", itemId: "row" })).toBeNull();
-  await expect.poll(() => page.evaluate(() => mountCalls)).toBe(1);
+  await expect.poll(() => page.evaluate(() => globalThis.mountCalls)).toBe(1);
   expect(await patch(page, "", 1, { operation: "remove", itemId: "row", focusTarget: "notes" })).toBeNull();
   await expect.poll(() => page.evaluate(() => disposals)).toEqual([true]);
   await expect(page.locator('[data-woge-state-key="row-counter"]')).toHaveCount(0);
@@ -127,7 +127,7 @@ test("manifest is captured once; patch scripts remain forbidden; repeated scan n
   expect(await patch(page, '<script type="application/json" id="woge-islands">{}</script>', 1))
     .toBe("WOGE_ACTIVE_CONTENT");
   expect(await patch(page, markup(), 1)).toBeNull();
-  await expect.poll(() => page.evaluate(() => mountCalls)).toBe(1);
+  await expect.poll(() => page.evaluate(() => globalThis.mountCalls)).toBe(1);
   await page.evaluate(() => { islands.scan(); islands.scan(); });
   expect(await page.evaluate(() => mountCalls)).toBe(1);
   await page.evaluate(() => { islands.dispose(); islands.dispose(); });
