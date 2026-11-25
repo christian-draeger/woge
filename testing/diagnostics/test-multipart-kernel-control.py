@@ -30,5 +30,20 @@ class MetadataTest(unittest.TestCase):
                 self.assertIsNone(MODULE["packet_metadata"](line))
 
 
+class HostOverlapTest(unittest.TestCase):
+    def test_requires_each_peer_to_run_while_webflux_is_active(self):
+        overlap = MODULE["overlapping_webflux_peers"]
+        windows = {
+            "woge-spring-webflux": {"start": 2.0, "end": 5.0},
+            "woge-spring-mvc": {"start": 1.0, "end": 3.0},
+            "woge-ktor": {"start": 5.0, "end": 6.0},
+        }
+        self.assertEqual(overlap(windows), ["woge-spring-mvc"])
+        windows["woge-ktor"]["start"] = 4.0
+        self.assertEqual(overlap(windows), ["woge-spring-mvc", "woge-ktor"])
+        windows.pop("woge-spring-webflux")
+        self.assertEqual(overlap(windows), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Collect bounded TCP text metadata for the isolated WebFlux loopback TCK."""
+import argparse
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -13,13 +15,22 @@ import signal
 import subprocess
 import threading
 import time
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / "build/multipart-loopback"
 PARSER = Path(__file__).with_name("multipart-loopback.py")
 PACKET = runpy.run_path(str(PARSER))["PACKET"]
-SUITE = ROOT / "adapters/woge-spring-webflux/build/test-results/test"
-REPORT = SUITE / "TEST-dev.woge.spring.webflux.WogeWebFluxAdapterTckTest.xml"
+REPORTS = {
+    project: ROOT / f"adapters/{project}/build/test-results/test/TEST-{suite}.xml"
+    for project, suite in (
+        ("woge-spring-webflux", "dev.woge.spring.webflux.WogeWebFluxAdapterTckTest"),
+        ("woge-spring-mvc", "dev.woge.spring.mvc.WogeSpringMvcAdapterTckTest"),
+        ("woge-ktor", "dev.woge.ktor.WogeKtorAdapterTckTest"),
+    )
+}
+WEBFLUX = "woge-spring-webflux"
+TCK_METHOD = "passes the shared server adapter contract"
 ATTEMPTS = 3
 ATTEMPT_SECONDS = 75
 PACKET_LIMIT = 10_000
@@ -128,8 +139,11 @@ class Capture:
                 raise RuntimeError("tcpdump output did not drain")
 
 
-def gradle_command(namespace):
+def gradle_command(namespace, projects):
     account = pwd.getpwuid(os.getuid())
+    tasks = [argument for project in projects for argument in (
+        f":{project}:test", "--tests", f"*{TCK_METHOD}", "--rerun",
+    )]
     return (
         *SUDO, "ip", "netns", "exec", namespace,
         *SUDO, "-H", "-u", f"#{account.pw_uid}", "env", "-i",
@@ -138,15 +152,38 @@ def gradle_command(namespace):
         f"GRADLE_USER_HOME={os.environ.get('GRADLE_USER_HOME', str(Path(account.pw_dir) / '.gradle'))}",
         "WOGE_TCK_UPLOAD_DIAGNOSTICS=true", "WOGE_TCK_UPLOAD_TRANSPORT_DIAGNOSTICS=true",
         str(ROOT / "gradlew"), "--offline", "--no-daemon", "--no-build-cache", "--console=plain",
-        ":woge-spring-webflux:test", "--tests", "*WebFlux passes the shared server adapter contract", "--rerun",
+        "--parallel", "--max-workers=3", *tasks,
     )
 
 
-def run_attempt(destination, result):
+def host_windows(destination, projects):
+    windows = {}
+    for project in projects:
+        report = destination / REPORTS[project].name
+        if not report.is_file():
+            continue
+        suite = ET.parse(report).getroot()
+        cases = [case for case in suite.findall("testcase") if TCK_METHOD in case.get("name", "")]
+        if len(cases) == 1 and cases[0].find("skipped") is None:
+            start = datetime.fromisoformat(suite.attrib["timestamp"]).timestamp()
+            windows[project] = {"start": start, "end": start + float(suite.attrib["time"])}
+    return windows
+
+
+def overlapping_webflux_peers(windows):
+    if WEBFLUX not in windows:
+        return []
+    webflux = windows[WEBFLUX]
+    return [project for project, peer in windows.items() if project != WEBFLUX
+            and max(webflux["start"], peer["start"]) < min(webflux["end"], peer["end"])]
+
+
+def run_attempt(destination, result, projects):
     namespace = "woge-multipart-" + secrets.token_hex(5)
     capture = None
     created = False
-    REPORT.unlink(missing_ok=True)
+    for project in projects:
+        REPORTS[project].unlink(missing_ok=True)
     try:
         command((*SUDO, "ip", "netns", "add", namespace), timeout=5)
         created = True
@@ -161,7 +198,7 @@ def run_attempt(destination, result):
         with (destination / "gradle.log").open("w") as log:
             try:
                 test = subprocess.run(
-                    gradle_command(namespace), cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                    gradle_command(namespace, projects), cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
                     timeout=ATTEMPT_SECONDS, check=False,
                 )
                 result["testExitCode"] = test.returncode
@@ -169,8 +206,10 @@ def run_attempt(destination, result):
                 result.update(testExitCode=124, timedOut=True)
     finally:
         try:
-            if REPORT.is_file():
-                shutil.copyfile(REPORT, destination / REPORT.name)
+            for project in projects:
+                report = REPORTS[project]
+                if report.is_file():
+                    shutil.copyfile(report, destination / report.name)
         finally:
             try:
                 if capture is not None:
@@ -180,7 +219,7 @@ def run_attempt(destination, result):
                 if created or (Path("/run/netns") / namespace).exists():
                     clean_namespace(namespace)
 
-    report = destination / REPORT.name
+    report = destination / REPORTS[WEBFLUX].name
     if report.is_file():
         with (destination / "correlation.txt").open("w") as correlation:
             parsed = subprocess.run(
@@ -196,10 +235,20 @@ def run_attempt(destination, result):
             result["correlationExitCode"] = 1
     else:
         result["evidenceError"] = "Missing fresh WebFlux TCK XML"
+    if len(projects) > 1:
+        windows = host_windows(destination, projects)
+        peers = overlapping_webflux_peers(windows)
+        result.update(testWindows=windows, overlappingWebFluxPeers=peers)
+        if len(peers) != len(projects) - 1:
+            result["overlapError"] = "Expected both other host contracts to overlap the WebFlux contract"
+            return 1
     return result["testExitCode"] or result["tcpdumpExitCode"] or result.get("correlationExitCode", 1)
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--parallel-hosts", action="store_true", help="Run the MVC and Ktor contracts alongside WebFlux")
+    projects = tuple(REPORTS) if parser.parse_args().parallel_hosts else (WEBFLUX,)
     if platform.system() != "Linux" or os.getuid() == 0:
         raise SystemExit("Use a non-root Linux runner with passwordless sudo")
     if "JAVA_HOME" not in os.environ:
@@ -210,7 +259,7 @@ def main():
         raise SystemExit("Existing loopback evidence is preserved. Start from a fresh output directory.")
     summary = {
         "machine": platform.machine(), "attemptSeconds": ATTEMPT_SECONDS,
-        "packetLimit": PACKET_LIMIT, "attempts": [],
+        "packetLimit": PACKET_LIMIT, "projects": projects, "attempts": [],
     }
     try:
         command((*SUDO, "true"), timeout=5)
@@ -221,8 +270,8 @@ def main():
             summary["attempts"].append(result)
             started = time.monotonic()
             try:
-                result["exitCode"] = run_attempt(destination, result)
-            except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as failure:
+                result["exitCode"] = run_attempt(destination, result, projects)
+            except (ET.ParseError, KeyError, OSError, RuntimeError, subprocess.SubprocessError, ValueError) as failure:
                 result.update(exitCode=1, evidenceError=str(failure))
             result["seconds"] = round(time.monotonic() - started, 3)
             print(json.dumps(result), flush=True)
