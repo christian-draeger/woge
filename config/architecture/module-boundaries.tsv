@@ -19,6 +19,7 @@ woge-adapter-tck	test-support	support	testing/woge-adapter-tck	woge-core,woge-pr
 woge-spring-mvc	adapter	public	adapters/woge-spring-mvc	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-webflux	adapter	public	adapters/woge-spring-webflux	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-ktor	adapter	public	adapters/woge-ktor	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
+woge-quarkus	adapter	public	adapters/woge-quarkus	woge-core,woge-protocol,woge-host-spi,woge-server-runtime	-
 woge-spring-boot-autoconfigure	integration	public	integrations/woge-spring-boot-autoconfigure	woge-host-spi,woge-server-runtime	woge-spring-mvc,woge-spring-webflux
 woge-spring-boot-starter	integration	public	integrations/woge-spring-boot-starter	woge-spring-boot-autoconfigure	-
 woge-vite	integration	public	integrations/woge-vite	woge-core	-

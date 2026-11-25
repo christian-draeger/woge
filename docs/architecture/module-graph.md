@@ -46,6 +46,10 @@ flowchart BT
     Ktor --> Protocol
     Ktor --> SPI
     Ktor --> Runtime
+    Quarkus[woge-quarkus] --> Core
+    Quarkus --> Protocol
+    Quarkus --> SPI
+    Quarkus --> Runtime
     Vite[woge-vite<br/>optional Vite entry tags] --> Core
     Auto[woge-spring-boot-autoconfigure] --> SPI
     Auto --> Runtime
@@ -54,8 +58,8 @@ flowchart BT
     Starter[woge-spring-boot-starter] --> Auto
 ```
 
-Arrows point from a consumer to what it may depend on. MVC, WebFlux and Ktor are peers. In particular,
-the Spring adapters cannot depend on each other, and Ktor never wraps Spring concepts.
+Arrows point from a consumer to what it may depend on. MVC, WebFlux, Ktor and the Quarkus candidate are peer adapters. Each binds its host directly to
+Woge's portable boundary.
 
 ## What lives where
 

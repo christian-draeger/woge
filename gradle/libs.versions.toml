@@ -14,6 +14,7 @@ ktlintGradle = "14.2.0"
 serialization = "1.11.0"
 slf4j = "2.0.18"
 springBoot = "4.1.1"
+vertx = "4.5.35"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -65,5 +66,8 @@ springSecurityConfig = { module = "org.springframework.security:spring-security-
 springSecurityWeb = { module = "org.springframework.security:spring-security-web" }
 springWebmvc = { module = "org.springframework:spring-webmvc" }
 springWebflux = { module = "org.springframework:spring-webflux" }
+
+vertxWeb = { module = "io.vertx:vertx-web", version.ref = "vertx" }
+vertxKotlinCoroutines = { module = "io.vertx:vertx-lang-kotlin-coroutines", version.ref = "vertx" }
 
 micrometerObservation = { module = "io.micrometer:micrometer-observation" }

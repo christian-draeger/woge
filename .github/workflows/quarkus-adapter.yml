@@ -1,0 +1,122 @@
+name: Quarkus adapter
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/quarkus-adapter.yml"
+      - "adapters/woge-quarkus/**"
+      - "client/woge-fallback-client/**"
+      - "config/architecture/module-boundaries.tsv"
+      - "examples/complexity-gradient/**"
+      - "examples/quarkus-consumer/**"
+      - "gradle/**"
+      - "modules/woge-*/**"
+      - "testing/performance/**"
+      - "testing/woge-adapter-tck/**"
+      - "*.gradle.kts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jvm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: client/woge-fallback-client/package-lock.json
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - name: Build the shared client and install browser engines
+        working-directory: client/woge-fallback-client
+        run: |
+          npm ci
+          npm run build
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Check adapter contracts, browsers and ABI
+        run: |
+          WOGE_NATIVE_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-forms.mjs" \
+            WOGE_DPU_BROWSER_SCRIPT="$PWD/client/woge-fallback-client/scripts/test-native-dpu.mjs" \
+            ./gradlew :woge-quarkus:check --console=plain
+          bash scripts/validate-module-boundaries.sh
+      - name: Stage candidate coordinates and package the consumer
+        run: |
+          ./gradlew publishScaffoldArtifacts :woge-quarkus:publishCandidatePublicationToCandidateRepository \
+            -PwogeVersion=0.1.0-quarkus-preview.1 --console=plain
+          ./gradlew -p examples/quarkus-consumer test quarkusBuild standaloneConsumer \
+            -PwogeRepository="$PWD/build/scaffold-maven-repository" --console=plain
+          libs=examples/quarkus-consumer/build/quarkus-app/lib
+          test -s examples/quarkus-consumer/build/quarkus-app/quarkus-run.jar
+          test -n "$(find "$libs" -type f -name '*slf4j-jboss-logmanager*' -print -quit)"
+          test -z "$(find "$libs" -type f \( -name 'org.springframework*' -o -name 'io.ktor*' \
+            -o -name '*logback-classic*' -o -name '*slf4j-simple*' -o -name '*slf4j-jdk14*' \) -print -quit)"
+      - name: Test packaged native and enhanced journeys on three browsers
+        run: node examples/quarkus-consumer/verify.mjs
+      - name: Build the unpacked standalone consumer
+        run: |
+          target="$RUNNER_TEMP/woge-quarkus-consumer"
+          unzip -q examples/quarkus-consumer/build/distributions/woge-quarkus-consumer-0.1.0-quarkus-preview.1.zip -d "$target"
+          chmod +x "$target/gradlew"
+          "$target/gradlew" -p "$target" test quarkusBuild \
+            -PwogeRepository="$PWD/build/scaffold-maven-repository" --console=plain
+      - name: Archive contract reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: woge-quarkus-contract-reports
+          path: |
+            adapters/woge-quarkus/build/test-results/test/
+            examples/quarkus-consumer/build/test-results/test/
+          if-no-files-found: warn
+
+  native:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MANDREL_IMAGE: quay.io/quarkus/ubi9-quarkus-mandrel-builder-image@sha256:d5b570190cfd2cce0ebef2e197782a67b3b3f9364ccc1cf2b60db79648057515
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - name: Build the version-pinned Linux executable
+        run: |
+          ./gradlew publishScaffoldArtifacts :woge-quarkus:publishCandidatePublicationToCandidateRepository \
+            -PwogeVersion=0.1.0-quarkus-preview.1 --console=plain
+          ./gradlew -p examples/quarkus-consumer quarkusBuild --console=plain \
+            -PwogeRepository="$PWD/build/scaffold-maven-repository" \
+            -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false \
+            -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=docker \
+            -Dquarkus.native.builder-image="$MANDREL_IMAGE" -Dquarkus.native.native-image-xmx=3g
+      - name: Smoke-test native HTML, assets and a real stream
+        run: |
+          runner=$(find "$PWD/examples/quarkus-consumer/build" -maxdepth 1 -type f -name '*-runner' -print -quit)
+          test -x "$runner"
+          container=$(docker run --detach --rm --publish 127.0.0.1::8080 --env QUARKUS_HTTP_HOST=0.0.0.0 \
+            --volume "$runner:/app:ro" --entrypoint /app "$MANDREL_IMAGE")
+          trap 'docker stop "$container" >/dev/null' EXIT
+          origin=http://$(docker port "$container" 8080)
+          curl --retry 10 --retry-connrefused --retry-delay 1 --max-time 15 --fail --silent "$origin/" >/dev/null
+          node examples/quarkus-consumer/verify-native.mjs "$origin"
