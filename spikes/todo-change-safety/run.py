@@ -61,12 +61,12 @@ def edit(project, edits):
             path.write_text(original)
 
 
-def build(project, app, repository, log):
+def build(project, app, repository, woge_version, log):
     args = [str(ROOT / "gradlew"), "-p", str(project), "--offline", "--console=plain", "--no-build-cache",
             "--no-configuration-cache", "--max-workers=2", "-Pkotlin.compiler.execution.strategy=in-process",
             "-Dorg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=768m", "clean", "bootJar"]
     if app == "woge":
-        args.extend([f"-PwogeRepository={repository}", "-PwogeVersion=0.1.0-SNAPSHOT"])
+        args.extend([f"-PwogeRepository={repository}", f"-PwogeVersion={woge_version}"])
     with log.open("w") as buffer:
         outcome = subprocess.run(args, cwd=ROOT, stdout=buffer, stderr=subprocess.STDOUT, timeout=150)
     return {"command": args, "exitCode": outcome.returncode, "log": log.name}
@@ -115,7 +115,7 @@ def serve(project, app, log):
                     running.wait()
 
 
-def run_app(app, output, repository, selected):
+def run_app(app, output, repository, woge_version, selected):
     project = output / "workspaces" / app / PROJECTS[app]
     logs = output / app
     logs.mkdir()
@@ -127,7 +127,7 @@ def run_app(app, output, repository, selected):
         try:
             with edit(project, mutations[app]) as edits:
                 result["edits"] = edits
-                result["build"] = build(project, app, repository, build_log)
+                result["build"] = build(project, app, repository, woge_version, build_log)
                 if result["build"]["exitCode"]:
                     result["firstDetector"] = detect_build(build_log)
                 else:
@@ -153,6 +153,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--woge-version", default="0.1.0-beta.1")
     parser.add_argument("--app", choices=PROJECTS, action="append")
     parser.add_argument("--case", choices=CASES, action="append")
     args = parser.parse_args()
@@ -162,9 +163,9 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     stage(output / "workspaces")
     with ThreadPoolExecutor(max_workers=len(apps)) as pool:
-        jobs = {app: pool.submit(run_app, app, output, args.repository.resolve(), selected) for app in apps}
+        jobs = {app: pool.submit(run_app, app, output, args.repository.resolve(), args.woge_version, selected) for app in apps}
         results = {app: job.result() for app, job in jobs.items()}
-    payload = {"source": SOURCE, "results": results}
+    payload = {"source": SOURCE, "wogeVersion": args.woge_version, "results": results}
     (output / "results.json").write_text(json.dumps(payload, indent=2) + "\n")
     for rows in results.values():
         for row in rows:

@@ -38,8 +38,8 @@ server concurrency, stale-region protocol ordering and human diagnostic usefulne
 small cross-application corpus. Cite existing Woge assertions for protocol ordering without
 calling that aspect matched.
 
-A separately declared remote-value extension supplies a previously available `archived` view
-choice to the current application. The default fixture must reject that stale serialized choice
+A separately declared remote-value extension simulates a stale browser submitting an `archived`
+view choice to the current application. The default fixture must reject that stale serialized choice
 with HTTP 400. An incomplete allowlist edit that lets the service attempt to render the unknown
 view must be detected. This exercises a stale submitted choice, separate from protocol revision
 ordering and access control.
