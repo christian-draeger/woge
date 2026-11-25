@@ -1,0 +1,18 @@
+{
+  "name": "todo-next-study",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": "24.22.3"},
+  "packageManager": "npm@11.19.1",
+  "scripts": {
+    "prebuild": "node scripts/stage-css.mjs",
+    "build": "next build",
+    "postbuild": "node scripts/package-standalone.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}
