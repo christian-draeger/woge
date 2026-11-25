@@ -1,6 +1,6 @@
 # Standalone Datastar Todo baseline
 
-A Spring Boot 4.1.1 WebFlux application with Thymeleaf 3.1.5.RELEASE and Datastar v1.0.5. Its executable JAR has its own runtime dependencies and assets. It loads the same Todo repository and CSS as the maintained [Woge Todo](../../examples/todo-spring-boot/README.md) and [KTE/htmx baseline](../todo-kte-htmx/README.md). All three start from the same ten active rows for the [packaged comparison](comparison-2026-11-25.md).
+A Spring Boot 4.1.1 WebFlux application with Thymeleaf 3.1.5.RELEASE and Datastar v1.0.5. Its executable JAR has its own runtime dependencies and assets. It loads the same Todo repository and CSS as the maintained [Woge Todo](../../examples/todo-spring-boot/README.md) and [KTE/htmx baseline](../todo-kte-htmx/README.md). All three start from the same ten active rows for the [packaged comparison](comparison-2026-11-25.md) and the separate [deferred region study](deferred-comparison-2026-11-25.md).
 
 ## Run and verify
 
