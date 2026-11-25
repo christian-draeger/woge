@@ -23,6 +23,9 @@ revalidation triggers. [Product evidence roadmap](https://github.com/christian-d
 [Package guide](../guides/packages.md) · [Todo demo digest](../guides/todo-container.md#run-the-published-demo) ·
 [Pinned pilot candidate and verification](https://github.com/christian-draeger/woge/issues/50)
 
+The [internal application pilots](application-pilots.md) use the source checkout path. They cover an
+existing Spring MVC workflow and a new Ktor workflow with localized forms and attachments.
+
 ### Capabilities by maturity
 
 | Capability | Current evidence and remaining condition |

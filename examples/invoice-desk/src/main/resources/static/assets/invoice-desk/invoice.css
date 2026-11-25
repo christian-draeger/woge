@@ -1,0 +1,97 @@
+:root {
+  font: 1rem/1.5 system-ui, sans-serif;
+  color: #182c29;
+  background: #f1f5f2;
+}
+
+main {
+  display: grid;
+  gap: 1.5rem;
+  max-inline-size: 68rem;
+  margin-inline: auto;
+  padding: clamp(0.75rem, 3vw, 2rem);
+}
+
+h1 {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+main > section {
+  align-self: start;
+  min-inline-size: 0;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border: 1px solid #c3d2ca;
+  border-radius: 0.5rem;
+  background: white;
+}
+
+h2 {
+  margin-block-start: 0;
+}
+
+label bdi {
+  white-space: nowrap;
+}
+
+form, fieldset {
+  display: grid;
+  gap: 0.5rem;
+}
+
+form {
+  margin-block-start: 1rem;
+}
+
+fieldset {
+  min-inline-size: 0;
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border: 1px solid #c3d2ca;
+  border-radius: 0.25rem;
+}
+
+input, button {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding: 0.5rem;
+  border: 1px solid #6a8379;
+  border-radius: 0.25rem;
+  font: inherit;
+}
+
+button {
+  justify-self: start;
+  padding-inline: 1rem;
+  color: white;
+  background: #145442;
+}
+
+a {
+  color: #145442;
+}
+
+:focus-visible {
+  outline: 3px solid #1c7560;
+  outline-offset: 2px;
+}
+
+[aria-invalid="true"], #saved-invoice-errors {
+  border: 2px solid #a23929;
+}
+
+#saved-invoice-errors {
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+main > section:last-child {
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 50rem) {
+  main {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}

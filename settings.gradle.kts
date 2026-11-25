@@ -45,6 +45,9 @@ project(":woge-reference-ktor").projectDir = file("examples/reference-applicatio
 include(":woge-m1-api-corpus")
 project(":woge-m1-api-corpus").projectDir = file("examples/m1-api-corpus")
 
+include(":woge-invoice-desk")
+project(":woge-invoice-desk").projectDir = file("examples/invoice-desk")
+
 include(":woge-complexity-gradient")
 project(":woge-complexity-gradient").projectDir = file("examples/complexity-gradient")
 

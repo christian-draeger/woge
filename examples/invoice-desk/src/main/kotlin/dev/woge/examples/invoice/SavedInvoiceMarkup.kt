@@ -1,4 +1,4 @@
-package dev.woge.examples.m1
+package dev.woge.examples.invoice
 
 import dev.woge.host.ActionDescriptor
 import dev.woge.host.FormElementId
@@ -8,12 +8,14 @@ import dev.woge.host.FormField
 import dev.woge.host.FormValues
 import dev.woge.host.MultipartSubmission
 import dev.woge.host.PageResult
+import dev.woge.host.ResponseHeaders
 import dev.woge.host.ResponseMetadata
 import dev.woge.host.ResponseStatus
 import dev.woge.host.formErrorSummary
 import dev.woge.host.formField
 import dev.woge.host.formFieldErrors
 import dev.woge.host.htmlPage
+import dev.woge.host.httpHeader
 import dev.woge.host.multipartActionForm
 import dev.woge.html.HtmlWriter
 import dev.woge.html.a
@@ -31,9 +33,12 @@ import dev.woge.html.legend
 import dev.woge.html.li
 import dev.woge.html.main
 import dev.woge.html.meta
+import dev.woge.html.metadata
 import dev.woge.html.moduleScript
 import dev.woge.html.nav
 import dev.woge.html.p
+import dev.woge.html.section
+import dev.woge.html.stylesheet
 import dev.woge.html.title
 import dev.woge.html.ul
 import dev.woge.ui.UPLOAD_MODULE_PATH
@@ -70,7 +75,7 @@ internal data class SavedInvoiceView(
 }
 
 internal fun savedInvoiceDocument(view: SavedInvoiceView): PageResult.Document =
-    htmlPage(ResponseMetadata(status = view.status)) {
+    htmlPage(ResponseMetadata(status = view.status, headers = invoiceDocumentHeaders)) {
         doctype()
         html(attributes = {
             attribute("lang", view.language.tag)
@@ -78,21 +83,29 @@ internal fun savedInvoiceDocument(view: SavedInvoiceView): PageResult.Document =
         }) {
             head {
                 meta { attribute("charset", "utf-8") }
+                metadata("viewport", "width=device-width, initial-scale=1")
                 title(view.message("savedTitle"))
+                stylesheet(applicationUrl("/assets/invoice-desk/invoice.css"))
                 moduleScript(applicationUrl(UPLOAD_MODULE_PATH))
             }
             body {
                 main {
                     h1 { text(view.message("savedTitle")) }
-                    renderStoredInvoices(view)
-                    renderInvoiceEditor(view)
+                    section { renderInvoiceEditor(view) }
+                    section { renderStoredInvoices(view) }
                 }
             }
         }
     }
 
+private val invoiceDocumentHeaders = ResponseHeaders.of(httpHeader("Cache-Control", "no-store"))
+
 private fun HtmlWriter.renderStoredInvoices(view: SavedInvoiceView) {
     h2 { text(view.message("savedList")) }
+    if (view.records.isEmpty() && view.page == 1) {
+        p { text(view.message("savedEmpty")) }
+        return
+    }
     ul {
         view.records.take(INVOICE_PAGE_SIZE).forEach { invoice ->
             li {
@@ -251,7 +264,10 @@ private fun HtmlWriter.invoiceInput(
     control: FormElementId = field.id,
     showErrors: Boolean = true,
 ) {
-    label(attributes = { attribute("for", control.value) }) { text(caption) }
+    label(attributes = { attribute("for", control.value) }) {
+        text(caption)
+        if (field == savedPayment) invoicePaymentTimeExample()
+    }
     input(attributes = {
         formField(field, errors, emptyList(), control)
         attribute("type", type)

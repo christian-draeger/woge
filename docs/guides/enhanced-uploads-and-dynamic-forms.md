@@ -26,8 +26,8 @@ multipartActionForm(SaveAttachmentAction, attributes = { enhancedUpload(meter) }
     button(attributes = { attribute("type", "submit") }) { text("Save attachment") }
     uploadProgress(meter, "Upload progress", "Cancel upload", UploadMessages(
         started = "Uploading",
-        cancelled = "Upload cancelled. Submit again to retry.",
-        failed = "Upload failed. Submit again to retry.",
+        cancelled = "Upload cancelled. Check saved attachments before submitting again.",
+        failed = "The upload result could not be confirmed. Check saved attachments before retrying.",
         complete = "Uploaded",
     ))
 }
@@ -122,13 +122,13 @@ application's explicit preferences rather than guessing from the runtime environ
 
 ## Validate a localized invoice
 
-The [compiled invoice example](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt)
+The [compiled invoice example](../../examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/LocalizedInvoice.kt)
 uses Woge's typed form decoder and error renderers. It keeps text in the command until the application
 can validate it against the server-selected language. US English, German, and Egyptian Arabic use
 the same EUR currency. Arabic uses Arabic-Indic digits and sets right-to-left direction on the
 document, the form, and the enhanced confirmation.
 
-<!-- snippet: examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/LocalizedInvoice.kt -->
+<!-- snippet: examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/LocalizedInvoice.kt -->
 
 | Field | German wire | English wire | Arabic wire | Application value |
 | --- | --- | --- | --- | --- |
@@ -142,7 +142,7 @@ digits. It rejects grouping separators, mixed digit systems, and scientific nota
 date's native control sends an ISO calendar value. The due date uses a strict localized calendar
 pattern. Both represent dates independently of time zones.
 
-The [invoice localization policy](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/InvoiceLocalization.kt)
+The [invoice localization policy](../../examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/InvoiceLocalization.kt)
 fixes the payment zone to `Europe/Berlin`. The left-to-right text input sends
 an ASCII local date and time at minute precision and keeps malformed submissions visible. The server
 requires exactly one valid offset under the JDK zone rules. It rejects missing times during the spring
@@ -167,10 +167,10 @@ an invalid date control appear empty even when a tampered request's date string 
 HTML value attribute. A successful result provides a native 303 or an enhanced confirmation. The
 fixture validates the invoice and prepares that response. Applications supply their own persistence.
 
-Run `./gradlew :woge-m1-api-corpus:test --tests '*LocalizedInvoice*Test'` to verify the portable
-fixture and the [shared WebFlux and Ktor HTTP journey](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceHttpTest.kt).
+Run `./gradlew :woge-invoice-desk:test --tests '*LocalizedInvoice*Test'` to verify the portable
+fixture and the [shared WebFlux and Ktor HTTP journey](../../examples/invoice-desk/src/test/kotlin/dev/woge/examples/invoice/LocalizedInvoiceHttpTest.kt).
 WebFlux uses Spring's `AcceptHeaderLocaleContextResolver` for the three supported locales.
-The [Ktor binding](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/LocalizedInvoiceKtorBinding.kt)
+The [Ktor binding](../../examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/InvoiceDesk.kt)
 selects the highest-weight supported exact tag and retains the adapter's same-origin security facts.
 Both default to US English. Tests on both hosts cover preserved values, translated errors and
 corrected native and enhanced submissions, including locale changes to English and Arabic. An
@@ -189,7 +189,9 @@ For the [manual reference review](https://github.com/christian-draeger/woge/issu
 
 ## Save and edit a localized invoice with a receipt
 
-The [saved-invoice application](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceForm.kt)
+Run the [standalone Ktor invoice desk](../../examples/invoice-desk/README.md) to try this workflow.
+
+The [saved-invoice application](../../examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/SavedInvoiceForm.kt)
 reuses the same locale policy, strict invoice parsing, and property bundles. Its two nested rows
 have stable keys `7` and `42`. Each row sends two controls with the same typed `amounts` field name.
 Those repeated values follow the total amount's decimal rules. The keys are explicitly checked
@@ -197,7 +199,7 @@ before saving. The service receipt uses the nested multipart field `rows[7].rece
 policy permits only that field and bounds the request and temporary file. The action checks UTF-8
 text contents and stores the accepted bytes without using the supplied filename or media type.
 
-The [application-owned JDBC store](../../examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceStore.kt)
+The [application-owned JDBC store](../../examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/SavedInvoiceStore.kt)
 uses an embedded H2 file, exact `DECIMAL(18,2)` amounts, calendar dates, and UTC instants. Its
 atomic update includes the displayed domain revision. A stale edit returns 409 and the saved record
 keeps its previous values and receipt. An edit without a new file retains the stored receipt.
@@ -205,27 +207,27 @@ The store has a fixed two-row schema for the example, and it runs off the host e
 The list pages and file/status labels come from the same three application `ResourceBundle`s.
 [H2 data types](https://h2database.com/html/datatypes.html)
 
-<!-- snippet: examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/SavedInvoiceForm.kt -->
+<!-- snippet: examples/invoice-desk/src/main/kotlin/dev/woge/examples/invoice/SavedInvoiceForm.kt -->
 
 Both hosts bind the typed multipart input and use the existing same-origin request facts. The
 fixture runs on loopback and has a shared application store. A private deployment also needs
 its usual sign-in and per-invoice authorization. The optional upload module sends XHR and follows
 the normal 303 redirect after successful creation or editing. A 400 leaves the enhanced draft and
-selected file in place and announces that the user can submit natively to see the validation page.
-That deliberate native submission renders the translated summary and field errors with the
+selected file in place. The status tells the user to check saved invoices before retrying in the
+standard form. A deliberate native submission renders the translated summary and field errors with the
 bounded literal text. A native navigation requires selecting the file again. File bytes stay out
 of response patches in both modes.
 
-Run the [same real-server tests on WebFlux and Ktor](../../examples/m1-api-corpus/src/test/kotlin/dev/woge/examples/m1/SavedInvoiceHttpTest.kt).
+Run the [same real-server tests on WebFlux and Ktor](../../examples/invoice-desk/src/test/kotlin/dev/woge/examples/invoice/SavedInvoiceHttpTest.kt).
 They check all three locales, the exact stored receipt bytes, a rejected stale edit, and data
 reopened through the other host after the first server stops. The extra browser run uses the
 installed Playwright Chromium and checks all three languages in both JavaScript modes on both hosts.
 
 ```sh
-./gradlew :woge-m1-api-corpus:test --tests '*SavedInvoiceHttpTest' --tests '*LocalizedInvoice*Test'
+./gradlew :woge-invoice-desk:test --tests '*SavedInvoiceHttpTest' --tests '*LocalizedInvoice*Test'
 npm --prefix client/woge-fallback-client ci --ignore-scripts
 npm --prefix client/woge-fallback-client exec -- playwright install chromium
-WOGE_INVOICE_BROWSER=true ./gradlew :woge-m1-api-corpus:test --tests '*SavedInvoiceHttpTest'
+WOGE_INVOICE_BROWSER=true ./gradlew :woge-invoice-desk:test --tests '*SavedInvoiceHttpTest'
 ```
 
 For [the manual reference review](https://github.com/christian-draeger/woge/issues/253), navigate

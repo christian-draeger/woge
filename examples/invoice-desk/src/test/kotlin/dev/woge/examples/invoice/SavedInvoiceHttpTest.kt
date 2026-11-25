@@ -1,4 +1,4 @@
-package dev.woge.examples.m1
+package dev.woge.examples.invoice
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -23,16 +23,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
-internal class SavedInvoiceTestApp(
-    private val directory: Path,
-) {
-    val uploads: Path = Files.createDirectories(directory.resolve("uploads"))
-    val url = "jdbc:h2:file:${directory.resolve("invoices").toAbsolutePath()}"
-    val store = SavedInvoiceStore(url)
-    val application = SavedInvoices(store)
-    val uploadPolicy = savedInvoiceUploads(uploads)
-}
-
 internal class SavedInvoiceHttpTest {
     @TempDir
     lateinit var directory: Path
@@ -42,7 +32,7 @@ internal class SavedInvoiceHttpTest {
     fun `localized native create and edit preserve invalid nested data and committed files`(
         adapter: InvoiceHttpAdapter,
     ) {
-        val app = SavedInvoiceTestApp(directory)
+        val app = InvoiceDesk(directory)
         val ids = mutableListOf<Long>()
         withInvoiceServer(adapter, app) { port ->
             SavedInvoiceHttp(port, app.application.save.path).use { host ->
@@ -51,7 +41,7 @@ internal class SavedInvoiceHttpTest {
         }
 
         // Warm request state and temporary files are gone. An independent server opens this same database.
-        val reopened = SavedInvoiceTestApp(directory)
+        val reopened = InvoiceDesk(directory)
         val other = InvoiceHttpAdapter.entries.single { it != adapter }
         withInvoiceServer(other, reopened) { port ->
             SavedInvoiceHttp(port, reopened.application.save.path).use { host ->
@@ -74,7 +64,7 @@ internal class SavedInvoiceHttpTest {
 
     private fun createAndEdit(
         host: SavedInvoiceHttp,
-        app: SavedInvoiceTestApp,
+        app: InvoiceDesk,
         language: InvoiceLanguage,
     ): Long {
         val fields = validFields(language)
@@ -98,7 +88,7 @@ internal class SavedInvoiceHttpTest {
 
     private fun assertRejectedAllocations(
         host: SavedInvoiceHttp,
-        app: SavedInvoiceTestApp,
+        app: InvoiceDesk,
         language: InvoiceLanguage,
         fields: List<Pair<String, String>>,
     ) {
@@ -142,7 +132,7 @@ internal class SavedInvoiceHttpTest {
 
     private fun assertEdits(
         host: SavedInvoiceHttp,
-        app: SavedInvoiceTestApp,
+        app: InvoiceDesk,
         language: InvoiceLanguage,
         fields: List<Pair<String, String>>,
         saved: SavedInvoice,
@@ -196,7 +186,7 @@ internal class SavedInvoiceHttpTest {
     @ParameterizedTest
     @EnumSource(InvoiceHttpAdapter::class)
     fun `tampered direct requests never write an invoice`(adapter: InvoiceHttpAdapter) {
-        val app = SavedInvoiceTestApp(directory)
+        val app = InvoiceDesk(directory)
         val language = InvoiceLanguage.ENGLISH
         val fields = validFields(language)
         withInvoiceServer(adapter, app) { port ->
@@ -245,7 +235,7 @@ internal class SavedInvoiceHttpTest {
             Path
                 .of(System.getProperty("woge.repository.root"))
                 .resolve("client/woge-fallback-client/scripts/test-saved-invoices.mjs")
-        val app = SavedInvoiceTestApp(directory)
+        val app = InvoiceDesk(directory)
         withInvoiceServer(adapter, app) { port ->
             val process = ProcessBuilder("node", script.toString(), "http://127.0.0.1:$port").inheritIO().start()
             try {
@@ -354,7 +344,7 @@ private fun HttpResponse<String>.locationId(): Long =
 
 private fun HttpResponse<String>.document(): Document = Jsoup.parse(body())
 
-private fun committedReceipts(app: SavedInvoiceTestApp): Map<Long, ByteArray> =
+private fun committedReceipts(app: InvoiceDesk): Map<Long, ByteArray> =
     DriverManager.getConnection(app.url).use { connection ->
         connection.createStatement().use { query ->
             query.executeQuery("SELECT id, receipt FROM invoice_record").use { result ->
@@ -363,6 +353,6 @@ private fun committedReceipts(app: SavedInvoiceTestApp): Map<Long, ByteArray> =
         }
     }
 
-private fun assertUploadsClean(app: SavedInvoiceTestApp) {
+private fun assertUploadsClean(app: InvoiceDesk) {
     assertTrue(Files.list(app.uploads).use { it.findAny().isEmpty })
 }

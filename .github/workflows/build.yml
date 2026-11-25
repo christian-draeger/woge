@@ -196,6 +196,11 @@ jobs:
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run source-owned component browser contracts
         run: ./gradlew :woge-component-registry:componentBrowserTest --stacktrace
+      - name: Run the packaged invoice desk pilot
+        run: |
+          ./gradlew :woge-invoice-desk:installDist --stacktrace
+          node client/woge-fallback-client/scripts/test-saved-invoices.mjs --distribution \
+            examples/invoice-desk/build/install/woge-invoice-desk/bin/woge-invoice-desk
       - name: Run the external Spring Boot scaffold browser gate
         run: ./gradlew scaffoldBrowserSmoke --stacktrace
       - name: Run the wogeDev edit loop in the external Spring Boot scaffold
