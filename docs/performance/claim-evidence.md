@@ -43,6 +43,12 @@ environment and workload behavior and remains a separate historical record.
 | --- | --- | --- | --- |
 | C06 verified, bounded | On 2026-11-25, independently packaged Next.js, KTE/htmx WebFlux and Woge WebFlux passed the pending-draft Todo Add scope in all nine measured browser journeys. Useful startup medians were 321, 1,335 and 1,659 ms. The same three packages used 115.07, 173.59 and 210.18 MiB post-browser process RSS and transferred 120,609, 55,913 and 70,105 script bytes. Cold setup and offline clean builds are reported separately. [Study and raw evidence](../../spikes/todo-next/matched-draft-study.md) | Linux arm64, 2 CPUs and 768 MiB per application. Woge still ships additional controls and Actuator. The cleared-input scenario, recovery, deferred content and production capacity are outside this result. Revalidate when the scope, application packages, runtime, browser or delivery changes. | In this Todo deployment study, Next.js reached useful HTML sooner and used less process RSS, while KTE/htmx transferred the fewest script bytes. |
 
+## Two-person Woge and Hotwire comparison
+
+| ID and status | Use case, metric and result | Limits and revalidation | Supported wording |
+| --- | --- | --- | --- |
+| C10 bounded, mixed | All three configurations completed the native task. The two-user filtered edit passed all Woge and permanent-form runs and two of three default Hotwire runs. A permanent form restored draft and held-control behavior on Hotwire. Woge caught up after reconnect and committed once after the injected lost response. Both Hotwire variants produced duplicate writes in that fault. [Study and raw evidence](collaborative-todo-2026-11-25.md) | Chromium, 40 ms injected loopback RTT, two subscribers and process-local transport and storage. The lost-response result covers the tested app, browser and fault together. Revalidate after changing form preservation, recovery, transport or persistent mutation handling. | The two-user fixture showed different draft and failure-recovery behavior under explicit browser and transport conditions. |
+
 ## Claims awaiting matching evidence
 
 | ID and status | Question and current evidence boundary | Revalidation and supported wording |

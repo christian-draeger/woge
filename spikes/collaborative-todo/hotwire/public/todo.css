@@ -1,0 +1,24 @@
+@layer reset, theme, page;
+@layer reset {
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  button, input { font: inherit; }
+}
+@layer theme {
+  :root { color-scheme: light dark; font: 1rem/1.5 system-ui, sans-serif; }
+  :focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
+}
+@layer page {
+  body { padding: 1rem; }
+  main { max-inline-size: 44rem; margin-inline: auto; }
+  nav, li, form { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+  nav a { padding: .4rem; }
+  [aria-current] { font-weight: bold; }
+  ul { padding-inline-start: 1.5rem; }
+  li { margin-block: .75rem; }
+  li > span { flex: 1 1 12rem; overflow-wrap: anywhere; }
+  input { min-inline-size: 0; max-inline-size: 100%; padding: .5rem; }
+  button { padding: .5rem; cursor: pointer; }
+  #add-todo { margin-block: 1rem; }
+  #todo-errors { border-inline-start: .25rem solid; padding-inline: 1rem; }
+}
