@@ -1,0 +1,31 @@
+@param complete: Boolean
+@param fail: Boolean
+@param summary: String
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Todo overview</title>
+    <link rel="stylesheet" href="/todo.css">
+    @if(!complete)
+        <script src="/htmx.min.js" defer></script>
+    @endif
+</head>
+<body>
+    <main>
+        <h1>Todo overview</h1>
+        <a href="/">Open the Todo board</a>
+        @if(complete)
+            @template.deferred-summary(summary)
+        @else
+            <a href="/todo-study/deferred?complete=true&fail=${fail}">Open the complete Todo overview</a>
+            <section id="todo-summary" hx-get="/todo-study/deferred/summary?fail=${fail}"
+                     hx-trigger="load" hx-swap="outerHTML">
+                <p>Loading Todo summary…</p>
+            </section>
+        @endif
+    </main>
+</body>
+</html>

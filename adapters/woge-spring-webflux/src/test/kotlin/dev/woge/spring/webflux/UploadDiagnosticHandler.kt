@@ -21,7 +21,7 @@ internal fun uploadDiagnosticServer(handler: HttpHandler): DisposableServer {
     return HttpServer
         .create()
         .host("127.0.0.1")
-        .port(0)
+        .port(if (System.getenv("WOGE_TCK_PROXY_LOOPBACK_CAPTURE") == "true") 21078 else 0)
         .withUploadTransportDiagnostics()
         .handle { request, response ->
             val id = request.requestHeaders().get(TckUploadDiagnostics.HEADER)

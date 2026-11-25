@@ -1,0 +1,8 @@
+<div id="todo-board">
+    <p id="todo-count" th:text="|${snapshot.remaining} remaining · ${snapshot.todos.size()} total|">0 remaining · 0 total</p>
+    <ul>
+        <li th:each="todo : ${snapshot.visible}" th:attr="data-todo-id=${todo.id}">
+            <span th:text="${todo.title}">Todo</span><th:block th:if="${todo.completed}"> (completed)</th:block>
+        </li>
+    </ul>
+</div>

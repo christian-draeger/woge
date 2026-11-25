@@ -42,12 +42,15 @@ SUDO = ("sudo", "-n")
 COUNTER = re.compile(r"\d+ packets (?:captured|received by filter|dropped by kernel)")
 
 
-def packet_metadata(line):
+def packet_metadata(line, fixture_port=None):
     """Re-emit only the numeric TCP fields consumed by multipart-loopback.py."""
     packet = PACKET.fullmatch(line.strip())
     if packet is None or not re.fullmatch(r"[FSRPAUEWCe.]+", packet[4]):
         return None
-    if not all(32768 <= int(packet[index]) <= 65535 for index in (2, 3)):
+    ports = {int(packet[2]), int(packet[3])}
+    if fixture_port is not None and fixture_port not in ports:
+        return None
+    if not all(port == fixture_port or 32768 <= port <= 65535 for port in ports):
         return None
     fields = re.findall(r"\b(?:seq|ack) [\d:]+", packet[5])
     prefix = f"{packet[1]} IP 127.0.0.1.{packet[2]} > 127.0.0.1.{packet[3]}: Flags [{packet[4]}], "
@@ -78,14 +81,27 @@ def clean_namespace(namespace):
 
 
 class Capture:
-    def __init__(self, namespace, destination):
+    def __init__(self, namespace, destination, fixture_port=None):
+        self.fixture_port = fixture_port
         self.ready = threading.Event()
         self.metadata_count = 0
         self.pid = None
+        if namespace is not None:
+            prefix = (*SUDO, "ip", "netns", "exec", namespace)
+            packet_filter = FILTER
+        else:
+            if fixture_port != 21078:
+                raise ValueError("The hosted capture is restricted to the synthetic WebFlux listener")
+            prefix = (*SUDO, "sh", "-c", 'echo "capture-pid=$$" >&2; exec "$@"', "capture")
+            packet_filter = (
+                "ip and tcp and src host 127.0.0.1 and dst host 127.0.0.1 "
+                f"and ((src port {fixture_port} and dst portrange 32768-65535) "
+                f"or (dst port {fixture_port} and src portrange 32768-65535))"
+            )
         self.process = subprocess.Popen(
-            (*SUDO, "ip", "netns", "exec", namespace, "tcpdump",
+            (*prefix, "tcpdump",
              "-p", "-i", "lo", "-c", str(PACKET_LIMIT), "--immediate-mode", "-l",
-             "-s", "96", "-nn", "-tt", "-S", FILTER),
+             "-s", "96", "-nn", "-tt", "-S", packet_filter),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
         )
         self.threads = (
@@ -98,7 +114,7 @@ class Capture:
     def metadata(self, path):
         with self.process.stdout as stream, path.open("w") as output:
             for line in stream:
-                if (metadata := packet_metadata(line)) is not None:
+                if (metadata := packet_metadata(line, self.fixture_port)) is not None:
                     output.write(metadata + "\n")
                     self.metadata_count += 1
 
@@ -106,6 +122,8 @@ class Capture:
         with self.process.stderr as stream, path.open("w") as output:
             for line in stream:
                 text = line.strip()
+                if self.fixture_port is not None and re.fullmatch(r"capture-pid=\d+", text):
+                    self.pid = text.split("=")[1]
                 if re.match(r"^(?:tcpdump: )?listening on lo,", text):
                     output.write("listening on lo\n")
                     self.ready.set()
@@ -115,20 +133,28 @@ class Capture:
     def wait_ready(self, namespace):
         if not self.ready.wait(timeout=5):
             raise RuntimeError("tcpdump did not confirm loopback capture")
+        if namespace is None:
+            if not self.pid or Path(f"/proc/{self.pid}/comm").read_text().strip() != "tcpdump":
+                raise RuntimeError("The confirmed fixture capture process is not tcpdump")
+            return
         pids = namespace_processes(namespace)
         if len(pids) != 1 or Path(f"/proc/{pids[0]}/comm").read_text().strip() != "tcpdump":
             raise RuntimeError("Expected only tcpdump in the new namespace before running tests")
         self.pid = pids[0]
 
     def finish(self, namespace):
-        pids = namespace_processes(namespace)
-        workers = [pid for pid in pids if pid != self.pid]
-        signal_namespace_processes(workers, "TERM")
-        if workers:
-            time.sleep(0.2)
-            signal_namespace_processes([pid for pid in namespace_processes(namespace) if pid != self.pid], "KILL")
-        if self.pid in pids:
-            signal_namespace_processes([self.pid], "INT")
+        if namespace is None:
+            if self.process.poll() is None and self.pid:
+                signal_namespace_processes([self.pid], "INT")
+        else:
+            pids = namespace_processes(namespace)
+            workers = [pid for pid in pids if pid != self.pid]
+            signal_namespace_processes(workers, "TERM")
+            if workers:
+                time.sleep(0.2)
+                signal_namespace_processes([pid for pid in namespace_processes(namespace) if pid != self.pid], "KILL")
+            if self.pid in pids:
+                signal_namespace_processes([self.pid], "INT")
         try:
             self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
