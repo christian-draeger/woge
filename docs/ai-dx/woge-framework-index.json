@@ -419,6 +419,21 @@
       "example": "examples/m1-api-corpus/src/main/kotlin/dev/woge/examples/m1/HostAdapters.kt"
     },
     {
+      "name": "woge-quarkus",
+      "role": "adapter",
+      "exposure": "public",
+      "sourcePath": "adapters/woge-quarkus",
+      "artifact": "dev.woge:woge-quarkus",
+      "distribution": "local-candidate",
+      "concepts": [
+        "quarkus-managed-vertx-router",
+        "quarkus-typed-actions",
+        "quarkus-deferred-and-live-regions"
+      ],
+      "guide": "adapters/woge-quarkus/README.md",
+      "example": "examples/quarkus-consumer/src/main/kotlin/example/quarkus/Routes.kt"
+    },
+    {
       "name": "woge-vite",
       "role": "integration",
       "exposure": "public",
