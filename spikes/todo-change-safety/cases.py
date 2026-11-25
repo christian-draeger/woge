@@ -78,6 +78,11 @@ CASES = {
         "kte": [(KTE_SERVER, "title.trim().length", "title.length", 1)],
         "datastar": [(DATA_SERVER, "title.trim().length", "title.length", 1)],
     }),
+    "stale-remote-value": ("stale-choice", {
+        "woge": [(WOGE_PAGE, "if (request.input.selected in FILTERS)", "if (request.input.selected.isNotEmpty())", 2)],
+        "kte": [(KTE_SERVER, "if (filter in FILTERS) page(filter)", "if (filter.isNotEmpty()) page(filter)", 1)],
+        "datastar": [(DATA_SERVER, "if (filter in FILTERS) page(filter)", "if (filter.isNotEmpty()) page(filter)", 1)],
+    }),
     "unhandled-outcome": ("enhanced-invalid", {
         "woge": [(WOGE_ACTION, "            errorSummary,", '            FormElementId.of("todo-errors-drift"),', 1)],
         "kte": [("src/main/resources/static/todo-htmx.js", 'if (isValidation(detail.xhr)) document.querySelector("#todo-errors").focus();',

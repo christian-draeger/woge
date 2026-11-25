@@ -5,7 +5,7 @@ const require = createRequire(new URL('../../client/woge-fallback-client/package
 const { chromium } = require('playwright');
 const [origin, requested] = process.argv.slice(2);
 const browser = await chromium.launch();
-const checks = ['initial', 'filter', 'native-add', 'native-invalid', 'enhanced-add', 'enhanced-invalid', 'keys', 'output'];
+const checks = ['initial', 'filter', 'native-add', 'native-invalid', 'enhanced-add', 'enhanced-invalid', 'keys', 'output', 'stale-choice'];
 
 async function prepare(check) {
     const enhanced = check.startsWith('enhanced-');
@@ -66,6 +66,11 @@ async function checkApp(page, check, count) {
             assert.equal(keys.length, count);
             assert.ok(keys.every(Boolean), 'each row has an identity');
             assert.equal(new Set(keys).size, count, 'public row identities are distinct');
+            break;
+        }
+        case 'stale-choice': {
+            const response = await page.goto(`${origin}/?filter=archived`);
+            assert.equal(response.status(), 400, 'reject a stale view choice');
             break;
         }
         case 'output':
