@@ -6,6 +6,11 @@ Task-oriented, web-first guides live here. Start with the executable
 [mental model and DX doctrine](mental-model.md) before adding regions or live updates.
 [Request troubleshooting](troubleshooting.md) covers buffering, recovery and version skew.
 
+Run the same project workflow on packaged Spring Boot WebFlux, Spring Boot MVC and Ktor with the
+[shared reference walkthrough](../../examples/reference-application/README.md#walk-through-the-shared-fixture).
+The [25 November 2026 deferred-project study](../performance/reference-project-deferred-2026-11-25.md)
+records the workload, conditions and raw results for those packages.
+
 The [experimental initial-document guide](native-deferred-documents.md) streams deferred results
 through a typed HTML document on MVC, WebFlux and Ktor, with guarded native DPU and framed fallback.
 
