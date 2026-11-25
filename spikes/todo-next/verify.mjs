@@ -67,13 +67,22 @@ async function addWithNewerDraft(tab, second, expected) {
         assert.equal(new URLSearchParams(request.postData()).get("title"), expected);
         await enterDraft(input, value, 6, 11);
         await checkDraft(input, value, 6, 11);
-        const visible = time("enhancedAddVisible", async () => {
+        const began = performance.now();
+        release.resolve();
+        const visible = (async () => {
             assert.equal((await response).status(), 200);
             await waitForAdd(tab, expected, value);
             await checkDraft(input, value, 6, 11);
-        });
-        const peer = time("peerSseVisible", () => second.getByText(expected, { exact: true }).waitFor());
-        release.resolve();
+            assert.equal(await tab.locator("#todo-errors").count(), 0);
+            timings.enhancedAddVisible = performance.now() - began;
+        })();
+        const peer = (async () => {
+            await second.getByText(expected, { exact: true }).waitFor();
+            await second.waitForFunction(() =>
+                document.querySelector("#todo-count")?.textContent === "12 remaining · 12 total",
+            );
+            timings.peerSseVisible = performance.now() - began;
+        })();
         await Promise.all([visible, peer]);
     } finally {
         release.resolve();
@@ -93,11 +102,19 @@ try {
     await plain.getByRole("link", { name: "Completed" }).click();
     assert.equal(await plain.locator("#todo-board li").count(), 0);
     await plain.getByRole("link", { name: "Active" }).click();
+    if (matchedDraft) {
+        assert.equal(await plain.locator("#todo-board li").count(), 10);
+        assert.equal(await plain.getByRole("link", { name: "Active" }).getAttribute("aria-current"), "page");
+    }
     await time("nativeInvalid", async () => {
         await add(plain, "   ", 400);
         await plain.getByRole("heading", { name: "Check your todo" }).waitFor();
     });
     assert.equal(await plain.getByLabel("New todo").inputValue(), "   ");
+    if (matchedDraft) {
+        assert.equal(await plain.locator("#todo-count").textContent(), "10 remaining · 10 total");
+        assert.equal(await plain.getByLabel("New todo").getAttribute("aria-invalid"), "true");
+    }
     await time("nativeAddVisible", async () => {
         await add(plain, "Native <strong> & Todo", 303);
         await plain.waitForURL(`${origin}/?filter=active`);
@@ -131,6 +148,8 @@ try {
     assert.equal(await tab.getByLabel("New todo").inputValue(), "  ");
 
     if (matchedDraft) {
+        assert.equal(await tab.locator("#todo-count").textContent(), "11 remaining · 11 total");
+        assert.equal(await tab.getByLabel("New todo").getAttribute("aria-invalid"), "true");
         const subscribed = second.waitForResponse(response =>
             response.request().resourceType() === "eventsource"
             && response.headers()["content-type"]?.startsWith("text/event-stream"),
@@ -169,6 +188,11 @@ try {
         body: new URLSearchParams({ title: "Denied", filter: "all" }),
     });
     assert.equal(denied.status, 403);
+    if (matchedDraft) {
+        const html = (await (await fetch(origin)).text()).replaceAll(/<!--.*?-->/g, "");
+        assert.match(html, /12 remaining/);
+        assert.doesNotMatch(html, /Denied/);
+    }
     console.log(JSON.stringify({
         browser: browser.version(), timingsMs: timings, freshEnhancedContextResources: resources,
         ...(matchedDraft && { outcomes: { submittingDraftPreserved: true, peerDraftPreserved: true } }),
