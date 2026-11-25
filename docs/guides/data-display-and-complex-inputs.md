@@ -152,9 +152,11 @@ records. Consider virtualization or a local editing grid only after a workflow r
 simultaneously visible or edited rows. Measure that workflow with its real data, keyboard and focus
 requirements before selecting a dependency.
 
-Back/forward cache, live parent replacement and the
-[human review](https://github.com/christian-draeger/woge/issues/253) remain separate evidence for
-[#288](https://github.com/christian-draeger/woge/issues/288).
+The chart fixture exercises live parent replacement after a real SSE invalidation, including
+keyed preservation and deliberate reset. Chromium also restored the chart and its controls after
+ordinary history navigation through the back/forward cache. Restored live streams, other browser
+engines and [human review](https://github.com/christian-draeger/woge/issues/253) remain separate
+evidence for [#288](https://github.com/christian-draeger/woge/issues/288).
 
 ## Styling
 

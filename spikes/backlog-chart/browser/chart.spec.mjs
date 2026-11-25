@@ -159,3 +159,68 @@ test("touch controls work and direct invalid or cross-origin selections are reje
     await context.close();
   }
 });
+
+test("SSE replaces the chart panel with keyed preservation or an explicit reset", async ({ context, page, request, baseURL }) => {
+  const livePath = "/backlog/live";
+  const resetPage = await context.newPage();
+  const refresh = (reader) => reader.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname === livePath && url.searchParams.has("_woge_refresh");
+  });
+
+  for (const [reader, path] of [[page, livePath], [resetPage, `${livePath}?reset=1`]]) {
+    const opened = reader.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === livePath && url.searchParams.has("_woge_live");
+    });
+    const initial = refresh(reader);
+    await reader.goto(path);
+    const stream = await opened;
+    expect(stream.status()).toBe(200);
+    expect(stream.headers()["content-type"]).toContain("text/event-stream");
+    expect((await initial).status()).toBe(200);
+    await expect(reader.locator("#backlog-panel")).toHaveAttribute("data-woge-revision", "1");
+    await reveal(reader);
+    await reader.getByRole("button", { name: "Show packing orders" }).click();
+    await reader.getByRole("button", { name: "Show last four days" }).click();
+    await reader.locator(island).evaluate((root) => {
+      window.liveChart = {
+        root,
+        canvas: root.querySelector("canvas"),
+        table: document.querySelector("#daily-backlog"),
+      };
+    });
+  }
+
+  const next = [refresh(page), refresh(resetPage)];
+  const before = await page.locator("canvas").evaluate((canvas) => canvas.toDataURL());
+  const published = await request.post("/woge-actions/select-live-backlog-snapshot", {
+    headers: { Origin: baseURL },
+    form: { window: "late" },
+    maxRedirects: 0,
+  });
+  expect(published.status()).toBe(303);
+  for (const response of await Promise.all(next)) {
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("application/vnd.woge.patch-stream");
+  }
+
+  for (const reader of [page, resetPage]) {
+    await expect(reader.locator("#backlog-panel")).toHaveAttribute("data-woge-revision", "2");
+    await expect(reader.getByRole("table", { name: "Open orders by day, June 15–28" })).toBeVisible();
+    expect(await reader.evaluate(() => window.liveChart.table.isConnected)).toBe(false);
+  }
+  expect(await page.locator(island).evaluate((root) => root === window.liveChart.root)).toBe(true);
+  await expect(page.getByRole("button", { name: "Show packing orders" })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Show last four days" })).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => page.locator("canvas").evaluate((canvas) => canvas.toDataURL())).not.toBe(before);
+
+  await reveal(resetPage);
+  await expect(resetPage.getByRole("button", { name: "Show packing orders" })).toHaveAttribute("aria-pressed", "true");
+  await expect(resetPage.getByRole("button", { name: "Show last four days" })).toHaveAttribute("aria-pressed", "false");
+  expect(await resetPage.locator(island).evaluate((root) => ({
+    same: root === window.liveChart.root,
+    previousCanvasConnected: window.liveChart.canvas.isConnected,
+    previousCanvasDisplay: window.liveChart.canvas.style.display,
+  }))).toEqual({ same: false, previousCanvasConnected: false, previousCanvasDisplay: "" });
+});
