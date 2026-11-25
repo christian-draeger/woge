@@ -29,6 +29,9 @@ val copyTodoSource by tasks.registering(Sync::class) {
 }
 kotlin.sourceSets.named("main") {
     kotlin.srcDir(copyTodoSource)
+    if (providers.gradleProperty("todoDeferredStudy").orNull == "true") {
+        kotlin.srcDirs("../todo-datastar/src/deferred/shared", "src/deferred/kotlin")
+    }
     kotlin.srcDir(tasks.named("generateJte"))
 }
 

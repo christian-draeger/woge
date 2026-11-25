@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" th:attr="data-nonce=${nonce}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Todo overview</title>
+    <link rel="stylesheet" href="/todo.css">
+    <script th:unless="${complete}" type="module" src="/datastar.js"></script>
+</head>
+<body>
+    <main>
+        <h1>Todo overview</h1>
+        <a href="/">Open the Todo board</a>
+        <section th:if="${complete}" th:insert="~{deferred-summary :: summary-content}" id="todo-summary"></section>
+        <th:block th:unless="${complete}">
+            <a th:href="|/todo-study/deferred?complete=true&amp;fail=${fail}|">Open the complete Todo overview</a>
+            <section id="todo-summary" th:attr="data-url=|/todo-study/deferred/summary?fail=${fail}|"
+                     data-init="@get(el.dataset.url, {retry: 'never'})">
+                <p>Loading Todo summary…</p>
+            </section>
+        </th:block>
+    </main>
+</body>
+</html>
