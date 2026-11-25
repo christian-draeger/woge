@@ -7,7 +7,7 @@ Humans and agents use this application's public Kotlin/HTML APIs and the same ve
 - wogeVersion=0.1.0-alpha.1
 - kotlinVersion=2.4.10
 - kspVersion=2.3.12
-- springBootVersion=4.1.1
+- springBootVersion=4.1.2
 - Host: Spring Boot WebFlux; build JDK 21, JVM target 17.
 - Node/Playwright are browser-test-only. No frontend build is needed to use the application.
 

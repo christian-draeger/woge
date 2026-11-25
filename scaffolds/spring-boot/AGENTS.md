@@ -10,7 +10,7 @@ use the same public APIs, compiler feedback, examples and documentation.
 - Scaffold: `spring-boot` 0.3.2
 - Woge: 0.1.0-SNAPSHOT
 - Kotlin: 2.4.10
-- Spring Boot: 4.1.1
+- Spring Boot: 4.1.2
 - Build JDK: 21; produced JVM bytecode: Java 17
 - Selected host: `webflux` (Spring Boot WebFlux)
 - Frontend tooling: none is required. Playwright 1.62.1 is test-only; Tailwind and Vite

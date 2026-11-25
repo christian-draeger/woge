@@ -13,7 +13,7 @@ kotlinLogging = "7.0.14"
 ktlintGradle = "14.2.0"
 serialization = "1.11.0"
 slf4j = "2.0.18"
-springBoot = "4.1.1"
+springBoot = "4.1.2"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

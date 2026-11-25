@@ -7,9 +7,11 @@ import dev.woge.ktor.KtorPageInput
 import dev.woge.ktor.KtorRequestContextFactory
 import dev.woge.ktor.SameOriginKtorRequestContextFactory
 import dev.woge.ktor.WogeKtorHandlers
+import dev.woge.ktor.ktorMultipart
 import dev.woge.ktor.ktorSubmission
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
 import io.ktor.server.request.acceptLanguageItems
 import io.ktor.server.routing.get
@@ -18,7 +20,10 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
-internal fun withKtorInvoiceServer(verify: (Int) -> Unit) {
+internal fun withKtorInvoiceServer(
+    saved: SavedInvoiceTestApp?,
+    verify: (Int) -> Unit,
+) {
     val server =
         embeddedServer(Netty, host = "127.0.0.1", port = 0) {
             val contexts = KtorRequestContextFactory(::invoiceContext)
@@ -29,6 +34,18 @@ internal fun withKtorInvoiceServer(verify: (Int) -> Unit) {
             routing {
                 get(INVOICE_PATH) { page.handle(call) }
                 post(ValidateLocalizedInvoiceAction.path) { submit.handle(call) }
+                if (saved != null) {
+                    val editor = handlers.page(saved.application.page, SavedInvoiceRoute)
+                    val save =
+                        handlers.action(
+                            saved.application.save,
+                            savedInvoiceDecoder.ktorMultipart(saved.uploadPolicy),
+                            contexts,
+                        )
+                    get(SavedInvoiceRoute.path) { editor.handle(call) }
+                    post(saved.application.save.path) { save.handle(call) }
+                    staticResources("/assets/woge-ui", "static/assets/woge-ui")
+                }
             }
         }.start(wait = false)
     try {

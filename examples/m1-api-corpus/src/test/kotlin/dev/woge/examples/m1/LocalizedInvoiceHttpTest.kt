@@ -7,7 +7,9 @@ import dev.woge.protocol.PatchStreamV1
 import dev.woge.protocol.ReplacePatch
 import dev.woge.spring.webflux.WebFluxPageInput
 import dev.woge.spring.webflux.WogeWebFluxHandlers
+import dev.woge.spring.webflux.webFluxMultipart
 import dev.woge.spring.webflux.webFluxSubmission
+import dev.woge.ui.UPLOAD_MODULE_PATH
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -17,8 +19,12 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.springframework.core.io.ClassPathResource
+import org.springframework.http.MediaType
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter
 import org.springframework.web.reactive.function.server.RouterFunctions
+import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.coRouter
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder
 import org.springframework.web.server.i18n.AcceptHeaderLocaleContextResolver
@@ -286,6 +292,12 @@ internal class LocalizedInvoiceHttpTest {
 private fun withInvoiceHost(
     adapter: InvoiceHttpAdapter,
     verify: (InvoiceHost) -> Unit,
+) = withInvoiceServer(adapter) { port -> InvoiceHost(port).use(verify) }
+
+internal fun withInvoiceServer(
+    adapter: InvoiceHttpAdapter,
+    saved: SavedInvoiceTestApp? = null,
+    verify: (Int) -> Unit,
 ) {
     when (adapter) {
         InvoiceHttpAdapter.WEBFLUX -> {
@@ -294,16 +306,16 @@ private fun withInvoiceHost(
                     .create()
                     .host("127.0.0.1")
                     .port(0)
-                    .handle(invoiceHttpHandler())
+                    .handle(invoiceHttpHandler(saved))
                     .bindNow()
             try {
-                InvoiceHost(server.port()).use(verify)
+                verify(server.port())
             } finally {
                 server.disposeNow(Duration.ofSeconds(5))
             }
         }
 
-        InvoiceHttpAdapter.KTOR -> withKtorInvoiceServer { port -> InvoiceHost(port).use(verify) }
+        InvoiceHttpAdapter.KTOR -> withKtorInvoiceServer(saved, verify)
     }
 }
 
@@ -356,7 +368,7 @@ private class InvoiceHost(
         client.send(request, HttpResponse.BodyHandlers.ofByteArray())
 }
 
-private fun invoiceHttpHandler(): ReactorHttpHandlerAdapter {
+private fun invoiceHttpHandler(saved: SavedInvoiceTestApp?): ReactorHttpHandlerAdapter {
     val handlers = WogeWebFluxHandlers()
     val page = handlers.page(PageUseCase<Unit> { localizedInvoicePage(it.context) }, WebFluxPageInput { })
     val action = handlers.action(localizedInvoiceAction, localizedInvoiceDecoder.webFluxSubmission())
@@ -364,6 +376,22 @@ private fun invoiceHttpHandler(): ReactorHttpHandlerAdapter {
         coRouter {
             GET(INVOICE_PATH, page::handle)
             POST(ValidateLocalizedInvoiceAction.path, action::handle)
+            if (saved != null) {
+                val editor = handlers.page(saved.application.page, SavedInvoiceRoute)
+                val save =
+                    handlers.action(
+                        saved.application.save,
+                        savedInvoiceDecoder.webFluxMultipart(saved.uploadPolicy),
+                    )
+                GET(SavedInvoiceRoute.path, editor::handle)
+                POST(saved.application.save.path, save::handle)
+                GET(UPLOAD_MODULE_PATH) {
+                    ServerResponse
+                        .ok()
+                        .contentType(MediaType("text", "javascript"))
+                        .bodyValueAndAwait(ClassPathResource("static$UPLOAD_MODULE_PATH"))
+                }
+            }
         }
     val localeResolver =
         AcceptHeaderLocaleContextResolver().apply {
