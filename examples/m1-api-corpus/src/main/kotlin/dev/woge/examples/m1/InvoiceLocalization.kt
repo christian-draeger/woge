@@ -1,7 +1,9 @@
 package dev.woge.examples.m1
 
 import java.math.BigDecimal
+import java.text.MessageFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -43,6 +45,13 @@ internal enum class InvoiceLanguage(
             ),
         )
 
+    fun accepted(values: InvoiceValues): String =
+        MessageFormat(messages.getString("accepted"), locale).format(
+            arrayOf(formatAmount(values.amount), values.serviceDay, date.format(values.dueDay), values.payment),
+        )
+
+    fun localizedNumber(value: Int): String = value.toString().map { zero + (it - '0') }.joinToString("")
+
     fun amount(raw: String): BigDecimal? {
         if (!amountPattern.matches(raw)) return null
         return buildString {
@@ -56,9 +65,9 @@ internal enum class InvoiceLanguage(
         }
 }
 
-private val paymentZone = ZoneId.of("Europe/Berlin")
+internal val paymentZone = ZoneId.of("Europe/Berlin")
 private val paymentTimePattern = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}")
-private val paymentTimeFormat =
+internal val paymentTimeFormat =
     DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm", Locale.ROOT).withResolverStyle(ResolverStyle.STRICT)
 
 internal sealed interface PaymentTime {
@@ -86,3 +95,52 @@ internal fun parsePaymentTime(raw: String): PaymentTime {
         else -> PaymentTime.Invalid("paymentTimeOverlap")
     }
 }
+
+internal data class InvoiceValues(
+    val amount: BigDecimal,
+    val serviceDay: LocalDate,
+    val dueDay: LocalDate,
+    val payment: Instant,
+)
+
+internal sealed interface InvoiceValidation {
+    data class Valid(
+        val values: InvoiceValues,
+    ) : InvoiceValidation
+
+    data class Invalid(
+        val issues: Map<String, String>,
+    ) : InvoiceValidation
+}
+
+internal fun parseInvoiceFields(
+    form: LocalizedInvoiceFields,
+    language: InvoiceLanguage,
+): InvoiceValidation {
+    val amount = language.amount(form.amount)
+    val serviceDay = parseInvoiceDay(form.serviceDay, DateTimeFormatter.ISO_LOCAL_DATE)
+    val dueDay = parseInvoiceDay(form.dueDay, language.date)
+    val payment = parsePaymentTime(form.paymentTime)
+    val validAmountsAndDays = amount != null && serviceDay != null && dueDay != null
+    if (validAmountsAndDays && payment is PaymentTime.Valid) {
+        return InvoiceValidation.Valid(InvoiceValues(amount, serviceDay, dueDay, payment.instant))
+    }
+    return InvoiceValidation.Invalid(
+        buildMap {
+            if (amount == null) put(LocalizedInvoiceFields::amount.name, "amountError")
+            if (serviceDay == null) put(LocalizedInvoiceFields::serviceDay.name, "serviceDayError")
+            if (dueDay == null) put(LocalizedInvoiceFields::dueDay.name, "dueDayError")
+            if (payment is PaymentTime.Invalid) put(LocalizedInvoiceFields::paymentTime.name, payment.messageKey)
+        },
+    )
+}
+
+private fun parseInvoiceDay(
+    raw: String,
+    format: DateTimeFormatter,
+): LocalDate? =
+    try {
+        LocalDate.parse(raw, format)
+    } catch (_: DateTimeParseException) {
+        null
+    }
