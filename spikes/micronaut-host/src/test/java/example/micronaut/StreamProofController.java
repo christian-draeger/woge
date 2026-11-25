@@ -8,6 +8,13 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.server.netty.NettyHttpRequest;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.WriteBufferWaterMark;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
@@ -29,9 +36,12 @@ import java.util.concurrent.atomic.AtomicReference;
 @Requires(property = "woge.stream-proof", value = "true")
 public final class StreamProofController {
     static final String PATH = "/stream-proof";
+    static final String SLOW_PATH = "/stream-proof/slow";
     static final String DEFERRED_PATH = "/stream-proof/deferred";
     static final byte[] FIRST = {0, 60, (byte) 255, 10};
     static final byte[] LAST = {5, (byte) 128, 0};
+    static final int SLOW_CHUNKS = 4096;
+    static final byte[] SLOW_CHUNK = new byte[8192];
 
     final AtomicInteger subscriptions = new AtomicInteger();
     final CountDownLatch workStarted = new CountDownLatch(1);
@@ -40,6 +50,11 @@ public final class StreamProofController {
     final CountDownLatch terminated = new CountDownLatch(1);
     final AtomicReference<String> workerThread = new AtomicReference<>();
     final AtomicReference<SignalType> terminalSignal = new AtomicReference<>();
+    final AtomicInteger slowProduced = new AtomicInteger();
+    final AtomicReference<Channel> slowChannel = new AtomicReference<>();
+    final CountDownLatch slowTerminated = new CountDownLatch(1);
+    final AtomicReference<SignalType> slowTerminalSignal = new AtomicReference<>();
+    final CountDownLatch slowWriteFailed = new CountDownLatch(1);
     final DeferredTodoProbe deferred = new DeferredTodoProbe();
     private final Scheduler workers = Schedulers.newBoundedElastic(1, 1, "woge-stream-proof");
 
@@ -56,14 +71,46 @@ public final class StreamProofController {
         return HttpResponse.ok(bytes).contentType(MediaType.APPLICATION_OCTET_STREAM_TYPE);
     }
 
+    @Get(value = SLOW_PATH, produces = MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    public HttpResponse<Flux<byte[]>> slow(HttpRequest<?> request) {
+        var channel = ((NettyHttpRequest<?>) request).getChannelHandlerContext().channel();
+        channel.config().setOption(ChannelOption.SO_SNDBUF, 16 * 1024);
+        channel.config().setWriteBufferWaterMark(new WriteBufferWaterMark(4 * 1024, 8 * 1024));
+        slowChannel.set(channel);
+        channel.pipeline().addFirst(new ChannelOutboundHandlerAdapter() {
+            @Override
+            public void write(ChannelHandlerContext context, Object message, ChannelPromise promise) {
+                context.write(message, promise.unvoid().addListener(write -> {
+                    if (!write.isSuccess()) slowWriteFailed.countDown();
+                }));
+            }
+        });
+        var body = Flux.range(0, SLOW_CHUNKS).map(index -> {
+            slowProduced.incrementAndGet();
+            return SLOW_CHUNK;
+        }).doFinally(signal -> {
+            slowTerminalSignal.set(signal);
+            slowTerminated.countDown();
+        });
+        return HttpResponse.ok(body).contentType(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
     @Get(value = DEFERRED_PATH, produces = MediaType.TEXT_HTML)
     @Secured(SecurityRule.IS_ANONYMOUS)
     @ExecuteOn(TaskExecutors.IO)
     public HttpResponse<Flux<byte[]>> deferred(
             HttpRequest<?> request, @Nullable Authentication authentication,
-            @QueryValue(defaultValue = "false") boolean limited
+            @QueryValue(defaultValue = "false") boolean limited,
+            @QueryValue(defaultValue = "false") boolean denied
     ) {
-        return deferred.render(request, authentication, limited);
+        return deferred.render(request, authentication, limited, denied);
+    }
+
+    @Get(value = "/stream-proof/metadata", produces = MediaType.TEXT_HTML)
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    public HttpResponse<byte[]> metadata() {
+        return deferred.metadata();
     }
 
     private byte[] produceLast() throws InterruptedException {

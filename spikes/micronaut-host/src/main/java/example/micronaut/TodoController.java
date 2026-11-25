@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.runtime.Micronaut;
+import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
@@ -21,7 +22,8 @@ public final class TodoController {
     private final TodoDeferredEndpoint deferred = new TodoDeferredEndpoint();
 
     public static void main(String[] args) {
-        Micronaut.run(TodoController.class, args);
+        var application = Micronaut.run(TodoController.class, args);
+        System.out.println("Micronaut Todo spike listening at " + application.getBean(EmbeddedServer.class).getURL());
     }
 
     @Secured(SecurityRule.IS_ANONYMOUS)
