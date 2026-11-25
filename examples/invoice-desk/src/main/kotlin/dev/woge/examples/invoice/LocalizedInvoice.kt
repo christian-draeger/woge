@@ -28,6 +28,7 @@ import dev.woge.host.region
 import dev.woge.host.withFormValidation
 import dev.woge.html.HtmlWriter
 import dev.woge.html.applicationUrl
+import dev.woge.html.bdi
 import dev.woge.html.body
 import dev.woge.html.button
 import dev.woge.html.head
@@ -248,7 +249,10 @@ private fun HtmlWriter.invoiceInput(
     type: String,
     inputMode: String? = null,
 ) {
-    label(attributes = { attribute("for", field.id.value) }) { text(caption) }
+    label(attributes = { attribute("for", field.id.value) }) {
+        text(caption)
+        if (field == paymentTimeField) invoicePaymentTimeExample()
+    }
     input(attributes = {
         formField(field, errors)
         attribute("type", type)
@@ -257,6 +261,11 @@ private fun HtmlWriter.invoiceInput(
         attribute("value", errors.value(field).orEmpty())
     })
     formFieldErrors(field, errors)
+}
+
+internal fun HtmlWriter.invoicePaymentTimeExample() {
+    text(" ")
+    bdi(attributes = { attribute("dir", "ltr") }) { text("2026-10-11T12:30") }
 }
 
 internal data class InvoiceStatusView(

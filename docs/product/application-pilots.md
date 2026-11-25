@@ -40,7 +40,9 @@ PostgreSQL 18.6 and nginx 1.28.3 images in the PetClinic instructions.
 - Chromium exercised `de-DE`, `en-US` and `ar-EG` with native and enhanced submission. Each
   journey corrected invalid repeated values, saved a large exact decimal with a UTF-8 receipt,
   rejected a replacement receipt, edited the invoice and reloaded it. Arabic also exercised a
-  narrow viewport. [Browser replay](../../examples/invoice-desk/README.md#replay-the-packaged-browser-pilot)
+  narrow viewport. A visual check found that the left-to-right timestamp example broke across
+  lines in the right-to-left label. The pilot now isolates the example in a left-to-right inline element.
+  [Browser replay](../../examples/invoice-desk/README.md#replay-the-packaged-browser-pilot)
 - The packaged process retained the local draft and file when an upload was cancelled before
   delivery. Two isolated editors opened one revision. The first saved and the second received
   HTTP 409 with its input still visible. Restarting the distribution on the same H2 database

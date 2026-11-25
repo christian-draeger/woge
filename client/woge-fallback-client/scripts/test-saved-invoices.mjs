@@ -62,6 +62,8 @@ async function verify(browser, origin, locale, enhanced) {
     assert.equal(response.headers()["cache-control"], "no-store");
     const url = new RegExp(`${invoicePath}\\?invoice=\\d+$`);
     assert.equal(await page.locator("html").getAttribute("dir"), locale.dir);
+    const paymentExample = page.locator('label[for="saved-payment-time"] bdi[dir="ltr"]');
+    assert.equal(await paymentExample.innerText(), "2026-10-11T12:30");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     for (const [id, value] of Object.entries({
       "saved-amount": locale.total,

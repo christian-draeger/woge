@@ -102,6 +102,10 @@ private val invoiceDocumentHeaders = ResponseHeaders.of(httpHeader("Cache-Contro
 
 private fun HtmlWriter.renderStoredInvoices(view: SavedInvoiceView) {
     h2 { text(view.message("savedList")) }
+    if (view.records.isEmpty() && view.page == 1) {
+        p { text(view.message("savedEmpty")) }
+        return
+    }
     ul {
         view.records.take(INVOICE_PAGE_SIZE).forEach { invoice ->
             li {
@@ -260,7 +264,10 @@ private fun HtmlWriter.invoiceInput(
     control: FormElementId = field.id,
     showErrors: Boolean = true,
 ) {
-    label(attributes = { attribute("for", control.value) }) { text(caption) }
+    label(attributes = { attribute("for", control.value) }) {
+        text(caption)
+        if (field == savedPayment) invoicePaymentTimeExample()
+    }
     input(attributes = {
         formField(field, errors, emptyList(), control)
         attribute("type", type)
