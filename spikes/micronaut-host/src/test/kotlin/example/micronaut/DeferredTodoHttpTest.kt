@@ -20,6 +20,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.EOFException
 import java.net.SocketException
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 import java.util.Base64
 
 class DeferredTodoHttpTest {
@@ -43,6 +47,9 @@ class DeferredTodoHttpTest {
                     val epoch = Jsoup.parse(shell).selectFirst("meta[name=woge-page-epoch]")?.attr("content")
                     assertEquals(emptyList<ReplacePatch>(), body.patches(complete = false))
 
+                    val route = withTimeout(5000) { probe.routeRead.await() }
+                    assertEquals(3, route.count)
+                    assertFalse(eventLoops.any { it.inEventLoop(route.thread) })
                     val active = withTimeout(5000) { probe.active.started.await() }
                     val completed = withTimeout(5000) { probe.completed.started.await() }
                     assertSame(active.context, completed.context)
@@ -54,7 +61,7 @@ class DeferredTodoHttpTest {
                     assertFalse(eventLoops.any { it.inEventLoop(active.thread) })
                     assertFalse(eventLoops.any { it.inEventLoop(completed.thread) })
 
-                    probe.completed.release.complete(2)
+                    probe.completed.release.complete(Unit)
                     body.awaitFrames(2)
                     assertFalse(probe.active.release.isCompleted)
                     val first = body.patches(complete = false).single()
@@ -83,11 +90,11 @@ class DeferredTodoHttpTest {
             response(server, "?limited=true").use { response ->
                 val body = DocumentWire(response)
                 assertTrue(body.awaitFrames(1).contains("Loading active todos"))
-                probe.completed.release.complete(2)
+                probe.completed.release.complete(Unit)
                 body.awaitFrames(2)
                 assertEquals("completed-todos", body.patches(complete = false).single().target.region.value)
 
-                probe.active.release.complete(3)
+                probe.active.release.complete(Unit)
                 try {
                     body.drain()
                 } catch (_: EOFException) {
@@ -127,6 +134,49 @@ class DeferredTodoHttpTest {
                 assertFalse(probe.completed.resumed.isCompleted)
             }
         }
+
+    @Test
+    fun `admission refusal responds before any Woge bytes or region work`() {
+        server().use { server ->
+            val probe = server.applicationContext.getBean(StreamProofController::class.java).deferred
+            HttpClient.newHttpClient().use { client ->
+                val reply = client.send(
+                    request(server, StreamProofController.DEFERRED_PATH + "?denied=true").build(),
+                    HttpResponse.BodyHandlers.ofString(),
+                )
+                assertEquals(503, reply.statusCode())
+                assertEquals("no-store", reply.headers().firstValue("Cache-Control").orElseThrow())
+                assertFalse(reply.body().contains("WOGE_RESOURCE_LIMIT_EXCEEDED"))
+                assertFalse(reply.body().contains("Todo counts"))
+                assertFalse(probe.active.started.isCompleted)
+                assertFalse(probe.completed.started.isCompleted)
+            }
+        }
+    }
+
+    @Test
+    fun `GET and HEAD preserve finalized Woge metadata and host-only cookie`() {
+        server().use { server ->
+            HttpClient.newHttpClient().use { client ->
+                for (method in listOf("GET", "HEAD")) {
+                    val request = request(server, "/stream-proof/metadata")
+                        .method(method, HttpRequest.BodyPublishers.noBody()).build()
+                    val reply = client.send(request, HttpResponse.BodyHandlers.ofString())
+                    assertEquals(200, reply.statusCode())
+                    assertEquals(listOf("first", "second"), reply.headers().allValues("X-Woge-Proof"))
+                    assertEquals("text/html; charset=utf-8", reply.headers().firstValue("Content-Type").orElseThrow().lowercase())
+                    val cookie = reply.headers().allValues("Set-Cookie").single().lowercase().split(';').map(String::trim)
+                    assertTrue(cookie.containsAll(listOf("woge-spike=fixture", "path=/stream-proof", "secure", "httponly", "samesite=strict", "max-age=120")))
+                    assertFalse(cookie.any { it.startsWith("domain=") })
+                    if (method == "HEAD") assertEquals("", reply.body())
+                    else assertTrue(reply.body().contains("Metadata proof"))
+                }
+            }
+        }
+    }
+
+    private fun request(server: EmbeddedServer, path: String): HttpRequest.Builder =
+        HttpRequest.newBuilder(server.url.toURI().resolve(path)).timeout(Duration.ofSeconds(5))
 
     private fun server(): EmbeddedServer =
         ApplicationContext.run(

@@ -23,8 +23,14 @@ final class ChunkedResponse implements AutoCloseable {
     final Map<String, String> headers = new LinkedHashMap<>();
 
     static ChunkedResponse get(EmbeddedServer server, String path, Map<String, String> headers) throws IOException {
+        return get(server, path, headers, 0);
+    }
+
+    static ChunkedResponse get(EmbeddedServer server, String path, Map<String, String> headers, int receiveBuffer)
+            throws IOException {
         var socket = new Socket();
         try {
+            if (receiveBuffer > 0) socket.setReceiveBufferSize(receiveBuffer);
             socket.connect(new InetSocketAddress("127.0.0.1", server.getPort()), 5_000);
             socket.setSoTimeout(5_000);
             var request = new StringBuilder("GET ").append(path)

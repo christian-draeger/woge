@@ -20,7 +20,9 @@ import dev.woge.host.RequestId
 import dev.woge.host.RequestMethod
 import dev.woge.host.RequestSecurity
 import dev.woge.host.RequestTrace
+import dev.woge.host.ResponseMetadata
 import dev.woge.host.RouteParameters
+import dev.woge.host.SameSite
 import dev.woge.host.UnverifiedActionSecurityException
 import dev.woge.host.acceptsActionPatches
 import dev.woge.host.getOrThrow
@@ -44,6 +46,8 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.ServerHttpRequest
+import io.micronaut.http.cookie.Cookie
+import io.micronaut.http.cookie.SameSite as MicronautSameSite
 import io.micronaut.http.exceptions.ContentLengthExceededException
 import io.micronaut.security.authentication.Authentication
 import kotlinx.coroutines.flow.collect
@@ -158,13 +162,12 @@ internal object TodoEndpoints {
     ): MutableHttpResponse<ByteArray> {
         val selected =
             if (result is PageResult.RegionUpdates && !acceptsActionPatches(accept)) result.nativeResult else result
-        val reply = HttpResponse.status<ByteArray>(HttpStatus.valueOf(selected.metadata.status.code))
+        val reply = selected.metadata.micronautResponse<ByteArray>()
         return when (selected) {
             is PageResult.Document -> {
                 val html = StringBuilder()
                 selected.writeTo(HtmlSink { html.append(it) })
-                reply.contentType(requireNotNull(selected.metadata.contentType).value)
-                    .body(html.toString().toByteArray(Charsets.UTF_8))
+                reply.body(html.toString().toByteArray(Charsets.UTF_8))
             }
             is PageResult.Redirect -> reply.header("Location", selected.location.value)
             is PageResult.RegionUpdates -> {
@@ -176,4 +179,25 @@ internal object TodoEndpoints {
             is PageResult.Failure, is PageResult.NotModified -> reply
         }
     }
+}
+
+internal fun <Body> ResponseMetadata.micronautResponse(): MutableHttpResponse<Body> {
+    val response = HttpResponse.status<Body>(HttpStatus.valueOf(status.code))
+    contentType?.let { response.contentType(it.value) }
+    headers.forEach { response.header(it.name.value, it.value.value) }
+    for (metadata in cookies) {
+        val site = when (metadata.sameSite) {
+            SameSite.STRICT -> MicronautSameSite.Strict
+            SameSite.LAX -> MicronautSameSite.Lax
+            SameSite.NONE -> MicronautSameSite.None
+        }
+        val cookie = Cookie.of(metadata.name.value, metadata.value.value)
+            .path(metadata.path.value)
+            .secure(metadata.secure)
+            .httpOnly(metadata.httpOnly)
+            .sameSite(site)
+        metadata.maxAgeSeconds?.let(cookie::maxAge)
+        response.cookie(cookie)
+    }
+    return response
 }
