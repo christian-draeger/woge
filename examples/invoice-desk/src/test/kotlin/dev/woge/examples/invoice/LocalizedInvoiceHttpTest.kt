@@ -1,4 +1,4 @@
-package dev.woge.examples.m1
+package dev.woge.examples.invoice
 
 import dev.woge.host.ACTION_VALIDATION_HEADER
 import dev.woge.host.PageUseCase
@@ -10,6 +10,9 @@ import dev.woge.spring.webflux.WogeWebFluxHandlers
 import dev.woge.spring.webflux.webFluxMultipart
 import dev.woge.spring.webflux.webFluxSubmission
 import dev.woge.ui.UPLOAD_MODULE_PATH
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -296,7 +299,7 @@ private fun withInvoiceHost(
 
 internal fun withInvoiceServer(
     adapter: InvoiceHttpAdapter,
-    saved: SavedInvoiceTestApp? = null,
+    saved: InvoiceDesk? = null,
     verify: (Int) -> Unit,
 ) {
     when (adapter) {
@@ -316,6 +319,19 @@ internal fun withInvoiceServer(
         }
 
         InvoiceHttpAdapter.KTOR -> withKtorInvoiceServer(saved, verify)
+    }
+}
+
+private fun withKtorInvoiceServer(
+    desk: InvoiceDesk?,
+    verify: (Int) -> Unit,
+) {
+    val server = embeddedServer(Netty, host = "127.0.0.1", port = 0) { invoiceRoutes(desk) }.start()
+    try {
+        val connectors = runBlocking { server.engine.resolvedConnectors() }
+        verify(connectors.single().port)
+    } finally {
+        server.stop(1_000, 1_000)
     }
 }
 
@@ -368,7 +384,7 @@ private class InvoiceHost(
         client.send(request, HttpResponse.BodyHandlers.ofByteArray())
 }
 
-private fun invoiceHttpHandler(saved: SavedInvoiceTestApp?): ReactorHttpHandlerAdapter {
+private fun invoiceHttpHandler(saved: InvoiceDesk?): ReactorHttpHandlerAdapter {
     val handlers = WogeWebFluxHandlers()
     val page = handlers.page(PageUseCase<Unit> { localizedInvoicePage(it.context) }, WebFluxPageInput { })
     val action = handlers.action(localizedInvoiceAction, localizedInvoiceDecoder.webFluxSubmission())
@@ -476,7 +492,6 @@ private fun HttpResponse<*>.header(name: String): String = headers().firstValue(
 
 private fun Element.required(selector: String): Element = requireNotNull(selectFirst(selector)) { "Missing $selector" }
 
-internal const val INVOICE_PATH = "/localized-invoice"
 private const val INVALID_DUE_DAY = "31/31/2026 ñ<&"
 private const val INVALID_PAYMENT_TIME = "2026-03-29T02:30<&"
 private const val PAYMENT_INSTANT = "2026-10-11T10:30:00Z"

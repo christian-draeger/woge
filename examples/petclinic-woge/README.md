@@ -69,8 +69,10 @@ node examples/petclinic-woge/browser-tests/owner-suggestions.mjs
 ```
 
 The browser test starts the JAR on loopback and adds 80 synthetic owner rows to a disposable H2
-database. It checks native paging, keyboard and emulated touch selection, strict CSP, a stale
-response, and fallback after a failed import or unavailable endpoint. Physical touch and
+database. From login, it follows search to the owner, books through the original MVC controller
+and verifies a single saved visit after reload. It covers native paging, keyboard and emulated
+touch, strict CSP, a stale suggestion, in-place validation with focus and draft retention, and
+fallback after a failed import or unavailable endpoint. Physical touch and
 assistive-technology review remain [manual work](https://github.com/christian-draeger/woge/issues/253).
 
 ## Run two PetClinic instances on PostgreSQL

@@ -1,4 +1,4 @@
-package dev.woge.examples.m1
+package dev.woge.examples.invoice
 
 import java.math.BigDecimal
 import java.text.MessageFormat
@@ -38,7 +38,7 @@ internal enum class InvoiceLanguage(
     private val amountPattern = Regex("$digits+(?:${Regex.escape(separator.toString())}$digits{1,2})?")
     val messages: ResourceBundle =
         ResourceBundle.getBundle(
-            "dev.woge.examples.m1.InvoiceMessages",
+            "dev.woge.examples.invoice.InvoiceMessages",
             locale,
             ResourceBundle.Control.getNoFallbackControl(
                 ResourceBundle.Control.FORMAT_PROPERTIES,

@@ -38,6 +38,9 @@ with `./gradlew :woge-reference-ktor:run`.
 `./gradlew referenceBrowserSmoke` runs the same enhanced and no-JavaScript journeys through all three
 hosts in Chromium, Firefox and WebKit.
 
+The [application pilots](docs/product/application-pilots.md) show how Woge fits into Spring PetClinic
+and a localized Ktor invoice desk. Both have runnable workflows, regression checks and documented limits.
+
 For a small standalone starting point, see the
 [versioned Spring Boot application scaffold](scaffolds/spring-boot/README.md). It consumes normal Woge
 coordinates, defaults to WebFlux, can select MVC explicitly and starts with type-safe semantic HTML and

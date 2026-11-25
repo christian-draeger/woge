@@ -17,6 +17,7 @@ The documentation grows with executable product slices. Pages describing unimple
 - [Project direction](../README.md)
 - [MVP boundary and definition of done](mvp-boundary.md)
 - [Reference application](product/reference-application.md)
+- [Spring PetClinic and Ktor invoice desk pilots](product/application-pilots.md)
 - [Architecture decision records](adr/README.md)
 
 ## Canonical architecture guidance

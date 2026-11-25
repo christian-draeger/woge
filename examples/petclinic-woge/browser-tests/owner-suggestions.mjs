@@ -45,6 +45,7 @@ try {
   const address = await origin();
   browser = await chromium.launch();
   const searchPath = `${address}/woge/owners`;
+  const visitPath = "/owners/1/pets/1/visits/new";
   const suggestions = page => page.getByRole("list", { name: "Owner suggestions" });
   const searchResults = page => page.getByRole("list", { name: "Owner search results" });
   async function signedIn(options = {}, configure = async () => {}) {
@@ -59,6 +60,42 @@ try {
     return page;
   }
 
+  async function bookVisit(page, enhanced) {
+    const description = enhanced ? "Review Leo's appetite" : "Check Leo's vaccination record";
+    await page.getByRole("link", { name: "Record a visit for Leo" }).click();
+    const date = page.getByLabel("Date", { exact: true });
+    const tomorrow = await date.getAttribute("min");
+    assert(tomorrow);
+    await page.getByLabel("Description", { exact: true }).fill(description);
+    async function submitVisit() {
+      const response = page.waitForResponse(result =>
+        new URL(result.url()).pathname === visitPath && result.request().method() === "POST");
+      await page.getByRole("button", { name: "Add visit" }).click();
+      return await response;
+    }
+    if (enhanced) {
+      // Simulate an open form whose browser constraint has become stale since it was rendered.
+      await date.evaluate(node => node.removeAttribute("min"));
+      const expired = new Date(Date.parse(tomorrow) - 2 * 86_400_000).toISOString().slice(0, 10);
+      await date.fill(expired);
+      const rejected = await submitVisit();
+      assert.equal(rejected.status(), 400);
+      assert.equal(rejected.request().resourceType(), "fetch");
+      const summary = page.getByRole("region", { name: "Check your visit" });
+      await summary.getByRole("link", { name: "Visit date must be in the future" }).waitFor();
+      assert.equal(await summary.evaluate(node => node === document.activeElement), true);
+      assert.equal(await page.getByLabel("Description", { exact: true }).inputValue(), description);
+    }
+    await date.fill(tomorrow);
+    const saved = await submitVisit();
+    assert.equal(saved.status(), enhanced ? 200 : 302);
+    assert.equal(saved.request().resourceType(), enhanced ? "fetch" : "document");
+    await page.waitForURL(url => url.pathname === "/owners/1");
+    await page.getByText(description, { exact: true }).waitFor();
+    await page.reload();
+    assert.equal(await page.getByText(description, { exact: true }).count(), 1);
+  }
+
   const native = await signedIn({ javaScriptEnabled: false });
   await native.getByLabel("Last name").fill("No");
   await native.getByRole("button", { name: "Find owners" }).click();
@@ -68,8 +105,13 @@ try {
   }
   await native.getByRole("link", { name: "Resident 80 North" }).click();
   await native.getByRole("heading", { name: "Resident 80 North" }).waitFor();
+  await native.goto(searchPath);
+  await native.getByLabel("Last name").fill("Fr");
+  await native.getByRole("button", { name: "Find owners" }).click();
+  await searchResults(native).getByRole("link", { name: "George Franklin" }).click();
+  await bookVisit(native, false);
   await native.context().close();
-  console.log("PASS JavaScript off: paged native search reaches owner 80");
+  console.log("PASS JavaScript off: paged search reaches owner 80 and booking saves once via native MVC");
 
   const enhanced = await signedIn({}, page => page.addInitScript(() => {
     window.cspViolations = [];
@@ -103,8 +145,10 @@ try {
   assert.equal(await franklin.evaluate(node => node === document.activeElement), true);
   await enhanced.keyboard.press("Enter");
   await enhanced.getByRole("heading", { name: "George Franklin" }).waitFor();
+  await bookVisit(enhanced, true);
   await enhanced.context().close();
   console.log(`PASS stale response, strict CSP and keyboard navigation (local type-to-link ${latency.toFixed(1)} ms)`);
+  console.log("PASS enhanced booking: server validation focuses summary, keeps draft and saves once via existing MVC");
 
   const touch = await signedIn({ hasTouch: true });
   await touch.getByLabel("Last name").fill("No");

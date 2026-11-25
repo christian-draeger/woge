@@ -1,4 +1,4 @@
-package dev.woge.examples.m1
+package dev.woge.examples.invoice
 
 import dev.woge.host.CorrelationId
 import dev.woge.host.CsrfVerification
