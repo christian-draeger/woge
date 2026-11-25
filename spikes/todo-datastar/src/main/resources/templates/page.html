@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" th:attr="data-nonce=${nonce}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Todos</title>
+    <link rel="stylesheet" href="/todo.css">
+    <script type="module" src="/datastar.js"></script>
+</head>
+<body>
+    <main th:attr="data-invalid=${hasError}" data-signals:_version="0" data-signals:_uncertain="false"
+          data-init="$_invalid = el.dataset.invalid === 'true'; @get('/events', {openWhenHidden: true, retry: 'always'})">
+        <h1>Todos</h1>
+        <nav aria-label="Filter todos">
+            <a th:each="choice : ${choices}" th:href="|/?filter=${choice}|"
+               th:attr="aria-current=${choice == snapshot.filter ? 'page' : null}"
+               th:text="${#strings.capitalize(choice)}">All</a>
+        </nav>
+        <div th:replace="~{errors}"></div>
+        <form id="add-todo" method="post" action="/woge-actions/add-todo"
+              data-indicator:_adding
+              data-on:submit="if (!$_adding) { $_uncertain = false; @post('/woge-actions/add-todo', {contentType: 'form', retry: 'never'}).catch(() => { $_uncertain = true }) }"
+              data-on:datastar-fetch__window="if (evt.detail.el === el &amp;&amp; (evt.detail.type === 'retries-failed' || (evt.detail.type === 'error'))) $_uncertain = true">
+            <label for="todo-title">New todo</label>
+            <input id="todo-title" name="title" required maxlength="120" th:value="${draft}"
+                   th:attr="aria-invalid=${hasError ? 'true' : null},aria-describedby=${hasError ? 'todo-errors' : null}"
+                   data-attr:aria-invalid="$_invalid ? 'true' : null"
+                   data-attr:aria-describedby="$_invalid ? 'todo-errors' : null">
+            <input type="hidden" name="filter" th:value="${snapshot.filter}">
+            <button data-attr:disabled="$_adding">Add todo</button>
+        </form>
+        <div th:attr="data-filter=${snapshot.filter},data-initial-version=${snapshot.todos.size()}"
+             data-effect="if ($_version &amp;&amp; $_version !== Number(el.dataset.initialVersion)) @get('/board?filter=' + el.dataset.filter, {openWhenHidden: true})">
+            <div th:replace="~{board}"></div>
+        </div>
+        <p id="todo-status" role="status"></p>
+        <p id="todo-alert" role="alert" data-text="$_uncertain ? 'Could not confirm the result. Reload before submitting again.' : ''"></p>
+    </main>
+</body>
+</html>
