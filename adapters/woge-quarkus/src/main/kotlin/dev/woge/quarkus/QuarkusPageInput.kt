@@ -62,19 +62,23 @@ public fun <Command : Any> FormDecoder<Command>.quarkusMultipart(
         val body = withContext(Dispatchers.IO) { multipartBody(headers, policy) }
         var submission: MultipartSubmission<Command>? = null
         try {
-            call.readBody { buffer ->
-                val bytes = buffer.bytes
-                withContext(Dispatchers.IO) { body.accept(bytes) }
-                true
-            }
-            withContext(Dispatchers.IO) {
-                body.finish().also { submission = it }
+            try {
+                call.readBody { buffer ->
+                    val bytes = buffer.bytes
+                    withContext(Dispatchers.IO) { body.accept(bytes) }
+                    true
+                }
+                withContext(Dispatchers.IO) {
+                    body.finish().also { submission = it }
+                }
+            } finally {
+                withContext(NonCancellable + Dispatchers.IO) { body.close() }
             }
         } catch (failure: Throwable) {
-            withContext(NonCancellable + Dispatchers.IO) { submission?.close() }
+            withContext(NonCancellable + Dispatchers.IO) {
+                runCatching { submission?.close() }.exceptionOrNull()?.let(failure::addSuppressed)
+            }
             throw failure
-        } finally {
-            withContext(NonCancellable + Dispatchers.IO) { body.close() }
         }
     }
 

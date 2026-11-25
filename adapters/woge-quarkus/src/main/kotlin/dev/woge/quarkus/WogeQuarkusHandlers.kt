@@ -9,6 +9,7 @@ import dev.woge.host.LiveLimits
 import dev.woge.host.LiveRegionPage
 import dev.woge.host.LiveUseCase
 import dev.woge.host.MUTATION_REQUEST_IDENTITY_HEADER
+import dev.woge.host.MultipartSubmission
 import dev.woge.host.MutationRequestIdentityException
 import dev.woge.host.PageRequest
 import dev.woge.host.PageResult
@@ -35,7 +36,6 @@ import dev.woge.host.requireActionSecurity
 import dev.woge.host.withFailurePages
 import dev.woge.host.withMutationRequestIdentity
 import dev.woge.host.withRenderSession
-import dev.woge.host.withUploadCleanup
 import dev.woge.protocol.PatchId
 import dev.woge.runtime.DeferredRegionExecutor
 import dev.woge.runtime.DeferredRegionLimitException
@@ -61,6 +61,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -224,15 +225,13 @@ public class WogeQuarkusHandlers(
                         .getAll("Cookie")
                         .joinToString(";")
                 val result =
-                    withContext(Dispatchers.Default) {
-                        request.withUploadCleanup {
-                            observer.observeOperation(
-                                WogeOperation.PAGE_REQUEST,
-                                context.observation(),
-                                { it.observationOutcome() },
-                            ) {
-                                initialDocuments.prepare(page.open(request), cookies, context.trace)
-                            }
+                    request.onWorker {
+                        observer.observeOperation(
+                            WogeOperation.PAGE_REQUEST,
+                            context.observation(),
+                            { it.observationOutcome() },
+                        ) {
+                            initialDocuments.prepare(page.open(request), cookies, context.trace)
                         }
                     }
                 val finalized = result.withFailurePages(failurePages).forHttpRequest(method, condition, modifiedSince)
@@ -348,4 +347,27 @@ private suspend fun HttpServerResponse.unsupportedProtocol() {
 
 private suspend fun HttpServerResponse.endNoStore(status: ResponseStatus) {
     setStatusCode(status.code).putHeader("Cache-Control", "no-store").end().coAwait()
+}
+
+@Suppress("TooGenericExceptionCaught")
+private suspend fun PageRequest<*>.onWorker(block: suspend () -> PageResult): PageResult {
+    val upload = input as? MultipartSubmission<*>
+    var operationFailure: Throwable? = null
+    try {
+        return withContext(Dispatchers.Default) { block() }
+    } catch (failure: Throwable) {
+        operationFailure = failure
+        throw failure
+    } finally {
+        if (upload != null) {
+            withContext(NonCancellable + Dispatchers.IO) {
+                val failure = operationFailure
+                if (failure == null) {
+                    upload.close()
+                } else {
+                    runCatching { upload.close() }.exceptionOrNull()?.let(failure::addSuppressed)
+                }
+            }
+        }
+    }
 }
