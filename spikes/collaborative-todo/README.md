@@ -2,7 +2,9 @@
 
 This fixture compares the packaged Woge Todo after [#276](https://github.com/christian-draeger/woge/issues/276)
 with independently run Rails, Turbo and Action Cable. See the [workload manifest](workload.md) for
-runtime versions, observable outcomes and the boundaries of the study.
+runtime versions, observable outcomes and the boundaries of the study. The dated
+[comparison results](../../docs/performance/collaborative-todo-2026-11-25.md) include the
+raw rounds and findings for both HTTP and the enhanced path.
 
 ## Run both packages
 

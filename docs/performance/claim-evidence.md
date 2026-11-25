@@ -37,6 +37,12 @@ environment and workload behavior and remains a separate historical record.
 | --- | --- | --- | --- |
 | C09 verified, bounded | Independently packaged Woge WebFlux, MVC and Ktor each completed the same read-only deferred project journey at 8 and 24 scheduled arrivals/s. All 2,304 measured journeys were correct within 750 ms, and median round p95 values across hosts were 380.1–387.7 ms. [Study and raw evidence](reference-project-deferred-2026-11-25.md) | Linux arm64, Temurin 21.0.12.1+1, 2 CPU and 2 GiB, three eight-second blocks per host and rate. The immutable fixture includes a 360 ms regional delay. Revalidate after changing the project fixture, host packages, protocol or runtime. Capacity and renderer comparisons require separate measurements. | The same deferred Woge project completed correctly on all three tested hosts at both declared load points. |
 
+## Two-person Woge and Hotwire comparison
+
+| ID and status | Use case, metric and result | Limits and revalidation | Supported wording |
+| --- | --- | --- | --- |
+| C10 bounded, mixed | All three configurations completed the native task. The two-user filtered edit passed all Woge and permanent-form runs and two of three default Hotwire runs. A permanent form restored draft and held-control behavior on Hotwire. Woge caught up after reconnect and committed once after the injected lost response. Both Hotwire variants produced duplicate writes in that fault. [Study and raw evidence](collaborative-todo-2026-11-25.md) | Chromium, 40 ms injected loopback RTT, two subscribers and process-local transport and storage. The lost-response result covers the tested app, browser and fault together. Revalidate after changing form preservation, recovery, transport or persistent mutation handling. | The two-user fixture showed different draft and failure-recovery behavior under explicit browser and transport conditions. |
+
 ## Claims awaiting matching evidence
 
 | ID and status | Question and current evidence boundary | Revalidation and supported wording |
