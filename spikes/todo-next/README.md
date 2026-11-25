@@ -2,6 +2,8 @@
 
 This [#277 study](https://github.com/christian-draeger/woge/issues/277) uses the ten-row dataset, title rules and CSS from the [frozen #269 Todo comparison](../todo-framework-comparison/README.md). The independent distributions are Next.js Pages Router 16.4.6 with React 19.3.1 and Node 24.22.3 LTS, and the [standalone KTE/htmx WebFlux baseline from #341](https://github.com/christian-draeger/woge/pull/341). An unchanged standalone Woge WebFlux Todo was also presented to the parity gate. The deployment uses standalone output, server-side rendering and React’s static HTML renderer for native validation. [Next.js standalone output](https://nextjs.org/docs/pages/api-reference/config/next-config-js/output) · [Pages Router SSR](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props) · [React static HTML](https://react.dev/reference/react-dom/server/renderToStaticMarkup).
 
+The [follow-up deployment study](matched-draft-study.md) includes all three applications in a separate run with a new draft typed before the Add reaches the server. Its parity gate and build/cache evidence apply to that scoped task.
+
 ## Reproduce
 
 With Node 24.22.3, npm 11.19.1 and JDK 21, use a disposable checkout containing this study and the maintained Todo CSS. The host browser probe uses the repository’s existing Playwright dependencies.
