@@ -41,6 +41,7 @@ class WogeKtorQuickstartTest {
     private fun verifyApplication(origin: String) {
         val shell = get(origin, "/projects/woge")
         assertEquals(200, shell.statusCode())
+        assertEquals("no-store", shell.header("cache-control"))
         assertEquals(REFERENCE_CONTENT_SECURITY_POLICY, shell.header("content-security-policy"))
         assertTrue(shell.header("content-type").startsWith("text/html"))
         assertTrue(shell.body().startsWith("<!doctype html><html lang=\"en\">"))
@@ -55,6 +56,7 @@ class WogeKtorQuickstartTest {
         val patchUrl = PATCH_URL.find(shell.body())!!.groupValues[1]
         val patchResponse = getBytes(origin, patchUrl)
         assertEquals(200, patchResponse.statusCode())
+        assertEquals("no-store, no-transform", patchResponse.header("cache-control"))
         assertTrue(patchResponse.header("content-type").startsWith("application/vnd.woge.patch-stream"))
         val events = decode(patchResponse.body())
         val frames = events.filterIsInstance<PatchStreamEvent.PatchFrame>()
@@ -70,9 +72,49 @@ class WogeKtorQuickstartTest {
         assertEquals(400, get(origin, "/projects/woge?view=unknown").statusCode())
         assertEquals(404, get(origin, "/projects/woge/woge-patches/invalid-epoch").statusCode())
 
-        assertTrue(get(origin, "/assets/application.css").body().contains("@container (width >= 32rem)"))
-        assertTrue(get(origin, "/assets/application.js").body().contains("createWogePatchRuntime"))
-        assertTrue(get(origin, "/assets/woge/index.js").body().contains("export function createWogePatchRuntime"))
+        verifyAssets(origin)
+    }
+
+    private fun verifyAssets(origin: String) {
+        val assets =
+            mapOf(
+                "/assets/application.css" to "@container (width >= 32rem)",
+                "/assets/application.js" to "createWogePatchRuntime",
+                "/assets/woge/index.js" to "export function createWogePatchRuntime",
+                "/assets/woge-ui/dialog.js" to "dialog",
+            )
+        for ((path, expectedText) in assets) {
+            val asset = get(origin, path)
+            assertEquals(200, asset.statusCode(), path)
+            assertTrue(asset.body().contains(expectedText), path)
+            val cacheDirectives =
+                asset
+                    .header("cache-control")
+                    .split(',')
+                    .map(String::trim)
+                    .toSet()
+            assertEquals(setOf("public", "max-age=60"), cacheDirectives, path)
+            val etag = asset.header("etag")
+            assertTrue(etag.startsWith('"') && etag.endsWith('"') && etag.length > 2, path)
+
+            val head = request(origin, path, "HEAD")
+            assertEquals(200, head.statusCode(), path)
+            assertEquals(etag, head.header("etag"), path)
+            assertEquals("", head.body(), path)
+            for (method in listOf("GET", "HEAD")) {
+                val matching = request(origin, path, method, etag)
+                assertEquals(304, matching.statusCode(), path)
+                assertEquals(etag, matching.header("etag"), path)
+                assertEquals("", matching.body(), path)
+            }
+            val changed = request(origin, path, "GET", "\"other-version\"")
+            assertEquals(200, changed.statusCode(), path)
+            assertEquals(asset.body(), changed.body(), path)
+        }
+        val missing = get(origin, "/assets/not-present.css")
+        assertEquals(404, missing.statusCode())
+        assertTrue(missing.headers().allValues("cache-control").isEmpty())
+        assertTrue(missing.headers().allValues("etag").isEmpty())
     }
 
     private fun decode(bytes: ByteArray): List<PatchStreamEvent> {
@@ -85,11 +127,19 @@ class WogeKtorQuickstartTest {
     private fun get(
         origin: String,
         path: String,
-    ): HttpResponse<String> =
-        CLIENT.send(
-            HttpRequest.newBuilder(URI.create(origin + path)).GET().build(),
-            HttpResponse.BodyHandlers.ofString(),
-        )
+    ): HttpResponse<String> = request(origin, path, "GET")
+
+    private fun request(
+        origin: String,
+        path: String,
+        method: String,
+        etag: String? = null,
+    ): HttpResponse<String> {
+        val builder =
+            HttpRequest.newBuilder(URI.create(origin + path)).method(method, HttpRequest.BodyPublishers.noBody())
+        if (etag != null) builder.header("If-None-Match", etag)
+        return CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString())
+    }
 
     private fun getBytes(
         origin: String,

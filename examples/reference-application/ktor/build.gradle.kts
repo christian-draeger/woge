@@ -12,6 +12,7 @@ application {
 dependencies {
     implementation(project(":woge-reference-shared"))
     implementation(project(":woge-ktor"))
+    implementation(libs.ktorServerConditionalHeaders)
     implementation(libs.ktorServerNetty)
 
     testImplementation(libs.junitJupiter)

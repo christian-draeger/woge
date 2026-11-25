@@ -24,14 +24,18 @@ import dev.woge.example.project.TaskBoardRoute
 import dev.woge.example.project.boardTaskForm
 import dev.woge.ktor.WogeKtorHandlers
 import dev.woge.ktor.ktorInput
+import io.ktor.http.CacheControl
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.call
+import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.http.content.ETagProvider
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.head
@@ -73,7 +77,13 @@ public fun Application.wogeReferenceModule() {
         get(BoardActivityRoute.path) { boardActivity.handle(call) }
         get(BoardLiveRoute.path) { boardLive.handle(call) }
         post(AddBoardTaskAction.path) { boardAction.handle(call) }
-        staticResources("/assets", "static/assets")
+        staticResources("/assets", "static/assets") {
+            cacheControl {
+                listOf(CacheControl.MaxAge(ASSET_CACHE_SECONDS, visibility = CacheControl.Visibility.Public))
+            }
+            etag(ETagProvider.StrongSha256)
+            enableAutoHeadResponse()
+        }.install(ConditionalHeaders)
     }
 }
 
@@ -92,6 +102,7 @@ public fun main() {
     }.start(wait = true)
 }
 
+private const val ASSET_CACHE_SECONDS = 60
 private const val DEFAULT_HTTP_PORT = 8080
 private const val MAX_TCP_PORT = 65535
 private const val SHUTDOWN_GRACE_MILLIS = 1000L
