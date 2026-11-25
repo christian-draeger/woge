@@ -102,6 +102,52 @@ Client body publication proves delivery to the JDK client, not that bytes reache
 Passing attempts establish only that the original timeout was not reproduced; they do not resolve
 [#278](https://github.com/christian-draeger/woge/issues/278).
 
+For a focused check of the gap between client publication and Netty reads, enable
+`loopback_kernel_control` when manually dispatching the **Multipart diagnostics** workflow.
+The ordinary PR and manual diagnostics paths retain their existing behavior. The opt-in job
+runs the same WebFlux shared TCK on native Linux amd64, with a dedicated namespace containing
+only loopback. Enable `loopback_parallel_hosts` as well to let the unchanged MVC and Ktor
+contracts run concurrently with WebFlux in the same namespace. Both modes exclude browser and
+Docker proxy work. Parallel results record the fresh JUnit windows for each host and require
+both peer contracts to overlap WebFlux.
+
+Run the control from a fresh Linux checkout as an unprivileged user with passwordless sudo,
+JDK 21, Node 24, Python 3, `iproute2` and `tcpdump`. Prepare the test runtime outside the
+namespace first, so Gradle can resolve the pinned dependencies and build the test classes.
+
+```shell
+./gradlew --no-daemon --no-build-cache --console=plain \
+  :woge-spring-webflux:test --tests '*WebFluxSecurityFormTest'
+python3 testing/diagnostics/multipart-kernel-control.py
+```
+
+For the parallel case, also prepare `:woge-spring-mvc:test --tests '*SpringSecurityFormTest'`
+and `:woge-ktor:test --tests '*KtorSecurityFormTest'` outside the namespace. Then run the
+control with `--parallel-hosts`.
+
+The script creates a unique namespace, brings up only `lo`, and starts
+the capture before launching the test. Gradle runs as the invoking user with the
+prepared JDK and dependency cache, offline and without reusing an outside daemon.
+There are at most three attempts, each with a 75-second test deadline and a
+10,000-packet ceiling. On exit the script interrupts the capture to flush counters,
+stops remaining fixture processes and deletes its namespace.
+
+The capture retains only timestamp, loopback ports, TCP flags, sequence and acknowledgment
+numbers, and TCP payload length. Payload contents and raw packet captures are excluded.
+`build/multipart-loopback` retains each attempt's test log, fresh JUnit XML when
+available, filtered TCP text, capture counters and the existing
+[correlation report](../../testing/diagnostics/multipart-loopback.py). An incomplete,
+dropped or capped capture cannot support a correlation. The run stops on the
+first failed test or evidence check.
+
+Compare client-to-server byte counts and server ACKs with the `netty.socket` and
+`netty.frame` events. An early packet and ACK followed by a late Netty read places
+the gap after kernel delivery. A late first packet leaves the gap before that boundary.
+If case 6 never decodes a request header, the report can only attribute packets to
+the case 5 socket. Use the timeline for large gaps and account for wall-clock
+adjustment when comparing close events. A passing single-host control leaves
+the original parallel-host failure and the separate Ktor symptom open.
+
 Each build CI job has a 15-minute limit, including setup and smoke tests. A timeout is a failure,
 not a reason to rerun indefinitely or increase the limit. Locally, use `./gradlew check --console=plain`
 to see progress. If a task stops progressing well beyond its usual duration, inspect its process and

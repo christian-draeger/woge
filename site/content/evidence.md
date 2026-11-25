@@ -9,7 +9,7 @@ Run the fixed `0.1.0-demo.1` image on Docker's `linux/amd64` platform. It uses W
 
 ## Explore other maintained examples
 
-- **A project dashboard.** Watch independent sections complete or load the same data as one complete page. The reference has launchers for WebFlux, MVC and Ktor. [Run the reference application](https://github.com/christian-draeger/woge/blob/main/examples/reference-application/README.md)
+- **A project dashboard.** Watch independent sections complete or load the same data as one complete page. The reference has launchers for WebFlux, MVC and Ktor. [Run the reference application](https://github.com/christian-draeger/woge/blob/main/examples/reference-application/README.md) · [Build a local OCI image](https://github.com/christian-draeger/woge/blob/main/examples/reference-application/README.md#build-a-local-reference-image)
 - **A feature inside secured Spring MVC.** Book a PetClinic visit through its existing controller, login and validation. The example covers native and enhanced submission with the same persistence write. [Try the PetClinic reference](https://github.com/christian-draeger/woge/blob/main/examples/petclinic-woge/README.md)
 
 ## Read results in context

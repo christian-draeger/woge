@@ -1,11 +1,17 @@
 package dev.woge.html
 
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
+import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.config.Services
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
@@ -69,6 +75,12 @@ class HtmlCompilerBoundaryTest {
         assertFixtureHasDiagnostics("html-script-content", "cannot be called in this context", "text")
     }
 
+    @Test
+    fun `an isolated consumer can compile typed HTML`() {
+        val (exit, diagnostics) = compileFixture("typed-html")
+        assertEquals(ExitCode.OK, exit, diagnostics.allErrors())
+    }
+
     private fun assertFixtureFails(
         name: String,
         expectedType: String,
@@ -91,66 +103,58 @@ class HtmlCompilerBoundaryTest {
     }
 
     private fun compileFixtureAndFail(name: String): String {
-        val fixtureDirectory = projectDirectory.resolve(name).createDirectories()
-        val repositoryRoot = Path.of(requireNotNull(System.getProperty("woge.repository.root")))
-        val coreJar = Path.of(requireNotNull(System.getProperty("woge.core.jar")))
+        val (exit, diagnostics) = compileFixture(name)
+        assertEquals(ExitCode.COMPILATION_ERROR, exit, diagnostics.allErrors())
+        return diagnostics.sourceErrors().also {
+            assertTrue(it.isNotBlank(), diagnostics.allErrors())
+        }
+    }
 
-        fixtureDirectory.resolve("settings.gradle.kts").writeText(
-            """
-            pluginManagement {
-                includeBuild("${repositoryRoot.resolve("build-logic").asKotlinString()}")
-                repositories {
-                    gradlePluginPortal()
-                    mavenCentral()
-                }
+    private fun compileFixture(name: String): Pair<ExitCode, FixtureDiagnostics> {
+        val fixture = projectDirectory.resolve(name).createDirectories().resolve("Fixture.kt")
+        val resource = requireNotNull(javaClass.getResource("/compiler-fixtures/$name.kt")).toURI()
+        fixture.writeText(Path.of(resource).readText())
+
+        val coreJar = requireNotNull(System.getProperty("woge.core.jar"))
+        val dependencies = requireNotNull(System.getProperty("woge.core.fixture.classpath"))
+        val arguments =
+            K2JVMCompilerArguments().apply {
+                classpath = listOf(coreJar, dependencies).joinToString(File.pathSeparator)
+                noStdlib = true
+                noReflect = true
+                jvmTarget = "17"
+                explicitApi = "strict"
+                destination = fixture.parent.resolve("classes").toString()
+                freeArgs = listOf(fixture.toString())
             }
-
-            rootProject.name = "html-$name-negative-fixture"
-            """.trimIndent(),
-        )
-        fixtureDirectory.resolve("build.gradle.kts").writeText(
-            """
-            plugins {
-                id("dev.woge.kotlin-jvm-library")
-            }
-
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                implementation(files("${coreJar.asKotlinString()}"))
-                compileOnly("org.jetbrains:annotations:26.1.0")
-            }
-            """.trimIndent(),
-        )
-
-        val sourceDirectory = fixtureDirectory.resolve("src/main/kotlin/fixture").createDirectories()
-        val fixtureSource =
-            requireNotNull(javaClass.getResource("/compiler-fixtures/$name.kt"))
-                .toURI()
-                .let(Path::of)
-                .readText()
-        sourceDirectory.resolve("Fixture.kt").writeText(fixtureSource)
-
-        val result =
-            GradleRunner
-                .create()
-                .withProjectDir(fixtureDirectory.toFile())
-                .withArguments("compileKotlin", "--stacktrace", "--no-configuration-cache")
-                .buildAndFail()
-
-        // Settings and included-build errors cannot prove a compiler boundary in the fixture.
-        assertEquals(TaskOutcome.FAILED, result.task(":compileKotlin")?.outcome, result.output)
-        val fixturePath = "/src/main/kotlin/fixture/Fixture.kt:"
-        val diagnostics =
-            result.output
-                .lineSequence()
-                .filter { it.startsWith("e: file:") && fixturePath in it }
-                .joinToString("\n") { it.substringAfter(fixturePath) }
-        assertTrue(diagnostics.isNotBlank(), result.output)
-        return diagnostics
+        val diagnostics = FixtureDiagnostics(fixture)
+        return K2JVMCompiler().exec(diagnostics, Services.EMPTY, arguments) to diagnostics
     }
 }
 
-private fun Path.asKotlinString(): String = toAbsolutePath().toString().replace("\\", "\\\\").replace("\"", "\\\"")
+private class FixtureDiagnostics(
+    private val source: Path,
+) : MessageCollector {
+    private val errors = mutableListOf<Pair<String?, String>>()
+
+    override fun clear() {
+        errors.clear()
+    }
+
+    override fun hasErrors(): Boolean = errors.isNotEmpty()
+
+    override fun report(
+        severity: CompilerMessageSeverity,
+        message: String,
+        location: CompilerMessageSourceLocation?,
+    ) {
+        if (severity.isError) errors += location?.path to message
+    }
+
+    fun allErrors(): String = errors.joinToString("\n") { (path, message) -> "${path ?: "<compiler>"}: $message" }
+
+    fun sourceErrors(): String =
+        errors
+            .filter { (path, _) -> path != null && Path.of(path) == source }
+            .joinToString("\n") { (_, message) -> message }
+}

@@ -68,4 +68,4 @@ private fun invoiceContext(call: ApplicationCall): RequestContext {
     )
 }
 
-private val invoiceLanguages = setOf("de-de", "en-us")
+private val invoiceLanguages = InvoiceLanguage.entries.map { it.tag.lowercase(Locale.ROOT) }.toSet()

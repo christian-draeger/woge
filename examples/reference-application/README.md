@@ -44,6 +44,13 @@ uses its installed application distribution. Open the URL printed by the runner 
 Ctrl+C. The project and board start from the same fixture data in each new process. Edits are
 stored in memory for that process. The packaged runner starts the ordinary reference profile.
 
+Use `run` or a local image to show the application, `verify` to check behavior, and `measure` to
+collect isolated browser timing samples. Keep walkthroughs and timing runs in separate processes.
+Public shared-host timings describe that visit only. A public mutable deployment has separate
+provisioning, work and storage limits, reset and isolation requirements. This fixture's notes and
+task board retain additions until the process stops. Run the local reference without production
+secrets or data.
+
 To verify the shared browser journeys against the packaged artifacts, first install the pinned
 browser tooling in `client/woge-fallback-client` with `npm ci` and
 `npx playwright install chromium firefox webkit`. Then run from the repository root:
@@ -68,6 +75,48 @@ are in `measurement/browser-budget.json`. These samples describe the selected fi
 Use the [comparison contract](../../docs/performance/comparison-contract.md) for independent
 performance experiments and comparisons. The separate packaged
 [Todo release](../../docs/guides/todo-container.md) has its own version and deployment rules.
+The [25 November 2026 three-host study](../../docs/performance/reference-project-deferred-2026-11-25.md)
+records the pinned source, versions, resource limits, raw outcomes and experimental scope for a
+separate run of the shared deferred-project workload.
+
+### Build a local reference image
+
+With Docker running, build exactly one of the same packaged hosts. The runner uses a pinned
+Java 21 image and records the source revision, Woge version, packaged file hashes, platform
+and image ID under `build/reference-demo`.
+
+```shell
+python3 scripts/reference-demo.py image spring-webflux
+python3 scripts/reference-demo.py image spring-mvc
+python3 scripts/reference-demo.py image ktor
+```
+
+Substitute the image tag printed by the selected build.
+
+```shell
+docker run --rm --cpus 2 --memory 512m --read-only --tmpfs /tmp \
+  -p 127.0.0.1:18083:8080 woge-reference-ktor:<printed-revision>
+```
+
+Open `http://127.0.0.1:18083/projects/woge`. Use the same limits and pin the image ID for a
+controlled study. These images are local source builds. The in-memory fixture resets when
+the container exits. The port mapping keeps the demonstration on loopback.
+
+## Walk through the shared fixture
+
+Start a [packaged host](#try-the-packaged-reference) and use its printed origin for the paths below.
+
+1. Open `/projects/woge` and watch the regions fill independently. Open it again with JavaScript
+   disabled and follow **Load all project data as one complete page**.
+2. Turn JavaScript back on. On `/notes`, enter one space in **New note** and choose **Add note**.
+   Check the validation message, replace the space with a short note and submit it. Reload and check
+   that it appears once.
+3. Follow **Task board** from the project and add a task. Enter its title in **Filter tasks** and
+   choose **Apply filter**. With JavaScript disabled, repeat with a different title and refresh the
+   board after saving to check that the native flow adds it once.
+4. With JavaScript enabled, open the unfiltered board in two tabs. Leave an unsent **Task title**
+   draft in the first tab and add a different task in the second. Return to the first tab and check
+   that its draft remains. Use **Show the latest board** to see the new task.
 
 ## Follow the web flow
 
@@ -94,8 +143,8 @@ The generated `AddBoardTaskAction` supplies the ordinary form URL; `BoardSummary
 application-selected CSS patch selectors. Hidden controls use HTML's `form="board-form"` attribute,
 so the same command is submitted natively and through browser `FormData`.
 
-This is a public, in-memory demo board, not a production authentication example. The built-in action
-context checks same-origin requests before reading the action body. A mismatched Origin or missing
+The demo board stores state in memory and accepts same-origin actions without a sign-in. The built-in
+action context checks same-origin requests before reading the action body. A mismatched Origin or missing
 same-origin evidence is rejected with 403. For TLS-terminating proxies, configure trusted forwarded
 headers so the observed origin matches the public URL. Deployed applications should also configure
 their normal authentication and, when needed, token-based CSRF policy; see the
@@ -117,20 +166,33 @@ The browser fixtures deliberately apply an older search response after a newer o
 action response while submitting again, so ordering and duplicate suppression are deterministic
 on all three hosts.
 
-When another visitor adds a task, open boards show a live notice: "1 new task was added. Show the
-latest board". The page opens `GET /projects/woge/tasks/live/{epoch}` with `EventSource`. That stream
+When another visitor adds a task, open boards show the live notice "1 task changed. Show the latest
+board". The page opens `GET /projects/woge/tasks/live/{epoch}` with `EventSource`. That stream
 names only the activity region; the browser then loads the notice with the safe
 `GET /projects/woge/tasks/activity/{epoch}/{target}/{revision}/{interaction}?since=<version>`.
 The notice is ordinary, non-live HTML: it stays silent, never moves focus and links to the normal
 board instead of changing the list under the user's cursor. A polite live summary is appropriate only
 after the user explicitly chooses to follow updates. Without JavaScript or the stream, the board works as before.
 
-[`shared`](shared) contains the host-neutral `ProjectPage`, semantic HTML, region work and web assets.
-[`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and [`ktor`](ktor) contain only their
-host-specific startup, routes and real-server integration tests. The example consumes root projects
-and is verified by `./gradlew check`; it is executable documentation, not a published Woge artifact.
-Its runtime classpath includes the public `woge-fallback-client-assets` integration instead of copying
-browser-runtime source into the example build.
+## Maintain the shared fixture
+
+[`shared`](shared) owns the seeded data, page behavior, markup, and web assets. [`shared-rules`](shared-rules)
+owns the shared note validation. [`spring-webflux`](spring-webflux), [`spring-mvc`](spring-mvc) and
+[`ktor`](ktor) own their startup, request and transport bindings, and real-server integration tests.
+The [shared browser suite](../../client/woge-fallback-client/reference-browser-tests) checks the
+same journeys on those packages. [The runner](../../scripts/reference-demo.py) owns packaged
+launches and their evidence manifests.
+
+After changing fixture data, behavior or assets, run `./gradlew check` and rerun `verify` on all
+three packaged hosts. Include the [adapter contract checks](../../testing/woge-adapter-tck) when
+changing a host boundary. Add a Quarkus slot after its full adapter contract passes. [Quarkus contract](https://github.com/christian-draeger/woge/issues/298)
+
+Record the exact source, packages and browser assets when collecting new evidence. Give changed
+workloads a new study identity and preserve the old manifests and raw results. The frozen Todo
+comparison retains its own workload and artifacts. [Frozen Todo comparison](../../spikes/todo-framework-comparison/isolated-results.md)
+
+This executable reference consumes root projects and uses the public `woge-fallback-client-assets`
+integration for its browser runtime.
 
 The same Playwright source verifies enhanced and no-JavaScript journeys on all three hosts in
 Chromium, Firefox and WebKit:

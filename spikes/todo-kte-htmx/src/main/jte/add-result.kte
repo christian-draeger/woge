@@ -1,0 +1,5 @@
+@import example.todo.TodoSnapshot
+@param snapshot: TodoSnapshot
+@template.form(snapshot.filter)
+@template.board(snapshot, outOfBand = true)
+<p id="todo-status" role="status" hx-swap-oob="outerHTML">Todo added.</p>

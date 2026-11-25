@@ -73,6 +73,90 @@ database. It checks native paging, keyboard and emulated touch selection, strict
 response, and fallback after a failed import or unavailable endpoint. Physical touch and
 assistive-technology review remain [manual work](https://github.com/christian-draeger/woge/issues/253).
 
+## Run two PetClinic instances on PostgreSQL
+
+Build the optional cluster archive with JDK 21, using the clean pinned PetClinic checkout from
+the first step. The cluster fixture uses Python 3 and a local Docker engine. PostgreSQL 18.6 is
+pinned by digest. After the initial image pull, the runner uses that cached image.
+
+```sh
+./gradlew -p examples/petclinic-woge test bootJar \
+  -PpetclinicCluster=true \
+  -PpetclinicSource=/tmp/petclinic-reference \
+  -PwogeRepository=https://central.sonatype.com/repository/maven-snapshots/ \
+  -PwogeVersion=0.1.0-SNAPSHOT
+docker pull postgres@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+python3 examples/petclinic-woge/cluster/run.py \
+  examples/petclinic-woge/build/libs/woge-petclinic.jar /tmp/petclinic-reference
+```
+
+The runner applies the upstream PetClinic and Spring Session JDBC schemas once, then starts two
+separate JVMs on dynamically assigned loopback ports. Both use the same PostgreSQL data, Spring
+Security sessions and Woge render identity secret. The visit form still uses the original controller.
+The live route at `/woge/cluster/owners/1` checks a PostgreSQL owner grant for the signed-in account
+on each document, refresh and subscription request. The seeded account can use the existing
+PetClinic pages under their original shared-access policy.
+
+Each node holds one dedicated PostgreSQL listener. The visit trigger publishes an empty
+invalidation on commit. The local flow keeps one pending signal per node and Woge sends region
+handles over SSE. A refresh reads the authorized visit data from PostgreSQL. Client reconnect and
+database listener recovery each request current state through the same route. The native HTML
+page reads the same state with JavaScript disabled. References:
+[PostgreSQL JDBC notifications](https://jdbc.postgresql.org/documentation/server-prepare/#listen--notify) and
+[Spring Boot session integration](https://docs.spring.io/spring-boot/4.1/reference/web/spring-session.html).
+
+The runner measures a write on node B reaching SSE on node A, a patch served by B for an A-issued
+render target, and recovery of a database listener after its connection is terminated. It checks
+external writes across client reconnect, missing CSRF, anonymous access, a revoked owner grant,
+and rejection of captured cookies after logout on another node or JDBC session expiry. Timings
+describe local single-client samples.
+
+### Verify an uncertain write and a conflict
+
+The cluster-only **Schedule an owner follow-up** form uses a single PostgreSQL slot for the seeded
+owner. It is rendered as native HTML with Woge's HTML writer. The ordinary Spring MVC POST checks
+Spring CSRF, the current owner grant and the database revision. Each submitted UUID is scoped to
+the authenticated account and owner. PostgreSQL commits the receipt and the versioned date update
+together. A matching duplicate redirects to the same GET. A reused UUID with different values or
+a new command based on an old revision returns 409 with a link to the current form. Failed writes
+roll back their receipts. The fixture retains successful receipts for the lifetime of its temporary
+database. [PostgreSQL Read Committed behavior](https://www.postgresql.org/docs/18/transaction-iso.html#XACT-READ-COMMITTED)
+
+The same runner submits concurrent native requests to both nodes, then closes a POST connection
+without reading its response. It verifies the committed date on the peer with a safe GET before
+explicitly resending the same command. The resend changes neither the date nor the database revision.
+The runner also checks that a successful receipt cannot bypass a revoked owner grant. PetClinic's
+original visit booking follows its upstream behavior. Load and lifetime limits, rolling upgrades,
+rollback and production operations remain tracked in
+[the multi-instance milestone](https://github.com/christian-draeger/woge/issues/289).
+
+### Verify TLS and HTTP/2 ingress
+
+Use OpenSSL and a curl build that lists `HTTP2` in `curl --version`. The optional ingress check uses
+the same cluster JAR and PostgreSQL image. It also needs the pinned nginx 1.28.3 image in the local
+Docker cache.
+
+```sh
+docker pull nginx@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+python3 examples/petclinic-woge/cluster/run.py \
+  examples/petclinic-woge/build/libs/woge-petclinic.jar /tmp/petclinic-reference --tls-ingress
+```
+
+nginx serves TLS on a random loopback port and forwards HTTP/1.1 to the separate JVMs. Linux uses
+Docker host networking. The macOS Docker runtime needs the `host.docker.internal` mapping. The
+runner generates a short-lived CA and an IP certificate for `127.0.0.1`, tests rejection without
+the CA, then verifies the certificate chain and `h2` negotiation using the temporary CA.
+[nginx HTTP/2 configuration](https://nginx.org/en/docs/http/ngx_http_v2_module.html)
+
+The test routes requests to each JVM, signs in on the first and books a visit on the second using
+the same Secure Spring Session cookie and CSRF token. The proxy replaces incoming forwarded
+authority headers with its configured loopback authority. Spring enables forwarded headers for
+this isolated ingress mode. An enhanced POST with a foreign Origin is rejected even if it supplies
+its own forwarding headers. An authorized POST produces a Woge SSE invalidation on the first JVM
+and a fresh patch from the second. Both SSE events arrive while one HTTP/2 stream stays open.
+The test routing header and loopback certificate are fixture settings. Mobile networks, a managed
+ingress and CDN behavior remain outside this test. [Spring MVC origin handling](../../docs/guides/spring-mvc-adapter.md#protect-form-actions)
+
 ## Try the Thymeleaf baseline
 
 Set `PETCLINIC_WOGE_ENABLED=false` before startup and open `/owners/find`. The flag controls the Woge

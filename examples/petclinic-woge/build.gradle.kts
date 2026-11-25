@@ -7,6 +7,11 @@ plugins {
 
 val upstream = file(providers.gradleProperty("petclinicSource").get())
 val wogeVersion: String by project
+val clusterFixture = providers.gradleProperty("petclinicCluster").map(String::toBoolean).getOrElse(false)
+
+if (clusterFixture) {
+    kotlin.sourceSets.named("main") { kotlin.srcDir("src/cluster/kotlin") }
+}
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 springBoot.mainClass.set("org.springframework.samples.petclinic.PetClinicApplication")
@@ -42,6 +47,11 @@ dependencies {
     runtimeOnly("org.webjars.npm:font-awesome:4.7.0")
     runtimeOnly("com.github.ben-manes.caffeine:caffeine")
     runtimeOnly("com.h2database:h2")
+
+    if (clusterFixture) {
+        implementation("org.postgresql:postgresql")
+        implementation("org.springframework.session:spring-session-jdbc")
+    }
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jsoup:jsoup:1.23.2")

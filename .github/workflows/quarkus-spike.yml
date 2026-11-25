@@ -1,0 +1,58 @@
+name: Quarkus host spike
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/quarkus-spike.yml"
+      - "spikes/quarkus-host/**"
+      - "examples/complexity-gradient/**/t01staticpage/**"
+      - "examples/complexity-gradient/**/static-page/**"
+      - "examples/complexity-gradient/**/t06deferredregion/**"
+      - "examples/complexity-gradient/**/deferred-region/**"
+      - "client/woge-fallback-client/package-lock.json"
+
+permissions:
+  contents: read
+
+jobs:
+  jvm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: 7bf1e3e53aa8f4332828eec9231882aae1aee275
+          path: build/quarkus-pilot-source
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+      - name: Rebuild the fixed Woge pilot artifacts
+        run: ./gradlew -p build/quarkus-pilot-source publishScaffoldArtifacts -PwogeVersion=0.1.0-beta.1 --console=plain
+      - name: Test and package the real Quarkus server
+        run: |
+          ./gradlew -p spikes/quarkus-host test quarkusBuild --console=plain \
+            -PwogeRepository="$GITHUB_WORKSPACE/build/quarkus-pilot-source/build/scaffold-maven-repository"
+          test -s spikes/quarkus-host/build/quarkus-app/quarkus-run.jar
+      - name: Check the packaged Quarkus browser journeys
+        run: |
+          npm --prefix client/woge-fallback-client ci --ignore-scripts
+          npm --prefix client/woge-fallback-client exec -- playwright install --with-deps chromium
+          node spikes/quarkus-host/verify.mjs
+      - name: Archive the HTTP test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: woge-quarkus-http-report
+          path: spikes/quarkus-host/build/test-results/test/
+          if-no-files-found: warn

@@ -23,14 +23,16 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class LocalizedInvoiceTest {
     @Test
-    fun `the same exact decimal and calendar dates survive both locale contracts`() =
+    fun `the same exact decimal and calendar values survive all locale contracts`() =
         runBlocking {
             for ((locale, amount, due) in listOf(
                 Triple("de-DE", "90071992547409,93", "11.10.2026"),
                 Triple("en-US", "90071992547409.93", "10/11/2026"),
+                Triple("ar-EG", "٩٠٠٧١٩٩٢٥٤٧٤٠٩٫٩٣", "١١/١٠/٢٠٢٦"),
             )) {
                 val page = localizedInvoicePage(context(locale, RequestMethod.GET)).document().markup()
-                assertTrue(page.contains("""<html lang="$locale">"""))
+                val direction = if (locale == "ar-EG") "rtl" else "ltr"
+                assertTrue(page.contains("""<html lang="$locale" dir="$direction">"""))
                 assertTrue(page.contains("""name="serviceDay" id="invoice-service-day" """))
                 assertTrue(page.contains("""type="date""""))
                 assertTrue(page.contains("""name="formLanguage" value="$locale""""))
@@ -44,6 +46,7 @@ class LocalizedInvoiceTest {
                 assertTrue(status.contains("$amount EUR"), status)
                 assertTrue(status.contains("2026-02-28"), status)
                 assertTrue(status.contains(due), status)
+                assertTrue(status.contains("2026-10-11T10:30:00Z"), status)
             }
         }
 
@@ -109,7 +112,8 @@ class LocalizedInvoiceTest {
             val tampered =
                 execute(
                     "en-US",
-                    "amount=1.20&amount=2.40&serviceDay=2026-02-28&dueDay=02%2F28%2F2026&formLanguage=en-US",
+                    "amount=1.20&amount=2.40&serviceDay=2026-02-28&dueDay=02%2F28%2F2026" +
+                        "&paymentTime=2026-10-11T12%3A30&formLanguage=en-US",
                 )
             assertEquals(ResponseStatus.BAD_REQUEST, tampered.nativeResult.metadata.status)
             assertTrue(
@@ -120,6 +124,53 @@ class LocalizedInvoiceTest {
             )
         }
 
+    @Test
+    fun `an offset an alternate zone or ambiguous numeric symbols cannot change the wire policy`() =
+        runBlocking {
+            val invalidTimes =
+                listOf(
+                    "",
+                    "2026-03-29T02:30+01:00",
+                    "2026-03-29T03:30[UTC]",
+                    "٢٠٢٦-٠٣-٢٩T٠٣:٣٠",
+                    "2026-02-29T12:30",
+                )
+            val fields =
+                mapOf(
+                    "amount" to "1.20",
+                    "serviceDay" to "2026-02-28",
+                    "dueDay" to "02/28/2026",
+                    "formLanguage" to "en-US",
+                )
+            for (time in invalidTimes) {
+                val invalid = submit("en-US", fields + ("paymentTime" to time))
+                assertEquals(ResponseStatus.BAD_REQUEST, invalid.nativeResult.metadata.status)
+                assertTrue(
+                    invalid.patches
+                        .single()
+                        .html.value
+                        .contains("""href="#invoice-payment-time""""),
+                )
+                assertTrue(
+                    invalid.patches
+                        .single()
+                        .html.value
+                        .contains("""value="$time""""),
+                )
+            }
+
+            for (amount in listOf("1.20", "١.٢٠", "١٫20", "١٬٢٣٤٫٥٦", "١٫٢e٢")) {
+                val invalid = submit("ar-EG", amount, "2026-02-28", "٢٨/٠٢/٢٠٢٦")
+                assertEquals(ResponseStatus.BAD_REQUEST, invalid.nativeResult.metadata.status)
+                assertTrue(
+                    invalid.patches
+                        .single()
+                        .html.value
+                        .contains("""value="$amount""""),
+                )
+            }
+        }
+
     private suspend fun submit(
         locale: String,
         amount: String,
@@ -127,11 +178,24 @@ class LocalizedInvoiceTest {
         dueDay: String,
         formLanguage: String = locale,
     ): PageResult.RegionUpdates =
+        submit(
+            locale,
+            mapOf(
+                "amount" to amount,
+                "serviceDay" to serviceDay,
+                "dueDay" to dueDay,
+                "paymentTime" to "2026-10-11T12:30",
+                "formLanguage" to formLanguage,
+            ),
+        )
+
+    private suspend fun submit(
+        locale: String,
+        fields: Map<String, String>,
+    ): PageResult.RegionUpdates =
         execute(
             locale,
-            mapOf("amount" to amount, "serviceDay" to serviceDay, "dueDay" to dueDay, "formLanguage" to formLanguage)
-                .entries
-                .joinToString("&") { (key, value) -> "$key=${URLEncoder.encode(value, UTF_8)}" },
+            fields.entries.joinToString("&") { (key, value) -> "$key=${URLEncoder.encode(value, UTF_8)}" },
         )
 
     private suspend fun execute(

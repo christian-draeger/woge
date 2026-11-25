@@ -172,3 +172,4 @@ indexes and assembles these decisions rather than adding one.
 | [0117](0117-main-snapshots-to-maven-central.md) | Proposed | Publish checked main snapshots to Maven Central |
 | [0118](0118-internal-jvm-diagnostic-logging.md) | Proposed | Standardize internal JVM diagnostic logging |
 | [0119](0119-defer-application-feature-generator.md) | Accepted | Retain one application-owned feature recipe and defer a generator |
+| [0120](0120-probe-quarkus-vertx-http-host.md) | Proposed | Verify the Quarkus JVM host boundary through the Vert.x Router |

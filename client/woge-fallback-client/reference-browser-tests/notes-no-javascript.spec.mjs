@@ -15,3 +15,17 @@ test("quickstart native form uses POST 303 GET and refresh does not repeat the c
   await page.reload();
   await expect(page.locator("li", { hasText: title })).toHaveCount(1);
 });
+
+test("quickstart native validation returns the submitted value for correction", async ({ page }) => {
+  await page.goto("/notes");
+  const draft = "   ";
+  const input = page.getByLabel("New note");
+  await input.fill(draft);
+  const post = page.waitForResponse((response) =>
+    response.request().method() === "POST" && response.url().endsWith("/woge-actions/add-note"));
+  await page.getByRole("button", { name: "Add note" }).click();
+
+  expect((await post).status()).toBe(400);
+  await expect(page.locator("#note-errors")).toContainText("Enter a note.");
+  await expect(input).toHaveValue(draft);
+});

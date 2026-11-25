@@ -3,6 +3,7 @@ package dev.woge.tck
 import dev.woge.host.DirectoryUploadTemporaryFiles
 import dev.woge.host.UploadTemporaryFiles
 import java.nio.file.Path
+import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -63,6 +64,7 @@ internal class UploadTimeline(
 ) : AutoCloseable {
     val id: String = UUID.randomUUID().toString()
     private val started = System.nanoTime()
+    private val startedAt = Instant.now()
     private val events = mutableListOf<String>()
     private var printed = false
 
@@ -82,7 +84,10 @@ internal class UploadTimeline(
     @Synchronized
     fun print() {
         if (!printed) {
-            println("Multipart TCK timeline $id (at most $MAX_UPLOAD_EVENTS events):\n${events.joinToString("\n")}")
+            println(
+                "Multipart TCK timeline $id (at most $MAX_UPLOAD_EVENTS events, startedAt=$startedAt):\n" +
+                    events.joinToString("\n"),
+            )
             printed = true
         }
     }

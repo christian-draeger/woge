@@ -1,0 +1,20 @@
+@param filter: String
+@param title: String = ""
+@param hasError: Boolean = false
+<div id="todo-form">
+    @if(hasError)
+        <div id="todo-errors" tabindex="-1">
+            <h2>Check your todo</h2>
+            <p><a href="#todo-title">Enter a title of 1 to 120 characters.</a></p>
+        </div>
+    @endif
+    <form id="add-todo" method="post" action="/woge-actions/add-todo"
+          hx-post="/woge-actions/add-todo" hx-target="#todo-form" hx-swap="outerHTML" hx-sync="#todo-form:drop">
+        <label for="todo-title">New todo</label>
+        <input id="todo-title" name="title" required maxlength="120" value="${title}"
+               aria-invalid="${if (hasError) "true" else null}"
+               aria-describedby="${if (hasError) "todo-errors" else null}">
+        <input type="hidden" name="filter" value="${filter}">
+        <button>Add todo</button>
+    </form>
+</div>
