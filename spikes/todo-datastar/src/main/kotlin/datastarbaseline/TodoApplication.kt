@@ -6,8 +6,7 @@ import example.todo.todos
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.SpringBootConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -35,8 +34,7 @@ fun main(args: Array<String>) {
         .run(*args)
 }
 
-@SpringBootConfiguration(proxyBeanMethods = false)
-@EnableAutoConfiguration
+@SpringBootApplication(proxyBeanMethods = false)
 class TodoApplication {
     @Bean
     fun routes() = coRouter {
@@ -107,17 +105,19 @@ private val templates = TemplateEngine().apply {
 private val random = SecureRandom()
 
 private suspend fun page(filter: String, title: String = "", hasError: Boolean = false): ServerResponse {
-    val nonce = Base64.getEncoder().encodeToString(ByteArray(16).also(random::nextBytes))
+    val nonce = documentNonce()
     val model = mapOf("snapshot" to todos.snapshot(filter), "choices" to FILTERS, "draft" to title,
         "hasError" to hasError, "focus" to false, "nonce" to nonce)
     val status = if (hasError) HttpStatus.BAD_REQUEST else HttpStatus.OK
     return html(status, render("page", model), nonce)
 }
 
-private fun render(template: String, model: Map<String, Any>): String =
+internal fun documentNonce(): String = Base64.getEncoder().encodeToString(ByteArray(16).also(random::nextBytes))
+
+internal fun render(template: String, model: Map<String, Any>): String =
     templates.process(template, Context(Locale.ROOT, model))
 
-private suspend fun html(status: HttpStatus, html: String, nonce: String? = null): ServerResponse {
+internal suspend fun html(status: HttpStatus, html: String, nonce: String? = null): ServerResponse {
     val response = ServerResponse.status(status)
         .header(HttpHeaders.VARY, "Datastar-Request")
         .header(HttpHeaders.CACHE_CONTROL, "no-store")
@@ -129,12 +129,12 @@ private suspend fun html(status: HttpStatus, html: String, nonce: String? = null
     return response.bodyValueAndAwait(html)
 }
 
-private fun streamResponse(status: HttpStatus): ServerResponse.BodyBuilder = ServerResponse.status(status)
+internal fun streamResponse(status: HttpStatus): ServerResponse.BodyBuilder = ServerResponse.status(status)
     .header(HttpHeaders.VARY, "Datastar-Request")
     .header(HttpHeaders.CACHE_CONTROL, "no-store, no-transform")
     .contentType(MediaType.TEXT_EVENT_STREAM)
 
-private fun patchElements(html: String, replace: Boolean = false): ServerSentEvent<String> {
+internal fun patchElements(html: String, replace: Boolean = false): ServerSentEvent<String> {
     val elements = html.trim().lineSequence().joinToString("\n") { "elements $it" }
     return ServerSentEvent.builder(if (replace) "mode replace\n$elements" else elements)
         .event("datastar-patch-elements").build()

@@ -21,8 +21,21 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+val todoDeferredStudy = providers.gradleProperty("todoDeferredStudy").orNull == "true"
+
 kotlin {
     compilerOptions.jvmTarget = JvmTarget.JVM_17
+    if (todoDeferredStudy) {
+        sourceSets.named("main") {
+            kotlin.srcDirs("../../spikes/todo-datastar/src/deferred/shared", "../../spikes/todo-datastar/src/deferred/woge")
+        }
+    }
+}
+
+if (todoDeferredStudy) {
+    tasks.processResources {
+        from("../../spikes/todo-datastar/src/deferred/woge-resources")
+    }
 }
 
 tasks.named<dev.woge.gradle.WogeManifestTask>("wogeManifest") {

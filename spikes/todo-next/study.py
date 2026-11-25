@@ -64,7 +64,7 @@ def request(connection, path="/", method="GET", body=None, headers=None):
 
 
 @contextlib.contextmanager
-def running(kind, path, logs):
+def running(kind, path, logs, *, application_args=()):
     name = "woge-todo-study-" + secrets.token_hex(6)
     next_app = kind == "next"
     image = NODE if next_app else JAVA
@@ -82,7 +82,7 @@ def running(kind, path, logs):
     if next_app:
         args.extend(["-w", "/study"])
     started = time.monotonic()
-    command(*args, image, *launch)
+    command(*args, image, *launch, *application_args)
     try:
         port = int(command("docker", "port", name, "8080/tcp").rsplit(":", 1)[1])
         deadline = time.monotonic() + 30

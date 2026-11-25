@@ -17,7 +17,12 @@ val copyTodoSource by tasks.registering(Sync::class) {
     from(sharedTodo.dir("kotlin")) { include("example/todo/Todos.kt") }
     into(layout.buildDirectory.dir("generated/shared-todo"))
 }
-kotlin.sourceSets.named("main") { kotlin.srcDir(copyTodoSource) }
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(copyTodoSource)
+    if (providers.gradleProperty("todoDeferredStudy").orNull == "true") {
+        kotlin.srcDirs("src/deferred/shared", "src/deferred/datastar")
+    }
+}
 
 tasks.processResources {
     from(sharedTodo.file("resources/static/todo.css")) { into("static") }
