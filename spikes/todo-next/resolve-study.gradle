@@ -1,0 +1,18 @@
+gradle.projectsEvaluated {
+    rootProject.tasks.register('resolveStudyDependencies') {
+        doLast {
+            def shared = [
+                'compileClasspath', 'runtimeClasspath', 'productionRuntimeClasspath',
+                'kotlinBuildToolsApiClasspath', 'kotlinCompilerClasspath',
+                'kotlinCompilerPluginClasspathMain',
+            ]
+            def specific = rootProject.name == 'woge-todo'
+                ? ['kspKotlinProcessorClasspath', 'kspPluginClasspath', 'kspPluginClasspathNonEmbeddable']
+                : ['htmxAsset']
+            for (name in shared + specific) {
+                def files = rootProject.configurations.getByName(name).files
+                println("${name}: ${files.size()} resolved files")
+            }
+        }
+    }
+}
