@@ -88,6 +88,9 @@ Events; the browser reloads each region with its normal, authorized GET.
 The [Ktor adapter guide](ktor-adapter.md) connects the same portable page to ordinary suspending Ktor
 routes while keeping Spring Boot as the primary getting-started path.
 
+The [Quarkus quickstart](../../examples/quarkus-consumer/README.md) packages the maintained portable
+pages, typed forms and deferred forecast in a standalone JVM application using the local candidate.
+
 The [development loop guide](development-loop.md) documents the one command, beta support,
 troubleshooting and optional feedback benchmark.
 

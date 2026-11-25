@@ -71,6 +71,16 @@ printf '%s\n' \
   >"$leak_fixture/modules/woge-core/src/main/kotlin/dev/woge/core/InvalidCoreApi.kt"
 expect_rejection "$leak_fixture" "references a host framework"
 
+quarkus_leak_fixture="$scratch_root/quarkus-framework-leak"
+prepare_fixture "$quarkus_leak_fixture"
+mkdir -p "$quarkus_leak_fixture/modules/woge-host-spi/src/main/kotlin/dev/woge/host"
+printf '%s\n' \
+  'package dev.woge.host' \
+  'import io.vertx.ext.web.RoutingContext' \
+  'public interface InvalidHostApi { public val context: RoutingContext }' \
+  >"$quarkus_leak_fixture/modules/woge-host-spi/src/main/kotlin/dev/woge/host/InvalidHostApi.kt"
+expect_rejection "$quarkus_leak_fixture" "woge-host-spi references a host framework"
+
 adapter_fixture="$scratch_root/adapter-cross-dependency"
 prepare_fixture "$adapter_fixture"
 printf '\ndependencies {\n    testImplementation(project(":woge-spring-webflux"))\n}\n' \

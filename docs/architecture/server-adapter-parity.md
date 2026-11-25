@@ -41,6 +41,7 @@ HTTP abort.
 | Spring Boot WebFlux | Yes | Yes | Yes | Yes | Passing |
 | Spring Boot MVC | Yes | Yes | Yes | Failed-write/timeout | Passing |
 | Ktor | Yes | Yes | Yes | Failed-write/coroutine cancellation | Passing |
+| Quarkus JVM candidate | Yes | Yes | Yes | Yes | [Dedicated candidate gate](../../adapters/woge-quarkus/README.md) |
 
 WebFlux, MVC and Ktor are executable consumers of the same fixture. MVC and Ktor intentionally omit
 the passive client-abort capability because their tested engines expose an idle disconnect only when
