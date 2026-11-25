@@ -14,7 +14,7 @@ From this repository, with JDK 21:
 
 Open `http://localhost:8080/notes`. Stop with Ctrl+C. First-time dependency downloads may take longer
 than five minutes. No Node, Vite or Tailwind is needed. Woge is pre-release: this checkout uses
-`0.1.0-SNAPSHOT`, Kotlin `2.4.10`, Spring Boot `4.1.1` and Java 17-compatible bytecode.
+`0.1.0-SNAPSHOT`, Kotlin `2.4.10`, Spring Boot `4.1.2` and Java 17-compatible bytecode.
 
 For your own project, start from the [Spring Boot scaffold](../../scaffolds/spring-boot/README.md).
 Its idiomatic configuration is the neutral Woge starter plus **one** host: `woge-spring-webflux` and
