@@ -110,3 +110,6 @@ This slice leaves independent browser-visible timing, sustained load,
 broader failure paths and full-application resource attribution for their
 own studies. No runtime or API change follows from it.
 [Broader performance study #293](https://github.com/christian-draeger/woge/issues/293)
+
+The [frame-copy follow-up](patch-frame-copies-2026-11-25.md) measured the isolated allocation
+and browser-visible behavior on the same host pair. It retained the existing frame assembly.
